@@ -89,6 +89,9 @@
 	<!-- Hostname field title for stream editor preference -->
 	<string name="streampref_hostname_title">Stream</string>
 
+	<!-- Path field title for stream editor preference -->
+	<string name="streampref_path_title">Path</string>
+
 	<!-- Port field title for stream editor preference -->
 	<string name="streampref_port_title">Port</string>
 
