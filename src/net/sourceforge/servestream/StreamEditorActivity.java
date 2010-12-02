@@ -77,7 +77,6 @@ public class StreamEditorActivity extends PreferenceActivity implements OnShared
 			if (cursor.moveToFirst()) {
 				for(int i = 0; i < cursor.getColumnCount(); i++) {
 					String key = cursor.getColumnName(i);
-					//if(key.equals(StreamDatabase.FIELD_HOST_HOSTKEY)) continue;
 					String value = cursor.getString(i);
 					values.put(key, value);
 				}
@@ -240,25 +239,11 @@ public class StreamEditorActivity extends PreferenceActivity implements OnShared
 	private void updateSummaries() {
 		// for all text preferences, set hint as current database value
 		for (String key : this.pref.values.keySet()) {
-			//if(key.equals(StreamDatabase.FIELD_HOST_POSTLOGIN)) continue;
 			Preference pref = this.findPreference(key);
 			if(pref == null) continue;
 			if(pref instanceof CheckBoxPreference) continue;
 			CharSequence value = this.pref.getString(key, "");
 
-			/*if (key.equals(StreamDatabase.FIELD_HOST_PUBKEYID)) {
-				try {
-					int pubkeyId = Integer.parseInt((String) value);
-					if (pubkeyId >= 0)
-						pref.setSummary(pubkeydb.getNickname(pubkeyId));
-					else if(pubkeyId == StreamDatabase.PUBKEYID_ANY)
-						pref.setSummary(R.string.list_pubkeyids_any);
-					else if(pubkeyId == StreamDatabase.PUBKEYID_NEVER)
-						pref.setSummary(R.string.list_pubkeyids_none);
-					continue;
-				} catch (NumberFormatException nfe) {
-					// Fall through.
-				}*/
 			if (pref instanceof ListPreference) {
 				ListPreference listPref = (ListPreference) pref;
 				int entryIndex = listPref.findIndexOfValue((String) value);
