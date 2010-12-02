@@ -44,7 +44,6 @@
 		<EditTextPreference
 			android:key="path"
 			android:title="@string/streampref_path_title"
-			android:numeric="integer"
 			/>
 
 	</PreferenceCategory>
