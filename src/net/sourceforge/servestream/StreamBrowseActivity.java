@@ -65,8 +65,9 @@ public class StreamBrowseActivity extends ListActivity {
 
 	public final static int REQUEST_SAVE = 1;
 	
-    StreamParser m_targetURL = null;
-	
+    StreamParser m_streamURLs = null;
+	String m_currentStreamURL = null;
+    
     ArrayAdapter<String> m_adapt = null;
     Context m_currentContext = null;
     
@@ -77,7 +78,11 @@ public class StreamBrowseActivity extends ListActivity {
 	public void onStart() {
 		super.onStart();
 		
-		updateList();
+		try {
+    	m_streamURLs = new StreamParser(m_currentStreamURL);
+		} catch (Exception ex) {
+		}
+    	updateList();
 		
 		if(this.m_streamdb == null)
 			this.m_streamdb = new StreamDatabase(this);
@@ -102,10 +107,7 @@ public class StreamBrowseActivity extends ListActivity {
 				getResources().getText(R.string.app_name),
 				getResources().getText(R.string.title_stream_browse)));        
         
-        try {
-    		m_targetURL = new StreamParser(getIntent().getExtras().getString("net.sourceforge.servestream.TargetStream"));
-    	    } catch (Exception ex) {
-            }
+		m_currentStreamURL = getIntent().getExtras().getString("net.sourceforge.servestream.TargetStream");
 		
 		this.m_streamdb = new StreamDatabase(this);
 		ListView list = this.getListView();
@@ -118,7 +120,7 @@ public class StreamBrowseActivity extends ListActivity {
 				//    Toast.LENGTH_SHORT).show();
 				
 				try {
-				    String targetStream = m_targetURL.getHREF(position);
+				    String targetStream = m_streamURLs.getHREF(position);
 				    handleStream(targetStream);
 				} catch (Exception ex) {
 					ex.printStackTrace();
@@ -156,8 +158,11 @@ public class StreamBrowseActivity extends ListActivity {
 		final AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo) menuInfo;
 		final String streamString = (String) this.getListView().getItemAtPosition(info.position);
 
+		Log.v("stream string",streamString);
+		Log.v("url string", m_streamURLs.getHREF(info.position));
+		
 		final Stream stream = new Stream();
-		stream.createStream(m_targetURL.getHREF(info.position));
+		stream.createStream(m_streamURLs.getHREF(info.position));
 		
 		// set the menu to the name of the stream
 		menu.setHeaderTitle(streamString);
@@ -186,7 +191,7 @@ public class StreamBrowseActivity extends ListActivity {
 			public boolean onMenuItemClick(MenuItem arg0) {
 				// prompt user to make sure they really want this
 				new AlertDialog.Builder(StreamBrowseActivity.this)
-					.setMessage(m_targetURL.getHREF(info.position))
+					.setMessage(m_streamURLs.getHREF(info.position))
 					.setPositiveButton(R.string.view_pos, new DialogInterface.OnClickListener() {
 						public void onClick(DialogInterface dialog, int which) {
                             return;
@@ -200,9 +205,9 @@ public class StreamBrowseActivity extends ListActivity {
 	
 	protected void updateList() {
 		
-        m_targetURL.getListing();
+		m_streamURLs.getListing();
 
-		ArrayList<String> streams = m_targetURL.getTextLinks();
+		ArrayList<String> streams = m_streamURLs.getTextLinks();
 
 		StreamAdapter adapter = new StreamAdapter(this, streams);
 
@@ -216,7 +221,8 @@ public class StreamBrowseActivity extends ListActivity {
 		
 		if (contentTypeCode == URLUtils.DIRECTORY) {
 			try {
-			m_targetURL = new StreamParser(stream);
+				m_currentStreamURL = stream;
+				m_streamURLs = new StreamParser(m_currentStreamURL);
 			} catch (Exception ex) {
 				ex.printStackTrace();
 			}
