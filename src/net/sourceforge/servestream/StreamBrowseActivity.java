@@ -157,9 +157,6 @@ public class StreamBrowseActivity extends ListActivity {
 		// create menu to handle deleting and sharing lists
 		final AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo) menuInfo;
 		final String streamString = (String) this.getListView().getItemAtPosition(info.position);
-
-		Log.v("stream string",streamString);
-		Log.v("url string", m_streamURLs.getHREF(info.position));
 		
 		final Stream stream = new Stream();
 		stream.createStream(m_streamURLs.getHREF(info.position));
