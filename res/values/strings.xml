@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+/*
+ * ServeStream: A HTTP stream browser/player for Android
+ * Copyright 2010 William Seemann
+ * 
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+-->
+
+<resources>
+	
+	<string name="app_desc">An Open-Source HTTP Media Stream Browser and Player.</string>
+	
+	<string name="help_intro">Please select a topic below for more information on a particular subject.</string>
+
+	<!-- Displayed to indicate a stream has never been connected to. -->
+	<string name="bind_never">Never connected</string>
+	<!-- The time that has elapsed since a stream was connected to when it has been less than an hour. -->
+	<string name="bind_minutes">%1$s minutes ago</string>
+	<!-- The time that has elapsed since a stream was connected to when it has been less than a day. -->
+	<string name="bind_hours">%1$s hours ago</string>
+	<!-- The time that has elapsed since a stream was connected to when it has been a day or more. -->
+	<string name="bind_days">%1$s days ago</string>
+
+	<string name="delete_message">Are you sure you want to delete \'%1$s\'?</string>
+	<string name="delete_pos">Yes, delete</string>
+	<string name="delete_neg">Cancel</string>
+
+	<string name="save_message">Are you sure you want to save \'%1$s\'?</string>
+	<string name="save_pos">Yes, save</string>
+	<string name="save_neg">Cancel</string>
+
+	<string name="view_pos">OK</string>
+	
+	<string name="list_stream_edit">Edit stream</string>
+	<string name="list_stream_delete">Delete stream</string>
+	<string name="list_stream_save">Save stream</string>
+	<string name="list_stream_view">View stream URL</string>
+	
+	<!-- Note that the '\n' splits the lines so it's actually "quick-connect box above to connect" -->
+	<string name="list_stream_empty">Use the quick-connect box\nabove to open a media stream.</string>
+
+	<string name="list_menu_settings">Settings</string>
+
+ 	<!-- Default screen rotation preference selection -->
+ 	<string name="list_rotation_default">Default</string>
+ 	<string name="list_rotation_land">Force landscape</string>
+ 	<string name="list_rotation_port">Force portrait</string>
+ 	<!-- Selection to indicate the rotation should be selected automatically based on the tilt sensor. -->
+ 	<string name="list_rotation_auto">Automatic</string>
+	
+ 	<!-- Frequency for which to check for program updates. -->
+ 	<string name="list_update_daily">Daily</string>
+ 	<!-- Frequency for which to check for program updates. -->
+ 	<string name="list_update_weekly">Weekly</string>
+ 	<!-- Frequency for which to check for program updates. -->
+ 	<string name="list_update_never">Never</string>
+
+	<!-- The category title for user interface preferences -->
+	<string name="pref_ui_category">User interface</string>
+
+	<!-- Name for the rotation mode preference -->
+	<string name="pref_rotation_title">Rotation mode</string>
+	<!-- Summary for the rotation mode preference -->
+	<string name="pref_rotation_summary">How to change rotation when keyboard popped in/out</string>
+
+	<!-- Name for the update check preference -->
+	<string name="pref_update_title">Update check</string>
+	<!-- Summary for the update check preference -->
+	<string name="pref_update_summary">Set the maximum frequency to check for ServeStream updates</string>
+
+	<!-- Stream nickname field preference title -->
+	<string name="streampref_nickname_title">Nickname</string>
+
+	<!-- Stream preference category title for connection settings -->
+	<string name="streampref_connection_category">Connection settings</string>
+
+	<!-- Hostname field title for stream editor preference -->
+	<string name="streampref_hostname_title">Stream</string>
+
+	<!-- Port field title for stream editor preference -->
+	<string name="streampref_port_title">Port</string>
+
+    <!-- Window title for the Stream List -->
+    <string name="text_go_button">Go</string>
+
+	<!-- Window title for Help index -->
+	<string name="title_help">Help</string>
+
+	<!-- Window title for main Stream List -->
+	<string name="title_stream_list">Streams</string>
+
+	<!-- Window title for Browsing Streams List -->
+	<string name="title_stream_browse">Browse Streams</string>
+
+	<!-- Window title for Playing Streams List -->
+	<string name="title_stream_play">Play Stream</string>
+	
+	<string name="text_previous_button">Previous</string>
+	
+	<string name="text_next_button">Next</string>
+</resources>
