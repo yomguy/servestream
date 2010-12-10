@@ -22,23 +22,17 @@ import java.util.ArrayList;
 import net.sourceforge.servestream.utils.PlaylistHandler;
 
 import android.app.Activity;
-import android.content.Intent;
 import android.media.MediaPlayer;
 import android.media.MediaPlayer.OnCompletionListener;
 import android.net.Uri;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.View;
-import android.view.View.OnClickListener;
-import android.widget.Button;
+import android.view.MenuItem.OnMenuItemClickListener;
 import android.widget.MediaController;
 import android.widget.VideoView;
 
 public class StreamMediaActivity extends Activity {
-	
-	private Button m_previousButton = null;
-	private Button m_nextButton = null;
 	
     private ArrayList<String> m_mediaFiles = null;
 	private int m_currentMediaFileIndex = 0;
@@ -46,6 +40,9 @@ public class StreamMediaActivity extends Activity {
     private String m_path = "";
 	private int m_mediaPosition = 0;
     
+	MenuItem m_menuPrevious = null;
+	MenuItem m_menuNext = null;
+	
     @Override
     public void onCreate(Bundle icicle) {
         super.onCreate(icicle);
@@ -66,40 +63,6 @@ public class StreamMediaActivity extends Activity {
         	m_mediaFiles.add(stream);
         }
         
-		m_previousButton = (Button) this.findViewById(R.id.previous_button);
-		if (m_currentMediaFileIndex == 0) {
-		    m_previousButton.setEnabled(false);
-			m_previousButton.setVisibility(View.INVISIBLE);
-		}
-		m_previousButton.setOnClickListener(new OnClickListener() {
-
-			public void onClick(View arg0) {
-				m_videoView.stopPlayback();
-				m_currentMediaFileIndex--;
-	            setPlaylistButtons();
-	            m_videoView.setVideoURI(Uri.parse(m_mediaFiles.get(m_currentMediaFileIndex)));
-	            m_videoView.start();
-			}
-			
-		});
-		
-		m_nextButton = (Button) this.findViewById(R.id.next_button);
-		if (!(m_mediaFiles.size() > 1)) {
-			m_nextButton.setEnabled(false);
-			m_nextButton.setVisibility(View.INVISIBLE);
-		}
-		m_nextButton.setOnClickListener(new OnClickListener() {
-
-			public void onClick(View arg0) {
-				m_videoView.stopPlayback();
-				m_currentMediaFileIndex++;
-	            setPlaylistButtons();
-	            m_videoView.setVideoURI(Uri.parse(m_mediaFiles.get(m_currentMediaFileIndex)));
-	            m_videoView.start();
-			}
-			
-		});
-        
         m_videoView = (VideoView) findViewById(R.id.surface_view);
         
         // attempt to get data from before device configuration change
@@ -109,7 +72,6 @@ public class StreamMediaActivity extends Activity {
             m_videoView.setOnCompletionListener(m_onCompletionListener);
             m_videoView.setVideoURI(Uri.parse(m_mediaFiles.get(m_currentMediaFileIndex)));
             m_videoView.setMediaController(new MediaController(this));
-            //m_media.show(0);
         } else {
         	m_videoView.setVideoURI(Uri.parse(m_mediaFiles.get(m_currentMediaFileIndex)));
         	m_videoView.seekTo(m_mediaPosition);
@@ -135,17 +97,39 @@ public class StreamMediaActivity extends Activity {
 	public boolean onCreateOptionsMenu(Menu menu) {
 		super.onCreateOptionsMenu(menu);
 		
-		MenuItem settings = menu.add(R.string.list_menu_settings);
-		settings.setIcon(android.R.drawable.ic_menu_preferences);
-		settings.setIntent(new Intent(StreamMediaActivity.this, SettingsActivity.class));
+		// build the previous button
+		m_menuPrevious = menu.add(R.string.text_previous_button);
+		m_menuPrevious.setIcon(android.R.drawable.ic_media_previous);
+		m_menuPrevious.setOnMenuItemClickListener(new OnMenuItemClickListener() {
+			public boolean onMenuItemClick(MenuItem arg0) {
+				m_videoView.stopPlayback();
+				m_currentMediaFileIndex--;
+				setPlaylistButtons();
+			    m_videoView.setVideoURI(Uri.parse(m_mediaFiles.get(m_currentMediaFileIndex)));
+			    m_videoView.start();
+			    return true;
+			}
+		});
+		
+		// build the next button
+		m_menuNext = menu.add(R.string.text_next_button);
+		m_menuNext.setIcon(android.R.drawable.ic_media_next);
+		m_menuNext.setOnMenuItemClickListener(new OnMenuItemClickListener() {
+	        public boolean onMenuItemClick(MenuItem arg0) {
+				m_videoView.stopPlayback();
+				m_currentMediaFileIndex++;
+				setPlaylistButtons();
+		        m_videoView.setVideoURI(Uri.parse(m_mediaFiles.get(m_currentMediaFileIndex)));
+		        m_videoView.start();
+		        return true;
+		    }
+		});
 
-		MenuItem help = menu.add(R.string.title_help);
-		help.setIcon(android.R.drawable.ic_menu_help);
-		help.setIntent(new Intent(StreamMediaActivity.this, HelpActivity.class));
-
+		setPlaylistButtons();
+		
 		return true;
 	}
-    
+	
     @Override
     public Object onRetainNonConfigurationInstance() {
         m_mediaPosition = m_videoView.getCurrentPosition();
@@ -160,15 +144,18 @@ public class StreamMediaActivity extends Activity {
     private void setPlaylistButtons() {
     	if (!(m_mediaFiles.size() == 1)) {
 	 	    if (m_currentMediaFileIndex == 0) {
-		        m_previousButton.setEnabled(false);
-		        m_nextButton.setEnabled(true);
+	 	    	m_menuPrevious.setEnabled(false);
+	 	    	m_menuNext.setEnabled(true);
 		    } else if (m_currentMediaFileIndex == m_mediaFiles.size() - 1) {
-		        m_previousButton.setEnabled(true);
-		        m_nextButton.setEnabled(false);		    	
+		    	m_menuPrevious.setEnabled(true);
+		    	m_menuNext.setEnabled(false);		    	
 		    } else {
-		        m_previousButton.setEnabled(true);
-		        m_nextButton.setEnabled(true);
+		    	m_menuPrevious.setEnabled(true);
+		    	m_menuNext.setEnabled(true);
 		    }
+    	} else {
+    	    m_menuPrevious.setEnabled(false);
+    	    m_menuNext.setEnabled(false);
     	}
     }
     
