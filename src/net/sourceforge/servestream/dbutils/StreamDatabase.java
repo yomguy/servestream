@@ -39,6 +39,7 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteException;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
 
@@ -86,8 +87,27 @@ public class StreamDatabase extends SQLiteOpenHelper {
 
 	@Override
 	public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-		// TODO Auto-generated method stub
-		
+		try {
+			onRobustUpgrade(db, oldVersion, newVersion);
+		} catch (SQLiteException e) {
+			// The database has entered an unknown state. Try to recover.
+			//TODO add this code
+			/*try {
+				regenerateTables(db);
+			} catch (SQLiteException e2) {
+				dropAndCreateTables(db);
+			}*/
+		}
+	}
+	
+	public void onRobustUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) throws SQLiteException {
+		// Versions of the database before the Android Market release will be
+		// shot without warning.
+		if (oldVersion <= 9) {
+			db.execSQL("DROP TABLE IF EXISTS " + TABLE_STREAMS);
+			onCreate(db);
+			return;
+		}
 	}
 	
 	private ArrayList<Stream> createStreamList(Cursor c) {
