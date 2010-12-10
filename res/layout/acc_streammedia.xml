@@ -25,29 +25,12 @@
 	android:layout_height="fill_parent"
 	>
 
- 	<Button android:id="@+id/next_button"
-  		android:layout_width="120px"
-  		android:layout_height="wrap_content"
-  		android:layout_alignParentTop="true"
-  		android:layout_alignParentRight="true"
-  		android:text="@string/text_next_button"
-  		/>
-  		<!--android:background="@drawable/btn_black"-->
- 
- 	<Button android:id="@+id/previous_button"
-  		android:layout_width="120px"
-  		android:layout_height="wrap_content"
-  		android:layout_alignParentLeft="true"
-  		android:layout_alignTop="@+id/next_button"
-  		android:text="@string/text_previous_button"
-  		/>
-  		<!--android:background="@drawable/btn_black"-->
-
     <VideoView 
         android:id="@+id/surface_view" 
-        android:layout_width="320px"
-        android:layout_height="240px"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
         android:layout_below="@+id/next_button"
+        android:theme="@android:style/Theme.NoTitleBar.Fullscreen"
     />
 
 </RelativeLayout>
