@@ -37,6 +37,9 @@
 	<string name="delete_pos">Yes, delete</string>
 	<string name="delete_neg">Cancel</string>
 
+	<string name="invalid_url_message">Please enter a valid URL</string>
+	<string name="invalid_url_pos">OK</string>
+
 	<string name="save_message">Are you sure you want to save \'%1$s\'?</string>
 	<string name="save_pos">Yes, save</string>
 	<string name="save_neg">Cancel</string>
