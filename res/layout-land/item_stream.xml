@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
 /*
- * ConnectBot: simple, powerful, open-source SSH client for Android
- * Copyright 2007 Kenny Root, Jeffrey Sharkey
- *
+ * ServeStream: A HTTP stream browser/player for Android
+ * Copyright 2010 William Seemann
+ * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -32,22 +32,22 @@
 		>
 
 	<TextView
-		android:id="@android:id/text1"
+		android:id="@android:id/text1"  
 		android:layout_width="wrap_content"
 		android:layout_height="wrap_content"
+		android:paddingRight="20dip"
 		android:singleLine="true"
 		android:ellipsize="end"
 		android:textAppearance="?android:attr/textAppearanceLarge"
 		/>
 
 	<TextView
-		android:id="@android:id/text2"
+		android:id="@android:id/text2"  
 		android:layout_width="wrap_content"
 		android:layout_height="wrap_content"
-		android:paddingLeft="10dip"
 		android:textAppearance="?android:attr/textAppearanceSmall"
+		android:layout_below="@android:id/text1"
 		/>
-
 		
 	</LinearLayout>
 
