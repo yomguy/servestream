@@ -24,7 +24,7 @@
 	android:layout_height="fill_parent"
 	>
 
-	<net.sourceforge.servestream.util.HelpTopicView
+	<net.sourceforge.servestream.utils.HelpTopicView
 		android:id="@+id/topic_text"
 		android:layout_width="fill_parent"
 		android:layout_height="fill_parent"
