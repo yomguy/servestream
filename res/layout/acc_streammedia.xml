@@ -29,8 +29,6 @@
         android:id="@+id/surface_view" 
         android:layout_width="fill_parent"
         android:layout_height="fill_parent"
-        android:layout_below="@+id/next_button"
-        android:theme="@android:style/Theme.NoTitleBar.Fullscreen"
     />
 
 </RelativeLayout>
