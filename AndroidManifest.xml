@@ -2,7 +2,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
 	package="net.sourceforge.servestream"
 	android:versionName="0.1"
-	android:versionCode="327"
+	android:versionCode="1"
 	android:installLocation="auto">
 
 	<application
@@ -29,11 +29,7 @@
 		<activity android:name=".SettingsActivity" android:configChanges="keyboardHidden|orientation" />
 		<activity android:name=".StreamBrowseActivity" android:configChanges="keyboardHidden|orientation" />
 		<activity android:name=".StreamEditorActivity" android:configChanges="keyboardHidden|orientation" />
-		<activity android:name=".StreamMediaActivity"
-			android:configChanges="keyboardHidden|orientation"
-			android:theme="@android:style/Theme.NoTitleBar.Fullscreen">
-		</activity>
-		
+		<activity android:name=".StreamMediaActivity" android:configChanges="keyboardHidden|orientation" />		
 
 	</application>
 
