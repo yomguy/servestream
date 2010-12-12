@@ -73,6 +73,7 @@ public class StreamMediaActivity extends Activity {
             m_videoView.setOnCompletionListener(m_onCompletionListener);
             m_videoView.setVideoURI(Uri.parse(m_mediaFiles.get(m_currentMediaFileIndex)));
             m_videoView.setMediaController(new MediaController(this));
+            Toast.makeText(StreamMediaActivity.this, "Now Playing: " + m_mediaFiles.get(m_currentMediaFileIndex), Toast.LENGTH_LONG).show();
         } else {
         	m_videoView.setVideoURI(Uri.parse(m_mediaFiles.get(m_currentMediaFileIndex)));
         	m_videoView.seekTo(m_mediaPosition);
@@ -110,6 +111,7 @@ public class StreamMediaActivity extends Activity {
 				setPlaylistButtons();
 			    m_videoView.setVideoURI(Uri.parse(m_mediaFiles.get(m_currentMediaFileIndex)));
 			    m_videoView.start();
+	            Toast.makeText(StreamMediaActivity.this, "Now Playing: " + m_mediaFiles.get(m_currentMediaFileIndex), Toast.LENGTH_LONG).show();
 			    return true;
 			}
 		});
@@ -124,6 +126,7 @@ public class StreamMediaActivity extends Activity {
 				setPlaylistButtons();
 		        m_videoView.setVideoURI(Uri.parse(m_mediaFiles.get(m_currentMediaFileIndex)));
 		        m_videoView.start();
+	            Toast.makeText(StreamMediaActivity.this, "Now Playing: " + m_mediaFiles.get(m_currentMediaFileIndex), Toast.LENGTH_LONG).show();
 		        return true;
 		    }
 		});
