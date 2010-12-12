@@ -332,17 +332,26 @@ public class StreamListActivity extends ListActivity {
 		
 		if (stringStream == null) {
 			new AlertDialog.Builder(StreamListActivity.this)
-			.setMessage("Please Enter A Valid Stream URL")
-			.setPositiveButton(R.string.delete_pos, new DialogInterface.OnClickListener() {
+			.setMessage(R.string.invalid_url_message)
+			.setPositiveButton(R.string.invalid_url_pos, new DialogInterface.OnClickListener() {
 				public void onClick(DialogInterface dialog, int which) {
 				}
-				});
+				}).create().show();
 			
             return false;
 		}
 		
 		m_targetStream = new Stream();
-		m_targetStream.createStream(stringStream);
+		if (!m_targetStream.createStream(stringStream)) {
+			new AlertDialog.Builder(StreamListActivity.this)
+			.setMessage(R.string.invalid_url_message)
+			.setPositiveButton(R.string.invalid_url_pos, new DialogInterface.OnClickListener() {
+				public void onClick(DialogInterface dialog, int which) {
+				}
+				}).create().show();
+				
+	        return false;
+		}
 		
 		return true;
 	}
