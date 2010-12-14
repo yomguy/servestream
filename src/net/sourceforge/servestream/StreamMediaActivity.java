@@ -26,9 +26,8 @@ import android.media.MediaPlayer;
 import android.media.MediaPlayer.OnCompletionListener;
 import android.net.Uri;
 import android.os.Bundle;
-import android.view.Menu;
-import android.view.MenuItem;
-import android.view.MenuItem.OnMenuItemClickListener;
+import android.view.View;
+import android.view.View.OnClickListener;
 import android.widget.MediaController;
 import android.widget.Toast;
 import android.widget.VideoView;
@@ -40,9 +39,8 @@ public class StreamMediaActivity extends Activity {
 	private VideoView m_videoView = null;
     private String m_path = "";
 	private int m_mediaPosition = 0;
-    
-	MenuItem m_menuPrevious = null;
-	MenuItem m_menuNext = null;
+	
+	private MediaController m_mediaController = null;
 	
     @Override
     public void onCreate(Bundle icicle) {
@@ -72,7 +70,14 @@ public class StreamMediaActivity extends Activity {
         if (returnData == null) {
             m_videoView.setOnCompletionListener(m_onCompletionListener);
             m_videoView.setVideoURI(Uri.parse(m_mediaFiles.get(m_currentMediaFileIndex)));
-            m_videoView.setMediaController(new MediaController(this));
+            m_mediaController = new MediaController(this, true);
+            
+            if (m_mediaFiles.size() > 1) {
+                m_mediaController.setPrevNextListeners(new nextOnClickListener(), new previousOnClickListener());
+                setPlaylistButtons();
+            }
+
+            m_videoView.setMediaController(m_mediaController);
             Toast.makeText(StreamMediaActivity.this, "Now Playing: " + m_mediaFiles.get(m_currentMediaFileIndex), Toast.LENGTH_LONG).show();
         } else {
         	m_videoView.setVideoURI(Uri.parse(m_mediaFiles.get(m_currentMediaFileIndex)));
@@ -96,45 +101,6 @@ public class StreamMediaActivity extends Activity {
 			}
 		}
     };
-    
-	@Override
-	public boolean onCreateOptionsMenu(Menu menu) {
-		super.onCreateOptionsMenu(menu);
-		
-		// build the previous button
-		m_menuPrevious = menu.add(R.string.text_previous_button);
-		m_menuPrevious.setIcon(android.R.drawable.ic_media_previous);
-		m_menuPrevious.setOnMenuItemClickListener(new OnMenuItemClickListener() {
-			public boolean onMenuItemClick(MenuItem arg0) {
-				m_videoView.stopPlayback();
-				m_currentMediaFileIndex--;
-				setPlaylistButtons();
-			    m_videoView.setVideoURI(Uri.parse(m_mediaFiles.get(m_currentMediaFileIndex)));
-			    m_videoView.start();
-	            Toast.makeText(StreamMediaActivity.this, "Now Playing: " + m_mediaFiles.get(m_currentMediaFileIndex), Toast.LENGTH_LONG).show();
-			    return true;
-			}
-		});
-		
-		// build the next button
-		m_menuNext = menu.add(R.string.text_next_button);
-		m_menuNext.setIcon(android.R.drawable.ic_media_next);
-		m_menuNext.setOnMenuItemClickListener(new OnMenuItemClickListener() {
-	        public boolean onMenuItemClick(MenuItem arg0) {
-				m_videoView.stopPlayback();
-				m_currentMediaFileIndex++;
-				setPlaylistButtons();
-		        m_videoView.setVideoURI(Uri.parse(m_mediaFiles.get(m_currentMediaFileIndex)));
-		        m_videoView.start();
-	            Toast.makeText(StreamMediaActivity.this, "Now Playing: " + m_mediaFiles.get(m_currentMediaFileIndex), Toast.LENGTH_LONG).show();
-		        return true;
-		    }
-		});
-
-		setPlaylistButtons();
-		
-		return true;
-	}
 	
     @Override
     public Object onRetainNonConfigurationInstance() {
@@ -150,18 +116,12 @@ public class StreamMediaActivity extends Activity {
     private void setPlaylistButtons() {
     	if (!(m_mediaFiles.size() == 1)) {
 	 	    if (m_currentMediaFileIndex == 0) {
-	 	    	m_menuPrevious.setEnabled(false);
-	 	    	m_menuNext.setEnabled(true);
+                m_mediaController.setPrevNextListeners(new nextOnClickListener(), null);
 		    } else if (m_currentMediaFileIndex == m_mediaFiles.size() - 1) {
-		    	m_menuPrevious.setEnabled(true);
-		    	m_menuNext.setEnabled(false);		    	
+                m_mediaController.setPrevNextListeners(null, new previousOnClickListener());   	
 		    } else {
-		    	m_menuPrevious.setEnabled(true);
-		    	m_menuNext.setEnabled(true);
+                m_mediaController.setPrevNextListeners(new nextOnClickListener(), new previousOnClickListener());
 		    }
-    	} else {
-    	    m_menuPrevious.setEnabled(false);
-    	    m_menuNext.setEnabled(false);
     	}
     }
     
@@ -175,4 +135,29 @@ public class StreamMediaActivity extends Activity {
     	return false;
     }
     
+    private class previousOnClickListener implements OnClickListener {
+
+		@Override
+		public void onClick(View arg0) {
+			m_videoView.stopPlayback();
+			m_currentMediaFileIndex--;
+			setPlaylistButtons();
+		    m_videoView.setVideoURI(Uri.parse(m_mediaFiles.get(m_currentMediaFileIndex)));
+		    m_videoView.start();
+            Toast.makeText(StreamMediaActivity.this, "Now Playing: " + m_mediaFiles.get(m_currentMediaFileIndex), Toast.LENGTH_LONG).show();
+		}
+    }
+    
+    private class nextOnClickListener implements OnClickListener {
+
+		@Override
+		public void onClick(View arg0) {
+			m_videoView.stopPlayback();
+			m_currentMediaFileIndex++;
+			setPlaylistButtons();
+	        m_videoView.setVideoURI(Uri.parse(m_mediaFiles.get(m_currentMediaFileIndex)));
+	        m_videoView.start();
+            Toast.makeText(StreamMediaActivity.this, "Now Playing: " + m_mediaFiles.get(m_currentMediaFileIndex), Toast.LENGTH_LONG).show();
+		}
+    }
 }
