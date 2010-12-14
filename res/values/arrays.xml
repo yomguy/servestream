@@ -19,20 +19,6 @@
 -->
 <resources>
 
-	<string-array name="list_rotation">
-		<item>@string/list_rotation_default</item>
-		<item>@string/list_rotation_land</item>
-		<item>@string/list_rotation_port</item>
-		<item>@string/list_rotation_auto</item>
-	</string-array>
-
-	<string-array name="list_rotation_values">
-		<item>Default</item>
-		<item>Force landscape</item>
-		<item>Force portrait</item>
-		<item>Automatic</item>
-	</string-array>
-
 	<string-array name="list_update">
 		<item>@string/list_update_daily</item>
 		<item>@string/list_update_weekly</item>
@@ -43,6 +29,18 @@
 		<item>Daily</item>
 		<item>Weekly</item>
 		<item>Never</item>
+	</string-array>
+	
+	<string-array name="list_repeat">
+		<item>@string/list_repeat_off</item>
+		<item>@string/list_repeat_one</item>
+		<item>@string/list_repeat_all</item>
+	</string-array>
+
+	<string-array name="list_repeat_values">
+		<item>Off</item>
+		<item>One</item>
+		<item>All</item>
 	</string-array>
 
 </resources>

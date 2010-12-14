@@ -56,6 +56,13 @@
 
 	<string name="list_menu_settings">Settings</string>
 
+ 	<!-- Determine repeat for media playback. -->
+ 	<string name="list_repeat_off">Off</string>
+ 	<!-- Determine repeat for media playback. -->
+ 	<string name="list_repeat_one">One</string>
+ 	<!-- Determine repeat for media playback. -->
+ 	<string name="list_repeat_all">All</string>
+
  	<!-- Default screen rotation preference selection -->
  	<string name="list_rotation_default">Default</string>
  	<string name="list_rotation_land">Force landscape</string>
@@ -69,6 +76,14 @@
  	<string name="list_update_weekly">Weekly</string>
  	<!-- Frequency for which to check for program updates. -->
  	<string name="list_update_never">Never</string>
+
+	<!-- The category title for playback preferences -->
+	<string name="pref_playback_category">Playback</string>
+
+	<!-- Name for the update check preference -->
+	<string name="pref_repeat_title">Repeat</string>
+	<!-- Summary for the repeat preference -->
+	<string name="pref_repeat_summary">Turn repeating on/off for media playback</string>
 
 	<!-- The category title for user interface preferences -->
 	<string name="pref_ui_category">User interface</string>
