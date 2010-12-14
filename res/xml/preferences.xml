@@ -30,16 +30,16 @@
 		/>
 
 	<PreferenceCategory
-		android:title="@string/pref_ui_category">
-
+		android:title="@string/pref_playback_category">
+	
 		<ListPreference
-			android:key="rotation"
-			android:title="@string/pref_rotation_title"
-			android:summary="@string/pref_rotation_summary"
-			android:entries="@array/list_rotation"
-			android:entryValues="@array/list_rotation_values"
-			android:defaultValue="Default"
-			/>
+			android:key="repeat"
+			android:title="@string/pref_repeat_title"
+			android:summary="@string/pref_repeat_summary"
+			android:entries="@array/list_repeat"
+			android:entryValues="@array/list_repeat_values"
+			android:defaultValue="Off"
+		/>
 
 	</PreferenceCategory>
 
