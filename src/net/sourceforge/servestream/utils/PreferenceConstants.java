@@ -44,7 +44,6 @@ public class PreferenceConstants {
 	public static final boolean PRE_FROYO = PRE_ECLAIR ? true :
 		(Integer.parseInt(Build.VERSION.SDK) <= 7);
 
-	public static final String MEMKEYS = "memkeys";
 	public static final String UPDATE = "update";
 
 	public static final String UPDATE_DAILY = "Daily";
@@ -64,4 +63,10 @@ public class PreferenceConstants {
 
 	/* Backup identifiers */
 	public static final String BACKUP_PREF_KEY = "prefs";
+	
+	public static final String REPEAT = "repeat";
+	
+	public static final String REPEAT_OFF = "Off";
+	public static final String REPEAT_ONE = "One";
+	public static final String REPEAT_ALL = "All";
 }
