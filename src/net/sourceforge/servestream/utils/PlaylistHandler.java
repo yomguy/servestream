@@ -24,6 +24,8 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
 
+import javax.net.ssl.HttpsURLConnection;
+
 public class PlaylistHandler {
 
 	URL m_targetURL = null;
@@ -53,7 +55,14 @@ public class PlaylistHandler {
         BufferedReader reader = null;;
         
         try {
-		    conn = (HttpURLConnection) m_targetURL.openConnection();
+        	
+        	if (m_targetURL.getProtocol().equals("http")) {
+        		conn = (HttpURLConnection) m_targetURL.openConnection();
+        	} else if (m_targetURL.getProtocol().equals("https")) {
+        		conn = (HttpsURLConnection) m_targetURL.openConnection();        		
+        	}
+        	
+		    //conn = (HttpURLConnection) m_targetURL.openConnection();
 		    conn.setRequestMethod("GET");
 		    
 		    // Start the query
