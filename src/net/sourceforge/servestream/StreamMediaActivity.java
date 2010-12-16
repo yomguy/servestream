@@ -50,7 +50,6 @@ public class StreamMediaActivity extends Activity {
 	private int m_mediaPosition = 0;
 	
 	private MediaController m_mediaController = null;
-	
 	private SharedPreferences m_preferences = null;
 	
     @Override
@@ -81,70 +80,20 @@ public class StreamMediaActivity extends Activity {
         Bundle returnData = (Bundle) getLastNonConfigurationInstance();
         
         if (returnData == null) {
-            m_videoView.setOnCompletionListener(m_onCompletionListener);
-            m_videoView.setVideoURI(Uri.parse(m_mediaFiles.get(m_currentMediaFileIndex)));
             m_mediaController = new MediaController(this, true);
-            
-            if (m_mediaFiles.size() > 1) {
-                m_mediaController.setPrevNextListeners(new nextOnClickListener(), new previousOnClickListener());
-                setPlaylistButtons();
-            }
-
-            m_videoView.setOnErrorListener(m_onErrorListener);
+            m_mediaController.setPrevNextListeners(null, null);
             m_videoView.setMediaController(m_mediaController);
-            Toast.makeText(StreamMediaActivity.this, "Now Playing: " + m_mediaFiles.get(m_currentMediaFileIndex), Toast.LENGTH_LONG).show();
+            
+            m_videoView.setOnErrorListener(m_onErrorListener);
+            m_videoView.setOnCompletionListener(m_onCompletionListener);
+            startSong(m_currentMediaFileIndex);
         } else {
         	m_videoView.setVideoURI(Uri.parse(m_mediaFiles.get(m_currentMediaFileIndex)));
         	m_videoView.seekTo(m_mediaPosition);
+        	m_videoView.start();
+        	Toast.makeText(StreamMediaActivity.this, "Now Playing: " + m_mediaFiles.get(m_currentMediaFileIndex), Toast.LENGTH_LONG).show();
         }
-        
-    	m_videoView.start();
-        
     }
-    
-    private OnCompletionListener m_onCompletionListener = new OnCompletionListener() {
-		public void onCompletion(MediaPlayer mp) {
-			
-			//if (m_mediaPlayerError)
-			//	finish();
-			
-			m_currentMediaFileIndex++;
-			if (m_currentMediaFileIndex == m_mediaFiles.size() - 1) {
-				if (m_preferences.getString(PreferenceConstants.REPEAT, "Off").equals("All")) {
-					m_currentMediaFileIndex = 0;
-					setPlaylistButtons();
-				    m_videoView.setVideoURI(Uri.parse(m_mediaFiles.get(m_currentMediaFileIndex)));
-		            m_videoView.start();
-					return;
-				}
-				finish();
-			} else {
-				if (m_preferences.getString(PreferenceConstants.REPEAT, "Off").equals("One")) {
-					m_currentMediaFileIndex--;
-				}
-			    m_videoView.setVideoURI(Uri.parse(m_mediaFiles.get(m_currentMediaFileIndex)));
-	            m_videoView.start();
-	            
-	            Toast.makeText(StreamMediaActivity.this, "Now Playing: " + m_mediaFiles.get(m_currentMediaFileIndex), Toast.LENGTH_LONG).show();
-			}
-		}
-    };
-	
-    private OnErrorListener m_onErrorListener = new OnErrorListener() {
-
-		@Override
-		public boolean onError(MediaPlayer arg0, int arg1, int arg2) {
-			new AlertDialog.Builder(StreamMediaActivity.this)
-			.setTitle(R.string.cannot_play_media_title)
-			.setMessage(R.string.cannot_play_media_message)
-			.setPositiveButton(R.string.cannot_play_media_pos, new DialogInterface.OnClickListener() {
-				public void onClick(DialogInterface dialog, int which) {
-					finish();
-				}
-				}).create().show();
-			return true;
-		}
-    };    
     
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
@@ -171,8 +120,66 @@ public class StreamMediaActivity extends Activity {
         data.putInt("POSITION", m_mediaPosition);
       return data;
     }
+	
+    private OnCompletionListener m_onCompletionListener = new OnCompletionListener() {
+		public void onCompletion(MediaPlayer mp) {
+
+			// if repeat preference is set to one, play the media file again
+			if (m_preferences.getString(PreferenceConstants.REPEAT, "Off").equals("One")) {
+				startSong(m_currentMediaFileIndex);
+				return;
+			}
+			
+			m_currentMediaFileIndex++;
+			
+			if (m_currentMediaFileIndex == m_mediaFiles.size()) {
+				if (m_preferences.getString(PreferenceConstants.REPEAT, "Off").equals("All")) {
+					startSong(0);
+					return;
+				}
+				finish();
+			} else {
+                startSong(m_currentMediaFileIndex);
+			}
+		}
+    };
+	
+    private OnErrorListener m_onErrorListener = new OnErrorListener() {
+
+		@Override
+		public boolean onError(MediaPlayer arg0, int arg1, int arg2) {
+			new AlertDialog.Builder(StreamMediaActivity.this)
+			.setTitle(R.string.cannot_play_media_title)
+			.setMessage(R.string.cannot_play_media_message)
+			.setPositiveButton(R.string.cannot_play_media_pos, new DialogInterface.OnClickListener() {
+				public void onClick(DialogInterface dialog, int which) {
+					finish();
+				}
+				}).create().show();
+			return true;
+		}
+    };
     
-    private void setPlaylistButtons() {
+    private class previousOnClickListener implements OnClickListener {
+
+		@Override
+		public void onClick(View arg0) {
+            startSong(m_currentMediaFileIndex - 1);
+		}
+    }
+    
+    private class nextOnClickListener implements OnClickListener {
+
+		@Override
+		public void onClick(View arg0) {
+            startSong(m_currentMediaFileIndex + 1);
+		}
+    }
+    
+    /**
+     * Sets the state of the previous and next buttons on the media player
+     */
+    private void setPlayerButtonStates() {
     	if (!(m_mediaFiles.size() == 1)) {
 	 	    if (m_currentMediaFileIndex == 0) {
                 m_mediaController.setPrevNextListeners(new nextOnClickListener(), null);
@@ -184,39 +191,30 @@ public class StreamMediaActivity extends Activity {
     	}
     }
     
-    private boolean isPlaylist(String streamLink) {
-    	if (streamLink.length() > 4) {
-    	    if (streamLink.substring(streamLink.length() - 4, streamLink.length()).equalsIgnoreCase(".m3u")) {
+    private void startSong(int playlistFileIndex) {
+   
+    	m_currentMediaFileIndex = playlistFileIndex;
+		setPlayerButtonStates();
+    	
+		m_videoView.stopPlayback();
+        m_videoView.setVideoURI(Uri.parse(m_mediaFiles.get(m_currentMediaFileIndex)));
+        m_videoView.start();
+        Toast.makeText(StreamMediaActivity.this, "Now Playing: " + m_mediaFiles.get(m_currentMediaFileIndex), Toast.LENGTH_LONG).show();
+    }
+    
+    /**
+     * Checks if a file is a playlist file
+     * 
+     * @param mediaFileName The file to check
+     * @return boolean True if the file is a playlist, false otherwise
+     */
+    private boolean isPlaylist(String mediaFileName) {
+    	if (mediaFileName.length() > 4) {
+    	    if (mediaFileName.substring(mediaFileName.length() - 4, mediaFileName.length()).equalsIgnoreCase(".m3u")) {
     	    	return true;
     	    }
     	}
     	
     	return false;
-    }
-    
-    private class previousOnClickListener implements OnClickListener {
-
-		@Override
-		public void onClick(View arg0) {
-			m_videoView.stopPlayback();
-			m_currentMediaFileIndex--;
-			setPlaylistButtons();
-		    m_videoView.setVideoURI(Uri.parse(m_mediaFiles.get(m_currentMediaFileIndex)));
-		    m_videoView.start();
-            Toast.makeText(StreamMediaActivity.this, "Now Playing: " + m_mediaFiles.get(m_currentMediaFileIndex), Toast.LENGTH_LONG).show();
-		}
-    }
-    
-    private class nextOnClickListener implements OnClickListener {
-
-		@Override
-		public void onClick(View arg0) {
-			m_videoView.stopPlayback();
-			m_currentMediaFileIndex++;
-			setPlaylistButtons();
-	        m_videoView.setVideoURI(Uri.parse(m_mediaFiles.get(m_currentMediaFileIndex)));
-	        m_videoView.start();
-            Toast.makeText(StreamMediaActivity.this, "Now Playing: " + m_mediaFiles.get(m_currentMediaFileIndex), Toast.LENGTH_LONG).show();
-		}
     }
 }
