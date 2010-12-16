@@ -25,6 +25,14 @@
 	android:layout_height="fill_parent"
 	>
 
+	<Spinner
+		android:id="@+id/protocol_selection"
+		android:layout_height="wrap_content"
+		android:layout_width="wrap_content"
+		android:layout_alignParentTop="true"
+		android:layout_alignParentLeft="true"
+		/>
+
     <Button android:id="@+id/go_button"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -37,9 +45,9 @@
 		android:id="@+id/front_quickconnect"
 		android:layout_width="fill_parent"
 		android:layout_height="wrap_content"
-		android:hint="http://"
+		android:layout_toRightOf="@+id/protocol_selection"
 		android:layout_toLeftOf="@+id/go_button"
-		android:layout_alignTop="@+id/go_button"
+		android:layout_alignTop="@+id/protocol_selection"
 		android:inputType="text"
 		/>
 
