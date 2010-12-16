@@ -38,6 +38,7 @@ import java.util.ArrayList;
 import net.sourceforge.servestream.R;
 import net.sourceforge.servestream.dbutils.Stream;
 import net.sourceforge.servestream.dbutils.StreamDatabase;
+import net.sourceforge.servestream.transport.ProtocolFactory;
 import net.sourceforge.servestream.utils.URLUtils;
 
 import android.app.AlertDialog;
@@ -45,7 +46,6 @@ import android.app.ListActivity;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -65,6 +65,7 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.ListView;
+import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.AdapterView.OnItemClickListener;
 
@@ -72,16 +73,19 @@ public class StreamListActivity extends ListActivity {
 	
 	public final static int REQUEST_EDIT = 1;
 	
-	private Button m_goButton = null;
+	private Spinner m_protocolSpinner = null;
 	private TextView m_quickconnect = null;
+	private Button m_goButton = null;
 	
 	private Stream m_targetStream = null;
 	
 	protected StreamDatabase m_streamdb = null;
 	protected LayoutInflater m_inflater = null;
 	protected boolean m_makingShortcut = false;
-	private SharedPreferences m_prefs = null;
+	//private SharedPreferences m_preferences = null;
 	protected boolean m_sortedByColor = false;
+	
+	private final String [] m_protocolTypes = {"http", "https"};
 	
 	protected Handler updateHandler = new Handler() {
 		@Override
@@ -121,9 +125,25 @@ public class StreamListActivity extends ListActivity {
 
 		//ExceptionHandler.register(this);
 
-		// start thread to check for new version
-		//new UpdateHelper(this);
+		//m_preferences = PreferenceManager.getDefaultSharedPreferences(this);
+		
+		m_protocolSpinner = (Spinner)findViewById(R.id.protocol_selection);
+		ArrayAdapter<String> protocolSelection = new ArrayAdapter<String>(this,
+				android.R.layout.simple_spinner_item, m_protocolTypes);
+		protocolSelection.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+		m_protocolSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+			public void onItemSelected(AdapterView<?> arg0, View view, int position, long id) {
+				String formatHint = ProtocolFactory.getProtocolHint(
+						(String) m_protocolSpinner.getSelectedItem());
 
+				m_quickconnect.setHint(formatHint);
+				m_quickconnect.setError(null);
+				m_quickconnect.requestFocus();
+			}
+			public void onNothingSelected(AdapterView<?> arg0) { }
+		});
+		m_protocolSpinner.setAdapter(protocolSelection);
+		
 		// connect with streams database and populate list
 		this.m_streamdb = new StreamDatabase(this);
 		ListView list = this.getListView();
@@ -328,6 +348,9 @@ public class StreamListActivity extends ListActivity {
 	
 	public boolean isValidStream() {
 		
+		String protocol = ProtocolFactory.getProtocol((String) m_protocolSpinner
+				.getSelectedItem());
+
 		String stringStream = m_quickconnect.getText().toString();	
 		
 		if (stringStream == null) {
@@ -340,6 +363,8 @@ public class StreamListActivity extends ListActivity {
 			
             return false;
 		}
+		
+		stringStream = protocol + stringStream;
 		
 		m_targetStream = new Stream();
 		if (!m_targetStream.createStream(stringStream)) {
