@@ -100,6 +100,24 @@ public class StreamDatabase extends SQLiteOpenHelper {
 		}*/
 	}
 	
+	/**
+	 * Touch a specific stream to update its "last connected" field.
+	 * 
+	 * @param stream Nickname field of stream to update
+	 */
+	public void touchHost(Stream stream) {
+		long now = System.currentTimeMillis() / 1000;
+
+		ContentValues values = new ContentValues();
+		values.put(KEY_LASTCONNECT, now);
+
+		synchronized (m_dbLock) {
+			SQLiteDatabase db = this.getWritableDatabase();
+
+			db.update(TABLE_STREAMS, values, "_id = ?", new String[] { String.valueOf(stream.getId()) });
+		}
+	}
+	
 	private ArrayList<Stream> createStreamList(Cursor c) {
 		ArrayList<Stream> streamUrls = new ArrayList<Stream>();
 
