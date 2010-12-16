@@ -33,6 +33,10 @@
 	<!-- The time that has elapsed since a stream was connected to when it has been a day or more. -->
 	<string name="bind_days">%1$s days ago</string>
 
+	<string name="cannot_play_media_title">Cannot play media file</string>
+	<string name="cannot_play_media_message">Sorry, this media file cannot be played.</string>
+	<string name="cannot_play_media_pos">OK</string>
+
 	<string name="delete_message">Are you sure you want to delete \'%1$s\'?</string>
 	<string name="delete_pos">Yes, delete</string>
 	<string name="delete_neg">Cancel</string>
