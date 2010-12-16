@@ -21,11 +21,15 @@ import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URL;
 
+import javax.net.ssl.HttpsURLConnection;
+
+import android.util.Log;
+
 public class URLUtils {
 	
-	public static int DIRECTORY = 100;
-	public static int MEDIA_FILE = 200;
-	public static int NOT_FOUND = -1;
+	public final static int DIRECTORY = 100;
+	public final static int MEDIA_FILE = 200;
+	public final static int NOT_FOUND = -1;
 	
 	/*
 	 * Default constructor
@@ -53,7 +57,14 @@ public class URLUtils {
 		int contentTypeCode = NOT_FOUND;
 		
 		try {
-		    conn = (HttpURLConnection) url.openConnection();
+			
+        	if (url.getProtocol().equals("http")) {
+        		conn = (HttpURLConnection) url.openConnection();
+        	} else if (url.getProtocol().equals("https")) {
+        		conn = (HttpsURLConnection) url.openConnection();        		
+        	}
+			
+		    //conn = (HttpURLConnection) url.openConnection();
 	        conn.setRequestMethod("GET");
 	    
             int i = 1;
@@ -67,9 +78,14 @@ public class URLUtils {
             }
             
             if (contentFound) {
-                if (contentType.trim().equalsIgnoreCase("text/html")) {
+            	Log.v("Type", contentType);
+                //if (contentType.trim().equalsIgnoreCase("text/html")) {
+            	//TODO fix this
+            	if (contentType.contains("text/html")) {
+                	Log.v("DIRECTORY", "D");
         			contentTypeCode = DIRECTORY;
                 } else {
+                	Log.v("DIRECTORY", "D");
         			contentTypeCode = MEDIA_FILE;
                 }
             }
