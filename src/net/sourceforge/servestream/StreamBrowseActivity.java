@@ -86,6 +86,15 @@ public class StreamBrowseActivity extends ListActivity {
 		
 		if(this.m_streamdb == null)
 			this.m_streamdb = new StreamDatabase(this);
+		
+		Stream tempStream = new Stream();
+		tempStream.createStream(m_currentStreamURL);
+		
+		Stream stream = m_streamdb.findStream(tempStream);
+		
+		if (stream != null) {
+			m_streamdb.touchHost(stream);
+		}
 	}
 	
 	@Override
