@@ -20,12 +20,21 @@ package net.sourceforge.servestream;
 import java.util.ArrayList;
 
 import net.sourceforge.servestream.utils.PlaylistHandler;
+import net.sourceforge.servestream.utils.PreferenceConstants;
 
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.content.DialogInterface;
+import android.content.Intent;
+import android.content.SharedPreferences;
 import android.media.MediaPlayer;
 import android.media.MediaPlayer.OnCompletionListener;
+import android.media.MediaPlayer.OnErrorListener;
 import android.net.Uri;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.MediaController;
@@ -42,6 +51,8 @@ public class StreamMediaActivity extends Activity {
 	
 	private MediaController m_mediaController = null;
 	
+	private SharedPreferences m_preferences = null;
+	
     @Override
     public void onCreate(Bundle icicle) {
         super.onCreate(icicle);
@@ -52,6 +63,8 @@ public class StreamMediaActivity extends Activity {
 				getResources().getText(R.string.title_stream_play)));
         
         String stream = getIntent().getExtras().getString("net.sourceforge.servestream.TargetStream");
+        
+		m_preferences = PreferenceManager.getDefaultSharedPreferences(this);
         
         if (isPlaylist(stream)) {
             PlaylistHandler playlistHandler = new PlaylistHandler(stream);
@@ -77,6 +90,7 @@ public class StreamMediaActivity extends Activity {
                 setPlaylistButtons();
             }
 
+            m_videoView.setOnErrorListener(m_onErrorListener);
             m_videoView.setMediaController(m_mediaController);
             Toast.makeText(StreamMediaActivity.this, "Now Playing: " + m_mediaFiles.get(m_currentMediaFileIndex), Toast.LENGTH_LONG).show();
         } else {
@@ -90,10 +104,24 @@ public class StreamMediaActivity extends Activity {
     
     private OnCompletionListener m_onCompletionListener = new OnCompletionListener() {
 		public void onCompletion(MediaPlayer mp) {
+			
+			//if (m_mediaPlayerError)
+			//	finish();
+			
 			m_currentMediaFileIndex++;
-			if (m_currentMediaFileIndex == m_mediaFiles.size()) {
+			if (m_currentMediaFileIndex == m_mediaFiles.size() - 1) {
+				if (m_preferences.getString(PreferenceConstants.REPEAT, "Off").equals("All")) {
+					m_currentMediaFileIndex = 0;
+					setPlaylistButtons();
+				    m_videoView.setVideoURI(Uri.parse(m_mediaFiles.get(m_currentMediaFileIndex)));
+		            m_videoView.start();
+					return;
+				}
 				finish();
 			} else {
+				if (m_preferences.getString(PreferenceConstants.REPEAT, "Off").equals("One")) {
+					m_currentMediaFileIndex--;
+				}
 			    m_videoView.setVideoURI(Uri.parse(m_mediaFiles.get(m_currentMediaFileIndex)));
 	            m_videoView.start();
 	            
@@ -102,6 +130,37 @@ public class StreamMediaActivity extends Activity {
 		}
     };
 	
+    private OnErrorListener m_onErrorListener = new OnErrorListener() {
+
+		@Override
+		public boolean onError(MediaPlayer arg0, int arg1, int arg2) {
+			new AlertDialog.Builder(StreamMediaActivity.this)
+			.setTitle(R.string.cannot_play_media_title)
+			.setMessage(R.string.cannot_play_media_message)
+			.setPositiveButton(R.string.cannot_play_media_pos, new DialogInterface.OnClickListener() {
+				public void onClick(DialogInterface dialog, int which) {
+					finish();
+				}
+				}).create().show();
+			return true;
+		}
+    };    
+    
+	@Override
+	public boolean onCreateOptionsMenu(Menu menu) {
+		super.onCreateOptionsMenu(menu);
+
+		MenuItem settings = menu.add(R.string.list_menu_settings);
+		settings.setIcon(android.R.drawable.ic_menu_preferences);
+		settings.setIntent(new Intent(StreamMediaActivity.this, SettingsActivity.class));
+
+		MenuItem help = menu.add(R.string.title_help);
+		help.setIcon(android.R.drawable.ic_menu_help);
+		help.setIntent(new Intent(StreamMediaActivity.this, HelpActivity.class));
+
+		return true;
+	}
+    
     @Override
     public Object onRetainNonConfigurationInstance() {
         m_mediaPosition = m_videoView.getCurrentPosition();
