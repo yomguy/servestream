@@ -23,8 +23,6 @@ import java.net.URL;
 
 import javax.net.ssl.HttpsURLConnection;
 
-import android.util.Log;
-
 public class URLUtils {
 	
 	public final static int DIRECTORY = 100;
@@ -78,14 +76,11 @@ public class URLUtils {
             }
             
             if (contentFound) {
-            	Log.v("Type", contentType);
                 //if (contentType.trim().equalsIgnoreCase("text/html")) {
             	//TODO fix this
             	if (contentType.contains("text/html")) {
-                	Log.v("DIRECTORY", "D");
         			contentTypeCode = DIRECTORY;
                 } else {
-                	Log.v("DIRECTORY", "D");
         			contentTypeCode = MEDIA_FILE;
                 }
             }
