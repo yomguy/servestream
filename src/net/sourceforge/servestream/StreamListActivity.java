@@ -73,7 +73,7 @@ public class StreamListActivity extends ListActivity {
 	
 	public final static int REQUEST_EDIT = 1;
 	
-	private Spinner m_protocolSpinner = null;
+	//private Spinner m_protocolSpinner = null;
 	private TextView m_quickconnect = null;
 	private Button m_goButton = null;
 	
@@ -85,7 +85,7 @@ public class StreamListActivity extends ListActivity {
 	//private SharedPreferences m_preferences = null;
 	protected boolean m_sortedByColor = false;
 	
-	private final String [] m_protocolTypes = {"http", "https"};
+	//private final String [] m_protocolTypes = {"http", "https"};
 	
 	protected Handler updateHandler = new Handler() {
 		@Override
@@ -127,7 +127,7 @@ public class StreamListActivity extends ListActivity {
 
 		//m_preferences = PreferenceManager.getDefaultSharedPreferences(this);
 		
-		m_protocolSpinner = (Spinner)findViewById(R.id.protocol_selection);
+		/*m_protocolSpinner = (Spinner)findViewById(R.id.protocol_selection);
 		ArrayAdapter<String> protocolSelection = new ArrayAdapter<String>(this,
 				android.R.layout.simple_spinner_item, m_protocolTypes);
 		protocolSelection.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
@@ -143,6 +143,7 @@ public class StreamListActivity extends ListActivity {
 			public void onNothingSelected(AdapterView<?> arg0) { }
 		});
 		m_protocolSpinner.setAdapter(protocolSelection);
+		*/
 		
 		// connect with streams database and populate list
 		this.m_streamdb = new StreamDatabase(this);
@@ -348,8 +349,8 @@ public class StreamListActivity extends ListActivity {
 	
 	public boolean isValidStream() {
 		
-		String protocol = ProtocolFactory.getProtocol((String) m_protocolSpinner
-				.getSelectedItem());
+		//String protocol = ProtocolFactory.getProtocol((String) m_protocolSpinner
+		//		.getSelectedItem());
 
 		String stringStream = m_quickconnect.getText().toString();	
 		
@@ -364,7 +365,7 @@ public class StreamListActivity extends ListActivity {
             return false;
 		}
 		
-		stringStream = protocol + stringStream;
+		//stringStream = protocol + stringStream;
 		
 		m_targetStream = new Stream();
 		if (!m_targetStream.createStream(stringStream)) {
