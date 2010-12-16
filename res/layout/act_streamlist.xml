@@ -37,7 +37,7 @@
 		android:id="@+id/front_quickconnect"
 		android:layout_width="fill_parent"
 		android:layout_height="wrap_content"
-		android:hint="http://hostname:port/path"
+		android:hint="http://"
 		android:layout_toLeftOf="@+id/go_button"
 		android:layout_alignTop="@+id/go_button"
 		android:inputType="text"
