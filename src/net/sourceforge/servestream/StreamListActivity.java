@@ -38,7 +38,6 @@ import java.util.ArrayList;
 import net.sourceforge.servestream.R;
 import net.sourceforge.servestream.dbutils.Stream;
 import net.sourceforge.servestream.dbutils.StreamDatabase;
-import net.sourceforge.servestream.transport.ProtocolFactory;
 import net.sourceforge.servestream.utils.URLUtils;
 
 import android.app.AlertDialog;
@@ -65,7 +64,6 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.ListView;
-import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.AdapterView.OnItemClickListener;
 
