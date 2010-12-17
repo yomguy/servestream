@@ -146,7 +146,6 @@ public class StreamMediaActivity extends Activity {
 	
     private OnErrorListener m_onErrorListener = new OnErrorListener() {
 
-		@Override
 		public boolean onError(MediaPlayer arg0, int arg1, int arg2) {
 			new AlertDialog.Builder(StreamMediaActivity.this)
 			.setTitle(R.string.cannot_play_media_title)
@@ -162,7 +161,6 @@ public class StreamMediaActivity extends Activity {
     
     private class previousOnClickListener implements OnClickListener {
 
-		@Override
 		public void onClick(View arg0) {
             startSong(m_currentMediaFileIndex - 1);
 		}
@@ -170,7 +168,6 @@ public class StreamMediaActivity extends Activity {
     
     private class nextOnClickListener implements OnClickListener {
 
-		@Override
 		public void onClick(View arg0) {
             startSong(m_currentMediaFileIndex + 1);
 		}
