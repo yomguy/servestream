@@ -242,6 +242,14 @@ public class StreamBrowseActivity extends ListActivity {
 			intent = new Intent(StreamBrowseActivity.this, StreamMediaActivity.class);
 		    intent.putExtra("net.sourceforge.servestream.TargetStream", stream);
 			this.startActivity(intent);
+		} else if (contentTypeCode == URLUtils.NOT_FOUND) {
+			new AlertDialog.Builder(StreamBrowseActivity.this)
+			.setMessage("The following stream cannot be opened!")
+			.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+				public void onClick(DialogInterface dialog, int which) {
+                    return;
+				}
+				}).create().show();
 		}
 	}
 	
