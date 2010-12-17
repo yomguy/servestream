@@ -93,8 +93,14 @@ public class StreamParser {
 
 		    for (int i = 0; i < links.size(); i++) {
 		    	m_textLinks.add(links.get(i).text());
-		    	m_fileHrefs.put(linkCount, URLDecoder.decode(m_indexURL + links.get(i).attr("href"), "UTF-8"));
-		        //m_fileHrefs.put(linkCount, m_indexURL + links.get(i).attr("href"));
+		    	
+		    	// if a link is relative try to make it absolute
+		    	if (!links.get(i).attr("href").contains("/")) {
+		    	    m_fileHrefs.put(linkCount, URLDecoder.decode(m_targetURL + links.get(i).attr("href"), "UTF-8"));
+		        } else {
+		        	m_fileHrefs.put(linkCount, URLDecoder.decode(m_indexURL + links.get(i).attr("href"), "UTF-8"));
+		        }
+		    	//m_fileHrefs.put(linkCount, m_indexURL + links.get(i).attr("href"));
 		        linkCount++;
 		    }		    
 
