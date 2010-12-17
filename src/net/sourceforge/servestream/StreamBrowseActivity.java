@@ -42,10 +42,12 @@ import net.sourceforge.servestream.utils.URLUtils;
 
 import android.app.AlertDialog;
 import android.app.ListActivity;
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Handler;
 import android.util.Log;
 import android.view.ContextMenu;
 import android.view.LayoutInflater;
@@ -73,6 +75,12 @@ public class StreamBrowseActivity extends ListActivity {
     
 	protected StreamDatabase m_streamdb = null;
 	protected LayoutInflater m_inflater = null;
+
+    private final Handler handler = new Handler();
+	
+    private final UILoadingHelperClass uiLoadingThread = new UILoadingHelperClass();
+
+    ProgressDialog m_dialog = null;
     
 	@Override
 	public void onStart() {
@@ -82,7 +90,8 @@ public class StreamBrowseActivity extends ListActivity {
     	m_streamURLs = new StreamParser(m_currentStreamURL);
 		} catch (Exception ex) {
 		}
-    	updateList();
+    	
+    	new DataLoadingThread(handler, uiLoadingThread, m_streamURLs);
 		
 		if(this.m_streamdb == null)
 			this.m_streamdb = new StreamDatabase(this);
@@ -110,16 +119,21 @@ public class StreamBrowseActivity extends ListActivity {
     @Override
     public void onCreate(Bundle icicle) {
         super.onCreate(icicle);
-		setContentView(R.layout.act_browsemedia);;
+		setContentView(R.layout.act_browsemedia);
 
 		this.setTitle(String.format("%s: %s",
 				getResources().getText(R.string.app_name),
 				getResources().getText(R.string.title_stream_browse)));        
         
+		m_dialog = ProgressDialog.show(StreamBrowseActivity.this, "", 
+                "Loading. Please wait...", true);
+		
 		m_currentStreamURL = getIntent().getExtras().getString("net.sourceforge.servestream.TargetStream");
 		
 		this.m_streamdb = new StreamDatabase(this);
+		
 		ListView list = this.getListView();
+		uiLoadingThread.setListView(this.getListView());
 
 		list.setOnItemClickListener(new OnItemClickListener() {
 
@@ -209,30 +223,21 @@ public class StreamBrowseActivity extends ListActivity {
 		});		
 	}
 	
-	protected void updateList() {
-		
-		m_streamURLs.getListing();
-
-		ArrayList<String> streams = m_streamURLs.getTextLinks();
-
-		StreamAdapter adapter = new StreamAdapter(this, streams);
-
-		this.setListAdapter(adapter);
-	}
-	
 	public void handleStream(String stream) {
 		
 		Intent intent = null;
 		int contentTypeCode = URLUtils.getContentTypeCode(stream);
 		
 		if (contentTypeCode == URLUtils.DIRECTORY) {
+			m_dialog = ProgressDialog.show(StreamBrowseActivity.this, "", 
+	                "Loading. Please wait...", true);
 			try {
 				m_currentStreamURL = stream;
 				m_streamURLs = new StreamParser(m_currentStreamURL);
 			} catch (Exception ex) {
 				ex.printStackTrace();
 			}
-			updateList();
+	    	new DataLoadingThread(handler, uiLoadingThread, m_streamURLs);
 		} else if (contentTypeCode == URLUtils.MEDIA_FILE) {
 			intent = new Intent(StreamBrowseActivity.this, StreamMediaActivity.class);
 		    intent.putExtra("net.sourceforge.servestream.TargetStream", stream);
@@ -299,4 +304,49 @@ public class StreamBrowseActivity extends ListActivity {
 		}
 	}
 
+	private class DataLoadingThread extends Thread {
+
+        private final Handler m_handler;
+        private final UILoadingHelperClass m_uiLoadingThread;
+        private final StreamParser m_streamURLs;
+
+        public DataLoadingThread(Handler handler, UILoadingHelperClass uiLoadingThread, StreamParser streamURLs) {
+            this.m_handler = handler;
+            this.m_uiLoadingThread = uiLoadingThread;
+            this.m_streamURLs = streamURLs;
+            this.start();
+        }
+
+        @Override
+        public void run() {
+        	
+    		m_streamURLs.getListing();
+
+            uiLoadingThread.setStreams(m_streamURLs.getTextLinks());
+            
+            handler.post(uiLoadingThread);
+            
+            m_dialog.dismiss();
+        }
+    }
+	
+    private class UILoadingHelperClass implements Runnable {
+        
+    	private ListView m_listView = null;
+        private ArrayList<String> m_streams = null;
+
+        public void setStreams(ArrayList<String> streams){
+            this.m_streams = streams;
+        }
+
+        public void setListView(ListView listView){
+            m_listView = listView;
+        }
+
+        public void run() {
+    		StreamAdapter adapter = new StreamAdapter(StreamBrowseActivity.this, m_streams);
+        	m_listView.setAdapter(adapter);
+        }      
+    }
+	
 }
