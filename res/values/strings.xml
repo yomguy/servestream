@@ -21,6 +21,7 @@
 <resources>
 	
 	<string name="app_desc">An Open-Source HTTP Media Stream Browser and Player.</string>
+	<string name="service_desc">"Allows media to play in the background"</string>
 	
 	<string name="help_intro">Please select a topic below for more information on a particular subject.</string>
 
@@ -135,4 +136,7 @@
 	<string name="text_previous_button">Previous</string>
 	
 	<string name="text_next_button">Next</string>
+	
+	<!-- Displayed in the notification bar that connections are active -->
+	<string name="app_is_running">"ServeStream is running"</string>
 </resources>
