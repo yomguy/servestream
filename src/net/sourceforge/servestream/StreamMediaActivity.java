@@ -19,19 +19,24 @@ package net.sourceforge.servestream;
 
 import java.util.ArrayList;
 
+import net.sourceforge.servestream.service.MusicService;
 import net.sourceforge.servestream.utils.PlaylistHandler;
 import net.sourceforge.servestream.utils.PreferenceConstants;
 
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.content.ComponentName;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.media.MediaPlayer;
 import android.media.MediaPlayer.OnCompletionListener;
 import android.media.MediaPlayer.OnErrorListener;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.IBinder;
 import android.preference.PreferenceManager;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -42,6 +47,7 @@ import android.widget.Toast;
 import android.widget.VideoView;
 
 public class StreamMediaActivity extends Activity {
+	public final static String TAG = "ServeStream.StreamMediaActivity";
 	
     private ArrayList<String> m_mediaFiles = null;
 	private int m_currentMediaFileIndex = 0;
@@ -50,7 +56,76 @@ public class StreamMediaActivity extends Activity {
 	private int m_mediaPosition = 0;
 	
 	private MediaController m_mediaController = null;
-	private SharedPreferences m_preferences = null;
+	private SharedPreferences m_preferences = null;	
+	
+	private MusicService m_boundService;
+
+	private ServiceConnection connection = new ServiceConnection() {
+	    public void onServiceConnected(ComponentName className, IBinder service) {
+	        // This is called when the connection with the service has been
+	        // established, giving us the service object we can use to
+	        // interact with the service.  Because we have bound to a explicit
+	        // service that we know is running in our own process, we can
+	        // cast its IBinder to a concrete class and directly access it.
+	        m_boundService = ((MusicService.MusicBinder)service).getService();
+	    }
+
+	    public void onServiceDisconnected(ComponentName className) {
+	        // This is called when the connection with the service has been
+	        // unexpectedly disconnected -- that is, its process crashed.
+	        // Because it is running in our same process, we should never
+	        // see this happen.
+	        m_boundService = null;
+	    }
+	};
+
+	@Override
+	public void onStart() {
+		super.onStart();
+		
+		// connect with manager service to find all bridges
+		// when connected it will insert all views
+		//bindService(new Intent(this, MusicService.class), connection, Context.BIND_AUTO_CREATE);
+	}
+	
+	@Override
+	public void onStop() {
+		super.onStop();
+		
+        //unbindService(connection);
+	}
+	
+	@Override
+	public void onPause() {
+		super.onPause();
+		
+		/*if (m_videoView.isPlaying()) {
+		    m_videoView.stopPlayback();
+            try {
+			    m_boundService.startMusicInBackground(m_mediaFiles, m_currentMediaFileIndex, 
+					    m_videoView.getCurrentPosition());
+		    } catch (Exception e) {
+			    e.printStackTrace();
+		    }
+		}*/
+	}	
+	
+	@Override
+	public void onResume() {
+		super.onResume();
+		
+		/*if (m_boundService != null) {
+		    try {
+			    m_boundService.stopMusicInBackground();
+		    } catch (Exception e) {
+			    e.printStackTrace();
+		    }
+		
+		    m_videoView.setVideoURI(Uri.parse(m_mediaFiles.get(m_boundService.getCurrentMediaFileIndex())));
+		    m_videoView.seekTo(m_boundService.getCurrentMediaFileIndex());
+		    m_videoView.start();
+		}*/
+	}
 	
     @Override
     public void onCreate(Bundle icicle) {
