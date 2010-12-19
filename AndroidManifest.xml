@@ -28,8 +28,20 @@
 		<activity android:name=".HelpTopicActivity" android:configChanges="keyboardHidden|orientation" />
 		<activity android:name=".SettingsActivity" android:configChanges="keyboardHidden|orientation" />
 		<activity android:name=".StreamBrowseActivity" android:configChanges="keyboardHidden|orientation" />
-		<activity android:name=".StreamEditorActivity" android:configChanges="keyboardHidden|orientation" />
-		<activity android:name=".StreamMediaActivity" android:configChanges="keyboardHidden|orientation" />		
+		<activity android:name=".StreamEditorActivity" android:configChanges="keyboardHidden|orientation" />	
+
+		<service android:name="net.sourceforge.servestream.service.MusicService"
+			android:configChanges="keyboardHidden|orientation"
+			android:description="@string/service_desc" />
+
+		<activity android:name=".StreamMediaActivity" android:configChanges="keyboardHidden|orientation"
+			android:launchMode="singleTop">
+			<intent-filter>
+				<action android:name="android.intent.action.VIEW" />
+				<category android:name="android.intent.category.DEFAULT" />
+				<category android:name="android.intent.category.BROWSABLE" />
+			</intent-filter>
+		</activity>
 
 	</application>
 
