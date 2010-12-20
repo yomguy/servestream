@@ -135,6 +135,11 @@ public class StreamParser {
     	return m_fileHrefs.get(index);
     }
     
+	/**
+	 * Closes a BufferedReader
+	 * 
+	 * @param reader The reader to close
+	 */
     private void closeReader(BufferedReader reader) {
     	
     	if (reader == null)
@@ -147,6 +152,11 @@ public class StreamParser {
     	}
     }
     
+	/**
+	 * Closes a HttpURLConnection
+	 * 
+	 * @param conn The connection to close
+	 */
     private void closeHttpConnection(HttpURLConnection conn) {
     	
     	if (conn == null)
