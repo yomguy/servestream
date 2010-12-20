@@ -94,6 +94,11 @@ public class URLUtils {
 		return contentTypeCode;
 	}
 	
+	/**
+	 * Closes a HttpURLConnection
+	 * 
+	 * @param conn The connection to close
+	 */
     private static void closeHttpConnection(HttpURLConnection conn) {
     	
     	if (conn == null)

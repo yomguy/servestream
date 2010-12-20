@@ -37,6 +37,7 @@ public class PlaylistHandler {
 	public PlaylistHandler(String targetURL) {
 
 		try {
+			
 		m_targetURL = new URL(targetURL);
 		} catch (Exception ex) {
 			ex.printStackTrace();
@@ -91,6 +92,11 @@ public class PlaylistHandler {
     	return m_playlistFiles;
     }
 
+	/**
+	 * Closes a BufferedReader
+	 * 
+	 * @param reader The reader to close
+	 */
     private void closeReader(BufferedReader reader) {
     	
     	if (reader == null)
@@ -103,6 +109,11 @@ public class PlaylistHandler {
     	}
     }
     
+	/**
+	 * Closes a HttpURLConnection
+	 * 
+	 * @param conn The connection to close
+	 */
     private void closeHttpConnection(HttpURLConnection conn) {
     	
     	if (conn == null)
