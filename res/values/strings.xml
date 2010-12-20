@@ -109,8 +109,11 @@
 	<!-- Stream preference category title for connection settings -->
 	<string name="streampref_connection_category">Connection settings</string>
 
+	<!-- Protocol field title for stream editor preference -->
+	<string name="streampref_protocol_title">Protocol</string>
+
 	<!-- Hostname field title for stream editor preference -->
-	<string name="streampref_hostname_title">Stream</string>
+	<string name="streampref_hostname_title">Hostname</string>
 
 	<!-- Path field title for stream editor preference -->
 	<string name="streampref_path_title">Path</string>

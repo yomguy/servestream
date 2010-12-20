@@ -30,6 +30,12 @@
 		android:title="@string/streampref_connection_category">
 
 		<EditTextPreference
+			android:key="protocol"
+			android:title="@string/streampref_protocol_title"
+			android:singleLine="true"
+			/>
+
+		<EditTextPreference
 			android:key="hostname"
 			android:title="@string/streampref_hostname_title"
 			android:singleLine="true"
