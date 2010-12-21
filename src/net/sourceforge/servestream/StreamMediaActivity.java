@@ -19,6 +19,7 @@ package net.sourceforge.servestream;
 
 import java.util.ArrayList;
 
+import net.sourceforge.servestream.custom.CustomVideoView;
 import net.sourceforge.servestream.service.MusicService;
 import net.sourceforge.servestream.utils.PlaylistHandler;
 import net.sourceforge.servestream.utils.PreferenceConstants;
@@ -31,6 +32,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.content.SharedPreferences;
+import android.content.res.Configuration;
 import android.media.MediaPlayer;
 import android.media.MediaPlayer.OnCompletionListener;
 import android.media.MediaPlayer.OnErrorListener;
@@ -38,9 +40,11 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.preference.PreferenceManager;
+import android.view.Display;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.WindowManager;
 import android.view.View.OnClickListener;
 import android.widget.MediaController;
 import android.widget.Toast;
@@ -49,9 +53,12 @@ import android.widget.VideoView;
 public class StreamMediaActivity extends Activity {
 	public final static String TAG = "ServeStream.StreamMediaActivity";
 	
+	private int displayWidth = 0;
+	private int displayHeight = 0;
+	
     private ArrayList<String> m_mediaFiles = null;
 	private int m_currentMediaFileIndex = 0;
-	private VideoView m_videoView = null;
+	private CustomVideoView m_videoView = null;
     private String m_path = "";
 	private int m_mediaPosition = 0;
 	
@@ -134,8 +141,13 @@ public class StreamMediaActivity extends Activity {
         
 		this.setTitle(String.format("%s: %s",
 				getResources().getText(R.string.app_name),
-				getResources().getText(R.string.title_stream_play)));
+				getResources().getText(R.string.title_stream_play))); 
         
+		// get the phone's display width and height
+        Display display = getWindowManager().getDefaultDisplay();
+        displayWidth = display.getWidth();
+        displayHeight = display.getHeight();
+		
         String stream = getIntent().getExtras().getString("net.sourceforge.servestream.TargetStream");
         
 		m_preferences = PreferenceManager.getDefaultSharedPreferences(this);
@@ -149,7 +161,8 @@ public class StreamMediaActivity extends Activity {
         	m_mediaFiles.add(stream);
         }
         
-        m_videoView = (VideoView) findViewById(R.id.surface_view);
+        m_videoView = (CustomVideoView) findViewById(R.id.surface_view);
+        m_videoView.setDimensions(displayWidth, displayHeight);
         
         // attempt to get data from before device configuration change
         Bundle returnData = (Bundle) getLastNonConfigurationInstance();
@@ -196,6 +209,19 @@ public class StreamMediaActivity extends Activity {
       return data;
     }
 	
+    @Override
+	public void onConfigurationChanged(Configuration newConfig) {
+		super.onConfigurationChanged(newConfig);
+		
+	    if (newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE) {
+	        getWindow().clearFlags(WindowManager.LayoutParams.FLAG_FORCE_NOT_FULLSCREEN);
+	        getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
+	    } else {
+	        getWindow().clearFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
+	        getWindow().setFlags(WindowManager.LayoutParams.FLAG_FORCE_NOT_FULLSCREEN, WindowManager.LayoutParams.FLAG_FORCE_NOT_FULLSCREEN);
+	    }
+	}
+    
     private OnCompletionListener m_onCompletionListener = new OnCompletionListener() {
 		public void onCompletion(MediaPlayer mp) {
 
