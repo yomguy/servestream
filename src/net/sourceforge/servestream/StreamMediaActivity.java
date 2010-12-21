@@ -215,7 +215,7 @@ public class StreamMediaActivity extends Activity {
 			m_mediaController.hide();
 		}
 		
-		// get new window size after rotate
+		// get new window size on orientation change
         Display display = getWindowManager().getDefaultDisplay();
         displayWidth = display.getWidth();
         displayHeight = display.getHeight();
