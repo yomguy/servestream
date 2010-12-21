@@ -64,7 +64,8 @@ import android.widget.TextView;
 import android.widget.AdapterView.OnItemClickListener;
 
 public class StreamBrowseActivity extends ListActivity {
-
+	public final static String TAG = "ServeStream.StreamBrowseActivity";
+	
 	public final static int REQUEST_SAVE = 1;
 	
     StreamParser m_streamURLs = null;

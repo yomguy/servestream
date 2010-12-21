@@ -40,7 +40,7 @@ import android.preference.PreferenceManager;
 import android.util.Log;
 
 public class SettingsActivity extends PreferenceActivity {
-	private static final String TAG = "ServeStream.Settings";
+	private static final String TAG = "ServeStream.SettingsActivity";
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
