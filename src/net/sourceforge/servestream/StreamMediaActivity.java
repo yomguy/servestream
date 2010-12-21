@@ -215,20 +215,19 @@ public class StreamMediaActivity extends Activity {
 			m_mediaController.hide();
 		}
 		
+		// get new window size after rotate
+        Display display = getWindowManager().getDefaultDisplay();
+        displayWidth = display.getWidth();
+        displayHeight = display.getHeight();
+		
 	    if (newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE) {
 	        getWindow().clearFlags(WindowManager.LayoutParams.FLAG_FORCE_NOT_FULLSCREEN);
 	        getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
-	        Display display = getWindowManager().getDefaultDisplay();
-	        displayWidth = display.getWidth();
-	        displayHeight = display.getHeight();
 	        m_videoView.setDimensions(displayWidth, displayHeight);
 	        m_videoView.getHolder().setFixedSize(displayWidth, displayHeight);
 	    } else {
 	        getWindow().clearFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
 	        getWindow().setFlags(WindowManager.LayoutParams.FLAG_FORCE_NOT_FULLSCREEN, WindowManager.LayoutParams.FLAG_FORCE_NOT_FULLSCREEN);
-	        Display display = getWindowManager().getDefaultDisplay();
-	        displayWidth = display.getWidth();
-	        displayHeight = display.getHeight();
 	        m_videoView.setDimensions(displayWidth, displayHeight);
 	        m_videoView.getHolder().setFixedSize(displayWidth, displayHeight);
 	    }
