@@ -25,7 +25,7 @@
 	android:layout_height="fill_parent"
 	>
 
-    <VideoView 
+    <net.sourceforge.servestream.custom.CustomVideoView 
         android:id="@+id/surface_view" 
         android:layout_width="fill_parent"
         android:layout_height="fill_parent"
