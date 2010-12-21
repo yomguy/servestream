@@ -27,7 +27,6 @@ import net.sourceforge.servestream.utils.PreferenceConstants;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.ComponentName;
-import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.ServiceConnection;
@@ -48,7 +47,6 @@ import android.view.WindowManager;
 import android.view.View.OnClickListener;
 import android.widget.MediaController;
 import android.widget.Toast;
-import android.widget.VideoView;
 
 public class StreamMediaActivity extends Activity {
 	public final static String TAG = "ServeStream.StreamMediaActivity";
@@ -212,6 +210,10 @@ public class StreamMediaActivity extends Activity {
     @Override
 	public void onConfigurationChanged(Configuration newConfig) {
 		super.onConfigurationChanged(newConfig);
+		
+		if (m_videoView.isInTouchMode()) {
+			m_mediaController.hide();
+		}
 		
 	    if (newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE) {
 	        getWindow().clearFlags(WindowManager.LayoutParams.FLAG_FORCE_NOT_FULLSCREEN);
