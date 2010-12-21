@@ -143,6 +143,11 @@ public class StreamEditorActivity extends PreferenceActivity implements OnShared
 				return this;
 			}
 
+			public void apply() {
+				// TODO Auto-generated method stub
+				
+			}
+
 		}
 
 
