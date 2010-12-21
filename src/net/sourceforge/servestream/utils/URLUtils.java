@@ -38,23 +38,16 @@ public class URLUtils {
 	
 	public static int getContentTypeCode(String stream) {
 		
+		boolean contentFound = false;
+		int contentTypeCode = NOT_FOUND;
 		URL url = null;
+	    HttpURLConnection conn = null;
 		
 		try {
 		    url = new URL(stream);
-		} catch (Exception ex) {
-		}
 		
-		HttpURLConnection conn = null;
-		
-		String header = null;
-		String contentType = null;
-		
-		boolean contentFound = false;
-		
-		int contentTypeCode = NOT_FOUND;
-		
-		try {
+		    String header = null;
+		    String contentType = null;
 			
         	if (url.getProtocol().equals("http")) {
         		conn = (HttpURLConnection) url.openConnection();
