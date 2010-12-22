@@ -28,8 +28,8 @@ import javax.net.ssl.HttpsURLConnection;
 
 public class PlaylistHandler {
 
-	URL m_targetURL = null;
-    ArrayList<String> m_playlistFiles = null;
+	private URL targetURL = null;
+    private ArrayList<String> playlistFiles = null;
     
 	/**
 	 * Default constructor
@@ -37,17 +37,16 @@ public class PlaylistHandler {
 	public PlaylistHandler(String targetURL) {
 
 		try {
-			
-		m_targetURL = new URL(targetURL);
+		    this.targetURL = new URL(targetURL);
 		} catch (Exception ex) {
 			ex.printStackTrace();
 		}
 		
-		m_playlistFiles = new ArrayList<String>();
+		playlistFiles = new ArrayList<String>();
 	}
     
 	/**
-	 * Retrieve the files listed in the m3u file
+	 * Retrieves the files listed in a .m3u file
 	 */
     public void buildPlaylist() {
     	
@@ -57,13 +56,12 @@ public class PlaylistHandler {
         
         try {
         	
-        	if (m_targetURL.getProtocol().equals("http")) {
-        		conn = (HttpURLConnection) m_targetURL.openConnection();
-        	} else if (m_targetURL.getProtocol().equals("https")) {
-        		conn = (HttpsURLConnection) m_targetURL.openConnection();        		
+        	if (targetURL.getProtocol().equals("http")) {
+        		conn = (HttpURLConnection) targetURL.openConnection();
+        	} else if (targetURL.getProtocol().equals("https")) {
+        		conn = (HttpsURLConnection) targetURL.openConnection();        		
         	}
         	
-		    //conn = (HttpURLConnection) m_targetURL.openConnection();
 		    conn.setRequestMethod("GET");
 		    
 		    // Start the query
@@ -72,9 +70,8 @@ public class PlaylistHandler {
         
 		    while ((line = reader.readLine()) != null) {
 		    	if (!(line.contains("#EXTM3U") || line.contains("#EXTINF"))) {
-		    		m_playlistFiles.add(line);
-		    	}
-                
+		    		playlistFiles.add(line);
+		    	}           
             }
 
         } catch (Exception ex) {
@@ -86,10 +83,12 @@ public class PlaylistHandler {
     }
     
     /**
+     * Returns the files in the playlist
      * 
+     * @return ArrayList<String> An array containing the files from the playlist
      */
     public ArrayList<String> getPlayListFiles() {
-    	return m_playlistFiles;
+    	return playlistFiles;
     }
 
 	/**
@@ -121,6 +120,5 @@ public class PlaylistHandler {
     	
     	conn.disconnect();
     }
-	
 }
 
