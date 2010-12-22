@@ -48,7 +48,6 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
-import android.util.Log;
 import android.view.ContextMenu;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -67,18 +66,16 @@ public class StreamBrowseActivity extends ListActivity {
 	public final static String TAG = "ServeStream.StreamBrowseActivity";
 	
     StreamParser streamURLs = null;
-	String m_currentStreamURL = null;
+	String currentStreamURL = null;
     
     ArrayAdapter<String> adapter = null;
+    ProgressDialog dialog = null;
     
 	protected StreamDatabase streamdb = null;
 	protected LayoutInflater inflater = null;
 
     private final Handler handler = new Handler();
-	
     private final UILoadingHelperClass uiLoadingThread = new UILoadingHelperClass();
-
-    ProgressDialog m_dialog = null;
 	
     @Override
     public void onCreate(Bundle icicle) {
@@ -90,10 +87,18 @@ public class StreamBrowseActivity extends ListActivity {
 				getResources().getText(R.string.app_name),
 				getResources().getText(R.string.title_stream_browse)));        
         
-		m_dialog = ProgressDialog.show(StreamBrowseActivity.this, "", 
+		dialog = ProgressDialog.show(StreamBrowseActivity.this, "", 
                 "Loading. Please wait...", true);
 		
-		m_currentStreamURL = getIntent().getExtras().getString("net.sourceforge.servestream.TargetStream");
+		currentStreamURL = getIntent().getExtras().getString("net.sourceforge.servestream.TargetStream");
+		
+		try {
+	    	streamURLs = new StreamParser(currentStreamURL);
+		} catch (Exception ex) {
+			ex.printStackTrace();
+		}
+	    	
+	    new DataLoadingThread(handler, uiLoadingThread, streamURLs);
 		
 		this.streamdb = new StreamDatabase(this);
 		
@@ -120,24 +125,15 @@ public class StreamBrowseActivity extends ListActivity {
 	public void onStart() {
 		super.onStart();
 		
-		if (m_dialog == null) {
-			m_dialog = ProgressDialog.show(StreamBrowseActivity.this, "", 
-	                "Loading. Please wait...", true);
-		}
-		
-		try {
-    	streamURLs = new StreamParser(m_currentStreamURL);
-		} catch (Exception ex) {
-		}
-    	
-    	new DataLoadingThread(handler, uiLoadingThread, streamURLs);
-		
+		// connect to the stream database if we don't
+		// already have a connection
 		if(this.streamdb == null)
 			this.streamdb = new StreamDatabase(this);
 		
+		// if the current URL exists in the stream database
+		// update its timestamp
 		Stream tempStream = new Stream();
-		tempStream.createStream(m_currentStreamURL);
-		
+		tempStream.createStream(currentStreamURL);
 		Stream stream = streamdb.findStream(tempStream);
 		
 		if (stream != null) {
@@ -226,11 +222,11 @@ public class StreamBrowseActivity extends ListActivity {
 		int contentTypeCode = URLUtils.getContentTypeCode(stream);
 		
 		if (contentTypeCode == URLUtils.DIRECTORY) {
-			m_dialog = ProgressDialog.show(StreamBrowseActivity.this, "", 
+			dialog = ProgressDialog.show(StreamBrowseActivity.this, "", 
 	                "Loading. Please wait...", true);
 			try {
-				m_currentStreamURL = stream;
-				streamURLs = new StreamParser(m_currentStreamURL);
+				currentStreamURL = stream;
+				streamURLs = new StreamParser(currentStreamURL);
 			} catch (Exception ex) {
 				ex.printStackTrace();
 			}
@@ -282,14 +278,6 @@ public class StreamBrowseActivity extends ListActivity {
 				holder = (ViewHolder) convertView.getTag();
 
 			String stream = streams.get(position);
-			/*if (stream == null) {
-				// Well, something bad happened. We can't continue.
-				Log.e("URLAdapter", "URL is null!");
-
-				holder.nickname.setText("Error during lookup");
-				holder.caption.setText("see 'adb logcat' for more");
-				return convertView;
-			}*/
 
 			holder.nickname.setText(stream);
 
@@ -316,13 +304,13 @@ public class StreamBrowseActivity extends ListActivity {
 
 	private class DataLoadingThread extends Thread {
 
-        private final Handler m_handler;
-        private final UILoadingHelperClass m_uiLoadingThread;
+        private final Handler handler;
+        private final UILoadingHelperClass uiLoadingThread;
         private final StreamParser streamURLs;
 
         public DataLoadingThread(Handler handler, UILoadingHelperClass uiLoadingThread, StreamParser streamURLs) {
-            this.m_handler = handler;
-            this.m_uiLoadingThread = uiLoadingThread;
+            this.handler = handler;
+            this.uiLoadingThread = uiLoadingThread;
             this.streamURLs = streamURLs;
             this.start();
         }
@@ -336,7 +324,8 @@ public class StreamBrowseActivity extends ListActivity {
    
             // we are done retrieving, parsing and adding links
             // to the list so dismiss the dialog
-            m_dialog.dismiss();
+            dialog.dismiss();
+            dialog = null;
         }
     }
 	
@@ -358,5 +347,4 @@ public class StreamBrowseActivity extends ListActivity {
         	m_listView.setAdapter(adapter);
         }      
     }
-	
 }
