@@ -29,6 +29,8 @@ public class URLUtils {
 	public final static int MEDIA_FILE = 200;
 	public final static int NOT_FOUND = -1;
 	
+	private final static String MIME_HTML = "text/html";
+	
 	/*
 	 * Default constructor
 	 */
@@ -71,7 +73,7 @@ public class URLUtils {
             if (contentFound) {
                 //if (contentType.trim().equalsIgnoreCase("text/html")) {
             	//TODO fix this
-            	if (contentType.contains("text/html")) {
+            	if (contentType.contains(MIME_HTML)) {
         			contentTypeCode = DIRECTORY;
                 } else {
         			contentTypeCode = MEDIA_FILE;
@@ -99,5 +101,4 @@ public class URLUtils {
     	
     	conn.disconnect();
     }
-	
 }
