@@ -58,7 +58,7 @@ public class StreamMediaActivity extends Activity {
 	private int m_currentMediaFileIndex = 0;
 	private CustomVideoView m_videoView = null;
     private String m_path = "";
-	private int m_mediaPosition = 0;
+	private int mediaPosition = 0;
 	
 	private MediaController m_mediaController = null;
 	private SharedPreferences preferences = null;	
@@ -159,7 +159,7 @@ public class StreamMediaActivity extends Activity {
             startSong(m_currentMediaFileIndex);
         } else {
         	m_videoView.setVideoURI(Uri.parse(m_mediaFiles.get(m_currentMediaFileIndex)));
-        	m_videoView.seekTo(m_mediaPosition);
+        	m_videoView.seekTo(mediaPosition);
         	m_videoView.start();
         	Toast.makeText(StreamMediaActivity.this, "Now Playing: " + m_mediaFiles.get(m_currentMediaFileIndex), Toast.LENGTH_LONG).show();
         }
@@ -198,12 +198,12 @@ public class StreamMediaActivity extends Activity {
     
     @Override
     public Object onRetainNonConfigurationInstance() {
-        m_mediaPosition = m_videoView.getCurrentPosition();
+        mediaPosition = m_videoView.getCurrentPosition();
  
         // Build bundle to save data for return
         Bundle data = new Bundle();
         data.putString("LOCATION", m_path);
-        data.putInt("POSITION", m_mediaPosition);
+        data.putInt("POSITION", mediaPosition);
       
         return data;
     }
