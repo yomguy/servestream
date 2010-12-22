@@ -61,7 +61,7 @@ public class StreamMediaActivity extends Activity {
 	private int m_mediaPosition = 0;
 	
 	private MediaController m_mediaController = null;
-	private SharedPreferences m_preferences = null;	
+	private SharedPreferences preferences = null;	
 	
 	private MusicService m_boundService;
 
@@ -83,22 +83,6 @@ public class StreamMediaActivity extends Activity {
 	        m_boundService = null;
 	    }
 	};
-
-	@Override
-	public void onStart() {
-		super.onStart();
-		
-		// connect with manager service to find all bridges
-		// when connected it will insert all views
-		//bindService(new Intent(this, MusicService.class), connection, Context.BIND_AUTO_CREATE);
-	}
-	
-	@Override
-	public void onStop() {
-		super.onStop();
-		
-        //unbindService(connection);
-	}
 	
 	@Override
 	public void onPause() {
@@ -148,7 +132,7 @@ public class StreamMediaActivity extends Activity {
 		
         String stream = getIntent().getExtras().getString("net.sourceforge.servestream.TargetStream");
         
-		m_preferences = PreferenceManager.getDefaultSharedPreferences(this);
+		preferences = PreferenceManager.getDefaultSharedPreferences(this);
         
         if (isPlaylist(stream)) {
             PlaylistHandler playlistHandler = new PlaylistHandler(stream);
@@ -182,6 +166,22 @@ public class StreamMediaActivity extends Activity {
     }
     
 	@Override
+	public void onStart() {
+		super.onStart();
+		
+		// connect with manager service to find all bridges
+		// when connected it will insert all views
+		//bindService(new Intent(this, MusicService.class), connection, Context.BIND_AUTO_CREATE);
+	}
+	
+	@Override
+	public void onStop() {
+		super.onStop();
+		
+        //unbindService(connection);
+	}
+    
+	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		super.onCreateOptionsMenu(menu);
 
@@ -204,7 +204,8 @@ public class StreamMediaActivity extends Activity {
         Bundle data = new Bundle();
         data.putString("LOCATION", m_path);
         data.putInt("POSITION", m_mediaPosition);
-      return data;
+      
+        return data;
     }
 	
     @Override
@@ -237,7 +238,7 @@ public class StreamMediaActivity extends Activity {
 		public void onCompletion(MediaPlayer mp) {
 
 			// if repeat preference is set to one, play the media file again
-			if (m_preferences.getString(PreferenceConstants.REPEAT, "Off").equals("One")) {
+			if (preferences.getString(PreferenceConstants.REPEAT, "Off").equals("One")) {
 				startSong(m_currentMediaFileIndex);
 				return;
 			}
@@ -245,7 +246,7 @@ public class StreamMediaActivity extends Activity {
 			m_currentMediaFileIndex++;
 			
 			if (m_currentMediaFileIndex == m_mediaFiles.size()) {
-				if (m_preferences.getString(PreferenceConstants.REPEAT, "Off").equals("All")) {
+				if (preferences.getString(PreferenceConstants.REPEAT, "Off").equals("All")) {
 					startSong(0);
 					return;
 				}
