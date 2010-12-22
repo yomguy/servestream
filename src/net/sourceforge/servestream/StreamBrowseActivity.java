@@ -325,7 +325,6 @@ public class StreamBrowseActivity extends ListActivity {
             // we are done retrieving, parsing and adding links
             // to the list so dismiss the dialog
             dialog.dismiss();
-            dialog = null;
         }
     }
 	
