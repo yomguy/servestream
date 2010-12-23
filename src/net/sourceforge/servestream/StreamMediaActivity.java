@@ -150,13 +150,24 @@ public class StreamMediaActivity extends Activity {
         Bundle returnData = (Bundle) getLastNonConfigurationInstance();
         
         if (returnData == null) {
-            m_mediaController = new MediaController(this, true);
-            m_mediaController.setPrevNextListeners(null, null);
-            m_videoView.setMediaController(m_mediaController);
+            if (m_mediaFiles.size() > 0) {
+    			new AlertDialog.Builder(StreamMediaActivity.this)
+    			.setTitle(R.string.cannot_play_media_title)
+    			.setMessage("The selected playlist file has no valid song entries.")
+    			.setPositiveButton(R.string.cannot_play_media_pos, new DialogInterface.OnClickListener() {
+    				public void onClick(DialogInterface dialog, int which) {
+    					finish();
+    				}
+    				}).create().show();
+            } else {
+                m_mediaController = new MediaController(this, true);
+                m_mediaController.setPrevNextListeners(null, null);
+                m_videoView.setMediaController(m_mediaController);
             
-            m_videoView.setOnErrorListener(m_onErrorListener);
-            m_videoView.setOnCompletionListener(m_onCompletionListener);
-            startSong(m_currentMediaFileIndex);
+                m_videoView.setOnErrorListener(m_onErrorListener);
+                m_videoView.setOnCompletionListener(m_onCompletionListener);
+                startSong(m_currentMediaFileIndex);
+            }
         } else {
         	m_videoView.setVideoURI(Uri.parse(m_mediaFiles.get(m_currentMediaFileIndex)));
         	m_videoView.seekTo(mediaPosition);
