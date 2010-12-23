@@ -57,10 +57,9 @@ public class URLUtils {
         		conn = (HttpsURLConnection) url.openConnection();        		
         	}
 			
-		    //conn = (HttpURLConnection) url.openConnection();
 	        conn.setRequestMethod("GET");
 	    
-            int i = 1;
+            int i = 0;
             while ((header = conn.getHeaderField(i)) != null) {
                 String key = conn.getHeaderFieldKey(i);
                 if (key != null && key.equalsIgnoreCase("Content-type")) {
