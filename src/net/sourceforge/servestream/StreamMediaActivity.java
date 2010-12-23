@@ -150,7 +150,7 @@ public class StreamMediaActivity extends Activity {
         Bundle returnData = (Bundle) getLastNonConfigurationInstance();
         
         if (returnData == null) {
-            if (m_mediaFiles.size() > 0) {
+            if (m_mediaFiles.size() == 0) {
     			new AlertDialog.Builder(StreamMediaActivity.this)
     			.setTitle(R.string.cannot_play_media_title)
     			.setMessage("The selected playlist file has no valid song entries.")
