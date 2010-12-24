@@ -37,6 +37,8 @@ import org.jsoup.select.Elements;
 
 public class StreamParser {
 
+	public final String UP_ONE_DIRECTORY = "..";
+	
 	URL m_targetURL = null;
 	URL m_indexURL = null;
     ArrayList<String> m_textLinks = null;
@@ -80,10 +82,10 @@ public class StreamParser {
                 html = html + line;
             }
             
-		    // add ".." to the list if came from a directory
+		    // add ".." to the list if we came from a directory
             if (!(m_targetURL.getPath().equals("/") || m_targetURL.getPath().equals(""))) {
 		        String directoryUpOneLevel = new File(m_targetURL.getPath().toString()).getParent();
-		        m_textLinks.add("..");
+		        m_textLinks.add(UP_ONE_DIRECTORY);
 		        m_fileHrefs.put(linkCount, m_indexURL + directoryUpOneLevel);
 		        linkCount++;
             }
