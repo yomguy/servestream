@@ -26,6 +26,7 @@ import net.sourceforge.servestream.utils.PreferenceConstants;
 
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.app.ProgressDialog;
 import android.content.ComponentName;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -35,6 +36,7 @@ import android.content.res.Configuration;
 import android.media.MediaPlayer;
 import android.media.MediaPlayer.OnCompletionListener;
 import android.media.MediaPlayer.OnErrorListener;
+import android.media.MediaPlayer.OnPreparedListener;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.IBinder;
@@ -54,16 +56,18 @@ public class StreamMediaActivity extends Activity {
 	private int displayWidth = 0;
 	private int displayHeight = 0;
 	
-    private ArrayList<String> m_mediaFiles = null;
-	private int m_currentMediaFileIndex = 0;
-	private CustomVideoView m_videoView = null;
-    private String m_path = "";
+    private ArrayList<String> mediaFiles = null;
+	private int mediaFilesIndex = 0;
+	private CustomVideoView videoView = null;
+    private String path = "";
 	private int mediaPosition = 0;
 	
-	private MediaController m_mediaController = null;
+    ProgressDialog dialog = null;
+	
+	private MediaController mediaController = null;
 	private SharedPreferences preferences = null;	
 	
-	private MusicService m_boundService;
+	private MusicService boundService;
 
 	private ServiceConnection connection = new ServiceConnection() {
 	    public void onServiceConnected(ComponentName className, IBinder service) {
@@ -72,7 +76,7 @@ public class StreamMediaActivity extends Activity {
 	        // interact with the service.  Because we have bound to a explicit
 	        // service that we know is running in our own process, we can
 	        // cast its IBinder to a concrete class and directly access it.
-	        m_boundService = ((MusicService.MusicBinder)service).getService();
+	        boundService = ((MusicService.MusicBinder)service).getService();
 	    }
 
 	    public void onServiceDisconnected(ComponentName className) {
@@ -80,7 +84,7 @@ public class StreamMediaActivity extends Activity {
 	        // unexpectedly disconnected -- that is, its process crashed.
 	        // Because it is running in our same process, we should never
 	        // see this happen.
-	        m_boundService = null;
+	        boundService = null;
 	    }
 	};
 	
@@ -88,11 +92,11 @@ public class StreamMediaActivity extends Activity {
 	public void onPause() {
 		super.onPause();
 		
-		/*if (m_videoView.isPlaying()) {
-		    m_videoView.stopPlayback();
+		/*if (videoView.isPlaying()) {
+		    videoView.stopPlayback();
             try {
-			    m_boundService.startMusicInBackground(m_mediaFiles, m_currentMediaFileIndex, 
-					    m_videoView.getCurrentPosition());
+			    m_boundService.startMusicInBackground(mediaFiles, mediaFilesIndex, 
+					    videoView.getCurrentPosition());
 		    } catch (Exception e) {
 			    e.printStackTrace();
 		    }
@@ -110,9 +114,9 @@ public class StreamMediaActivity extends Activity {
 			    e.printStackTrace();
 		    }
 		
-		    m_videoView.setVideoURI(Uri.parse(m_mediaFiles.get(m_boundService.getCurrentMediaFileIndex())));
-		    m_videoView.seekTo(m_boundService.getCurrentMediaFileIndex());
-		    m_videoView.start();
+		    videoView.setVideoURI(Uri.parse(mediaFiles.get(m_boundService.getCurrentMediaFileIndex())));
+		    videoView.seekTo(m_boundService.getCurrentMediaFileIndex());
+		    videoView.start();
 		}*/
 	}
 	
@@ -126,9 +130,7 @@ public class StreamMediaActivity extends Activity {
 				getResources().getText(R.string.title_stream_play))); 
         
 		// get the phone's display width and height
-        Display display = getWindowManager().getDefaultDisplay();
-        displayWidth = display.getWidth();
-        displayHeight = display.getHeight();
+		getDisplayMeasurements();
 		
         String stream = getIntent().getExtras().getString("net.sourceforge.servestream.TargetStream");
         
@@ -137,20 +139,26 @@ public class StreamMediaActivity extends Activity {
         if (isPlaylist(stream)) {
             PlaylistHandler playlistHandler = new PlaylistHandler(stream);
             playlistHandler.buildPlaylist();
-            m_mediaFiles = playlistHandler.getPlayListFiles();
+            mediaFiles = playlistHandler.getPlayListFiles();
         } else {
-        	m_mediaFiles = new ArrayList<String>();
-        	m_mediaFiles.add(stream);
+        	mediaFiles = new ArrayList<String>();
+        	mediaFiles.add(stream);
         }
         
-        m_videoView = (CustomVideoView) findViewById(R.id.surface_view);
-        m_videoView.setDimensions(displayWidth, displayHeight);
+        videoView = (CustomVideoView) findViewById(R.id.surface_view);
+        videoView.setDimensions(displayWidth, displayHeight);
+        videoView.setOnPreparedListener(new OnPreparedListener() {
+			public void onPrepared(MediaPlayer mp) {
+				dialog.dismiss();
+		        Toast.makeText(StreamMediaActivity.this, "Now Playing: " + mediaFiles.get(mediaFilesIndex), Toast.LENGTH_LONG).show();
+			}
+        });
         
         // attempt to get data from before device configuration change
         Bundle returnData = (Bundle) getLastNonConfigurationInstance();
         
         if (returnData == null) {
-            if (m_mediaFiles.size() == 0) {
+            if (mediaFiles.size() == 0) {
     			new AlertDialog.Builder(StreamMediaActivity.this)
     			.setTitle(R.string.cannot_play_media_title)
     			.setMessage("The selected playlist file has no valid song entries.")
@@ -160,19 +168,18 @@ public class StreamMediaActivity extends Activity {
     				}
     				}).create().show();
             } else {
-                m_mediaController = new MediaController(this, true);
-                m_mediaController.setPrevNextListeners(null, null);
-                m_videoView.setMediaController(m_mediaController);
+                mediaController = new MediaController(this, true);
+                mediaController.setPrevNextListeners(null, null);
+                videoView.setMediaController(mediaController);
             
-                m_videoView.setOnErrorListener(m_onErrorListener);
-                m_videoView.setOnCompletionListener(m_onCompletionListener);
-                startSong(m_currentMediaFileIndex);
+                videoView.setOnErrorListener(m_onErrorListener);
+                videoView.setOnCompletionListener(m_onCompletionListener);
+                startSong(mediaFilesIndex);
             }
         } else {
-        	m_videoView.setVideoURI(Uri.parse(m_mediaFiles.get(m_currentMediaFileIndex)));
-        	m_videoView.seekTo(mediaPosition);
-        	m_videoView.start();
-        	Toast.makeText(StreamMediaActivity.this, "Now Playing: " + m_mediaFiles.get(m_currentMediaFileIndex), Toast.LENGTH_LONG).show();
+        	videoView.setVideoURI(Uri.parse(mediaFiles.get(mediaFilesIndex)));
+        	videoView.seekTo(mediaPosition);
+        	videoView.start();
         }
     }
     
@@ -209,11 +216,11 @@ public class StreamMediaActivity extends Activity {
     
     @Override
     public Object onRetainNonConfigurationInstance() {
-        mediaPosition = m_videoView.getCurrentPosition();
+        mediaPosition = videoView.getCurrentPosition();
  
         // Build bundle to save data for return
         Bundle data = new Bundle();
-        data.putString("LOCATION", m_path);
+        data.putString("LOCATION", path);
         data.putInt("POSITION", mediaPosition);
       
         return data;
@@ -223,25 +230,23 @@ public class StreamMediaActivity extends Activity {
 	public void onConfigurationChanged(Configuration newConfig) {
 		super.onConfigurationChanged(newConfig);
 		
-		if (m_videoView.isInTouchMode()) {
-			m_mediaController.hide();
+		if (videoView.isInTouchMode()) {
+			mediaController.hide();
 		}
 		
 		// get new window size on orientation change
-        Display display = getWindowManager().getDefaultDisplay();
-        displayWidth = display.getWidth();
-        displayHeight = display.getHeight();
+		getDisplayMeasurements();
 		
 	    if (newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE) {
 	        getWindow().clearFlags(WindowManager.LayoutParams.FLAG_FORCE_NOT_FULLSCREEN);
 	        getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
-	        m_videoView.setDimensions(displayWidth, displayHeight);
-	        m_videoView.getHolder().setFixedSize(displayWidth, displayHeight);
+	        videoView.setDimensions(displayWidth, displayHeight);
+	        videoView.getHolder().setFixedSize(displayWidth, displayHeight);
 	    } else {
 	        getWindow().clearFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
 	        getWindow().setFlags(WindowManager.LayoutParams.FLAG_FORCE_NOT_FULLSCREEN, WindowManager.LayoutParams.FLAG_FORCE_NOT_FULLSCREEN);
-	        m_videoView.setDimensions(displayWidth, displayHeight);
-	        m_videoView.getHolder().setFixedSize(displayWidth, displayHeight);
+	        videoView.setDimensions(displayWidth, displayHeight);
+	        videoView.getHolder().setFixedSize(displayWidth, displayHeight);
 	    }
 	}
     
@@ -250,20 +255,20 @@ public class StreamMediaActivity extends Activity {
 
 			// if repeat preference is set to one, play the media file again
 			if (preferences.getString(PreferenceConstants.REPEAT, "Off").equals("One")) {
-				startSong(m_currentMediaFileIndex);
+				startSong(mediaFilesIndex);
 				return;
 			}
 			
-			m_currentMediaFileIndex++;
+			mediaFilesIndex++;
 			
-			if (m_currentMediaFileIndex == m_mediaFiles.size()) {
+			if (mediaFilesIndex == mediaFiles.size()) {
 				if (preferences.getString(PreferenceConstants.REPEAT, "Off").equals("All")) {
 					startSong(0);
 					return;
 				}
 				finish();
 			} else {
-                startSong(m_currentMediaFileIndex);
+                startSong(mediaFilesIndex);
 			}
 		}
     };
@@ -286,41 +291,58 @@ public class StreamMediaActivity extends Activity {
     private class previousOnClickListener implements OnClickListener {
 
 		public void onClick(View arg0) {
-            startSong(m_currentMediaFileIndex - 1);
+            startSong(mediaFilesIndex - 1);
 		}
     }
     
     private class nextOnClickListener implements OnClickListener {
 
 		public void onClick(View arg0) {
-            startSong(m_currentMediaFileIndex + 1);
+            startSong(mediaFilesIndex + 1);
 		}
     }
     
     /**
-     * Sets the state of the previous and next buttons on the media player
+     * Sets the state of the previous and next buttons on the
+     * media player
      */
     private void setPlayerButtonStates() {
-    	if (!(m_mediaFiles.size() == 1)) {
-	 	    if (m_currentMediaFileIndex == 0) {
-                m_mediaController.setPrevNextListeners(new nextOnClickListener(), null);
-		    } else if (m_currentMediaFileIndex == m_mediaFiles.size() - 1) {
-                m_mediaController.setPrevNextListeners(null, new previousOnClickListener());   	
+    	if (!(mediaFiles.size() == 1)) {
+	 	    if (mediaFilesIndex == 0) {
+                mediaController.setPrevNextListeners(new nextOnClickListener(), null);
+		    } else if (mediaFilesIndex == mediaFiles.size() - 1) {
+                mediaController.setPrevNextListeners(null, new previousOnClickListener());   	
 		    } else {
-                m_mediaController.setPrevNextListeners(new nextOnClickListener(), new previousOnClickListener());
+                mediaController.setPrevNextListeners(new nextOnClickListener(), new previousOnClickListener());
 		    }
     	}
     }
     
+    /**
+     * 
+     * 
+     * @param playlistFileIndex The index of the file to play
+     */
     private void startSong(int playlistFileIndex) {
    
-    	m_currentMediaFileIndex = playlistFileIndex;
+		dialog = ProgressDialog.show(StreamMediaActivity.this, "", 
+                "Buffering...", true);
+    	
+    	mediaFilesIndex = playlistFileIndex;
 		setPlayerButtonStates();
     	
-		m_videoView.stopPlayback();
-        m_videoView.setVideoURI(Uri.parse(m_mediaFiles.get(m_currentMediaFileIndex)));
-        m_videoView.start();
-        Toast.makeText(StreamMediaActivity.this, "Now Playing: " + m_mediaFiles.get(m_currentMediaFileIndex), Toast.LENGTH_LONG).show();
+		videoView.stopPlayback();
+        videoView.setVideoURI(Uri.parse(mediaFiles.get(mediaFilesIndex)));
+        videoView.start();
+    }
+    
+    /**
+     * Retrieve the phone display width and height
+     */
+    private void getDisplayMeasurements() {
+        Display display = getWindowManager().getDefaultDisplay();
+        displayWidth = display.getWidth();
+        displayHeight = display.getHeight();
     }
     
     /**
