@@ -41,6 +41,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.preference.PreferenceManager;
+import android.util.Log;
 import android.view.Display;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -58,14 +59,12 @@ public class StreamMediaActivity extends Activity {
 	
     private ArrayList<String> mediaFiles = null;
 	private int mediaFilesIndex = 0;
-	private CustomVideoView videoView = null;
-    private String path = "";
-	private int mediaPosition = 0;
-	
-    ProgressDialog dialog = null;
 	
 	private MediaController mediaController = null;
+	private CustomVideoView videoView = null;
+	
 	private SharedPreferences preferences = null;	
+    private ProgressDialog dialog = null;
 	
 	private MusicService boundService;
 
@@ -158,6 +157,7 @@ public class StreamMediaActivity extends Activity {
         Bundle returnData = (Bundle) getLastNonConfigurationInstance();
         
         if (returnData == null) {
+        	Log.v(TAG, "CALLED");
             if (mediaFiles.size() == 0) {
     			new AlertDialog.Builder(StreamMediaActivity.this)
     			.setTitle(R.string.cannot_play_media_title)
@@ -176,10 +176,6 @@ public class StreamMediaActivity extends Activity {
                 videoView.setOnCompletionListener(m_onCompletionListener);
                 startSong(mediaFilesIndex);
             }
-        } else {
-        	videoView.setVideoURI(Uri.parse(mediaFiles.get(mediaFilesIndex)));
-        	videoView.seekTo(mediaPosition);
-        	videoView.start();
         }
     }
     
@@ -213,18 +209,6 @@ public class StreamMediaActivity extends Activity {
 
 		return true;
 	}
-    
-    @Override
-    public Object onRetainNonConfigurationInstance() {
-        mediaPosition = videoView.getCurrentPosition();
- 
-        // Build bundle to save data for return
-        Bundle data = new Bundle();
-        data.putString("LOCATION", path);
-        data.putInt("POSITION", mediaPosition);
-      
-        return data;
-    }
 	
     @Override
 	public void onConfigurationChanged(Configuration newConfig) {
@@ -324,9 +308,6 @@ public class StreamMediaActivity extends Activity {
      * @param playlistFileIndex The index of the file to play
      */
     private void startSong(int playlistFileIndex) {
-   
-		dialog = ProgressDialog.show(StreamMediaActivity.this, "", 
-                "Buffering...", true);
     	
     	mediaFilesIndex = playlistFileIndex;
 		setPlayerButtonStates();
@@ -334,6 +315,9 @@ public class StreamMediaActivity extends Activity {
 		videoView.stopPlayback();
         videoView.setVideoURI(Uri.parse(mediaFiles.get(mediaFilesIndex)));
         videoView.start();
+        
+		dialog = ProgressDialog.show(StreamMediaActivity.this, "", 
+                "Opening file...", true);
     }
     
     /**
