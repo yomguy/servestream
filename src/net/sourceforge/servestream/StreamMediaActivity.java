@@ -126,6 +126,8 @@ public class StreamMediaActivity extends Activity {
 	        videoView.start();
 	        videoView.seekTo(savedMediaPosition);
 	        resumePlaying = false;
+			dialog = ProgressDialog.show(StreamMediaActivity.this, "", 
+	                "Resuming playback...", true);
 		}
 		
 		/*if (m_boundService != null) {
