@@ -39,6 +39,7 @@ import net.sourceforge.servestream.R;
 import net.sourceforge.servestream.dbutils.Stream;
 import net.sourceforge.servestream.dbutils.StreamDatabase;
 import net.sourceforge.servestream.utils.URLUtils;
+import net.sourceforge.servestream.utils.UpdateHelper;
 
 import android.app.AlertDialog;
 import android.app.ListActivity;
@@ -84,8 +85,6 @@ public class StreamListActivity extends ListActivity {
 	//private SharedPreferences m_preferences = null;
 	protected boolean m_sortedByColor = false;
 	
-	//private final String [] m_protocolTypes = {"http", "https"};
-	
 	protected Handler updateHandler = new Handler() {
 		@Override
 		public void handleMessage(Message msg) {
@@ -126,23 +125,8 @@ public class StreamListActivity extends ListActivity {
 
 		//m_preferences = PreferenceManager.getDefaultSharedPreferences(this);
 		
-		/*m_protocolSpinner = (Spinner)findViewById(R.id.protocol_selection);
-		ArrayAdapter<String> protocolSelection = new ArrayAdapter<String>(this,
-				android.R.layout.simple_spinner_item, m_protocolTypes);
-		protocolSelection.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-		m_protocolSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-			public void onItemSelected(AdapterView<?> arg0, View view, int position, long id) {
-				String formatHint = ProtocolFactory.getProtocolHint(
-						(String) m_protocolSpinner.getSelectedItem());
-
-				m_quickconnect.setHint(formatHint);
-				m_quickconnect.setError(null);
-				m_quickconnect.requestFocus();
-			}
-			public void onNothingSelected(AdapterView<?> arg0) { }
-		});
-		m_protocolSpinner.setAdapter(protocolSelection);
-		*/
+		// start thread to check for new version
+		new UpdateHelper(this);
 		
 		// connect with streams database and populate list
 		this.m_streamdb = new StreamDatabase(this);
