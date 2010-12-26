@@ -41,7 +41,6 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.preference.PreferenceManager;
-import android.util.Log;
 import android.view.Display;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -59,6 +58,10 @@ public class StreamMediaActivity extends Activity {
 	
     private ArrayList<String> mediaFiles = null;
 	private int mediaFilesIndex = 0;
+	
+	private int savedIndex = -1;
+	private int savedMediaPosition = -1;
+	private boolean resumePlaying = false; 
 	
 	private MediaController mediaController = null;
 	private CustomVideoView videoView = null;
@@ -91,6 +94,17 @@ public class StreamMediaActivity extends Activity {
 	public void onPause() {
 		super.onPause();
 		
+		if (videoView != null) {
+		    if (videoView.isPlaying()) {
+			    savedIndex = mediaFilesIndex;
+			    savedMediaPosition = videoView.getCurrentPosition();
+			    videoView.stopPlayback();
+			    resumePlaying = true;
+		    } else {
+			    resumePlaying = false;
+		    }
+		}
+		
 		/*if (videoView.isPlaying()) {
 		    videoView.stopPlayback();
             try {
@@ -105,6 +119,14 @@ public class StreamMediaActivity extends Activity {
 	@Override
 	public void onResume() {
 		super.onResume();
+		
+		if (resumePlaying) {
+	    	mediaFilesIndex = savedIndex;
+	        videoView.setVideoURI(Uri.parse(mediaFiles.get(mediaFilesIndex)));
+	        videoView.start();
+	        videoView.seekTo(savedMediaPosition);
+	        resumePlaying = false;
+		}
 		
 		/*if (m_boundService != null) {
 		    try {
@@ -157,7 +179,6 @@ public class StreamMediaActivity extends Activity {
         Bundle returnData = (Bundle) getLastNonConfigurationInstance();
         
         if (returnData == null) {
-        	Log.v(TAG, "CALLED");
             if (mediaFiles.size() == 0) {
     			new AlertDialog.Builder(StreamMediaActivity.this)
     			.setTitle(R.string.cannot_play_media_title)
@@ -197,7 +218,7 @@ public class StreamMediaActivity extends Activity {
     
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
-		super.onCreateOptionsMenu(menu);
+		//super.onCreateOptionsMenu(menu);
 
 		MenuItem settings = menu.add(R.string.list_menu_settings);
 		settings.setIcon(android.R.drawable.ic_menu_preferences);
