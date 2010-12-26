@@ -140,6 +140,13 @@
 	
 	<string name="text_next_button">Next</string>
 	
+		<!-- Dialog title when a new version of ServeStream is detected. -->
+	<string name="upgrade">"New version"</string>
+	<!-- Button selection to upgrade to the latest ServeStream when one is available. -->
+	<string name="upgrade_pos">"Yes, upgrade"</string>
+	<!-- Button selection to skip upgrading to the latest ServeStream when one is available. -->
+	<string name="upgrade_neg">"Not right now"</string>
+	
 	<!-- Displayed in the notification bar that connections are active -->
 	<string name="app_is_running">"ServeStream is running"</string>
 </resources>
