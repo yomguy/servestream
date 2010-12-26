@@ -51,7 +51,7 @@ public class MusicService extends Service {
     	m_mediaPlayer = new MediaPlayer();
     	
         // Display a notification about us starting.  We put an icon in the status bar.
-        showNotification();
+		ConnectionNotifier.getInstance().showRunningNotification(this);
     }
 
     @Override
@@ -64,6 +64,7 @@ public class MusicService extends Service {
 
     @Override
     public void onDestroy() {
+    	
         // Cancel the persistent notification.
 		ConnectionNotifier.getInstance().hideRunningNotification(this);
 		Log.v("should have rmoved isonc","ok");
@@ -80,9 +81,9 @@ public class MusicService extends Service {
     
     @Override
     public boolean onUnbind(Intent intent) {
-    	
-		stopSelf();
 		
+		stopSelf();
+    	
 		return true;
     }
 
