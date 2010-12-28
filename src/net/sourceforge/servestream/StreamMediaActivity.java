@@ -62,7 +62,7 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
 	
     private MediaPlayer mediaPlayer;
 
-	private Animation controller_fade_in, controller_fade_out;
+	private Animation media_controls_fade_in, media_controls_fade_out;
 	private RelativeLayout mediaControllerGroup;
     
     private SurfaceView preview;
@@ -119,8 +119,8 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
 		//preferences = PreferenceManager.getDefaultSharedPreferences(this);
 		
 		// preload animation for media controller display
-		controller_fade_in = AnimationUtils.loadAnimation(this, R.anim.controller_fade_in);
-		controller_fade_out = AnimationUtils.loadAnimation(this, R.anim.controller_fade_out);
+		media_controls_fade_in = AnimationUtils.loadAnimation(this, R.anim.media_controls_fade_in);
+		media_controls_fade_out = AnimationUtils.loadAnimation(this, R.anim.media_controls_fade_out);
         
 		mediaControllerGroup = (RelativeLayout) findViewById(R.id.media_controller_group);
 		mediaControllerGroup.setVisibility(View.GONE);
@@ -130,10 +130,10 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
 
 			public boolean onTouch(View arg0, MotionEvent arg1) {
 				if (mediaControllerGroup.isShown()) {
-				    mediaControllerGroup.startAnimation(controller_fade_out);
+				    mediaControllerGroup.startAnimation(media_controls_fade_out);
 				    mediaControllerGroup.setVisibility(View.GONE);
 				} else {
-					mediaControllerGroup.startAnimation(controller_fade_in);
+					mediaControllerGroup.startAnimation(media_controls_fade_in);
 					mediaControllerGroup.setVisibility(View.VISIBLE);
 					
 					handler.postDelayed(new Runnable() {
@@ -141,7 +141,7 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
 							if (mediaControllerGroup.getVisibility() == View.GONE)
 								return;
 
-							mediaControllerGroup.startAnimation(controller_fade_out);
+							mediaControllerGroup.startAnimation(media_controls_fade_out);
 							mediaControllerGroup.setVisibility(View.GONE);
 						}
 					}, MEDIA_CONTROLS_DISPLAY_TIME);
@@ -164,7 +164,7 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
 			public void onClick(View v) {
 				boundService.previousMediaFile();
 				
-			    mediaControllerGroup.startAnimation(controller_fade_out);
+			    mediaControllerGroup.startAnimation(media_controls_fade_out);
 				mediaControllerGroup.setVisibility(View.GONE);
 			}
 			
@@ -176,7 +176,7 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
 			public void onClick(View v) {
 				boundService.seekBackward();
 				
-			    mediaControllerGroup.startAnimation(controller_fade_out);
+			    mediaControllerGroup.startAnimation(media_controls_fade_out);
 				mediaControllerGroup.setVisibility(View.GONE);
 			}
 			
@@ -194,7 +194,7 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
 					playPauseButton.setBackgroundResource(R.drawable.pause_button);
 				}
 				
-			    mediaControllerGroup.startAnimation(controller_fade_out);
+			    mediaControllerGroup.startAnimation(media_controls_fade_out);
 				mediaControllerGroup.setVisibility(View.GONE);
 			}
 			
@@ -206,7 +206,7 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
 			public void onClick(View v) {
 				boundService.seekForward();
 				
-			    mediaControllerGroup.startAnimation(controller_fade_out);
+			    mediaControllerGroup.startAnimation(media_controls_fade_out);
 				mediaControllerGroup.setVisibility(View.GONE);
 			}
 			
@@ -218,7 +218,7 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
 			public void onClick(View v) {
 				boundService.nextMediaFile();
 				
-			    mediaControllerGroup.startAnimation(controller_fade_out);
+			    mediaControllerGroup.startAnimation(media_controls_fade_out);
 				mediaControllerGroup.setVisibility(View.GONE);
 			}
 			
