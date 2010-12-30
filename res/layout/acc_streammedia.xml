@@ -88,15 +88,39 @@
 			android:layout_alignParentTop="true"
 			android:background="@drawable/next_button"
 			/>
-
-        <ProgressBar android:id="@+id/progreso"
-        	style="?android:attr/progressBarStyleHorizontal"
-        	android:paddingTop="5dip"
-        	android:layout_width="fill_parent"
-			android:layout_height="wrap_content"
-            android:layout_centerHorizontal="true"
-            android:layout_below="@+id/previous_button"
-        />
+        
+            <TextView android:id="@+id/position_text"
+            	android:layout_width="wrap_content" 
+                android:layout_height="wrap_content"
+                android:layout_alignParentLeft="true"
+            	android:layout_below="@+id/previous_button"
+            />
+            
+             <RelativeLayout
+             	android:paddingLeft="2dip"
+             	android:paddingRight="2dip"
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content"
+				android:layout_toRightOf="@+id/position_text"
+				android:layout_toLeftOf="@+id/duration_text"
+				android:layout_below="@+id/previous_button"
+				android:layout_alignTop="@+id/position_text"
+				android:background="#525152"
+				>
+                
+                <SeekBar android:id="@+id/seek_bar"
+                	android:layout_width="fill_parent" 
+                    android:layout_height="wrap_content"
+                />
+                
+           	</RelativeLayout>
+              
+            <TextView android:id="@+id/duration_text"
+                android:layout_width="wrap_content" 
+                android:layout_height="wrap_content"
+                android:layout_alignParentRight="true"
+            	android:layout_below="@+id/next_button"
+            />
 
 	</RelativeLayout>
 
