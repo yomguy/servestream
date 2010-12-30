@@ -88,7 +88,17 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
 	        // service that we know is running in our own process, we can
 	        // cast its IBinder to a concrete class and directly access it.
 	        boundService = ((MusicService.MusicBinder)service).getService();
+	        
+			// let manager know about our event handling services
+			boundService.disconnectHandler = disconnectHandler;
+	        
 	        boundService.setHandler(nowPlayingHandler);
+	        
+        	if (boundService.getMediaPlayer() == null) {
+                mediaPlayer = new MediaPlayer();
+        	} else {
+        		mediaPlayer = boundService.getMediaPlayer();
+        	}
 	    }
 
 	    public void onServiceDisconnected(ComponentName className) {
@@ -105,6 +115,22 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
 	        //updateProgressTime();
 		}
 	};
+	
+	protected Handler disconnectHandler = new Handler() {
+		@Override
+		public void handleMessage(Message msg) {
+			Log.d(TAG, "Someone sending HANDLE_DISCONNECT to parentHandler");
+
+			closeMusicService();
+		}
+	};
+	
+	/**
+	 * @param bridge
+	 */
+	private void closeMusicService() {
+		finish();
+	}
 	
 	protected Handler nowPlayingHandler = new Handler() {
 		@Override
@@ -290,9 +316,18 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
 	public void onStart() {
 		super.onStart();
 		
+		Log.v(TAG, "on start called");
+		
 		// connect with manager service to find all bridges
 		// when connected it will insert all views
 		bindService(new Intent(this, MusicService.class), connection, Context.BIND_AUTO_CREATE);
+	}
+	
+	@Override
+	public void onDestroy() {
+		super.onDestroy();
+		
+        Log.v(TAG,"on DESTROY called");
 	}
 	
 	@Override
@@ -367,22 +402,14 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
             	}
             	
             	if (boundService.getMediaPlayer() == null) {
-                    mediaPlayer = new MediaPlayer();
                     mediaPlayer.setDisplay(holder);
                     holder.setFixedSize(displayWidth, displayHeight);
                     boundService.setMediaPlayer(mediaPlayer);
             	} else {
-            		mediaPlayer = boundService.getMediaPlayer();
                     mediaPlayer.setDisplay(holder);
                     holder.setFixedSize(displayWidth, displayHeight);
                     boundService.stopMedia();
             	}
-            	
-            	//if (boundService.getMediaPlayer() == null) {
-                //    //boundService.setMediaPlayer(mediaPlayer);
-            	//} else {
-                //    boundService.stopMedia();
-            	//}
             	
                 boundService.queueNewMedia(requestedStream);
                 boundService.startMediaPlayer();
@@ -390,10 +417,6 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
                 Log.e(TAG, "error: " + e.getMessage(), e);
             }
             currentlyPlayingStream = requestedStream;
-        } else {
-        	//mediaPlayer.reset();
-        	//mediaPlayer.setDisplay(holder);
-        	//mediaPlayer.start();
         }
     }
     
@@ -464,7 +487,6 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
     	String formattedTime = "";
     	
     	if (time == 0) {
-    		Log.v(TAG, "Setting time1");
     		return "00:00";
     	} else {
     	    String format = String.format("%%0%dd", 2);
@@ -482,14 +504,8 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
             }
     	}
         
-		Log.v(TAG, "Setting time2" + formattedTime);
         return formattedTime;
     }
-    
-    //public void updateProgressTime() {
-    //	setTimeFormat(mediaPlayer.getDuration());
-    //	durationText.setText(getFormattedTime(mediaPlayer.getDuration()));
-    //}
     
     public int getTimeFormat() {
     	return this.timeFormat;

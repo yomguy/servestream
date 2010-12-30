@@ -53,6 +53,8 @@ public class MusicService extends Service {
 	private SharedPreferences preferences = null;
 	
 	private boolean isOpeningMedia = false;
+	
+	public Handler disconnectHandler = null;
     
     /**
      * Class for clients to access.  Because we know this service always
@@ -109,9 +111,21 @@ public class MusicService extends Service {
 		if (!mediaPlayer.isPlaying()) {
 			releaseMediaPlayer();
 			stopSelf();
+			Log.v(TAG, "STOPPED SELF");
+			//disconnect();
 		}
     	
 		return true;
+    }
+    
+    private void disconnect() {
+		
+    	ConnectionNotifier.getInstance().hideRunningNotification(this);
+		
+    	releaseMediaPlayer();
+    	
+		if (disconnectHandler != null)
+			Message.obtain(disconnectHandler, -1, "").sendToTarget();
     }
     
     public boolean isOpeningMedia() {
@@ -243,9 +257,7 @@ public class MusicService extends Service {
 					startMedia(0);
 					return;
 				}
-				releaseMediaPlayer();
-			    handler.sendMessage(Message.obtain(handler, FINISHED));
-				stopSelf();
+				disconnect();
 			} else {
                 startMedia(mediaFilesIndex);
 			}
