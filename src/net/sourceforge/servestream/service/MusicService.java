@@ -27,6 +27,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.media.MediaPlayer;
 import android.media.MediaPlayer.OnCompletionListener;
+import android.media.MediaPlayer.OnErrorListener;
 import android.os.Binder;
 import android.os.Handler;
 import android.os.IBinder;
@@ -36,16 +37,22 @@ import android.util.Log;
 
 public class MusicService extends Service {
 	public final static String TAG = "ServeStream.MusicService";
+
+	public static final int ERROR = -2147483648;
+	public static final int STARTED_PLAYING = 100;
+	public static final int FINISHED = 200;
+	public static final int OPENING_MEDIA = 300;
 	
     private ArrayList<String> mediaFiles = null;
 	private int mediaFilesIndex = 0;
 	
     private MediaPlayer mediaPlayer = null;
     
-    private Handler nowPlayingHandler;
+    private Handler handler;
     
 	private SharedPreferences preferences = null;
-    //private ProgressDialog dialog = null;
+	
+	private boolean isOpeningMedia = false;
     
     /**
      * Class for clients to access.  Because we know this service always
@@ -107,6 +114,10 @@ public class MusicService extends Service {
 		return true;
     }
     
+    public boolean isOpeningMedia() {
+    	return isOpeningMedia;
+    }
+    
     public boolean isPlaying() {
         return mediaPlayer.isPlaying();	
     }
@@ -125,6 +136,13 @@ public class MusicService extends Service {
     public void setMediaPlayer(MediaPlayer mediaPlayer) {
     	this.mediaPlayer = mediaPlayer;
     	this.mediaPlayer.setOnCompletionListener(m_onCompletionListener);
+        this.mediaPlayer.setOnErrorListener(new OnErrorListener() {
+			public boolean onError(MediaPlayer arg0, int arg1, int arg2) {
+			    handler.sendMessage(Message.obtain(handler, ERROR));
+				return true;
+			}
+
+        });
     }
     
     public void startMediaPlayer() {
@@ -156,12 +174,12 @@ public class MusicService extends Service {
     	}
     }
     
-    /*public void setProgressDialog(ProgressDialog dialog) {
-    	this.dialog = dialog;
-    }*/
+    public void seekTo(int position) {
+    	mediaPlayer.seekTo(position);
+    }
     
-    public void setNowPlayingHandler(Handler handler) {
-    	this.nowPlayingHandler = handler;
+    public void setHandler(Handler handler) {
+    	this.handler = handler;
     }
     
     public void seekBackward() {
@@ -190,14 +208,16 @@ public class MusicService extends Service {
     	mediaFilesIndex = index;
     	
     	try {
+    		isOpeningMedia = true;
 	        mediaPlayer.reset();
 	        mediaPlayer.setDataSource(mediaFiles.get(mediaFilesIndex));
 	        mediaPlayer.prepare();
 		    mediaPlayer.start();
-		    nowPlayingHandler.sendMessage(Message.obtain(nowPlayingHandler, 1, mediaFiles.get(mediaFilesIndex)));
-		    Log.v(TAG, "Starting media file");
-		    //dialog.dismiss();
+		    isOpeningMedia = false;
+		    handler.sendMessage(Message.obtain(handler, OPENING_MEDIA));
+		    handler.sendMessage(Message.obtain(handler, STARTED_PLAYING, mediaFiles.get(mediaFilesIndex)));
     	} catch (Exception ex) {
+		    handler.sendMessage(Message.obtain(handler, ERROR));
     		ex.printStackTrace();
     	}
     }
@@ -224,6 +244,7 @@ public class MusicService extends Service {
 					return;
 				}
 				releaseMediaPlayer();
+			    handler.sendMessage(Message.obtain(handler, FINISHED));
 				stopSelf();
 			} else {
                 startMedia(mediaFilesIndex);
