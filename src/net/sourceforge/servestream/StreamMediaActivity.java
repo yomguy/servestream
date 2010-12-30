@@ -102,7 +102,7 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
     
 	final Handler handler = new Handler() {
 	    public void handleMessage(Message msg) {
-	        updateProgressTime();
+	        //updateProgressTime();
 		}
 	};
 	
@@ -215,11 +215,31 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
         //mediaPlayer.setDisplay(holder);
         //holder.setFixedSize(displayWidth, displayHeight);
         
+		final Button playPauseButton = (Button) findViewById(R.id.play_pause_button);
+		playPauseButton.setOnClickListener(new OnClickListener() {
+
+			public void onClick(View v) {
+				if (boundService.isPlaying()) {
+					boundService.pauseMedia();
+					playPauseButton.setBackgroundResource(R.drawable.play_button);
+				} else {
+					boundService.resumeMedia();
+					playPauseButton.setBackgroundResource(R.drawable.pause_button);
+				}
+				
+			    //mediaControllerGroup.startAnimation(media_controls_fade_out);
+				//mediaControllerGroup.setVisibility(View.GONE);
+			}
+			
+		});
+        
 		Button previousButton = (Button) findViewById(R.id.previous_button);
 		previousButton.setOnClickListener(new OnClickListener() {
 
 			public void onClick(View v) {
 				boundService.previousMediaFile();
+				
+				playPauseButton.setBackgroundResource(R.drawable.pause_button);
 				
 			    mediaControllerGroup.startAnimation(media_controls_fade_out);
 				mediaControllerGroup.setVisibility(View.GONE);
@@ -232,24 +252,6 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
 
 			public void onClick(View v) {
 				boundService.seekBackward();
-				
-			    //mediaControllerGroup.startAnimation(media_controls_fade_out);
-				//mediaControllerGroup.setVisibility(View.GONE);
-			}
-			
-		});
-		
-		final Button playPauseButton = (Button) findViewById(R.id.play_pause_button);
-		playPauseButton.setOnClickListener(new OnClickListener() {
-
-			public void onClick(View v) {
-				if (boundService.isPlaying()) {
-					boundService.pauseMedia();
-					playPauseButton.setBackgroundResource(R.drawable.play_button);
-				} else {
-					boundService.resumeMedia();
-					playPauseButton.setBackgroundResource(R.drawable.pause_button);
-				}
 				
 			    //mediaControllerGroup.startAnimation(media_controls_fade_out);
 				//mediaControllerGroup.setVisibility(View.GONE);
@@ -274,6 +276,8 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
 
 			public void onClick(View v) {
 				boundService.nextMediaFile();
+				
+				playPauseButton.setBackgroundResource(R.drawable.pause_button);
 				
 			    mediaControllerGroup.startAnimation(media_controls_fade_out);
 				mediaControllerGroup.setVisibility(View.GONE);
@@ -403,6 +407,9 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
     }
     
     private void startNewSeekBar() {
+    	setTimeFormat(mediaPlayer.getDuration());
+    	durationText.setText(getFormattedTime(mediaPlayer.getDuration()));
+    	positionText.setText(getFormattedTime(mediaPlayer.getCurrentPosition(),getTimeFormat()));
         new Thread(this).start();
     }
     
@@ -431,20 +438,24 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
     	long elapsedTime = time;
     	String formattedTime = "";
     	
-    	String format = String.format("%%0%dd", 2);
-    	elapsedTime = elapsedTime / 1000;
-    	String seconds = String.format(format, elapsedTime % 60);
-    	String minutes = String.format(format, (elapsedTime % 3600) / 60);
-    	String hours = String.format(format, elapsedTime / 3600);
+    	if (time == 0) {
+    		return "00:00";
+    	} else {
+    	    String format = String.format("%%0%dd", 2);
+    	    elapsedTime = elapsedTime / 1000;
+    	    String seconds = String.format(format, elapsedTime % 60);
+    	    String minutes = String.format(format, (elapsedTime % 3600) / 60);
+    	    String hours = String.format(format, elapsedTime / 3600);
         
-        if (!hours.equals("00")) {
-            formattedTime = hours + ":" + minutes + ":" + seconds;
-        } else if (!minutes.equals("00")) {
-        	formattedTime = minutes + ":" + seconds;
-        } else {
-        	formattedTime = seconds;
-        }
-        
+            if (!hours.equals("00")) {
+                formattedTime = hours + ":" + minutes + ":" + seconds;
+            } else if (!minutes.equals("00")) {
+        	    formattedTime = minutes + ":" + seconds;
+            } else {
+        	    formattedTime = seconds;
+            }
+    	}
+            
         return formattedTime;  
     }
     
@@ -452,27 +463,33 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
     	long elapsedTime = time;
     	String formattedTime = "";
     	
-    	String format = String.format("%%0%dd", 2);
-    	elapsedTime = elapsedTime / 1000;
-    	String seconds = String.format(format, elapsedTime % 60);
-    	String minutes = String.format(format, (elapsedTime % 3600) / 60);
-    	String hours = String.format(format, elapsedTime / 3600);
+    	if (time == 0) {
+    		Log.v(TAG, "Setting time1");
+    		return "00:00";
+    	} else {
+    	    String format = String.format("%%0%dd", 2);
+    	    elapsedTime = elapsedTime / 1000;
+    	    String seconds = String.format(format, elapsedTime % 60);
+    	    String minutes = String.format(format, (elapsedTime % 3600) / 60);
+    	    String hours = String.format(format, elapsedTime / 3600);
         
-        if (timeFormat == 1) {
-            formattedTime = hours + ":" + minutes + ":" + seconds;
-        } else if (timeFormat == 2) {
-        	formattedTime = minutes + ":" + seconds;
-        } else if (timeFormat == 3) {
-        	formattedTime = seconds;
-        }
+            if (timeFormat == 1) {
+                formattedTime = hours + ":" + minutes + ":" + seconds;
+            } else if (timeFormat == 2) {
+        	    formattedTime = minutes + ":" + seconds;
+            } else if (timeFormat == 3) {
+        	    formattedTime = seconds;
+            }
+    	}
         
+		Log.v(TAG, "Setting time2" + formattedTime);
         return formattedTime;
     }
     
-    public void updateProgressTime() {
-    	setTimeFormat(mediaPlayer.getDuration());
-    	durationText.setText(getFormattedTime(mediaPlayer.getDuration()));
-    }
+    //public void updateProgressTime() {
+    //	setTimeFormat(mediaPlayer.getDuration());
+    //	durationText.setText(getFormattedTime(mediaPlayer.getDuration()));
+    //}
     
     public int getTimeFormat() {
     	return this.timeFormat;
@@ -481,17 +498,21 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
     public void setTimeFormat(long time) {
     	long elapsedTime = time;
     	
-    	String format = String.format("%%0%dd", 2);
-    	elapsedTime = elapsedTime / 1000;
-    	String minutes = String.format(format, (elapsedTime % 3600) / 60);
-    	String hours = String.format(format, elapsedTime / 3600);
+    	if (time == 0) {
+    	    this.timeFormat = 2;	
+    	} else {
+    	    String format = String.format("%%0%dd", 2);
+    	    elapsedTime = elapsedTime / 1000;
+    	    String minutes = String.format(format, (elapsedTime % 3600) / 60);
+    	    String hours = String.format(format, elapsedTime / 3600);
         
-        if (!hours.equals("00")) {
-        	this.timeFormat = 1;
-        } else if (!minutes.equals("00")) {
-        	this.timeFormat = 2;
-        } else {
-        	this.timeFormat = 3;
+            if (!hours.equals("00")) {
+        	    this.timeFormat = 1;
+            } else if (!minutes.equals("00")) {
+        	    this.timeFormat = 2;
+            } else {
+        	    this.timeFormat = 3;
+            }
         }
     }
 }
