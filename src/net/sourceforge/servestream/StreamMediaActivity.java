@@ -21,9 +21,10 @@ import net.sourceforge.servestream.R;
 import net.sourceforge.servestream.service.MusicService;
 
 import android.app.Activity;
-import android.app.ProgressDialog;
+import android.app.AlertDialog;
 import android.content.ComponentName;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.content.res.Configuration;
@@ -44,12 +45,15 @@ import android.view.View.OnTouchListener;
 import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.RelativeLayout;
+import android.widget.SeekBar;
+import android.widget.SeekBar.OnSeekBarChangeListener;
+import android.widget.TextView;
 import android.widget.Toast;
 import android.view.View;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 
-public class StreamMediaActivity extends Activity implements SurfaceHolder.Callback {
+public class StreamMediaActivity extends Activity implements SurfaceHolder.Callback, Runnable {
     private static final String TAG = "ServeStream.StreamMediaActivity";
     
 	private static final int MEDIA_CONTROLS_DISPLAY_TIME = 2000;
@@ -67,10 +71,12 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
     
     private SurfaceView preview;
     private SurfaceHolder holder;
-
-    private ProgressDialog dialog = null;
     
-	private Handler handler = new Handler();
+    private SeekBar seekBar;
+    private TextView positionText;
+    private TextView durationText;
+    
+    private int timeFormat;
     
 	private MusicService boundService;
 
@@ -82,8 +88,7 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
 	        // service that we know is running in our own process, we can
 	        // cast its IBinder to a concrete class and directly access it.
 	        boundService = ((MusicService.MusicBinder)service).getService();
-	        boundService.setNowPlayingHandler(nowPlayingHandler);
-	        //boundService.setProgressDialog(dialog);
+	        boundService.setHandler(nowPlayingHandler);
 	    }
 
 	    public void onServiceDisconnected(ComponentName className) {
@@ -95,10 +100,37 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
 	    }
 	};
     
+	final Handler handler = new Handler() {
+	    public void handleMessage(Message msg) {
+	        updateProgressTime();
+		}
+	};
+	
 	protected Handler nowPlayingHandler = new Handler() {
 		@Override
 		public void handleMessage(Message msg) {
-	        Toast.makeText(StreamMediaActivity.this, "Now Playing: " + msg.obj, Toast.LENGTH_LONG).show();
+			
+			switch (msg.what) {
+		        case MusicService.STARTED_PLAYING:
+			        Toast.makeText(StreamMediaActivity.this, "Now Playing: " + msg.obj, Toast.LENGTH_LONG).show();
+			        break;
+		        case MusicService.ERROR:
+					new AlertDialog.Builder(StreamMediaActivity.this)
+					.setTitle(R.string.cannot_play_media_title)
+					.setMessage(R.string.cannot_play_media_message)
+					.setPositiveButton(R.string.cannot_play_media_pos, new DialogInterface.OnClickListener() {
+						public void onClick(DialogInterface dialog, int which) {
+							finish();
+						}
+						}).create().show();
+					break;
+		        case MusicService.FINISHED:
+		        	finish();
+		        	break;
+		        case MusicService.OPENING_MEDIA:
+                    startNewSeekBar();
+	                break;
+			}   	
 		}
 	};
 	
@@ -113,12 +145,37 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
 		
 		// get the phone's display width and height
 		getDisplayMeasurements();
+
+		// obtain the requested stream
+		if (getIntent().getExtras() != null) {
+			requestedStream = getIntent().getExtras().getString("net.sourceforge.servestream.TargetStream");
+		} else {
+			requestedStream = null;
+		}
 		
-		requestedStream = getIntent().getExtras().getString("net.sourceforge.servestream.TargetStream");
-        
-		//preferences = PreferenceManager.getDefaultSharedPreferences(this);
-		
-		// preload animation for media controller display
+	    positionText = (TextView) findViewById(R.id.position_text);
+	    durationText = (TextView) findViewById(R.id.duration_text);
+	    
+        seekBar = (SeekBar) findViewById(R.id.seek_bar);
+        seekBar.setVisibility(SeekBar.VISIBLE);
+        seekBar.setOnSeekBarChangeListener(new OnSeekBarChangeListener() {
+
+			public void onProgressChanged(SeekBar seekBar, int progress,
+					boolean fromUser) {
+		    	positionText.setText(getFormattedTime(mediaPlayer.getCurrentPosition(), getTimeFormat()));
+			}
+
+			public void onStartTrackingTouch(SeekBar seekBar) {
+
+			}
+
+			public void onStopTrackingTouch(SeekBar seekBar) {
+				boundService.seekTo(seekBar.getProgress());
+			}
+        	
+        });
+	    
+		// preload animation for media controller
 		media_controls_fade_in = AnimationUtils.loadAnimation(this, R.anim.media_controls_fade_in);
 		media_controls_fade_out = AnimationUtils.loadAnimation(this, R.anim.media_controls_fade_out);
         
@@ -136,7 +193,7 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
 					mediaControllerGroup.startAnimation(media_controls_fade_in);
 					mediaControllerGroup.setVisibility(View.VISIBLE);
 					
-					handler.postDelayed(new Runnable() {
+					/*handler.postDelayed(new Runnable() {
 						public void run() {
 							if (mediaControllerGroup.getVisibility() == View.GONE)
 								return;
@@ -144,7 +201,7 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
 							mediaControllerGroup.startAnimation(media_controls_fade_out);
 							mediaControllerGroup.setVisibility(View.GONE);
 						}
-					}, MEDIA_CONTROLS_DISPLAY_TIME);
+					}, MEDIA_CONTROLS_DISPLAY_TIME);*/
 				}
 				return false;
 			}
@@ -154,9 +211,9 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
         holder.addCallback(this);
         holder.setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
 		
-        mediaPlayer = new MediaPlayer();
-        mediaPlayer.setDisplay(holder);
-        holder.setFixedSize(displayWidth, displayHeight);
+        //mediaPlayer = new MediaPlayer();
+        //mediaPlayer.setDisplay(holder);
+        //holder.setFixedSize(displayWidth, displayHeight);
         
 		Button previousButton = (Button) findViewById(R.id.previous_button);
 		previousButton.setOnClickListener(new OnClickListener() {
@@ -176,8 +233,8 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
 			public void onClick(View v) {
 				boundService.seekBackward();
 				
-			    mediaControllerGroup.startAnimation(media_controls_fade_out);
-				mediaControllerGroup.setVisibility(View.GONE);
+			    //mediaControllerGroup.startAnimation(media_controls_fade_out);
+				//mediaControllerGroup.setVisibility(View.GONE);
 			}
 			
 		});
@@ -194,8 +251,8 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
 					playPauseButton.setBackgroundResource(R.drawable.pause_button);
 				}
 				
-			    mediaControllerGroup.startAnimation(media_controls_fade_out);
-				mediaControllerGroup.setVisibility(View.GONE);
+			    //mediaControllerGroup.startAnimation(media_controls_fade_out);
+				//mediaControllerGroup.setVisibility(View.GONE);
 			}
 			
 		});
@@ -206,8 +263,8 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
 			public void onClick(View v) {
 				boundService.seekForward();
 				
-			    mediaControllerGroup.startAnimation(media_controls_fade_out);
-				mediaControllerGroup.setVisibility(View.GONE);
+			    //mediaControllerGroup.startAnimation(media_controls_fade_out);
+				//mediaControllerGroup.setVisibility(View.GONE);
 			}
 			
 		});
@@ -240,11 +297,13 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
 		
         unbindService(connection);
 	}
-    
+	
 	@Override
 	protected void onNewIntent(Intent intent) {
 		super.onNewIntent(intent);
 
+		Log.d(TAG, "onNewIntent called");
+		
 		requestedStream = getIntent().getExtras().getString("net.sourceforge.servestream.TargetStream");
 	}
 	
@@ -295,15 +354,31 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
 
     public void surfaceCreated(SurfaceHolder holder) {
         Log.d(TAG, "surfaceCreated called");
-
-        if (!requestedStream.equals(currentlyPlayingStream)) {
+        
+        if (requestedStream != null && !requestedStream.equals(currentlyPlayingStream)) {
             try {
             	
+            	if (boundService == null) {
+            	  Log.v(TAG,"Service not bound");	
+            	}
+            	
             	if (boundService.getMediaPlayer() == null) {
+                    mediaPlayer = new MediaPlayer();
+                    mediaPlayer.setDisplay(holder);
+                    holder.setFixedSize(displayWidth, displayHeight);
                     boundService.setMediaPlayer(mediaPlayer);
             	} else {
+            		mediaPlayer = boundService.getMediaPlayer();
+                    mediaPlayer.setDisplay(holder);
+                    holder.setFixedSize(displayWidth, displayHeight);
                     boundService.stopMedia();
             	}
+            	
+            	//if (boundService.getMediaPlayer() == null) {
+                //    //boundService.setMediaPlayer(mediaPlayer);
+            	//} else {
+                //    boundService.stopMedia();
+            	//}
             	
                 boundService.queueNewMedia(requestedStream);
                 boundService.startMediaPlayer();
@@ -311,6 +386,10 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
                 Log.e(TAG, "error: " + e.getMessage(), e);
             }
             currentlyPlayingStream = requestedStream;
+        } else {
+        	//mediaPlayer.reset();
+        	//mediaPlayer.setDisplay(holder);
+        	//mediaPlayer.start();
         }
     }
     
@@ -321,5 +400,98 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
         Display display = getWindowManager().getDefaultDisplay();
         displayWidth = display.getWidth();
         displayHeight = display.getHeight();
+    }
+    
+    private void startNewSeekBar() {
+        new Thread(this).start();
+    }
+    
+    public void run() {
+        int currentPosition = 0;
+        int duration = mediaPlayer.getDuration();
+        
+        handler.sendEmptyMessage(0);
+        
+        seekBar.setProgress(0);
+        seekBar.setMax(duration);
+        
+        while(mediaPlayer != null && currentPosition < duration && !boundService.isOpeningMedia()){
+            try {
+                //Thread.sleep(1000);
+                currentPosition = mediaPlayer.getCurrentPosition();
+            } catch (Exception ex) {
+                return;
+            }            
+            
+            seekBar.setProgress(currentPosition);
+        }
+    }
+    
+    public String getFormattedTime(long time) {
+    	long elapsedTime = time;
+    	String formattedTime = "";
+    	
+    	String format = String.format("%%0%dd", 2);
+    	elapsedTime = elapsedTime / 1000;
+    	String seconds = String.format(format, elapsedTime % 60);
+    	String minutes = String.format(format, (elapsedTime % 3600) / 60);
+    	String hours = String.format(format, elapsedTime / 3600);
+        
+        if (!hours.equals("00")) {
+            formattedTime = hours + ":" + minutes + ":" + seconds;
+        } else if (!minutes.equals("00")) {
+        	formattedTime = minutes + ":" + seconds;
+        } else {
+        	formattedTime = seconds;
+        }
+        
+        return formattedTime;  
+    }
+    
+    public String getFormattedTime(long time, int timeFormat) {
+    	long elapsedTime = time;
+    	String formattedTime = "";
+    	
+    	String format = String.format("%%0%dd", 2);
+    	elapsedTime = elapsedTime / 1000;
+    	String seconds = String.format(format, elapsedTime % 60);
+    	String minutes = String.format(format, (elapsedTime % 3600) / 60);
+    	String hours = String.format(format, elapsedTime / 3600);
+        
+        if (timeFormat == 1) {
+            formattedTime = hours + ":" + minutes + ":" + seconds;
+        } else if (timeFormat == 2) {
+        	formattedTime = minutes + ":" + seconds;
+        } else if (timeFormat == 3) {
+        	formattedTime = seconds;
+        }
+        
+        return formattedTime;
+    }
+    
+    public void updateProgressTime() {
+    	setTimeFormat(mediaPlayer.getDuration());
+    	durationText.setText(getFormattedTime(mediaPlayer.getDuration()));
+    }
+    
+    public int getTimeFormat() {
+    	return this.timeFormat;
+    }
+    
+    public void setTimeFormat(long time) {
+    	long elapsedTime = time;
+    	
+    	String format = String.format("%%0%dd", 2);
+    	elapsedTime = elapsedTime / 1000;
+    	String minutes = String.format(format, (elapsedTime % 3600) / 60);
+    	String hours = String.format(format, elapsedTime / 3600);
+        
+        if (!hours.equals("00")) {
+        	this.timeFormat = 1;
+        } else if (!minutes.equals("00")) {
+        	this.timeFormat = 2;
+        } else {
+        	this.timeFormat = 3;
+        }
     }
 }
