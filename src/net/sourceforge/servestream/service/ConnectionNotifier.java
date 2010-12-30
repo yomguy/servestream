@@ -65,7 +65,7 @@ public abstract class ConnectionNotifier {
 
 	protected Notification newNotification(Context context) {
 		Notification notification = new Notification();
-		notification.icon = R.drawable.icon;
+		notification.icon = R.drawable.notification_icon;
 		notification.when = System.currentTimeMillis();
 
 		return notification;
