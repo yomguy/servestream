@@ -39,21 +39,20 @@ public class MusicService extends Service {
 	public final static String TAG = "ServeStream.MusicService";
 
 	public static final int ERROR = -2147483648;
-	public static final int STARTED_PLAYING = 100;
-	public static final int FINISHED = 200;
-	public static final int OPENING_MEDIA = 300;
+	public static final int NOW_PLAYING_MESSAGE = 100;
+	public static final int START_SEEK_BAR = 300;
 	
     private ArrayList<String> mediaFiles = null;
 	private int mediaFilesIndex = 0;
+	private String nowPlayingURL = "";
 	
     private MediaPlayer mediaPlayer = null;
-    
-    private Handler handler;
     
 	private SharedPreferences preferences = null;
 	
 	private boolean isOpeningMedia = false;
 	
+    public Handler mediaPlayerHandler;
 	public Handler disconnectHandler = null;
     
     /**
@@ -151,6 +150,14 @@ public class MusicService extends Service {
         }
     }
     
+    public void setNowPlayingURL(String nowPlayingURL) {
+    	this.nowPlayingURL = nowPlayingURL;
+    }
+    
+    public String getNowPlayingURL() {
+    	return this.nowPlayingURL;
+    }
+    
     public MediaPlayer getMediaPlayer() {
     	return this.mediaPlayer;
     }
@@ -160,7 +167,7 @@ public class MusicService extends Service {
     	this.mediaPlayer.setOnCompletionListener(m_onCompletionListener);
         this.mediaPlayer.setOnErrorListener(new OnErrorListener() {
 			public boolean onError(MediaPlayer arg0, int arg1, int arg2) {
-			    handler.sendMessage(Message.obtain(handler, ERROR));
+			    mediaPlayerHandler.sendMessage(Message.obtain(mediaPlayerHandler, ERROR));
 				return true;
 			}
 
@@ -200,10 +207,6 @@ public class MusicService extends Service {
     	mediaPlayer.seekTo(position);
     }
     
-    public void setHandler(Handler handler) {
-    	this.handler = handler;
-    }
-    
     public void seekBackward() {
     	
     	int seekPosition = mediaPlayer.getCurrentPosition() - 15000;
@@ -236,10 +239,10 @@ public class MusicService extends Service {
 	        mediaPlayer.prepare();
 		    mediaPlayer.start();
 		    isOpeningMedia = false;
-		    handler.sendMessage(Message.obtain(handler, OPENING_MEDIA));
-		    handler.sendMessage(Message.obtain(handler, STARTED_PLAYING, mediaFiles.get(mediaFilesIndex)));
+		    mediaPlayerHandler.sendMessage(Message.obtain(mediaPlayerHandler, START_SEEK_BAR));
+		    mediaPlayerHandler.sendMessage(Message.obtain(mediaPlayerHandler, NOW_PLAYING_MESSAGE, mediaFiles.get(mediaFilesIndex)));
     	} catch (Exception ex) {
-		    handler.sendMessage(Message.obtain(handler, ERROR));
+    		mediaPlayerHandler.sendMessage(Message.obtain(mediaPlayerHandler, ERROR));
     		ex.printStackTrace();
     	}
     }
