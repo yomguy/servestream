@@ -62,7 +62,6 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
 	private int displayHeight = 0;
     
 	private String requestedStream = "";
-	private String currentlyPlayingStream = "";
 	
     private MediaPlayer mediaPlayer;
 
@@ -92,10 +91,11 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
 			// let manager know about our event handling services
 			boundService.disconnectHandler = disconnectHandler;
 	        
-	        boundService.setHandler(nowPlayingHandler);
+	        boundService.mediaPlayerHandler = mediaPlayerHandler;
 	        
         	if (boundService.getMediaPlayer() == null) {
                 mediaPlayer = new MediaPlayer();
+                boundService.setMediaPlayer(mediaPlayer);
         	} else {
         		mediaPlayer = boundService.getMediaPlayer();
         	}
@@ -109,35 +109,22 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
 	        boundService = null;
 	    }
 	};
-    
-	final Handler handler = new Handler() {
-	    public void handleMessage(Message msg) {
-	        //updateProgressTime();
-		}
-	};
 	
 	protected Handler disconnectHandler = new Handler() {
 		@Override
 		public void handleMessage(Message msg) {
-			Log.d(TAG, "Someone sending HANDLE_DISCONNECT to parentHandler");
+			Log.d(TAG, "MediaService sending disconnect signal to parentHandler");
 
-			closeMusicService();
+			finish();
 		}
 	};
 	
-	/**
-	 * @param bridge
-	 */
-	private void closeMusicService() {
-		finish();
-	}
-	
-	protected Handler nowPlayingHandler = new Handler() {
+	protected Handler mediaPlayerHandler = new Handler() {
 		@Override
 		public void handleMessage(Message msg) {
 			
 			switch (msg.what) {
-		        case MusicService.STARTED_PLAYING:
+		        case MusicService.NOW_PLAYING_MESSAGE:
 			        Toast.makeText(StreamMediaActivity.this, "Now Playing: " + msg.obj, Toast.LENGTH_LONG).show();
 			        break;
 		        case MusicService.ERROR:
@@ -150,11 +137,8 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
 						}
 						}).create().show();
 					break;
-		        case MusicService.FINISHED:
-		        	finish();
-		        	break;
-		        case MusicService.OPENING_MEDIA:
-                    startNewSeekBar();
+		        case MusicService.START_SEEK_BAR:
+                    startSeekBar();
 	                break;
 			}   	
 		}
@@ -401,29 +385,21 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
     public void surfaceCreated(SurfaceHolder holder) {
         Log.d(TAG, "surfaceCreated called");
         
-        if (requestedStream != null && !requestedStream.equals(currentlyPlayingStream)) {
+    	// if the requested stream is null the intent used to launch
+    	// StreamMediaActivity did not supply a new URL to stream
+        if (requestedStream != null && !requestedStream.equals(boundService.getNowPlayingURL())) {
             try {
-            	
-            	if (boundService == null) {
-            	  Log.v(TAG,"Service not bound");	
-            	}
-            	
-            	if (boundService.getMediaPlayer() == null) {
-                    mediaPlayer.setDisplay(holder);
-                    holder.setFixedSize(displayWidth, displayHeight);
-                    boundService.setMediaPlayer(mediaPlayer);
-            	} else {
-                    mediaPlayer.setDisplay(holder);
-                    holder.setFixedSize(displayWidth, displayHeight);
-                    boundService.stopMedia();
-            	}
-            	
+                mediaPlayer.setDisplay(holder);
+                holder.setFixedSize(displayWidth, displayHeight);
+                boundService.stopMedia();
                 boundService.queueNewMedia(requestedStream);
                 boundService.startMediaPlayer();
+                boundService.setNowPlayingURL(requestedStream);
             } catch (Exception e) {
                 Log.e(TAG, "error: " + e.getMessage(), e);
             }
-            currentlyPlayingStream = requestedStream;
+        } else {
+        	startSeekBar();	
         }
     }
     
@@ -436,7 +412,7 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
         displayHeight = display.getHeight();
     }
     
-    private void startNewSeekBar() {
+    private void startSeekBar() {
     	setTimeFormat(mediaPlayer.getDuration());
     	durationText.setText(getFormattedTime(mediaPlayer.getDuration()));
     	positionText.setText(getFormattedTime(mediaPlayer.getCurrentPosition(),getTimeFormat()));
@@ -446,8 +422,6 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
     public void run() {
         int currentPosition = 0;
         int duration = mediaPlayer.getDuration();
-        
-        handler.sendEmptyMessage(0);
         
         seekBar.setProgress(0);
         seekBar.setMax(duration);
