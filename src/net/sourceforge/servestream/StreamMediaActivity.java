@@ -385,6 +385,10 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
     public void surfaceCreated(SurfaceHolder holder) {
         Log.d(TAG, "surfaceCreated called");
         
+        if (boundService == null) {
+        	Log.v(TAG, "Service is null");
+        }
+        
     	// if the requested stream is null the intent used to launch
     	// StreamMediaActivity did not supply a new URL to stream
         if (requestedStream != null && !requestedStream.equals(boundService.getNowPlayingURL())) {
