@@ -73,7 +73,6 @@ public class StreamListActivity extends ListActivity {
 	
 	public final static int REQUEST_EDIT = 1;
 	
-	//private Spinner m_protocolSpinner = null;
 	private TextView m_quickconnect = null;
 	private Button m_goButton = null;
 	
@@ -82,7 +81,7 @@ public class StreamListActivity extends ListActivity {
 	protected StreamDatabase m_streamdb = null;
 	protected LayoutInflater m_inflater = null;
 	protected boolean m_makingShortcut = false;
-	//private SharedPreferences m_preferences = null;
+
 	protected boolean m_sortedByColor = false;
 	
 	protected Handler updateHandler = new Handler() {
@@ -120,10 +119,6 @@ public class StreamListActivity extends ListActivity {
 		this.setTitle(String.format("%s: %s",
 				getResources().getText(R.string.app_name),
 				getResources().getText(R.string.title_stream_list)));
-
-		//ExceptionHandler.register(this);
-
-		//m_preferences = PreferenceManager.getDefaultSharedPreferences(this);
 		
 		// start thread to check for new version
 		new UpdateHelper(this);
