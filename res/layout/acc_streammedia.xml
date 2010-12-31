@@ -33,7 +33,7 @@
 	<RelativeLayout
 		android:id="@+id/media_controller_group"
 		android:layout_width="fill_parent"
-		android:layout_height="90dip"
+		android:layout_height="98dip"
 		android:layout_alignParentBottom="true"
 		android:padding="5dip"
 		android:background="#525152"
@@ -92,7 +92,7 @@
             <RelativeLayout
 				android:layout_width="fill_parent"
 				android:layout_height="fill_parent"
-				android:paddingTop="5dip"
+				android:paddingTop="8dip"
 				android:paddingBottom="5dip"
 				android:layout_below="@+id/previous_button"
 				android:background="#525152"
