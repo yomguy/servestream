@@ -147,6 +147,9 @@
 	<!-- Button selection to skip upgrading to the latest ServeStream when one is available. -->
 	<string name="upgrade_neg">"Not right now"</string>
 	
-	<!-- Displayed in the notification bar that connections are active -->
+	<!-- Displayed in the notification bar that music service is running -->
 	<string name="app_is_running">"ServeStream is running"</string>
+	
+	<!-- Displayed in the notification bar that music is playing -->
+	<string name="app_is_playing">"ServeStream is playing media"</string>
 </resources>
