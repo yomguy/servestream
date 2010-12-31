@@ -86,7 +86,7 @@ public abstract class ConnectionNotifier {
 
 		notification.setLatestEventInfo(context,
 				res.getString(R.string.app_name),
-				res.getString(R.string.app_is_running),
+				res.getString(R.string.app_is_playing),
 				notification.contentIntent);
 
 		return notification;
