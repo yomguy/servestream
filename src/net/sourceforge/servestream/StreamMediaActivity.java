@@ -68,7 +68,7 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
 	private Animation media_controls_fade_in, media_controls_fade_out;
 	private RelativeLayout mediaControllerGroup;
     
-    private SurfaceView preview;
+    private SurfaceView preview = null;
     private SurfaceHolder holder;
     
     private SeekBar seekBar;
@@ -99,6 +99,13 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
         	} else {
         		mediaPlayer = boundService.getMediaPlayer();
         	}
+        	
+        	Log.v(TAG, "Bind Complete");
+		    
+        	if (preview == null) {
+		        makeSurface();
+			    Log.v(TAG, "Surface Made");
+		    }
 	    }
 
 	    public void onServiceDisconnected(ComponentName className) {
@@ -193,39 +200,6 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
         
 		mediaControllerGroup = (RelativeLayout) findViewById(R.id.media_controller_group);
 		mediaControllerGroup.setVisibility(View.GONE);
-        
-        preview = (SurfaceView) findViewById(R.id.surface_view);
-        preview.setOnTouchListener(new OnTouchListener() {
-
-			public boolean onTouch(View arg0, MotionEvent arg1) {
-				if (mediaControllerGroup.isShown()) {
-				    mediaControllerGroup.startAnimation(media_controls_fade_out);
-				    mediaControllerGroup.setVisibility(View.GONE);
-				} else {
-					mediaControllerGroup.startAnimation(media_controls_fade_in);
-					mediaControllerGroup.setVisibility(View.VISIBLE);
-					
-					/*handler.postDelayed(new Runnable() {
-						public void run() {
-							if (mediaControllerGroup.getVisibility() == View.GONE)
-								return;
-
-							mediaControllerGroup.startAnimation(media_controls_fade_out);
-							mediaControllerGroup.setVisibility(View.GONE);
-						}
-					}, MEDIA_CONTROLS_DISPLAY_TIME);*/
-				}
-				return false;
-			}
-		});
-        
-        holder = preview.getHolder();
-        holder.addCallback(this);
-        holder.setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
-		
-        //mediaPlayer = new MediaPlayer();
-        //mediaPlayer.setDisplay(holder);
-        //holder.setFixedSize(displayWidth, displayHeight);
         
 		final Button playPauseButton = (Button) findViewById(R.id.play_pause_button);
 		playPauseButton.setOnClickListener(new OnClickListener() {
@@ -440,6 +414,37 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
             
             seekBar.setProgress(currentPosition);
         }
+    }
+    
+    private void makeSurface() {
+        preview = (SurfaceView) findViewById(R.id.surface_view);
+        preview.setOnTouchListener(new OnTouchListener() {
+
+			public boolean onTouch(View arg0, MotionEvent arg1) {
+				if (mediaControllerGroup.isShown()) {
+				    mediaControllerGroup.startAnimation(media_controls_fade_out);
+				    mediaControllerGroup.setVisibility(View.GONE);
+				} else {
+					mediaControllerGroup.startAnimation(media_controls_fade_in);
+					mediaControllerGroup.setVisibility(View.VISIBLE);
+					
+					/*handler.postDelayed(new Runnable() {
+						public void run() {
+							if (mediaControllerGroup.getVisibility() == View.GONE)
+								return;
+
+							mediaControllerGroup.startAnimation(media_controls_fade_out);
+							mediaControllerGroup.setVisibility(View.GONE);
+						}
+					}, MEDIA_CONTROLS_DISPLAY_TIME);*/
+				}
+				return false;
+			}
+		});
+        
+        holder = preview.getHolder();
+        holder.addCallback(this);
+        holder.setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
     }
     
     public String getFormattedTime(long time) {
