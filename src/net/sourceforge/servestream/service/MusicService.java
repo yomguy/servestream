@@ -188,10 +188,16 @@ public class MusicService extends Service {
     }
     
     public void pauseMedia() {
+    	
+    	ConnectionNotifier.getInstance().hideRunningNotification(this);
+    	
     	mediaPlayer.pause();
     }
     
     public void resumeMedia() {
+    	
+		ConnectionNotifier.getInstance().showRunningNotification(this);
+    	
     	mediaPlayer.start();
     }
     
