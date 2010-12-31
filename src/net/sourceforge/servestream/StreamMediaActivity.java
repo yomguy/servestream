@@ -165,6 +165,8 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
         super.onCreate(icicle);
         setContentView(R.layout.acc_streammedia);
         
+        Log.v(TAG, "onCreate called");
+        
 		this.setTitle(String.format("%s: %s",
 				getResources().getText(R.string.app_name),
 				getResources().getText(R.string.title_stream_play))); 
@@ -343,7 +345,12 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
 
 		Log.d(TAG, "onNewIntent called");
 		
-		requestedStream = getIntent().getExtras().getString("net.sourceforge.servestream.TargetStream");
+		// obtain the requested stream
+		if (getIntent().getExtras() != null) {
+			requestedStream = getIntent().getExtras().getString("net.sourceforge.servestream.TargetStream");
+		} else {
+			requestedStream = null;
+		}
 	}
 	
 	@Override
@@ -447,7 +454,7 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
         
         while(mediaPlayer != null && currentPosition < duration && !boundService.isOpeningMedia()){
             try {
-                //Thread.sleep(1000);
+                Thread.sleep(1000);
                 currentPosition = mediaPlayer.getCurrentPosition();
             } catch (Exception ex) {
                 return;

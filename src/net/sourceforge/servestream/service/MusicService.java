@@ -79,7 +79,7 @@ public class MusicService extends Service {
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
     	
-        Log.i("MusicService", "Received start id " + startId + ": " + intent);
+        Log.i(TAG, "Received start id " + startId + ": " + intent);
         // We want this service to continue running until it is explicitly
         // stopped, so return sticky.
         return START_STICKY;
@@ -88,8 +88,12 @@ public class MusicService extends Service {
     @Override
     public void onDestroy() {  	
     	
+		Log.v(TAG, "onDestroy called");
+    	
         // Cancel the persistent notification.
 		ConnectionNotifier.getInstance().hideRunningNotification(this);
+		
+		releaseMediaPlayer();
     }
 
     // This is the object that receives interactions from clients.  See
@@ -98,6 +102,8 @@ public class MusicService extends Service {
     
     @Override
     public IBinder onBind(Intent intent) {
+    	
+		Log.v(TAG, "onBind called");
     	
 		// Make sure we stay running to maintain the bridges
 		startService(new Intent(this, MusicService.class));
@@ -108,11 +114,13 @@ public class MusicService extends Service {
     @Override
     public boolean onUnbind(Intent intent) {
 		
+		Log.v(TAG, "onUnbind called");
+    	
 		if (!mediaPlayer.isPlaying()) {
-			releaseMediaPlayer();
 			stopSelf();
-			Log.v(TAG, "STOPPED SELF");
-			//disconnect();
+			
+			if (disconnectHandler != null)
+				Message.obtain(disconnectHandler, -1, "").sendToTarget();
 		}
     	
 		return true;
@@ -122,7 +130,7 @@ public class MusicService extends Service {
 		
     	ConnectionNotifier.getInstance().hideRunningNotification(this);
 		
-    	releaseMediaPlayer();
+    	stopSelf();
     	
 		if (disconnectHandler != null)
 			Message.obtain(disconnectHandler, -1, "").sendToTarget();
