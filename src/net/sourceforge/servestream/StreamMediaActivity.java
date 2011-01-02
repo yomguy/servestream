@@ -354,7 +354,7 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
 	        return true;
 	    }
 	    
-	    if (keyCode == KeyEvent.KEYCODE_CAMERA && !mediaControllerGroup.isShown()) {
+	    if (keyCode == KeyEvent.KEYCODE_DPAD_CENTER && !mediaControllerGroup.isShown()) {
 	    	mediaControllerGroup.setVisibility(View.VISIBLE);
 	        return true;
 	    }
