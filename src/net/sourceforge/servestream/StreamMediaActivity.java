@@ -320,7 +320,7 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
 	public void onDestroy() {
 		super.onDestroy();
 		
-        Log.v(TAG,"on DESTROY called");
+        Log.v(TAG,"onDestroy called");
 	}
 	
 	@Override
