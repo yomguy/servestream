@@ -30,12 +30,14 @@ import android.content.SharedPreferences;
 import android.media.MediaPlayer;
 import android.media.MediaPlayer.OnCompletionListener;
 import android.media.MediaPlayer.OnErrorListener;
+import android.media.MediaPlayer.OnPreparedListener;
 import android.os.Binder;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
 import android.preference.PreferenceManager;
 import android.util.Log;
+import android.view.SurfaceHolder;
 
 public class MusicService extends Service {
 	public final static String TAG = "ServeStream.MusicService";
@@ -52,7 +54,7 @@ public class MusicService extends Service {
 	private int mediaFilesIndex = 0;
 	
 	private String nowPlayingPlaylist = "";
-	private String nowPlayingTrack = "";
+	private String currentlyPlayingTrack = "";
 	
     private MediaPlayer mediaPlayer = null;
     
@@ -78,9 +80,6 @@ public class MusicService extends Service {
     public void onCreate() {
 
 		preferences = PreferenceManager.getDefaultSharedPreferences(this);
-    	
-        // Display a notification about us starting.  We put an icon in the status bar.
-		//ConnectionNotifier.getInstance().showRunningNotification(this);
     }
 
     @Override
@@ -123,7 +122,7 @@ public class MusicService extends Service {
 		
 		Log.v(TAG, "onUnbind called");
     	
-		if (!mediaPlayer.isPlaying()) {
+		if (!mediaPlayer.isPlaying() || playingVideo()) {
 			stopSelf();
 			
 			if (disconnectHandler != null)
@@ -158,6 +157,10 @@ public class MusicService extends Service {
         }
     }
     
+    public void setDisplay(SurfaceHolder holder) {
+        mediaPlayer.setDisplay(holder);
+    }
+    
     public void setNowPlayingPlaylist(String nowPlayingPlaylist) {
         this.nowPlayingPlaylist = nowPlayingPlaylist;
     }
@@ -170,7 +173,7 @@ public class MusicService extends Service {
 		String decodedURL = null;
     	
     	try {
-			decodedURL = URLDecoder.decode(this.nowPlayingTrack, "UTF-8");
+			decodedURL = URLDecoder.decode(this.currentlyPlayingTrack, "UTF-8");
 		} catch (UnsupportedEncodingException ex) {
 			ex.printStackTrace();
 			decodedURL = "";
@@ -185,6 +188,7 @@ public class MusicService extends Service {
     
     public void setMediaPlayer(MediaPlayer mediaPlayer) {
     	this.mediaPlayer = mediaPlayer;
+    	this.mediaPlayer.setOnPreparedListener(m_onPreparedListener);
     	this.mediaPlayer.setOnCompletionListener(m_onCompletionListener);
         this.mediaPlayer.setOnErrorListener(new OnErrorListener() {
 			public boolean onError(MediaPlayer arg0, int arg1, int arg2) {
@@ -257,35 +261,65 @@ public class MusicService extends Service {
     }
     
     private void startMedia(int index) {
+    	
+        // Display a notification about us starting.  We put an icon in the status bar.
 		//ConnectionNotifier.getInstance().showRunningNotification(this);
+		
+		// send a message to start the "Opening file..." dialog
 		mediaPlayerHandler.sendMessage(Message.obtain(mediaPlayerHandler, START_DIALOG));
 		
     	mediaFilesIndex = index;
     	
-    	try {
-    		isOpeningMedia = true;
-	        mediaPlayer.reset();
+    	// set the flag to true which kills the seek bar thread
+    	isOpeningMedia = true;
+    	
+    	if (mediaPlayer.isPlaying())
+    		mediaPlayer.stop();
+    	
+	    mediaPlayer.reset();
+	        
+	    try {
 	        mediaPlayer.setDataSource(mediaFiles.get(mediaFilesIndex));
-	        mediaPlayer.prepare();
-		    mediaPlayer.start();
-		    isOpeningMedia = false;
-		    this.nowPlayingTrack = mediaFiles.get(mediaFilesIndex);
-			ConnectionNotifier.getInstance().showRunningNotification(this);
-    		mediaPlayerHandler.sendMessage(Message.obtain(mediaPlayerHandler, STOP_DIALOG));
-		    mediaPlayerHandler.sendMessage(Message.obtain(mediaPlayerHandler, START_SEEK_BAR));
-		    mediaPlayerHandler.sendMessage(Message.obtain(mediaPlayerHandler, NOW_PLAYING_MESSAGE, getDecodedNowPlayingTrack()));
+	        mediaPlayer.prepareAsync();
     	} catch (Exception ex) {
-    		//mediaPlayerHandler.sendMessage(Message.obtain(mediaPlayerHandler, ERROR));
     		ex.printStackTrace();
     	}
     }
     
-    public void stopMedia() {
+    /*public void stopMedia() {
     	mediaPlayer.stop();
     	mediaPlayer.reset();
-    }
+    }*/
+
+    private OnPreparedListener m_onPreparedListener = new OnPreparedListener() {
+
+		public void onPrepared(MediaPlayer mp) {
+			
+			// start playing the media file
+			mediaPlayer.start();
+			
+			// show the notification icon
+			ConnectionNotifier.getInstance().showRunningNotification(MusicService.this);
+			
+			// we are finished opening the media, so set the flag to false
+		    isOpeningMedia = false;
+		    
+		    // send a message to start the seek bar 
+		    mediaPlayerHandler.sendMessage(Message.obtain(mediaPlayerHandler, START_SEEK_BAR));
+			
+			// send a message to stop the "Opening file..." dialog
+    		mediaPlayerHandler.sendMessage(Message.obtain(mediaPlayerHandler, STOP_DIALOG));
+			
+		    // update the currently playing track
+		    currentlyPlayingTrack = mediaFiles.get(mediaFilesIndex);
+
+		    // send a message to show a now playing message
+		    mediaPlayerHandler.sendMessage(Message.obtain(mediaPlayerHandler, NOW_PLAYING_MESSAGE, getDecodedNowPlayingTrack()));
+		}
+    };
     
     private OnCompletionListener m_onCompletionListener = new OnCompletionListener() {
+    	
 		public void onCompletion(MediaPlayer mp) {
 
 			// if repeat preference is set to one, play the media file again
@@ -316,7 +350,7 @@ public class MusicService extends Service {
     	    mediaPlayer.stop();
             mediaPlayer.reset();
 			mediaPlayer.setDataSource(mediaFiles.get(mediaFilesIndex));
-	        mediaPlayer.prepare();
+	        mediaPlayer.prepareAsync();
 		    mediaPlayer.start();
 		    mediaPlayer.seekTo(position);
 		} catch (Exception ex) {
@@ -355,19 +389,23 @@ public class MusicService extends Service {
     }
     
     /**
-     * Checks if a file is a video file
+     * Checks if the currently playing media file is a video file
      * 
-     * @param mediaFileName The file to check
-     * @return boolean True if the file is a video, false otherwise
+     * @return boolean True if the currently playing file is a video, false otherwise
      */
-    public boolean isPlayingVideo() {
+    private boolean playingVideo() {
     	String fileExtention = null;
     	
-    	if (this.nowPlayingTrack.length() > 4) {
-    		fileExtention = this.nowPlayingTrack.substring(this.nowPlayingTrack.length() - 4, this.nowPlayingTrack.length());
-    	    if (fileExtention.equalsIgnoreCase(".3gp") || fileExtention.equalsIgnoreCase(".mp4")) {
-    	    	return true;
+    	try {
+    	    if (this.currentlyPlayingTrack.length() > 4) {
+    		    fileExtention = this.currentlyPlayingTrack.substring(this.currentlyPlayingTrack.length() - 4, this.currentlyPlayingTrack.length());
+    	        if (fileExtention.equalsIgnoreCase(".3gp") || fileExtention.equalsIgnoreCase(".mp4")) {
+    	    	    return true;
+    	        }
     	    }
+    	} catch (Exception ex) {
+    		ex.printStackTrace();
+    		return false;
     	}
     	
     	return false;

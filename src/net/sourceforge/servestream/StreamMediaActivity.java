@@ -30,7 +30,6 @@ import android.content.Intent;
 import android.content.ServiceConnection;
 import android.content.res.Configuration;
 import android.media.MediaPlayer;
-import android.media.MediaPlayer.OnPreparedListener;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
@@ -105,16 +104,6 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
 	        
         	if (boundService.getMediaPlayer() == null) {
                 mediaPlayer = new MediaPlayer();
-            	mediaPlayer.setOnPreparedListener(new OnPreparedListener() {
-
-    				public void onPrepared(MediaPlayer mp) {
-    					//handler.post(new Runnable() {
-    					//public void run() {
-                        //    dialog.dismiss();
-    					//}
-    					//});
-    				}
-            	});
                 boundService.setMediaPlayer(mediaPlayer);
         	} else {
         		mediaPlayer = boundService.getMediaPlayer();
@@ -347,10 +336,29 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
 	
 	@Override
 	public boolean onKeyDown(int keyCode, KeyEvent event) {
-	    if ( keyCode == KeyEvent.KEYCODE_MENU && mediaControllerGroup.isShown()) {
+		
+		Log.v(TAG, String.valueOf(keyCode));
+		
+	    if (keyCode == KeyEvent.KEYCODE_MENU && mediaControllerGroup.isShown()) {
 	    	mediaControllerGroup.setVisibility(View.GONE);
 	        return true;
 	    }
+		
+	    if (keyCode == KeyEvent.KEYCODE_BACK && mediaControllerGroup.isShown()) {
+	    	mediaControllerGroup.setVisibility(View.GONE);
+	        return true;
+	    }
+	    
+	    if (keyCode == KeyEvent.KEYCODE_SEARCH && !mediaControllerGroup.isShown()) {
+	    	mediaControllerGroup.setVisibility(View.VISIBLE);
+	        return true;
+	    }
+	    
+	    if (keyCode == KeyEvent.KEYCODE_CAMERA && !mediaControllerGroup.isShown()) {
+	    	mediaControllerGroup.setVisibility(View.VISIBLE);
+	        return true;
+	    }
+	    
 	    return super.onKeyDown(keyCode, event);
 	}
 
@@ -411,22 +419,21 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
     	// StreamMediaActivity did not supply a new URL to stream
         if (requestedStream != null && !requestedStream.equals(boundService.getnowPlayingPlaylist())) {
             try {
-                mediaPlayer.setDisplay(holder);
+                boundService.setDisplay(holder);
                 holder.setFixedSize(displayWidth, displayHeight);
-                boundService.stopMedia();
                 boundService.queueNewMedia(requestedStream);
                 boundService.startMediaPlayer();
                 boundService.setNowPlayingPlaylist(requestedStream);
-            } catch (Exception e) {
-                Log.e(TAG, "error: " + e.getMessage(), e);
+            } catch (Exception ex) {
+                Log.e(TAG, "error: " + ex.getMessage());
             }
         } else {
-        	if (boundService.isPlayingVideo()) {
+        	/*if (boundService.isPlayingVideo()) {
             	makeSurface();
                 mediaPlayer.setDisplay(holder);
                 holder.setFixedSize(displayWidth, displayHeight);
                 boundService.resetSurfaceView();
-        	}        	
+        	} */       	
         	startSeekBar();	
         }
     }
