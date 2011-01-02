@@ -59,6 +59,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.MenuItem.OnMenuItemClickListener;
 import android.view.View.OnClickListener;
+import android.view.inputmethod.InputMethodManager;
 
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
@@ -131,6 +132,11 @@ public class StreamListActivity extends ListActivity {
 
 			public synchronized void onItemClick(AdapterView<?> parent, View view, int position, long id) {
 
+				// if showing, hide the keyboard
+				InputMethodManager inputManager = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
+				View textView = m_quickconnect;
+				inputManager.hideSoftInputFromWindow(textView.getWindowToken(), 0);
+				
 				m_targetStream = (Stream) parent.getAdapter().getItem(position);
 				handleStream(m_targetStream);
 			}
@@ -142,6 +148,12 @@ public class StreamListActivity extends ListActivity {
 		m_goButton.setOnClickListener(new OnClickListener() {
 
 			public void onClick(View arg0) {
+				
+				// if showing, hide the keyboard
+				InputMethodManager inputManager = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
+				View textView = m_quickconnect;
+				inputManager.hideSoftInputFromWindow(textView.getWindowToken(), 0);
+				
 			    if (isValidStream()) {
 			    	saveStream();
 			    	handleStream(m_targetStream);
