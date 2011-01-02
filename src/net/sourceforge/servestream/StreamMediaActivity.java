@@ -38,6 +38,7 @@ import android.os.Message;
 import android.util.Log;
 import android.view.Display;
 import android.view.Gravity;
+import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
@@ -309,7 +310,7 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
 	public void onStart() {
 		super.onStart();
 		
-		Log.v(TAG, "on start called");
+		Log.v(TAG, "onStart called");
 		
 		// connect with manager service to find all bridges
 		// when connected it will insert all views
@@ -343,6 +344,16 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
 			requestedStream = null;
 		}
 	}
+	
+	@Override
+	public boolean onKeyDown(int keyCode, KeyEvent event) {
+	    if ( keyCode == KeyEvent.KEYCODE_MENU && mediaControllerGroup.isShown()) {
+	    	mediaControllerGroup.setVisibility(View.GONE);
+	        return true;
+	    }
+	    return super.onKeyDown(keyCode, event);
+	}
+
 	
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
@@ -398,18 +409,24 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
         
     	// if the requested stream is null the intent used to launch
     	// StreamMediaActivity did not supply a new URL to stream
-        if (requestedStream != null && !requestedStream.equals(boundService.getNowPlayingURL())) {
+        if (requestedStream != null && !requestedStream.equals(boundService.getnowPlayingPlaylist())) {
             try {
                 mediaPlayer.setDisplay(holder);
                 holder.setFixedSize(displayWidth, displayHeight);
                 boundService.stopMedia();
                 boundService.queueNewMedia(requestedStream);
                 boundService.startMediaPlayer();
-                boundService.setNowPlayingURL(requestedStream);
+                boundService.setNowPlayingPlaylist(requestedStream);
             } catch (Exception e) {
                 Log.e(TAG, "error: " + e.getMessage(), e);
             }
         } else {
+        	if (boundService.isPlayingVideo()) {
+            	makeSurface();
+                mediaPlayer.setDisplay(holder);
+                holder.setFixedSize(displayWidth, displayHeight);
+                boundService.resetSurfaceView();
+        	}        	
         	startSeekBar();	
         }
     }
@@ -431,7 +448,6 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
     }
     
     public void run() {
-    	//dialog.dismiss();
     	
         int currentPosition = 0;
         int duration = mediaPlayer.getDuration();

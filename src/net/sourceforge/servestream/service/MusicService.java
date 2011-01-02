@@ -17,6 +17,8 @@
 
 package net.sourceforge.servestream.service;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
 import java.util.ArrayList;
 
 import net.sourceforge.servestream.utils.PlaylistHandler;
@@ -48,7 +50,9 @@ public class MusicService extends Service {
 	
     private ArrayList<String> mediaFiles = null;
 	private int mediaFilesIndex = 0;
-	private String nowPlayingURL = "";
+	
+	private String nowPlayingPlaylist = "";
+	private String nowPlayingTrack = "";
 	
     private MediaPlayer mediaPlayer = null;
     
@@ -154,12 +158,25 @@ public class MusicService extends Service {
         }
     }
     
-    public void setNowPlayingURL(String nowPlayingURL) {
-    	this.nowPlayingURL = nowPlayingURL;
+    public void setNowPlayingPlaylist(String nowPlayingPlaylist) {
+        this.nowPlayingPlaylist = nowPlayingPlaylist;
     }
     
-    public String getNowPlayingURL() {
-    	return this.nowPlayingURL;
+    public String getnowPlayingPlaylist() {
+    	return this.nowPlayingPlaylist;
+    }
+    
+    public String getDecodedNowPlayingTrack(){
+		String decodedURL = null;
+    	
+    	try {
+			decodedURL = URLDecoder.decode(this.nowPlayingTrack, "UTF-8");
+		} catch (UnsupportedEncodingException ex) {
+			ex.printStackTrace();
+			decodedURL = "";
+		}
+		
+		return decodedURL;
     }
     
     public MediaPlayer getMediaPlayer() {
@@ -252,10 +269,11 @@ public class MusicService extends Service {
 	        mediaPlayer.prepare();
 		    mediaPlayer.start();
 		    isOpeningMedia = false;
+		    this.nowPlayingTrack = mediaFiles.get(mediaFilesIndex);
 			ConnectionNotifier.getInstance().showRunningNotification(this);
     		mediaPlayerHandler.sendMessage(Message.obtain(mediaPlayerHandler, STOP_DIALOG));
 		    mediaPlayerHandler.sendMessage(Message.obtain(mediaPlayerHandler, START_SEEK_BAR));
-		    mediaPlayerHandler.sendMessage(Message.obtain(mediaPlayerHandler, NOW_PLAYING_MESSAGE, mediaFiles.get(mediaFilesIndex)));
+		    mediaPlayerHandler.sendMessage(Message.obtain(mediaPlayerHandler, NOW_PLAYING_MESSAGE, getDecodedNowPlayingTrack()));
     	} catch (Exception ex) {
     		//mediaPlayerHandler.sendMessage(Message.obtain(mediaPlayerHandler, ERROR));
     		ex.printStackTrace();
@@ -290,6 +308,22 @@ public class MusicService extends Service {
 		}
     };
     
+    public void resetSurfaceView() {
+    	int position = 0;
+    	
+        try {
+        	position = mediaPlayer.getCurrentPosition();
+    	    mediaPlayer.stop();
+            mediaPlayer.reset();
+			mediaPlayer.setDataSource(mediaFiles.get(mediaFilesIndex));
+	        mediaPlayer.prepare();
+		    mediaPlayer.start();
+		    mediaPlayer.seekTo(position);
+		} catch (Exception ex) {
+			ex.printStackTrace();
+		}
+    }
+    
     public boolean queueNewMedia(String requestedStream) {
     
         if (isPlaylist(requestedStream)) {
@@ -313,6 +347,25 @@ public class MusicService extends Service {
     private boolean isPlaylist(String mediaFileName) {
     	if (mediaFileName.length() > 4) {
     	    if (mediaFileName.substring(mediaFileName.length() - 4, mediaFileName.length()).equalsIgnoreCase(".m3u")) {
+    	    	return true;
+    	    }
+    	}
+    	
+    	return false;
+    }
+    
+    /**
+     * Checks if a file is a video file
+     * 
+     * @param mediaFileName The file to check
+     * @return boolean True if the file is a video, false otherwise
+     */
+    public boolean isPlayingVideo() {
+    	String fileExtention = null;
+    	
+    	if (this.nowPlayingTrack.length() > 4) {
+    		fileExtention = this.nowPlayingTrack.substring(this.nowPlayingTrack.length() - 4, this.nowPlayingTrack.length());
+    	    if (fileExtention.equalsIgnoreCase(".3gp") || fileExtention.equalsIgnoreCase(".mp4")) {
     	    	return true;
     	    }
     	}
