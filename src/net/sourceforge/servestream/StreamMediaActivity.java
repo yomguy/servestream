@@ -22,6 +22,7 @@ import net.sourceforge.servestream.service.MusicService;
 
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.app.ProgressDialog;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -29,12 +30,14 @@ import android.content.Intent;
 import android.content.ServiceConnection;
 import android.content.res.Configuration;
 import android.media.MediaPlayer;
+import android.media.MediaPlayer.OnPreparedListener;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
 import android.util.Log;
 import android.view.Display;
+import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
@@ -71,11 +74,17 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
     private SurfaceView preview = null;
     private SurfaceHolder holder;
     
+    private boolean userIsSeeking = false;
+    
     private SeekBar seekBar;
     private TextView positionText;
     private TextView durationText;
     
     private int timeFormat;
+    
+    private Handler handler = new Handler();
+    
+    private ProgressDialog dialog = null;
     
 	private MusicService boundService;
 
@@ -95,6 +104,16 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
 	        
         	if (boundService.getMediaPlayer() == null) {
                 mediaPlayer = new MediaPlayer();
+            	mediaPlayer.setOnPreparedListener(new OnPreparedListener() {
+
+    				public void onPrepared(MediaPlayer mp) {
+    					//handler.post(new Runnable() {
+    					//public void run() {
+                        //    dialog.dismiss();
+    					//}
+    					//});
+    				}
+            	});
                 boundService.setMediaPlayer(mediaPlayer);
         	} else {
         		mediaPlayer = boundService.getMediaPlayer();
@@ -132,7 +151,9 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
 			
 			switch (msg.what) {
 		        case MusicService.NOW_PLAYING_MESSAGE:
-			        Toast.makeText(StreamMediaActivity.this, "Now Playing: " + msg.obj, Toast.LENGTH_LONG).show();
+			        Toast t = Toast.makeText(StreamMediaActivity.this, "Now Playing: " + msg.obj, Toast.LENGTH_LONG);
+			        t.setGravity(Gravity.LEFT | Gravity.CENTER, 0, 0);
+			        t.show();
 			        break;
 		        case MusicService.ERROR:
 					new AlertDialog.Builder(StreamMediaActivity.this)
@@ -147,6 +168,17 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
 		        case MusicService.START_SEEK_BAR:
                     startSeekBar();
 	                break;
+		        case MusicService.START_DIALOG:
+		    		dialog = ProgressDialog.show(StreamMediaActivity.this, "", 
+		                    "Opening file...", true);
+		        	break;
+		        case MusicService.STOP_DIALOG:
+					handler.post(new Runnable() {
+						public void run() {
+	                        dialog.dismiss();
+						}
+						});
+		        	break;
 			}   	
 		}
 	};
@@ -181,14 +213,15 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
 
 			public void onProgressChanged(SeekBar seekBar, int progress,
 					boolean fromUser) {
-		    	positionText.setText(getFormattedTime(mediaPlayer.getCurrentPosition(), getTimeFormat()));
+		    	positionText.setText(getFormattedTime(progress, getTimeFormat()));
 			}
 
 			public void onStartTrackingTouch(SeekBar seekBar) {
-
+                userIsSeeking = true;
 			}
 
 			public void onStopTrackingTouch(SeekBar seekBar) {
+                userIsSeeking = false;
 				boundService.seekTo(seekBar.getProgress());
 			}
         	
@@ -398,6 +431,8 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
     }
     
     public void run() {
+    	//dialog.dismiss();
+    	
         int currentPosition = 0;
         int duration = mediaPlayer.getDuration();
         
@@ -412,7 +447,9 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
                 return;
             }            
             
-            seekBar.setProgress(currentPosition);
+            if (!userIsSeeking) {
+                seekBar.setProgress(currentPosition);
+            }
         }
     }
     

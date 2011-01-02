@@ -41,6 +41,10 @@ public class MusicService extends Service {
 	public static final int ERROR = -2147483648;
 	public static final int NOW_PLAYING_MESSAGE = 100;
 	public static final int START_SEEK_BAR = 300;
+	public static final int START_DIALOG = 400;
+	public static final int STOP_DIALOG = 500;
+	
+	private final int SEEK_INCREMENT = 15000;
 	
     private ArrayList<String> mediaFiles = null;
 	private int mediaFilesIndex = 0;
@@ -72,7 +76,7 @@ public class MusicService extends Service {
 		preferences = PreferenceManager.getDefaultSharedPreferences(this);
     	
         // Display a notification about us starting.  We put an icon in the status bar.
-		ConnectionNotifier.getInstance().showRunningNotification(this);
+		//ConnectionNotifier.getInstance().showRunningNotification(this);
     }
 
     @Override
@@ -215,7 +219,7 @@ public class MusicService extends Service {
     
     public void seekBackward() {
     	
-    	int seekPosition = mediaPlayer.getCurrentPosition() - 15000;
+    	int seekPosition = mediaPlayer.getCurrentPosition() - SEEK_INCREMENT;
     	
     	if (seekPosition >= 0) {
     		mediaPlayer.seekTo(seekPosition);
@@ -226,7 +230,7 @@ public class MusicService extends Service {
 
     public void seekForward() {
     	
-    	int seekPosition = mediaPlayer.getCurrentPosition() + 15000;
+    	int seekPosition = mediaPlayer.getCurrentPosition() + SEEK_INCREMENT;
     	
     	if (seekPosition < mediaPlayer.getDuration()) {
     		mediaPlayer.seekTo(seekPosition);
@@ -236,6 +240,9 @@ public class MusicService extends Service {
     }
     
     private void startMedia(int index) {
+		//ConnectionNotifier.getInstance().showRunningNotification(this);
+		mediaPlayerHandler.sendMessage(Message.obtain(mediaPlayerHandler, START_DIALOG));
+		
     	mediaFilesIndex = index;
     	
     	try {
@@ -245,10 +252,12 @@ public class MusicService extends Service {
 	        mediaPlayer.prepare();
 		    mediaPlayer.start();
 		    isOpeningMedia = false;
+			ConnectionNotifier.getInstance().showRunningNotification(this);
+    		mediaPlayerHandler.sendMessage(Message.obtain(mediaPlayerHandler, STOP_DIALOG));
 		    mediaPlayerHandler.sendMessage(Message.obtain(mediaPlayerHandler, START_SEEK_BAR));
 		    mediaPlayerHandler.sendMessage(Message.obtain(mediaPlayerHandler, NOW_PLAYING_MESSAGE, mediaFiles.get(mediaFilesIndex)));
     	} catch (Exception ex) {
-    		mediaPlayerHandler.sendMessage(Message.obtain(mediaPlayerHandler, ERROR));
+    		//mediaPlayerHandler.sendMessage(Message.obtain(mediaPlayerHandler, ERROR));
     		ex.printStackTrace();
     	}
     }
