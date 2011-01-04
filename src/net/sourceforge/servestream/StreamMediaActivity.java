@@ -163,11 +163,7 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
 		                    "Opening file...", true);
 		        	break;
 		        case MusicService.STOP_DIALOG:
-					handler.post(new Runnable() {
-						public void run() {
-	                        dialog.dismiss();
-						}
-						});
+                    dismissDialog();
 		        	break;
 			}   	
 		}
@@ -417,11 +413,17 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
         
     	// if the requested stream is null the intent used to launch
     	// StreamMediaActivity did not supply a new URL to stream
-        if (requestedStream != null && !requestedStream.equals(boundService.getnowPlayingPlaylist())) {
+        if (requestedStream != null && !requestedStream.equals(boundService.getNowPlayingPlaylist())) {
             try {
                 boundService.setDisplay(holder);
                 holder.setFixedSize(displayWidth, displayHeight);
                 boundService.queueNewMedia(requestedStream);
+                
+                if (boundService.getNumOfQueuedFiles() == 0) {
+                	handleInvalidPlaylist();
+                    return;
+                }
+                	
                 boundService.startMediaPlayer();
                 boundService.setNowPlayingPlaylist(requestedStream);
             } catch (Exception ex) {
@@ -453,6 +455,29 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
     	positionText.setText(getFormattedTime(mediaPlayer.getCurrentPosition(),getTimeFormat()));
         new Thread(this).start();
     }
+    
+    private void handleInvalidPlaylist() {
+
+    	if (dialog != null)
+    		dismissDialog();
+
+		new AlertDialog.Builder(StreamMediaActivity.this)
+		.setTitle(R.string.invalid_playlist_title)
+		.setMessage(R.string.invalid_playlist_message)
+		.setPositiveButton(R.string.invalid_playlist_pos, new DialogInterface.OnClickListener() {
+			public void onClick(DialogInterface dialog, int which) {
+				finish();
+			}
+			}).create().show();
+    }
+    
+	private void dismissDialog() {
+		handler.post(new Runnable() {
+			public void run() {
+                dialog.dismiss();
+			}
+		});
+	}
     
     public void run() {
     	
