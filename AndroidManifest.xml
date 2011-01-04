@@ -35,7 +35,7 @@
 		<activity android:name=".StreamBrowseActivity" android:configChanges="keyboardHidden|orientation" />
 		<activity android:name=".StreamEditorActivity" android:configChanges="keyboardHidden|orientation" />	
 
-		<service android:name="net.sourceforge.servestream.service.MusicService"
+		<service android:name="net.sourceforge.servestream.service.MediaService"
 			android:configChanges="keyboardHidden|orientation"
 			android:description="@string/service_desc" />
 
