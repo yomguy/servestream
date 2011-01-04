@@ -18,7 +18,7 @@
 package net.sourceforge.servestream;
 
 import net.sourceforge.servestream.R;
-import net.sourceforge.servestream.service.MusicService;
+import net.sourceforge.servestream.service.MediaService;
 
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -61,6 +61,9 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
     
 	private static final int MEDIA_CONTROLS_DISPLAY_TIME = 2000;
     
+	public static final boolean VISIBLE = true;
+	public static final boolean NOT_VISIBLE = false;
+	
 	private int displayWidth = 0;
 	private int displayHeight = 0;
     
@@ -86,7 +89,7 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
     
     private ProgressDialog dialog = null;
     
-	private MusicService boundService;
+	private MediaService boundService;
 
 	private ServiceConnection connection = new ServiceConnection() {
 	    public void onServiceConnected(ComponentName className, IBinder service) {
@@ -95,9 +98,9 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
 	        // interact with the service.  Because we have bound to a explicit
 	        // service that we know is running in our own process, we can
 	        // cast its IBinder to a concrete class and directly access it.
-	        boundService = ((MusicService.MusicBinder)service).getService();
+	        boundService = ((MediaService.MediaBinder)service).getService();
 	        
-			// let manager know about our event handling services
+			// let media service know about our event handling services
 			boundService.disconnectHandler = disconnectHandler;
 	        
 	        boundService.mediaPlayerHandler = mediaPlayerHandler;
@@ -108,6 +111,9 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
         	} else {
         		mediaPlayer = boundService.getMediaPlayer();
         	}
+        	
+        	// let media service know the activity is visible
+        	boundService.setStreamActivityState(VISIBLE);
         	
         	Log.v(TAG, "Bind Complete");
 		    
@@ -140,12 +146,12 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
 		public void handleMessage(Message msg) {
 			
 			switch (msg.what) {
-		        case MusicService.NOW_PLAYING_MESSAGE:
+		        case MediaService.NOW_PLAYING_MESSAGE:
 			        Toast t = Toast.makeText(StreamMediaActivity.this, "Now Playing: " + msg.obj, Toast.LENGTH_LONG);
 			        t.setGravity(Gravity.LEFT | Gravity.CENTER, 0, 0);
 			        t.show();
 			        break;
-		        case MusicService.ERROR:
+		        case MediaService.ERROR:
 					new AlertDialog.Builder(StreamMediaActivity.this)
 					.setTitle(R.string.cannot_play_media_title)
 					.setMessage(R.string.cannot_play_media_message)
@@ -155,14 +161,14 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
 						}
 						}).create().show();
 					break;
-		        case MusicService.START_SEEK_BAR:
+		        case MediaService.START_SEEK_BAR:
                     startSeekBar();
 	                break;
-		        case MusicService.START_DIALOG:
+		        case MediaService.START_DIALOG:
 		    		dialog = ProgressDialog.show(StreamMediaActivity.this, "", 
 		                    "Opening file...", true);
 		        	break;
-		        case MusicService.STOP_DIALOG:
+		        case MediaService.STOP_DIALOG:
                     dismissDialog();
 		        	break;
 			}   	
@@ -299,14 +305,16 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
 		
 		// connect with manager service to find all bridges
 		// when connected it will insert all views
-		bindService(new Intent(this, MusicService.class), connection, Context.BIND_AUTO_CREATE);
+		bindService(new Intent(this, MediaService.class), connection, Context.BIND_AUTO_CREATE);
 	}
 	
 	@Override
-	public void onDestroy() {
-		super.onDestroy();
+	public void onPause() {
+		super.onPause();
 		
-        Log.v(TAG,"onDestroy called");
+		Log.v(TAG, "onPause called");
+		
+		boundService.setStreamActivityState(NOT_VISIBLE);
 	}
 	
 	@Override
@@ -314,6 +322,13 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
 		super.onStop();
 		
         unbindService(connection);
+	}
+	
+	@Override
+	public void onDestroy() {
+		super.onDestroy();
+		
+        Log.v(TAG,"onDestroy called");
 	}
 	
 	@Override
