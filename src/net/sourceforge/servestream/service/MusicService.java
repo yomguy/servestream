@@ -165,7 +165,11 @@ public class MusicService extends Service {
         this.nowPlayingPlaylist = nowPlayingPlaylist;
     }
     
-    public String getnowPlayingPlaylist() {
+    public int getNumOfQueuedFiles() {
+    	return mediaFiles.size();
+    }
+    
+    public String getNowPlayingPlaylist() {
     	return this.nowPlayingPlaylist;
     }
     
