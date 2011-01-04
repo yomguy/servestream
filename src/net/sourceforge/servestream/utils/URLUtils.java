@@ -57,6 +57,9 @@ public class URLUtils {
         		conn = (HttpsURLConnection) url.openConnection();        		
         	}
 			
+        	if (conn == null)
+        		return NOT_FOUND;
+        	
 	        conn.setRequestMethod("GET");
 	    
             int i = 0;
@@ -81,6 +84,8 @@ public class URLUtils {
             
 		} catch (IOException ex) {
 			ex.printStackTrace();
+		} catch (IllegalArgumentException ex) {
+		    ex.printStackTrace();
 		} finally {
 			closeHttpConnection(conn);
 		}
