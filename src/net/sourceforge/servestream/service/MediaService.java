@@ -130,8 +130,8 @@ public class MediaService extends Service {
 		if (!mediaPlayer.isPlaying() || playingVideo()) {
 			stopSelf();
 			
-			if (disconnectHandler != null)
-				Message.obtain(disconnectHandler, -1, "").sendToTarget();
+			//if (disconnectHandler != null)
+			//	Message.obtain(disconnectHandler, -1, "").sendToTarget();
 		}
     	
 		return true;
@@ -267,6 +267,10 @@ public class MediaService extends Service {
     	} else {
     		mediaPlayer.seekTo(mediaPlayer.getDuration());    		
     	}
+    }
+
+    public boolean getStreamActivityState() {
+    	return streamActivityState;
     }
     
     public void setStreamActivityState(boolean state) {
