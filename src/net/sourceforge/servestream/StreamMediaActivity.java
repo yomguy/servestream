@@ -112,9 +112,6 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
         		mediaPlayer = boundService.getMediaPlayer();
         	}
         	
-        	// let media service know the activity is visible
-        	//boundService.setStreamActivityState(VISIBLE);
-        	
         	Log.v(TAG, "Bind Complete");
 		    
         	if (preview == null) {
@@ -169,7 +166,8 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
 		                    "Opening file...", true);
 		        	break;
 		        case MediaService.STOP_DIALOG:
-                    dismissDialog();
+		        	if (dialog != null)
+                        dismissDialog();
 		        	break;
 			}   	
 		}
@@ -309,21 +307,13 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
 	}
 	
 	@Override
-	public void onResume() {
-		super.onResume();
-		
-		Log.v(TAG, "onResume called");
-		
-		//boundService.setStreamActivityState(NOT_VISIBLE);
-	}
-	
-	@Override
 	public void onPause() {
 		super.onPause();
 		
 		Log.v(TAG, "onPause called");
 		
-		dismissDialog();
+    	if (dialog != null)
+            dismissDialog();
 		
 		boundService.setStreamActivityState(NOT_VISIBLE);
 	}
@@ -359,12 +349,13 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
 		} else {
 			requestedStream = null;
 		}
+		
+    	// let media service know the activity is visible
+		boundService.setStreamActivityState(VISIBLE);
 	}
 	
 	@Override
 	public boolean onKeyDown(int keyCode, KeyEvent event) {
-		
-		//Log.v(TAG, String.valueOf(keyCode));
 		
 	    if (keyCode == KeyEvent.KEYCODE_MENU && mediaControllerGroup.isShown()) {
 	    	mediaControllerGroup.setVisibility(View.GONE);
@@ -484,9 +475,17 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
     }
     
     private void startSeekBar() {
+    	int duration = mediaPlayer.getDuration();
+    	
     	setTimeFormat(mediaPlayer.getDuration());
-    	durationText.setText(getFormattedTime(mediaPlayer.getDuration()));
-    	positionText.setText(getFormattedTime(mediaPlayer.getCurrentPosition(),getTimeFormat()));
+    	durationText.setText(getFormattedTime(duration));
+    	
+    	if (duration == 0) {
+        	positionText.setText(getFormattedTime(0, getTimeFormat()));
+    	} else {
+    	    positionText.setText(getFormattedTime(mediaPlayer.getCurrentPosition(), getTimeFormat()));
+    	}
+    	
         new Thread(this).start();
     }
     
@@ -515,15 +514,17 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
     
     public void run() {
     	
-        int currentPosition = 0;
+        //int currentPosition = 0;
+    	int currentPosition = mediaPlayer.getCurrentPosition();
         int duration = mediaPlayer.getDuration();
         
-        seekBar.setProgress(0);
+        //seekBar.setProgress(0);
+        seekBar.setProgress(currentPosition);
         seekBar.setMax(duration);
         
         Log.v(TAG, String.valueOf(boundService.getStreamActivityState()));
         
-        while(mediaPlayer != null && currentPosition < duration && !boundService.isOpeningMedia() && (boundService.getStreamActivityState() == VISIBLE)) {
+        while (mediaPlayer != null && currentPosition < duration && !boundService.isOpeningMedia() && (boundService.getStreamActivityState() == VISIBLE)) {
             try {
                 Thread.sleep(1000);
                 currentPosition = mediaPlayer.getCurrentPosition();
