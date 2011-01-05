@@ -46,6 +46,7 @@ import android.app.ListActivity;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -172,6 +173,10 @@ public class StreamListActivity extends ListActivity {
 	public boolean onCreateOptionsMenu(Menu menu) {
 		super.onCreateOptionsMenu(menu);
 
+		//MenuItem donate = menu.add(R.string.settings_donate);
+		//donate.setIcon(android.R.drawable.ic_menu_share);
+		//donate.setIntent(new Intent(Intent.ACTION_VIEW).setData(Uri.parse("http://sourceforge.net/donate/index.php?group_id=361303")));
+		
 		MenuItem settings = menu.add(R.string.list_menu_settings);
 		settings.setIcon(android.R.drawable.ic_menu_preferences);
 		settings.setIntent(new Intent(StreamListActivity.this, SettingsActivity.class));
