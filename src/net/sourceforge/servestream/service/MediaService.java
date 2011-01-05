@@ -327,6 +327,7 @@ public class MediaService extends Service {
 		    
 	        // if available, send notifications to the activity
 	    	if (streamActivityState == StreamMediaActivity.VISIBLE) {
+	    		
 		        // send a message to start the seek bar 
 		        mediaPlayerHandler.sendMessage(Message.obtain(mediaPlayerHandler, START_SEEK_BAR));
 			
