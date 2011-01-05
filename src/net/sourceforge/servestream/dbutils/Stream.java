@@ -22,73 +22,93 @@ import java.net.URL;
 
 public class Stream {
 
-	private long m_rowID = -1;
-	private String m_nickname = null;
-	private String m_protocol = null;
-	private String m_hostname = null;
-	private String m_port = null;
-	private String m_path = null;
-	private long m_lastconnect = -1;
-	private URL m_streamURL = null;
+	private long rowID = -1;
+	private String nickname;
+	private String protocol;
+	private String hostname;
+	private String port;
+	private String path;
+	private String query;
+	private long lastconnect = -1;
+	private URL streamURL;
 	
+	/**
+	 * Default constructor
+	 */
 	public Stream() {
-		
+		rowID = -1;
+		nickname = "";
+		protocol = "";
+		hostname = "";
+		port = "";
+		path = "";
+		query = "";
+		lastconnect = -1;
+		streamURL = null;
 	}
 
-	public void setID(long m_rowID) {
-		this.m_rowID = m_rowID;
+	public void setID(long rowID) {
+		this.rowID = rowID;
 	}
 	
 	public long getId() {
-		return m_rowID;
+		return rowID;
 	}
 	
-	public void setNickname(String m_nickname) {
-		this.m_nickname = m_nickname;
+	public void setNickname(String nickname) {
+		this.nickname = nickname;
 	}
 
 	public String getNickname() {
-		return m_nickname;
+		return nickname;
 	}
 
-	public void setProtocol(String m_protocol) {
-		this.m_protocol = m_protocol;
+	public void setProtocol(String protocol) {
+		this.protocol = protocol;
 	}
 
 	public String getProtocol() {
-		return m_protocol;
+		return protocol;
 	}
 
-	public void setHostname(String m_hostname) {
-		this.m_hostname = m_hostname;
+	public void setHostname(String hostname) {
+		this.hostname = hostname;
 	}
 
 	public String getHostname() {
-		return m_hostname;
+		return hostname;
 	}
 
-	public void setPort(String m_port) {
-		this.m_port = m_port;
+	public void setPort(String port) {
+		this.port = port;
 	}
 
 	public String getPort() {
-		return m_port;
+		return port;
 	}
 
-	public void setPath(String m_path) {
-		this.m_path = m_path;
+	public void setPath(String path) {
+		this.path = path;
 	}
 
 	public String getPath() {
-		return m_path;
+		return path;
+	}
+	
+	public void setQuery(String query) {
+		this.query = query;
 	}
 
-	public void setLastConnect(long m_lastconnect) {
-		this.m_lastconnect = m_lastconnect;
+	public String getQuery() {
+		return query;
+	}
+	
+	public void setLastConnect(long lastconnect) {
+		this.lastconnect = lastconnect;
 	}
 
 	public long getLastConnect() {
-		return m_lastconnect;
+		return lastconnect;
 	}
 	
 	public boolean createStream(String stringURL) {
@@ -97,7 +117,7 @@ public class Stream {
 			return false;
 		
 		try {
-			m_streamURL = new URL(stringURL);
+			streamURL = new URL(stringURL);
 		} catch (MalformedURLException ex) {
 			ex.printStackTrace();
 			return false;
@@ -107,28 +127,30 @@ public class Stream {
 		//UrlValidator urlValidator = new UrlValidator();
 		//return urlValidator.isValid(url);
 		//if (!(URLUtil.isValidUrl(m_streamURL.toString()))) {
-			this.setNickname(m_streamURL.toString());
-			this.setProtocol(m_streamURL.getProtocol());
-			this.setHostname(m_streamURL.getHost());
+			setNickname(streamURL.toString());
+			setProtocol(streamURL.getProtocol());
+			setHostname(streamURL.getHost());
 			
-			if (m_streamURL.getPort() == -1) {
-				this.setPort(String.valueOf(m_streamURL.getDefaultPort()));
+			if (streamURL.getPort() == -1) {
+				setPort(String.valueOf(streamURL.getDefaultPort()));
 			} else {
-				this.setPort(String.valueOf(m_streamURL.getPort()));	
+				setPort(String.valueOf(streamURL.getPort()));	
 			}
 			
-			this.setPath(m_streamURL.getPath());
+			setPath(streamURL.getPath());
+			
+			setQuery(streamURL.getQuery());
 		
 		return true;
 	}
 	
 	public String getStream() {
-		return this.getProtocol() + "://" + this.getHostname() + ":" +
-		       this.getPort() + this.getPath();
+		return getProtocol() + "://" + getHostname() + ":" +
+		       getPort() + getPath() + "?" + getQuery();
 	}
 	
 	public URL getStreamURL() {
-	 	return m_streamURL;
+	 	return streamURL;
 	}
 	
 }
