@@ -113,7 +113,7 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
         	}
         	
         	// let media service know the activity is visible
-        	boundService.setStreamActivityState(VISIBLE);
+        	//boundService.setStreamActivityState(VISIBLE);
         	
         	Log.v(TAG, "Bind Complete");
 		    
@@ -309,10 +309,21 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
 	}
 	
 	@Override
+	public void onResume() {
+		super.onResume();
+		
+		Log.v(TAG, "onResume called");
+		
+		//boundService.setStreamActivityState(NOT_VISIBLE);
+	}
+	
+	@Override
 	public void onPause() {
 		super.onPause();
 		
 		Log.v(TAG, "onPause called");
+		
+		dismissDialog();
 		
 		boundService.setStreamActivityState(NOT_VISIBLE);
 	}
@@ -321,7 +332,9 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
 	public void onStop() {
 		super.onStop();
 		
-        unbindService(connection);
+		Log.v(TAG, "onStop called");
+		
+        //unbindService(connection);
 	}
 	
 	@Override
@@ -329,6 +342,9 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
 		super.onDestroy();
 		
         Log.v(TAG,"onDestroy called");
+        
+        // Detach our existing connection.
+        unbindService(connection);
 	}
 	
 	@Override
@@ -348,7 +364,7 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
 	@Override
 	public boolean onKeyDown(int keyCode, KeyEvent event) {
 		
-		Log.v(TAG, String.valueOf(keyCode));
+		//Log.v(TAG, String.valueOf(keyCode));
 		
 	    if (keyCode == KeyEvent.KEYCODE_MENU && mediaControllerGroup.isShown()) {
 	    	mediaControllerGroup.setVisibility(View.GONE);
@@ -421,6 +437,9 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
 
     public void surfaceCreated(SurfaceHolder holder) {
         Log.d(TAG, "surfaceCreated called");
+
+    	// let media service know the activity is visible
+		boundService.setStreamActivityState(VISIBLE);
         
         if (boundService == null) {
         	Log.v(TAG, "Service is null");
@@ -502,13 +521,17 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
         seekBar.setProgress(0);
         seekBar.setMax(duration);
         
-        while(mediaPlayer != null && currentPosition < duration && !boundService.isOpeningMedia()){
+        Log.v(TAG, String.valueOf(boundService.getStreamActivityState()));
+        
+        while(mediaPlayer != null && currentPosition < duration && !boundService.isOpeningMedia() && (boundService.getStreamActivityState() == VISIBLE)) {
             try {
                 Thread.sleep(1000);
                 currentPosition = mediaPlayer.getCurrentPosition();
             } catch (Exception ex) {
                 return;
             }            
+            
+            Log.v(TAG, "Still seeking");
             
             if (!userIsSeeking) {
                 seekBar.setProgress(currentPosition);
