@@ -46,7 +46,6 @@ import android.app.ListActivity;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -75,16 +74,14 @@ public class StreamListActivity extends ListActivity {
 	
 	public final static int REQUEST_EDIT = 1;
 	
-	private TextView m_quickconnect = null;
-	private Button m_goButton = null;
+	private TextView quickconnect = null;
+	private Button goButton = null;
 	
 	private Stream m_targetStream = null;
 	
-	protected StreamDatabase m_streamdb = null;
-	protected LayoutInflater m_inflater = null;
+	protected StreamDatabase streamdb = null;
+	protected LayoutInflater inflater = null;
 	protected boolean m_makingShortcut = false;
-
-	protected boolean m_sortedByColor = false;
 	
 	protected Handler updateHandler = new Handler() {
 		@Override
@@ -99,17 +96,17 @@ public class StreamListActivity extends ListActivity {
 		
 		updateList();
 		
-		if(this.m_streamdb == null)
-			this.m_streamdb = new StreamDatabase(this);
+		if(this.streamdb == null)
+			this.streamdb = new StreamDatabase(this);
 	}
 	
 	@Override
 	public void onStop() {
 		super.onStop();
 		
-		if(this.m_streamdb != null) {
-			this.m_streamdb.close();
-			this.m_streamdb = null;
+		if(this.streamdb != null) {
+			this.streamdb.close();
+			this.streamdb = null;
 		}
 	}
 	
@@ -126,17 +123,14 @@ public class StreamListActivity extends ListActivity {
 		new UpdateHelper(this);
 		
 		// connect with streams database and populate list
-		this.m_streamdb = new StreamDatabase(this);
+		this.streamdb = new StreamDatabase(this);
 		ListView list = this.getListView();
 
 		list.setOnItemClickListener(new OnItemClickListener() {
 
 			public synchronized void onItemClick(AdapterView<?> parent, View view, int position, long id) {
 
-				// if showing, hide the keyboard
-				InputMethodManager inputManager = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
-				View textView = m_quickconnect;
-				inputManager.hideSoftInputFromWindow(textView.getWindowToken(), 0);
+				hideKeyboard();
 				
 				m_targetStream = (Stream) parent.getAdapter().getItem(position);
 				handleStream(m_targetStream);
@@ -145,15 +139,12 @@ public class StreamListActivity extends ListActivity {
 
 		this.registerForContextMenu(list);
 
-		m_goButton = (Button) this.findViewById(R.id.go_button);
-		m_goButton.setOnClickListener(new OnClickListener() {
+		goButton = (Button) this.findViewById(R.id.go_button);
+		goButton.setOnClickListener(new OnClickListener() {
 
 			public void onClick(View arg0) {
 				
-				// if showing, hide the keyboard
-				InputMethodManager inputManager = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
-				View textView = m_quickconnect;
-				inputManager.hideSoftInputFromWindow(textView.getWindowToken(), 0);
+				hideKeyboard();
 				
 			    if (isValidStream()) {
 			    	saveStream();
@@ -163,10 +154,10 @@ public class StreamListActivity extends ListActivity {
 			
 		});
 		
-		m_quickconnect = (TextView) this.findViewById(R.id.front_quickconnect);
-		m_quickconnect.setVisibility(m_makingShortcut ? View.GONE : View.VISIBLE);
+		quickconnect = (TextView) this.findViewById(R.id.front_quickconnect);
+		quickconnect.setVisibility(m_makingShortcut ? View.GONE : View.VISIBLE);
 		
-		this.m_inflater = LayoutInflater.from(this);
+		this.inflater = LayoutInflater.from(this);
 	}
 	
 	@Override
@@ -220,7 +211,7 @@ public class StreamListActivity extends ListActivity {
 					.setMessage(getString(R.string.delete_message, stream.getNickname()))
 					.setPositiveButton(R.string.delete_pos, new DialogInterface.OnClickListener() {
 						public void onClick(DialogInterface dialog, int which) {
-							m_streamdb.deleteStream(stream);
+							streamdb.deleteStream(stream);
 							updateHandler.sendEmptyMessage(-1);
 						}
 						})
@@ -235,10 +226,10 @@ public class StreamListActivity extends ListActivity {
 		
 		ArrayList<Stream> streams = new ArrayList<Stream>();
 
-		if (m_streamdb == null)
-			m_streamdb = new StreamDatabase(this);   
+		if (streamdb == null)
+			streamdb = new StreamDatabase(this);   
 
-		streams = m_streamdb.getStreams();
+		streams = streamdb.getStreams();
 
 		StreamAdapter adapter = new StreamAdapter(this, streams);
 
@@ -291,7 +282,7 @@ public class StreamListActivity extends ListActivity {
 			ViewHolder holder;
 
 			if (convertView == null) {
-				convertView = m_inflater.inflate(R.layout.item_stream, null, false);
+				convertView = inflater.inflate(R.layout.item_stream, null, false);
 
 				holder = new ViewHolder();
 
@@ -343,11 +334,8 @@ public class StreamListActivity extends ListActivity {
 	}
 	
 	public boolean isValidStream() {
-		
-		//String protocol = ProtocolFactory.getProtocol((String) m_protocolSpinner
-		//		.getSelectedItem());
 
-		String stringStream = m_quickconnect.getText().toString();	
+		String stringStream = quickconnect.getText().toString();	
 		
 		if (stringStream == null) {
 			new AlertDialog.Builder(StreamListActivity.this)
@@ -359,8 +347,6 @@ public class StreamListActivity extends ListActivity {
 			
             return false;
 		}
-		
-		//stringStream = protocol + stringStream;
 		
 		m_targetStream = new Stream();
 		if (!m_targetStream.createStream(stringStream)) {
@@ -378,11 +364,20 @@ public class StreamListActivity extends ListActivity {
 	}
 	
 	private void saveStream() {
-		Stream stream = m_streamdb.findStream(m_targetStream);
+		Stream stream = streamdb.findStream(m_targetStream);
 		
 		if (stream == null) {
-			m_streamdb.saveStream(m_targetStream);
+			streamdb.saveStream(m_targetStream);
 		}
+	}
+	
+	/**
+	 * Hides the keyboard
+	 */
+	private void hideKeyboard() {
+		InputMethodManager inputManager = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
+		View textView = quickconnect;
+		inputManager.hideSoftInputFromWindow(textView.getWindowToken(), 0);
 	}
 	
 }
