@@ -27,6 +27,7 @@ import java.util.ArrayList;
 import javax.net.ssl.HttpsURLConnection;
 
 public class PlaylistHandler {
+	public final static String TAG = "ServeStream.PlaylistHandler";
 
 	private URL targetURL = null;
     private ArrayList<String> playlistFiles = null;
@@ -45,10 +46,25 @@ public class PlaylistHandler {
 		playlistFiles = new ArrayList<String>();
 	}
     
+	public void buildPlaylist() {
+		
+		String mediaFileName = targetURL.toString();
+		
+    	if (mediaFileName.length() > 4) {
+    	    if (mediaFileName.substring(mediaFileName.length() - 4, mediaFileName.length()).equalsIgnoreCase(".m3u")) {
+    	    	retrieveM3uFiles();
+    	    }
+    	    
+    	    if (mediaFileName.contains(".pls")) {
+    	    	retrievePsuFiles();
+    	    }
+    	}
+	}
+	
 	/**
 	 * Retrieves the files listed in a .m3u file
 	 */
-    public void buildPlaylist() {
+    public void retrieveM3uFiles() {
     	
 		HttpURLConnection conn = null;
         String line = null;
@@ -80,6 +96,66 @@ public class PlaylistHandler {
         	closeReader(reader);
         	closeHttpConnection(conn);
         }
+    }
+    
+    /**
+	 * Retrieves the files listed in a .psu file
+	 */
+    public void retrievePsuFiles() {
+    	
+		HttpURLConnection conn = null;
+        String line = null;
+        BufferedReader reader = null;;
+        
+        try {
+        	
+        	if (targetURL.getProtocol().equals("http")) {
+        		conn = (HttpURLConnection) targetURL.openConnection();
+        	} else if (targetURL.getProtocol().equals("https")) {
+        		conn = (HttpsURLConnection) targetURL.openConnection();        		
+        	}
+        	
+		    conn.setRequestMethod("GET");
+		    
+		    // Start the query
+		    reader = new BufferedReader(new InputStreamReader(conn.getInputStream()));
+		    conn.connect();
+        
+		    while ((line = reader.readLine()) != null) {
+		    	if (line.contains("File")) {
+		    		String [] parsedLine = line.split("\\=");
+		    		
+		    		if (parsedLine.length == 2)
+		    	        playlistFiles.add(parsedLine[1]);
+		    	}           
+            }
+
+        } catch (Exception ex) {
+        	ex.printStackTrace();
+        } finally {
+        	closeReader(reader);
+        	closeHttpConnection(conn);
+        }
+    }
+    
+    /**
+     * Checks if a file is a playlist file
+     * 
+     * @param mediaFileName The file to check
+     * @return boolean True if the file is a playlist, false otherwise
+     */
+    public static boolean isPlaylist(String mediaFileName) {
+    	if (mediaFileName.length() > 4) {
+    	    if (mediaFileName.substring(mediaFileName.length() - 4, mediaFileName.length()).equalsIgnoreCase(".m3u")) {
+    	    	return true;
+    	    }
+    	    
+    	    if (mediaFileName.contains(".pls")) {
+    	    	return true;
+    	    }
+    	}
+    	
+    	return false;
     }
     
     /**
