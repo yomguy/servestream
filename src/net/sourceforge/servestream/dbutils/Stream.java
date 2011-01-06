@@ -30,6 +30,8 @@ public class Stream {
 	private String path;
 	private String query;
 	private long lastconnect = -1;
+	private String color;
+	private long fontsize;
 	private URL streamURL;
 	
 	/**
@@ -44,6 +46,8 @@ public class Stream {
 		path = "";
 		query = "";
 		lastconnect = -1;
+		color = "";
+		fontsize = -1;
 		streamURL = null;
 	}
 
@@ -110,6 +114,22 @@ public class Stream {
 	public long getLastConnect() {
 		return lastconnect;
 	}
+
+	public void setColor(String color) {
+		this.color = color;
+	}
+
+	public String getColor() {
+		return color;
+	}
+	
+	public void setFontSize(long fontsize) {
+		this.fontsize = fontsize;
+	}
+
+	public long getFontSize() {
+		return fontsize;
+	}
 	
 	public boolean createStream(String stringURL) {
 		
@@ -139,7 +159,11 @@ public class Stream {
 			
 			setPath(streamURL.getPath());
 			
-			setQuery(streamURL.getQuery());
+			if (streamURL.getQuery() == null) {
+			    setQuery("");
+			} else {
+			    setQuery(streamURL.getQuery());
+			}
 		
 		return true;
 	}
