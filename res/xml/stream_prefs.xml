@@ -52,6 +52,11 @@
 			android:title="@string/streampref_path_title"
 			/>
 
+		<EditTextPreference
+			android:key="query"
+			android:title="@string/streampref_query_title"
+			/>
+
 	</PreferenceCategory>
 
 </PreferenceScreen>
