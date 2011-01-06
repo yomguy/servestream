@@ -22,7 +22,7 @@ import java.net.URL;
 
 public class Stream {
 
-	private long rowID = -1;
+	private long id = -1;
 	private String nickname;
 	private String protocol;
 	private String hostname;
@@ -32,13 +32,12 @@ public class Stream {
 	private long lastconnect = -1;
 	private String color;
 	private long fontsize;
-	private URL streamURL;
 	
 	/**
 	 * Default constructor
 	 */
 	public Stream() {
-		rowID = -1;
+		id = -1;
 		nickname = "";
 		protocol = "";
 		hostname = "";
@@ -48,15 +47,14 @@ public class Stream {
 		lastconnect = -1;
 		color = "";
 		fontsize = -1;
-		streamURL = null;
 	}
 
-	public void setID(long rowID) {
-		this.rowID = rowID;
+	public void setID(long id) {
+		this.id = id;
 	}
 	
 	public long getId() {
-		return rowID;
+		return id;
 	}
 	
 	public void setNickname(String nickname) {
@@ -131,13 +129,81 @@ public class Stream {
 		return fontsize;
 	}
 	
+	@Override
+	public boolean equals(Object obj) {
+		if (obj == null || !(obj instanceof Stream))
+			return false;
+
+		Stream stream = (Stream) obj;
+
+		if (id != -1 && stream.getId() != -1)
+			return stream.getId() == id;
+
+		if (nickname == null) {
+			if (stream.getNickname() != null)
+				return false;
+		} else if (!nickname.equals(stream.getNickname()))
+			return false;
+
+		if (protocol == null) {
+			if (stream.getProtocol() != null)
+				return false;
+		} else if (!protocol.equals(stream.getProtocol()))
+			return false;
+
+		if (hostname == null) {
+			if (stream.getHostname() != null)
+				return false;
+		} else if (!hostname.equals(stream.getHostname()))
+			return false;
+
+		if (port == null) {
+			if (stream.getPort() != null)
+				return false;
+		} else if (!port.equals(stream.getPort()))
+			return false;
+
+		if (path == null) {
+			if (stream.getPath() != null)
+				return false;
+		} else if (!path.equals(stream.getPath()))
+			return false;
+		
+		if (query == null) {
+			if (stream.getQuery() != null)
+				return false;
+		} else if (!query.equals(stream.getQuery()))
+			return false;
+
+		return true;
+	}
+	
+	@Override
+	public int hashCode() {
+		int hash = 7;
+
+		if (id != -1)
+			return (int) id;
+
+		hash = 31 * hash + (null == nickname ? 0 : nickname.hashCode());
+		hash = 31 * hash + (null == protocol ? 0 : protocol.hashCode());
+		hash = 31 * hash + (null == hostname ? 0 : hostname.hashCode());
+		hash = 31 * hash + (null == port ? 0 : port.hashCode());
+		hash = 31 * hash + (null == path ? 0 : path.hashCode());
+		hash = 31 * hash + (null == query ? 0 : query.hashCode());
+
+		return hash;
+	}
+	
 	public boolean createStream(String stringURL) {
+		
+		URL url;
 		
 		if (stringURL == null)
 			return false;
 		
 		try {
-			streamURL = new URL(stringURL);
+			url = new URL(stringURL);
 		} catch (MalformedURLException ex) {
 			ex.printStackTrace();
 			return false;
@@ -147,34 +213,42 @@ public class Stream {
 		//UrlValidator urlValidator = new UrlValidator();
 		//return urlValidator.isValid(url);
 		//if (!(URLUtil.isValidUrl(m_streamURL.toString()))) {
-			setNickname(streamURL.toString());
-			setProtocol(streamURL.getProtocol());
-			setHostname(streamURL.getHost());
+			nickname = url.toString();
+			protocol = url.getProtocol();
+			hostname = url.getHost();
 			
-			if (streamURL.getPort() == -1) {
-				setPort(String.valueOf(streamURL.getDefaultPort()));
+			if (url.getPort() == -1) {
+				port = String.valueOf(url.getDefaultPort());
 			} else {
-				setPort(String.valueOf(streamURL.getPort()));	
+				port = String.valueOf(url.getPort());	
 			}
 			
-			setPath(streamURL.getPath());
+			path = url.getPath();
 			
-			if (streamURL.getQuery() == null) {
-			    setQuery("");
+			if (url.getQuery() == null) {
+			    query = "";
 			} else {
-			    setQuery(streamURL.getQuery());
+			    query = url.getQuery();
 			}
 		
 		return true;
 	}
 	
-	public String getStream() {
-		return getProtocol() + "://" + getHostname() + ":" +
-		       getPort() + getPath() + "?" + getQuery();
+	public String getStreamURL() {
+		
+		StringBuilder sb = new StringBuilder();
+		sb.append(protocol)
+			.append("://");
+
+		sb.append(hostname)
+			.append(':')
+			.append(port)
+			.append(path);
+		
+		if (!query.equals(""))
+		    sb.append('?')
+				.append(query);
+		
+		return (sb.toString());
 	}
-	
-	public URL getStreamURL() {
-	 	return streamURL;
-	}
-	
 }
