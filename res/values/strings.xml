@@ -122,11 +122,14 @@
 	<!-- Hostname field title for stream editor preference -->
 	<string name="streampref_hostname_title">Hostname</string>
 
+	<!-- Port field title for stream editor preference -->
+	<string name="streampref_port_title">Port</string>
+
 	<!-- Path field title for stream editor preference -->
 	<string name="streampref_path_title">Path</string>
 
-	<!-- Port field title for stream editor preference -->
-	<string name="streampref_port_title">Port</string>
+	<!-- Query field title for stream editor preference -->
+	<string name="streampref_query_title">Query</string>
 
     <!-- Window title for the Stream List -->
     <string name="text_go_button">Go</string>
