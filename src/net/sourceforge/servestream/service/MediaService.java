@@ -385,7 +385,7 @@ public class MediaService extends Service {
     
     public boolean queueNewMedia(String requestedStream) {
     
-        if (isPlaylist(requestedStream)) {
+        if (PlaylistHandler.isPlaylist(requestedStream)) {
             PlaylistHandler playlistHandler = new PlaylistHandler(requestedStream);
             playlistHandler.buildPlaylist();
             mediaFiles = playlistHandler.getPlayListFiles();
@@ -395,22 +395,6 @@ public class MediaService extends Service {
         }
     	
     	return true;
-    }
-    
-    /**
-     * Checks if a file is a playlist file
-     * 
-     * @param mediaFileName The file to check
-     * @return boolean True if the file is a playlist, false otherwise
-     */
-    private boolean isPlaylist(String mediaFileName) {
-    	if (mediaFileName.length() > 4) {
-    	    if (mediaFileName.substring(mediaFileName.length() - 4, mediaFileName.length()).equalsIgnoreCase(".m3u")) {
-    	    	return true;
-    	    }
-    	}
-    	
-    	return false;
     }
     
     /**
