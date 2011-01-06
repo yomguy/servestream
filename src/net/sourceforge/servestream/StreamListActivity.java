@@ -239,7 +239,9 @@ public class StreamListActivity extends ListActivity {
 	public void handleStream(Stream stream) {
 		
 		Intent intent = null;
-		int contentTypeCode = URLUtils.getContentTypeCode(stream.getStream());
+		int contentTypeCode = URLUtils.getContentTypeCode(stream.getStreamURL());
+		
+		Log.v(TAG, "STREAM is: " + stream.getStreamURL());
 		
 		if (contentTypeCode == URLUtils.DIRECTORY) {
 			intent = new Intent(StreamListActivity.this, StreamBrowseActivity.class);
@@ -256,7 +258,7 @@ public class StreamListActivity extends ListActivity {
 				}
 				}).create().show();
 		} else {
-		    intent.putExtra("net.sourceforge.servestream.TargetStream", stream.getStream());
+		    intent.putExtra("net.sourceforge.servestream.TargetStream", stream.getStreamURL());
 			this.startActivity(intent);	
 		}	
 	}
