@@ -335,7 +335,7 @@ public class StreamDatabase extends SQLiteOpenHelper {
 	public HashMap<String, String> getSelectionArgs(Stream stream) {
 		HashMap<String, String> selection = new HashMap<String, String>();
 		
-		selection.put(FIELD_STREAM_NICKNAME, stream.getNickname());
+		//selection.put(FIELD_STREAM_NICKNAME, stream.getNickname());
 		selection.put(FIELD_STREAM_PROTOCOL, stream.getProtocol());
 		selection.put(FIELD_STREAM_HOSTNAME, stream.getHostname());
 		selection.put(FIELD_STREAM_PORT, stream.getPort());

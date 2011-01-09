@@ -20,35 +20,63 @@ package net.sourceforge.servestream.dbutils;
 import java.net.MalformedURLException;
 import java.net.URL;
 
+import android.net.Uri;
+
 public class Stream {
 
+	private static String DEFAULT_HTTP_PORT = "80";
+	private static String DEFAULT_HTTPS_PORT = "443";
+	
 	private long id = -1;
-	private String nickname;
-	private String protocol;
-	private String hostname;
-	private String port;
-	private String path;
-	private String query;
+	private String nickname = null;
+	private String protocol = null;
+	private String hostname = null;
+	private String port = null;
+	private String path = null;
+	private String query = null;
 	private long lastconnect = -1;
-	private String color;
+	private String color = null;
 	private long fontsize;
 	
 	/**
 	 * Default constructor
+	 * 
+	 * @throws MalformedURLException 
 	 */
 	public Stream() {
-		id = -1;
-		nickname = "";
-		protocol = "";
-		hostname = "";
-		port = "";
-		path = "";
-		query = "";
-		lastconnect = -1;
-		color = "";
-		fontsize = -1;
+	
 	}
 
+	public Stream(String URLString) throws MalformedURLException {
+		
+		if (URLString == null)
+			throw new MalformedURLException();
+		
+		URL url = new URL(URLString);
+		
+		this.nickname = url.toString();
+		this.protocol = url.getProtocol();
+		this.hostname = url.getHost();
+		
+		if (url.getPort() == -1) {
+			if (protocol.equalsIgnoreCase("http")) {
+				this.port = DEFAULT_HTTP_PORT;
+			} else if (protocol.equalsIgnoreCase("https")) {
+				this.port = DEFAULT_HTTPS_PORT;
+			}
+		} else {
+			this.port = String.valueOf(url.getPort());	
+		}
+		
+		this.path = url.getPath();
+		
+		if (url.getQuery() == null) {
+			this.query = "";
+		} else {
+			this.query = url.getQuery();
+		}
+	}
+	
 	public void setID(long id) {
 		this.id = id;
 	}
@@ -195,46 +223,12 @@ public class Stream {
 		return hash;
 	}
 	
-	public boolean createStream(String stringURL) {
-		
-		URL url;
-		
-		if (stringURL == null)
-			return false;
-		
-		try {
-			url = new URL(stringURL);
-		} catch (MalformedURLException ex) {
-			ex.printStackTrace();
-			return false;
-		}
-		    
-		// TODO keep or fix?
-		//UrlValidator urlValidator = new UrlValidator();
-		//return urlValidator.isValid(url);
-		//if (!(URLUtil.isValidUrl(m_streamURL.toString()))) {
-			nickname = url.toString();
-			protocol = url.getProtocol();
-			hostname = url.getHost();
-			
-			if (url.getPort() == -1) {
-				port = String.valueOf(url.getDefaultPort());
-			} else {
-				port = String.valueOf(url.getPort());	
-			}
-			
-			path = url.getPath();
-			
-			if (url.getQuery() == null) {
-			    query = "";
-			} else {
-			    query = url.getQuery();
-			}
-		
-		return true;
-	}
-	
-	public String getStreamURL() {
+	/**
+	 * Returns a Uri representing the media stream
+	 * 
+	 * @return Uri The Uri representing this media stream
+	 */
+	public Uri getUri() {
 		
 		StringBuilder sb = new StringBuilder();
 		sb.append(protocol)
@@ -249,6 +243,30 @@ public class Stream {
 		    sb.append('?')
 				.append(query);
 		
-		return (sb.toString());
+		return Uri.parse(sb.toString());
+	}
+	
+	/**
+	 * Returns a URL representing the media stream
+	 * 
+	 * @return URL The URL representing this media stream
+	 * @throws MalformedURLException 
+	 */
+	public URL getURL() throws MalformedURLException {
+		
+		StringBuilder sb = new StringBuilder();
+		sb.append(protocol)
+			.append("://");
+
+		sb.append(hostname)
+			.append(':')
+			.append(port)
+			.append(path);
+		
+		if (!query.equals(""))
+		    sb.append('?')
+				.append(query);
+		
+		return new URL(sb.toString());
 	}
 }
