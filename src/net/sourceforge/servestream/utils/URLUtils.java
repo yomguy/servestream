@@ -38,15 +38,16 @@ public class URLUtils {
     	
     }
 	
-	public static int getContentTypeCode(String stream) {
+	public static int getContentTypeCode(URL url) {
 		
 		boolean contentFound = false;
 		int contentTypeCode = NOT_FOUND;
-		URL url = null;
 	    HttpURLConnection conn = null;
 		
 		try {
-		    url = new URL(stream);
+			
+			if (url == null)
+				return contentTypeCode;
 		
 		    String header = null;
 		    String contentType = null;
@@ -60,6 +61,8 @@ public class URLUtils {
         	if (conn == null)
         		return NOT_FOUND;
         	
+    		conn.setConnectTimeout(3000);
+    		conn.setReadTimeout(3000);
 	        conn.setRequestMethod("GET");
 	    
             int i = 0;
@@ -73,7 +76,6 @@ public class URLUtils {
             }
             
             if (contentFound) {
-                //if (contentType.trim().equalsIgnoreCase("text/html")) {
             	//TODO fix this
             	if (contentType.contains(MIME_HTML)) {
         			contentTypeCode = DIRECTORY;

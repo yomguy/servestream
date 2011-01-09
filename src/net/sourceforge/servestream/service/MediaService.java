@@ -18,10 +18,12 @@
 package net.sourceforge.servestream.service;
 
 import java.io.UnsupportedEncodingException;
+import java.net.URL;
 import java.net.URLDecoder;
 import java.util.ArrayList;
 
 import net.sourceforge.servestream.StreamMediaActivity;
+import net.sourceforge.servestream.dbutils.Stream;
 import net.sourceforge.servestream.utils.PlaylistHandler;
 import net.sourceforge.servestream.utils.PreferenceConstants;
 
@@ -56,7 +58,7 @@ public class MediaService extends Service {
     private ArrayList<String> mediaFiles = null;
 	private int mediaFilesIndex = 0;
 	
-	private String nowPlayingPlaylist = "";
+	private Stream currentStream = null;
 	private String currentlyPlayingTrack = "";
 	
     private MediaPlayer mediaPlayer = null;
@@ -166,16 +168,16 @@ public class MediaService extends Service {
         mediaPlayer.setDisplay(holder);
     }
     
-    public void setNowPlayingPlaylist(String nowPlayingPlaylist) {
-        this.nowPlayingPlaylist = nowPlayingPlaylist;
+    public void setCurrentStream(Stream currentStream) {
+        this.currentStream = currentStream;
     }
     
     public int getNumOfQueuedFiles() {
     	return mediaFiles.size();
     }
     
-    public String getNowPlayingPlaylist() {
-    	return this.nowPlayingPlaylist;
+    public Stream getCurrentStream() {
+    	return this.currentStream;
     }
     
     public String getDecodedNowPlayingTrack(){
@@ -383,16 +385,30 @@ public class MediaService extends Service {
 		}
     }
     
-    public boolean queueNewMedia(String requestedStream) {
+    public boolean queueNewMedia(Stream stream) {
     
-        if (PlaylistHandler.isPlaylist(requestedStream)) {
-            PlaylistHandler playlistHandler = new PlaylistHandler(requestedStream);
+    	URL url = null;
+    	
+    	//TODO add null check
+    	
+    	try {
+    	
+    		url = stream.getURL();
+    		
+        if (PlaylistHandler.isPlaylist(url)) {
+            PlaylistHandler playlistHandler = new PlaylistHandler(url);
             playlistHandler.buildPlaylist();
             mediaFiles = playlistHandler.getPlayListFiles();
         } else {
         	mediaFiles = new ArrayList<String>();
-        	mediaFiles.add(requestedStream);
+        	//TODO clean this up
+        	mediaFiles.add(url.toString());
         }
+        
+    	} catch(Exception ex) {
+    		ex.printStackTrace();
+    		return false;
+    	}
     	
     	return true;
     }

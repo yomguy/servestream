@@ -35,13 +35,9 @@ public class PlaylistHandler {
 	/**
 	 * Default constructor
 	 */
-	public PlaylistHandler(String targetURL) {
+	public PlaylistHandler(URL targetURL) {
 
-		try {
-		    this.targetURL = new URL(targetURL);
-		} catch (Exception ex) {
-			ex.printStackTrace();
-		}
+		this.targetURL = targetURL;
 		
 		playlistFiles = new ArrayList<String>();
 	}
@@ -115,6 +111,8 @@ public class PlaylistHandler {
         		conn = (HttpsURLConnection) targetURL.openConnection();        		
         	}
         	
+    		conn.setConnectTimeout(6000);
+    		conn.setReadTimeout(6000);
 		    conn.setRequestMethod("GET");
 		    
 		    // Start the query
@@ -144,13 +142,14 @@ public class PlaylistHandler {
      * @param mediaFileName The file to check
      * @return boolean True if the file is a playlist, false otherwise
      */
-    public static boolean isPlaylist(String mediaFileName) {
-    	if (mediaFileName.length() > 4) {
-    	    if (mediaFileName.substring(mediaFileName.length() - 4, mediaFileName.length()).equalsIgnoreCase(".m3u")) {
+    public static boolean isPlaylist(URL url) {
+    	
+    	if (url.getPath().length() > 4) {
+    	    if (url.getPath().substring(url.getPath().length() - 4, url.getPath().length()).equalsIgnoreCase(".m3u")) {
     	    	return true;
     	    }
     	    
-    	    if (mediaFileName.contains(".pls")) {
+    	    if (url.getPath().contains(".pls")) {
     	    	return true;
     	    }
     	}
