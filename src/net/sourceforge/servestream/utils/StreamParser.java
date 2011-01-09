@@ -47,8 +47,8 @@ public class StreamParser {
 	/**
 	 * Default constructor
 	 */
-	public StreamParser(String targetURL) throws MalformedURLException {
-		m_targetURL = new URL(targetURL);
+	public StreamParser(URL url) throws MalformedURLException {
+		m_targetURL = url;
 		m_indexURL = getHost(m_targetURL);
 
 		m_textLinks = new ArrayList<String>();
@@ -71,7 +71,8 @@ public class StreamParser {
         		conn = (HttpsURLConnection) m_targetURL.openConnection();        		
         	}
         	
-		    //conn = (HttpURLConnection) m_targetURL.openConnection();
+    		conn.setConnectTimeout(6000);
+    		conn.setReadTimeout(6000);
 		    conn.setRequestMethod("GET");
 		    
 		    // Start the query

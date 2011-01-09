@@ -105,11 +105,6 @@ public final class UpdateHelper implements Runnable {
 			this.packageName = info.packageName;
 			this.versionCode = info.versionCode;
 			this.versionName = info.versionName;
-			// TODO remove when done
-			Log.v(TAG, this.packageName);
-			Log.v(TAG, String.valueOf(this.versionCode));
-			Log.v(TAG, this.versionName);
-
 		} catch(Exception e) {
 			Log.e(TAG, "Couldn't find package information in PackageManager", e);
 			return;
