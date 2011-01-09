@@ -46,6 +46,7 @@ import android.app.ListActivity;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -77,7 +78,7 @@ public class StreamListActivity extends ListActivity {
 	private TextView quickconnect = null;
 	private Button goButton = null;
 	
-	private Stream m_targetStream = null;
+	private Stream requestedStream = null;
 	
 	protected StreamDatabase streamdb = null;
 	protected LayoutInflater inflater = null;
@@ -124,16 +125,15 @@ public class StreamListActivity extends ListActivity {
 		
 		// connect with streams database and populate list
 		this.streamdb = new StreamDatabase(this);
+		
 		ListView list = this.getListView();
-
 		list.setOnItemClickListener(new OnItemClickListener() {
-
 			public synchronized void onItemClick(AdapterView<?> parent, View view, int position, long id) {
 
 				hideKeyboard();
 				
-				m_targetStream = (Stream) parent.getAdapter().getItem(position);
-				handleStream(m_targetStream);
+				requestedStream = (Stream) parent.getAdapter().getItem(position);
+				handleStream(requestedStream);
 			}
 		});
 
@@ -148,10 +148,9 @@ public class StreamListActivity extends ListActivity {
 				
 			    if (isValidStream()) {
 			    	saveStream();
-			    	handleStream(m_targetStream);
+			    	handleStream(requestedStream);
 			    }
 			}
-			
 		});
 		
 		quickconnect = (TextView) this.findViewById(R.id.front_quickconnect);
@@ -164,9 +163,9 @@ public class StreamListActivity extends ListActivity {
 	public boolean onCreateOptionsMenu(Menu menu) {
 		super.onCreateOptionsMenu(menu);
 
-		//MenuItem donate = menu.add(R.string.settings_donate);
-		//donate.setIcon(android.R.drawable.ic_menu_share);
-		//donate.setIntent(new Intent(Intent.ACTION_VIEW).setData(Uri.parse("http://sourceforge.net/donate/index.php?group_id=361303")));
+		MenuItem donate = menu.add(R.string.settings_donate);
+		donate.setIcon(android.R.drawable.ic_menu_share);
+		donate.setIntent(new Intent(Intent.ACTION_VIEW).setData(Uri.parse("http://sourceforge.net/donate/index.php?group_id=361303")));
 		
 		MenuItem settings = menu.add(R.string.list_menu_settings);
 		settings.setIcon(android.R.drawable.ic_menu_preferences);
@@ -182,13 +181,11 @@ public class StreamListActivity extends ListActivity {
 	@Override
 	public void onCreateContextMenu(ContextMenu menu, View v, ContextMenu.ContextMenuInfo menuInfo) {
 
-		// create menu to handle hosts
-
-		// create menu to handle deleting and sharing lists
+		// create menu to handle editing and deleting streams
 		AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo) menuInfo;
 		final Stream stream = (Stream) this.getListView().getItemAtPosition(info.position);
 
-		// set the menu to the name of the host
+		// set the menu to the name of the stream
 		menu.setHeaderTitle(stream.getNickname());
 
 		// edit the host
@@ -239,9 +236,16 @@ public class StreamListActivity extends ListActivity {
 	public void handleStream(Stream stream) {
 		
 		Intent intent = null;
-		int contentTypeCode = URLUtils.getContentTypeCode(stream.getStreamURL());
+		int contentTypeCode = -1;
 		
-		Log.v(TAG, "STREAM is: " + stream.getStreamURL());
+		try {
+			contentTypeCode = URLUtils.getContentTypeCode(stream.getURL());
+			Log.v(TAG, "STREAM is: " + stream.getURL());
+		} catch (Exception ex) {
+			ex.printStackTrace();
+			showURLNotFoundMessage();
+			return;
+		}
 		
 		if (contentTypeCode == URLUtils.DIRECTORY) {
 			intent = new Intent(StreamListActivity.this, StreamBrowseActivity.class);
@@ -250,15 +254,10 @@ public class StreamListActivity extends ListActivity {
 		}
 		
 		if (intent == null) {
-			new AlertDialog.Builder(StreamListActivity.this)
-			.setMessage("The following Stream cannot be found!")
-			.setPositiveButton("OK", new DialogInterface.OnClickListener() {
-				public void onClick(DialogInterface dialog, int which) {
-                    return;
-				}
-				}).create().show();
+			showURLNotFoundMessage();
+			return;
 		} else {
-		    intent.putExtra("net.sourceforge.servestream.TargetStream", stream.getStreamURL());
+			intent.setData(stream.getUri());
 			this.startActivity(intent);	
 		}	
 	}
@@ -297,14 +296,6 @@ public class StreamListActivity extends ListActivity {
 				holder = (ViewHolder) convertView.getTag();
 
 			Stream stream = m_streams.get(position);
-			if (stream == null) {
-				// Well, something bad happened. We can't continue.
-				Log.e("HostAdapter", "Host is null!");
-
-				holder.nickname.setText("Error during lookup");
-				holder.caption.setText("see 'adb logcat' for more");
-				return convertView;
-			}
 
 			holder.nickname.setText(stream.getNickname());
 
@@ -340,36 +331,29 @@ public class StreamListActivity extends ListActivity {
 		String stringStream = quickconnect.getText().toString();	
 		
 		if (stringStream == null) {
-			new AlertDialog.Builder(StreamListActivity.this)
-			.setMessage(R.string.invalid_url_message)
-			.setPositiveButton(R.string.invalid_url_pos, new DialogInterface.OnClickListener() {
-				public void onClick(DialogInterface dialog, int which) {
-				}
-				}).create().show();
-			
+			showInvalidURLMessage();
             return false;
 		}
 		
-		m_targetStream = new Stream();
-		if (!m_targetStream.createStream(stringStream)) {
-			new AlertDialog.Builder(StreamListActivity.this)
-			.setMessage(R.string.invalid_url_message)
-			.setPositiveButton(R.string.invalid_url_pos, new DialogInterface.OnClickListener() {
-				public void onClick(DialogInterface dialog, int which) {
-				}
-				}).create().show();
-				
-	        return false;
+		try {
+			requestedStream = new Stream(stringStream);
+		} catch (Exception ex) {
+			ex.printStackTrace();
+			showInvalidURLMessage();
+            return false;
 		}
 		
 		return true;
 	}
 	
+	/**
+	 * Saves a stream to the stream database
+	 */
 	private void saveStream() {
-		Stream stream = streamdb.findStream(m_targetStream);
+		Stream stream = streamdb.findStream(requestedStream);
 		
 		if (stream == null) {
-			streamdb.saveStream(m_targetStream);
+			streamdb.saveStream(requestedStream);
 		}
 	}
 	
@@ -382,4 +366,21 @@ public class StreamListActivity extends ListActivity {
 		inputManager.hideSoftInputFromWindow(textView.getWindowToken(), 0);
 	}
 	
+	private void showInvalidURLMessage() {
+	    new AlertDialog.Builder(StreamListActivity.this)
+		.setMessage(R.string.invalid_url_message)
+		.setPositiveButton(R.string.invalid_url_pos, new DialogInterface.OnClickListener() {
+			public void onClick(DialogInterface dialog, int which) {
+			}
+			}).create().show();
+	}
+	
+	private void showURLNotFoundMessage() {
+		new AlertDialog.Builder(StreamListActivity.this)
+		.setMessage(R.string.url_not_found_message)
+		.setPositiveButton(R.string.url_not_found_pos, new DialogInterface.OnClickListener() {
+			public void onClick(DialogInterface dialog, int which) {
+			}
+			}).create().show();	
+	}
 }
