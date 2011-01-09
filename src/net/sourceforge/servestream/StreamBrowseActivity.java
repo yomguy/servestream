@@ -48,6 +48,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
+import android.util.Log;
 import android.view.ContextMenu;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -66,7 +67,7 @@ public class StreamBrowseActivity extends ListActivity {
 	public final static String TAG = "ServeStream.StreamBrowseActivity";
 	
     StreamParser streamURLs = null;
-	String currentStreamURL = null;
+	Stream requestedStreamURL = null;
     
     ArrayAdapter<String> adapter = null;
     ProgressDialog dialog = null;
@@ -90,11 +91,12 @@ public class StreamBrowseActivity extends ListActivity {
 		dialog = ProgressDialog.show(StreamBrowseActivity.this, "", 
                 "Loading. Please wait...", true);
 		
-		currentStreamURL = getIntent().getExtras().getString("net.sourceforge.servestream.TargetStream");
-		
 		try {
-	    	streamURLs = new StreamParser(currentStreamURL);
+			Log.v(TAG, getIntent().getData().toString());			
+			requestedStreamURL = new Stream(getIntent().getData().toString());		
+	        streamURLs = new StreamParser(requestedStreamURL.getURL());
 		} catch (Exception ex) {
+			//TODO add handling here
 			ex.printStackTrace();
 		}
 	    	
@@ -107,12 +109,7 @@ public class StreamBrowseActivity extends ListActivity {
 
 		list.setOnItemClickListener(new OnItemClickListener() {
 			public synchronized void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-				try {
-				    String targetStream = streamURLs.getHREF(position);
-				    handleStream(targetStream);
-				} catch (Exception ex) {
-					ex.printStackTrace();
-				}
+		        handleStream(streamURLs.getHREF(position));
 			}
 		});
 		
@@ -132,12 +129,15 @@ public class StreamBrowseActivity extends ListActivity {
 		
 		// if the current URL exists in the stream database
 		// update its timestamp
-		Stream tempStream = new Stream();
-		tempStream.createStream(currentStreamURL);
-		Stream stream = streamdb.findStream(tempStream);
+		try {
+		    Stream stream = streamdb.findStream(requestedStreamURL);
 		
-		if (stream != null) {
-			streamdb.touchHost(stream);
+		    if (stream != null) {
+			    streamdb.touchHost(stream);
+		    }
+		}
+		catch (Exception ex) {
+		    ex.printStackTrace();
 		}
 	}
     
@@ -176,8 +176,8 @@ public class StreamBrowseActivity extends ListActivity {
 		final AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo) menuInfo;
 		final String streamString = (String) this.getListView().getItemAtPosition(info.position);
 		
-		final Stream stream = new Stream();
-		stream.createStream(streamURLs.getHREF(info.position));
+		try {
+			final Stream stream = new Stream(streamURLs.getHREF(info.position));
 		
 		// set the menu title to the name attribute of the URL link
 		menu.setHeaderTitle(streamString);
@@ -213,36 +213,46 @@ public class StreamBrowseActivity extends ListActivity {
 						}).create().show();
 				return true;
 			}
-		});		
+		});
+		
+		} catch(Exception ex) {
+			ex.printStackTrace();
+		}
 	}
 	
-	public void handleStream(String stream) {
+	public void handleStream(String streamString) {
 		
 		Intent intent = null;
-		int contentTypeCode = URLUtils.getContentTypeCode(stream);
+		Stream stream = null;
+		
+		int contentTypeCode = -1;
+		
+		try {
+			stream = new Stream(streamString);
+			contentTypeCode = URLUtils.getContentTypeCode(stream.getURL());
+			Log.v(TAG, "STREAM is: " + stream.getURL());
+		} catch (Exception ex) {
+			cannotOpenURLMessage();
+			return;
+		}
 		
 		if (contentTypeCode == URLUtils.DIRECTORY) {
 			dialog = ProgressDialog.show(StreamBrowseActivity.this, "", 
 	                "Loading. Please wait...", true);
 			try {
-				currentStreamURL = stream;
-				streamURLs = new StreamParser(currentStreamURL);
+				requestedStreamURL = stream;
+				streamURLs = new StreamParser(requestedStreamURL.getURL());
+		    	new DataLoadingThread(handler, uiLoadingThread, streamURLs);
 			} catch (Exception ex) {
 				ex.printStackTrace();
 			}
-	    	new DataLoadingThread(handler, uiLoadingThread, streamURLs);
 		} else if (contentTypeCode == URLUtils.MEDIA_FILE) {
 			intent = new Intent(StreamBrowseActivity.this, StreamMediaActivity.class);
-		    intent.putExtra("net.sourceforge.servestream.TargetStream", stream);
+			intent.setData(stream.getUri());
 			this.startActivity(intent);
 		} else if (contentTypeCode == URLUtils.NOT_FOUND) {
-			new AlertDialog.Builder(StreamBrowseActivity.this)
-			.setMessage("The following stream cannot be opened!")
-			.setPositiveButton("OK", new DialogInterface.OnClickListener() {
-				public void onClick(DialogInterface dialog, int which) {
-                    return;
-				}
-				}).create().show();
+			cannotOpenURLMessage();
+			return;
 		}
 	}
 	
@@ -345,5 +355,14 @@ public class StreamBrowseActivity extends ListActivity {
     		StreamAdapter adapter = new StreamAdapter(StreamBrowseActivity.this, m_streams);
         	m_listView.setAdapter(adapter);
         }      
+    }
+    
+    private void cannotOpenURLMessage() {
+		new AlertDialog.Builder(StreamBrowseActivity.this)
+		.setMessage("Sorry, the following URL cannot be opened")
+		.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+			public void onClick(DialogInterface dialog, int which) {
+			}
+			}).create().show();
     }
 }

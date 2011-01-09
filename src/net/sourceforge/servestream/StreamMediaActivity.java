@@ -18,6 +18,7 @@
 package net.sourceforge.servestream;
 
 import net.sourceforge.servestream.R;
+import net.sourceforge.servestream.dbutils.Stream;
 import net.sourceforge.servestream.service.MediaService;
 
 import android.app.Activity;
@@ -67,7 +68,7 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
 	private int displayWidth = 0;
 	private int displayHeight = 0;
     
-	private String requestedStream = "";
+	private Stream requestedStream = null;
 	
     private MediaPlayer mediaPlayer;
 
@@ -188,12 +189,18 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
 		getDisplayMeasurements();
 
 		// obtain the requested stream
-		if (getIntent().getExtras() != null) {
-			requestedStream = getIntent().getExtras().getString("net.sourceforge.servestream.TargetStream");
-		} else {
+		if (getIntent().getData() == null) {
+			Log.e(TAG, "Got null intent data in onCreate()");
 			requestedStream = null;
+		} else {
+			try {
+				requestedStream = new Stream(getIntent().getData().toString());
+			} catch (Exception ex) {
+				//TODO add handling here
+				ex.printStackTrace();
+			}
 		}
-		
+			
 	    positionText = (TextView) findViewById(R.id.position_text);
 	    durationText = (TextView) findViewById(R.id.duration_text);
 	    
@@ -343,11 +350,16 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
 
 		Log.d(TAG, "onNewIntent called");
 		
-		// obtain the requested stream
-		if (getIntent().getExtras() != null) {
-			requestedStream = getIntent().getExtras().getString("net.sourceforge.servestream.TargetStream");
-		} else {
+		if (intent.getData() == null) {
+			Log.e(TAG, "Got null intent data in onNewIntent()");
 			requestedStream = null;
+		} else {
+			try {
+				requestedStream = new Stream(intent.getData().toString());
+			} catch (Exception ex) {
+				//TODO add handling here
+				ex.printStackTrace();
+			}
 		}
 		
     	// let media service know the activity is visible
@@ -438,11 +450,15 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
         
     	// if the requested stream is null the intent used to launch
     	// StreamMediaActivity did not supply a new URL to stream
-        if (requestedStream != null && !requestedStream.equals(boundService.getNowPlayingPlaylist())) {
+        if (requestedStream != null && !requestedStream.equals(boundService.getCurrentStream())) {
             try {
                 boundService.setDisplay(holder);
                 holder.setFixedSize(displayWidth, displayHeight);
-                boundService.queueNewMedia(requestedStream);
+                
+                if (!boundService.queueNewMedia(requestedStream)) {
+                	errorOpeningMediaMessage();
+                	return;
+                }
                 
                 if (boundService.getNumOfQueuedFiles() == 0) {
                 	handleInvalidPlaylist();
@@ -450,7 +466,7 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
                 }
                 	
                 boundService.startMediaPlayer();
-                boundService.setNowPlayingPlaylist(requestedStream);
+                boundService.setCurrentStream(requestedStream);
             } catch (Exception ex) {
                 Log.e(TAG, "error: " + ex.getMessage());
             }
@@ -644,5 +660,15 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
         	    this.timeFormat = 3;
             }
         }
+    }
+    
+    private void errorOpeningMediaMessage() {
+		new AlertDialog.Builder(StreamMediaActivity.this)
+		.setMessage("Sorry, the following URL cannot be opened")
+		.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+			public void onClick(DialogInterface dialog, int which) {
+				finish();
+			}
+			}).create().show();
     }
 }
