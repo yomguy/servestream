@@ -61,8 +61,8 @@ public class URLUtils {
         	if (conn == null)
         		return NOT_FOUND;
         	
-    		conn.setConnectTimeout(3000);
-    		conn.setReadTimeout(3000);
+    		conn.setConnectTimeout(6000);
+    		conn.setReadTimeout(6000);
 	        conn.setRequestMethod("GET");
 	    
             int i = 0;
