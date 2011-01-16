@@ -43,20 +43,6 @@ public class PLSPlaylistParser {
 		this.playlistURL = playlistURL;
 		this.playlistFiles = new ArrayList<MediaFile>();
 	}
-    
-	/**
-	 * 
-	 */
-	/*public void buildPlaylist() {
-		
-		String mediaFileName = playlistURL.toString();
-		
-    	if (mediaFileName.length() > 4) {
-    	    if (mediaFileName.substring(mediaFileName.length() - 4, mediaFileName.length()).equalsIgnoreCase(".pls")) {
-    	    	retrievePLSFiles();
-    	    }
-    	}
-	}*/
 	
 	/**
 	 * Retrieves the files listed in a .pls file
