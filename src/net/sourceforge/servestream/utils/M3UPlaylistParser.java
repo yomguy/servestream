@@ -40,20 +40,6 @@ public class M3UPlaylistParser {
 		this.playlistURL = playlistURL;
 		this.playlistFiles = new ArrayList<MediaFile>();
 	}
-    
-	/**
-	 * 
-	 */
-	/*public void buildPlaylist() {
-		
-		String mediaFileName = playlistURL.toString();
-		
-    	if (mediaFileName.length() > 4) {
-    	    if (mediaFileName.substring(mediaFileName.length() - 4, mediaFileName.length()).equalsIgnoreCase(".m3u")) {
-    	    	retrieveM3UFiles();
-    	    }
-    	}
-	}*/
 	
 	/**
 	 * Retrieves the files listed in a .m3u file
