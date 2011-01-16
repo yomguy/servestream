@@ -24,7 +24,9 @@ import java.util.ArrayList;
 
 import net.sourceforge.servestream.StreamMediaActivity;
 import net.sourceforge.servestream.dbutils.Stream;
-import net.sourceforge.servestream.utils.PlaylistHandler;
+import net.sourceforge.servestream.utils.M3UPlaylistParser;
+import net.sourceforge.servestream.utils.MediaFile;
+import net.sourceforge.servestream.utils.PLSPlaylistParser;
 import net.sourceforge.servestream.utils.PreferenceConstants;
 
 import android.app.Service;
@@ -55,7 +57,7 @@ public class MediaService extends Service {
 	
 	private final int SEEK_INCREMENT = 15000;
 	
-    private ArrayList<String> mediaFiles = null;
+    private ArrayList<MediaFile> mediaFiles = null;
 	private int mediaFilesIndex = 0;
 	
 	private Stream currentStream = null;
@@ -299,7 +301,7 @@ public class MediaService extends Service {
 	    mediaPlayer.reset();
 	        
 	    try {
-	        mediaPlayer.setDataSource(mediaFiles.get(mediaFilesIndex));
+	        mediaPlayer.setDataSource(mediaFiles.get(mediaFilesIndex).getURL());
 	        mediaPlayer.prepareAsync();
     	} catch (Exception ex) {
     		ex.printStackTrace();
@@ -325,7 +327,7 @@ public class MediaService extends Service {
 		    isOpeningMedia = false;
 		    
 	        // update the currently playing track
-	        currentlyPlayingTrack = mediaFiles.get(mediaFilesIndex);
+	        currentlyPlayingTrack = mediaFiles.get(mediaFilesIndex).getURL();
 		    
 	        // if available, send notifications to the activity
 	    	if (streamActivityState == StreamMediaActivity.VISIBLE) {
@@ -376,7 +378,7 @@ public class MediaService extends Service {
         	position = mediaPlayer.getCurrentPosition();
     	    mediaPlayer.stop();
             mediaPlayer.reset();
-			mediaPlayer.setDataSource(mediaFiles.get(mediaFilesIndex));
+			mediaPlayer.setDataSource(mediaFiles.get(mediaFilesIndex).getURL());
 	        mediaPlayer.prepareAsync();
 		    mediaPlayer.start();
 		    mediaPlayer.seekTo(position);
@@ -395,14 +397,23 @@ public class MediaService extends Service {
     	
     		url = stream.getURL();
     		
-        if (PlaylistHandler.isPlaylist(url)) {
-            PlaylistHandler playlistHandler = new PlaylistHandler(url);
-            playlistHandler.buildPlaylist();
-            mediaFiles = playlistHandler.getPlayListFiles();
+        if (isM3UPlaylist(url.getPath())) {
+        	System.out.println("is M3U");
+            M3UPlaylistParser playlistParser = new M3UPlaylistParser(url);
+            playlistParser.retrieveM3UFiles();
+            mediaFiles = playlistParser.getPlaylistFiles();
+        } else if (isPLSPlaylist(url.getPath())) {
+        	System.out.println("is PLS");
+            PLSPlaylistParser playlistParser = new PLSPlaylistParser(url);
+            playlistParser.retrievePLSFiles();
+            mediaFiles = playlistParser.getPlaylistFiles();
         } else {
-        	mediaFiles = new ArrayList<String>();
-        	//TODO clean this up
-        	mediaFiles.add(url.toString());
+        	System.out.println("is mediafile");
+        	System.out.println(url.getPath());
+        	mediaFiles = new ArrayList<MediaFile>();
+        	MediaFile mediaFile = new MediaFile();
+        	mediaFile.setURL(url.toString());
+        	mediaFiles.add(mediaFile);
         }
         
     	} catch(Exception ex) {
@@ -433,6 +444,46 @@ public class MediaService extends Service {
     		return false;
     	}
     	
+    	return false;
+    }
+    
+    private boolean isM3UPlaylist(String path) {
+    	int index = 0;
+    	
+    	if (path == null)
+    	    return false;
+    	
+        index = path.lastIndexOf(".");
+    		
+    	if (index == -1)
+    		return false;
+    	
+    	if ((path.length() - index) != 4)
+    		return false;
+    		
+    	if (path.substring(index, path.length()).equalsIgnoreCase(".m3u"))
+    	    return true;		
+
+    	return false;
+    }
+    
+    private boolean isPLSPlaylist(String path) {
+    	int index = 0;
+    	
+    	if (path == null)
+    	    return false;
+    	
+        index = path.lastIndexOf(".");
+    		
+    	if (index == -1)    	
+        	return false;
+    	
+    	if ((path.length() - index) != 4)
+    		return false;
+    		
+    	if (path.substring(index, path.length()).equalsIgnoreCase(".pls"))
+    	    return true;		
+
     	return false;
     }
 }
