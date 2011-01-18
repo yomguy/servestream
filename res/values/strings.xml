@@ -122,6 +122,12 @@
 	<!-- Protocol field title for stream editor preference -->
 	<string name="streampref_protocol_title">Protocol</string>
 
+	<!-- Username field title for stream editor preference -->
+	<string name="streampref_username_title">Username</string>
+
+	<!-- Password field title for stream editor preference -->
+	<string name="streampref_password_title">Password</string>
+
 	<!-- Hostname field title for stream editor preference -->
 	<string name="streampref_hostname_title">Hostname</string>
 
