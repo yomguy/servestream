@@ -60,6 +60,8 @@ public class StreamDatabase extends SQLiteOpenHelper {
 	public static final String TABLE_STREAMS = "streams";
 	public static final String FIELD_STREAM_NICKNAME = "nickname";	
 	public static final String FIELD_STREAM_PROTOCOL = "protocol";
+	public static final String FIELD_STREAM_USERNAME = "username";
+	public static final String FIELD_STREAM_PASSWORD = "password";
 	public static final String FIELD_STREAM_HOSTNAME = "hostname";
 	public static final String FIELD_STREAM_PORT = "port";
 	public static final String FIELD_STREAM_PATH = "path";
@@ -69,13 +71,15 @@ public class StreamDatabase extends SQLiteOpenHelper {
 	public final static String FIELD_STREAM_FONTSIZE = "fontsize";
 	
 	private static final String	DATABASE_NAME = "servestream.db";
-    private static final int DATABASE_VERSION = 2;
+    private static final int DATABASE_VERSION = 3;
     
     private static final String STREAM_TABLE_CREATE =
                 "CREATE TABLE " + TABLE_STREAMS + " (" +
 				" _id INTEGER PRIMARY KEY, " +
 				FIELD_STREAM_NICKNAME + " TEXT, " +
 				FIELD_STREAM_PROTOCOL + " TEXT, " +
+				FIELD_STREAM_USERNAME + " TEXT, " +
+				FIELD_STREAM_PASSWORD + " TEXT, " +
 				FIELD_STREAM_HOSTNAME + " TEXT, " +
 				FIELD_STREAM_PORT + " TEXT, " +
 				FIELD_STREAM_PATH + " TEXT, " +
@@ -130,6 +134,25 @@ public class StreamDatabase extends SQLiteOpenHelper {
 			
 			return;
 		}
+		
+		if (oldVersion == 2) {
+			
+		    Cursor c = db.query(TABLE_STREAMS, null, null, null, null, null, null);
+
+			ArrayList<Stream> streams = createOldStreamList2(c);
+
+		    c.close();
+			
+			db.execSQL("DROP TABLE IF EXISTS " + TABLE_STREAMS);
+			onCreate(db);
+			
+			for (int i = 0; i < streams.size(); i++) {
+				Log.v(TAG, "writing: " + streams.get(i).getNickname());
+				saveOldStream2(streams.get(i), db);
+			}
+			
+			return;
+		}
 	}
 	
 	/**
@@ -156,6 +179,8 @@ public class StreamDatabase extends SQLiteOpenHelper {
 		final int COL_ID = c.getColumnIndexOrThrow("_id"),
 			COL_NICKNAME = c.getColumnIndexOrThrow(FIELD_STREAM_NICKNAME),
 			COL_PROTOCOL = c.getColumnIndexOrThrow(FIELD_STREAM_PROTOCOL),
+			COL_USERNAME = c.getColumnIndexOrThrow(FIELD_STREAM_USERNAME),
+			COL_PASSWORD = c.getColumnIndexOrThrow(FIELD_STREAM_PASSWORD),
 			COL_HOST = c.getColumnIndexOrThrow(FIELD_STREAM_HOSTNAME),
 			COL_PORT = c.getColumnIndexOrThrow(FIELD_STREAM_PORT),
 			COL_PATH = c.getColumnIndexOrThrow(FIELD_STREAM_PATH),
@@ -170,6 +195,8 @@ public class StreamDatabase extends SQLiteOpenHelper {
 			stream.setID(c.getLong(COL_ID));
 			stream.setNickname(c.getString(COL_NICKNAME));
 			stream.setProtocol(c.getString(COL_PROTOCOL));
+			stream.setUsername(c.getString(COL_USERNAME));
+			stream.setPassword(c.getString(COL_PASSWORD));
 			stream.setHostname(c.getString(COL_HOST));
 			stream.setPort(c.getString(COL_PORT));
 			stream.setPath(c.getString(COL_PATH));
@@ -280,6 +307,8 @@ public class StreamDatabase extends SQLiteOpenHelper {
 		final int COL_ID = c.getColumnIndexOrThrow("_id"),
 			COL_NICKNAME = c.getColumnIndexOrThrow(FIELD_STREAM_NICKNAME),
 			COL_PROTOCOL = c.getColumnIndexOrThrow(FIELD_STREAM_PROTOCOL),
+			COL_USERNAME = c.getColumnIndexOrThrow(FIELD_STREAM_USERNAME),
+			COL_PASSWORD = c.getColumnIndexOrThrow(FIELD_STREAM_PASSWORD),
 			COL_HOSTNAME = c.getColumnIndexOrThrow(FIELD_STREAM_HOSTNAME),
 			COL_PORT = c.getColumnIndexOrThrow(FIELD_STREAM_PORT),
 			COL_PATH = c.getColumnIndexOrThrow(FIELD_STREAM_PATH),
@@ -294,6 +323,8 @@ public class StreamDatabase extends SQLiteOpenHelper {
 			stream.setID(c.getLong(COL_ID));
 			stream.setNickname(c.getString(COL_NICKNAME));
 			stream.setProtocol(c.getString(COL_PROTOCOL));
+			stream.setUsername(c.getString(COL_USERNAME));
+			stream.setPassword(c.getString(COL_PASSWORD));
 			stream.setHostname(c.getString(COL_HOSTNAME));
 			stream.setPort(c.getString(COL_PORT));
 			stream.setPath(c.getString(COL_PATH));
@@ -317,6 +348,8 @@ public class StreamDatabase extends SQLiteOpenHelper {
 			ContentValues contentValues = new ContentValues();
 			contentValues.put(FIELD_STREAM_NICKNAME, stream.getNickname());
 			contentValues.put(FIELD_STREAM_PROTOCOL, stream.getProtocol());
+			contentValues.put(FIELD_STREAM_USERNAME, stream.getUsername());
+			contentValues.put(FIELD_STREAM_PASSWORD, stream.getPassword());
 			contentValues.put(FIELD_STREAM_HOSTNAME, stream.getHostname());
 			contentValues.put(FIELD_STREAM_PORT, stream.getPort());
 			contentValues.put(FIELD_STREAM_PATH, stream.getPath());
@@ -337,6 +370,8 @@ public class StreamDatabase extends SQLiteOpenHelper {
 		
 		//selection.put(FIELD_STREAM_NICKNAME, stream.getNickname());
 		selection.put(FIELD_STREAM_PROTOCOL, stream.getProtocol());
+		selection.put(FIELD_STREAM_USERNAME, stream.getUsername());
+		selection.put(FIELD_STREAM_PASSWORD, stream.getPassword());
 		selection.put(FIELD_STREAM_HOSTNAME, stream.getHostname());
 		selection.put(FIELD_STREAM_PORT, stream.getPort());
 		selection.put(FIELD_STREAM_PATH, stream.getPath());
@@ -396,6 +431,67 @@ public class StreamDatabase extends SQLiteOpenHelper {
 			ContentValues contentValues = new ContentValues();
 			contentValues.put(FIELD_STREAM_NICKNAME, stream.getNickname());
 			contentValues.put(FIELD_STREAM_PROTOCOL, stream.getProtocol());
+			contentValues.put(FIELD_STREAM_HOSTNAME, stream.getHostname());
+			contentValues.put(FIELD_STREAM_PORT, stream.getPort());
+			contentValues.put(FIELD_STREAM_PATH, stream.getPath());
+			contentValues.put(FIELD_STREAM_QUERY, stream.getQuery());
+			contentValues.put(FIELD_STREAM_LASTCONNECT, stream.getLastConnect());
+			contentValues.put(FIELD_STREAM_COLOR, stream.getColor());
+			contentValues.put(FIELD_STREAM_FONTSIZE, stream.getFontSize());
+			id = db.insert(TABLE_STREAMS, null, contentValues);
+
+		stream.setID(id);
+		
+        Log.v("TAG", "Stream wrote to database");
+		return stream;
+	}
+    
+    private ArrayList<Stream> createOldStreamList2(Cursor c) {
+		ArrayList<Stream> streamUrls = new ArrayList<Stream>();
+
+		final int COL_ID = c.getColumnIndexOrThrow("_id"),
+			COL_NICKNAME = c.getColumnIndexOrThrow(FIELD_STREAM_NICKNAME),
+			COL_PROTOCOL = c.getColumnIndexOrThrow(FIELD_STREAM_PROTOCOL),
+			COL_HOST = c.getColumnIndexOrThrow(FIELD_STREAM_HOSTNAME),
+			COL_PORT = c.getColumnIndexOrThrow(FIELD_STREAM_PORT),
+			COL_PATH = c.getColumnIndexOrThrow(FIELD_STREAM_PATH),
+			COL_QUERY = c.getColumnIndexOrThrow(FIELD_STREAM_QUERY),
+			COL_LASTCONNECT = c.getColumnIndexOrThrow(FIELD_STREAM_LASTCONNECT),
+			COL_COLOR = c.getColumnIndexOrThrow(FIELD_STREAM_COLOR),
+			COL_FONTSIZE = c.getColumnIndexOrThrow(FIELD_STREAM_FONTSIZE);
+
+		while (c.moveToNext()) {
+			Stream stream = new Stream();
+
+			stream.setID(c.getLong(COL_ID));
+			stream.setNickname(c.getString(COL_NICKNAME));
+			stream.setProtocol(c.getString(COL_PROTOCOL));
+			stream.setHostname(c.getString(COL_HOST));
+			stream.setPort(c.getString(COL_PORT));
+			stream.setPath(c.getString(COL_PATH));				
+			stream.setQuery(c.getString(COL_QUERY));
+			
+			if (stream.getQuery() != null && stream.getQuery().equals(""))
+				stream.setQuery(null);
+			
+			stream.setLastConnect(c.getLong(COL_LASTCONNECT));
+			stream.setColor(c.getString(COL_COLOR));
+			stream.setFontSize(c.getLong(COL_FONTSIZE));
+
+			streamUrls.add(stream);
+		}
+
+		return streamUrls;
+	}
+    
+    public Stream saveOldStream2(Stream stream, SQLiteDatabase db) {
+		long id;
+
+			ContentValues contentValues = new ContentValues();
+			contentValues.put(FIELD_STREAM_NICKNAME, stream.getNickname());
+			contentValues.put(FIELD_STREAM_PROTOCOL, stream.getProtocol());
+			contentValues.put(FIELD_STREAM_USERNAME, stream.getUsername());
+			contentValues.put(FIELD_STREAM_PASSWORD, stream.getPassword());
 			contentValues.put(FIELD_STREAM_HOSTNAME, stream.getHostname());
 			contentValues.put(FIELD_STREAM_PORT, stream.getPort());
 			contentValues.put(FIELD_STREAM_PATH, stream.getPath());
