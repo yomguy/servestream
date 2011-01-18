@@ -30,6 +30,8 @@ public class Stream {
 	private long id = -1;
 	private String nickname = null;
 	private String protocol = null;
+	private String username = null;
+	private String password = null;
 	private String hostname = null;
 	private String port = null;
 	private String path = null;
@@ -56,6 +58,16 @@ public class Stream {
 		
 		this.nickname = url.toString();
 		this.protocol = url.getProtocol();
+		
+		if (url.getUserInfo() != null) {
+			String [] authInfo = url.getUserInfo().split("\\:");
+			
+			if (authInfo.length == 2) {
+				this.username = authInfo[0];
+				this.password = authInfo[1];
+			}
+		}
+		
 		this.hostname = url.getHost();
 		
 		if (url.getPort() == -1) {
@@ -70,9 +82,7 @@ public class Stream {
 		
 		this.path = url.getPath();
 		
-		if (url.getQuery() == null) {
-			this.query = "";
-		} else {
+		if (url.getQuery() != null) {
 			this.query = url.getQuery();
 		}
 	}
@@ -101,6 +111,22 @@ public class Stream {
 		return protocol;
 	}
 
+	public void setUsername(String username) {
+		this.username = username;
+	}
+
+	public String getUsername() {
+		return username;
+	}
+	
+	public void setPassword(String password) {
+		this.password = password;
+	}
+
+	public String getPassword() {		
+		return password;
+	}
+	
 	public void setHostname(String hostname) {
 		this.hostname = hostname;
 	}
@@ -179,6 +205,18 @@ public class Stream {
 		} else if (!protocol.equals(stream.getProtocol()))
 			return false;
 
+		if (username == null) {
+			if (stream.getUsername() != null)
+				return false;
+		} else if (!username.equals(stream.getUsername()))
+			return false;
+		
+		if (password == null) {
+			if (stream.getPassword() != null)
+				return false;
+		} else if (!password.equals(stream.getPassword()))
+			return false;
+		
 		if (hostname == null) {
 			if (stream.getHostname() != null)
 				return false;
@@ -215,6 +253,8 @@ public class Stream {
 
 		hash = 31 * hash + (null == nickname ? 0 : nickname.hashCode());
 		hash = 31 * hash + (null == protocol ? 0 : protocol.hashCode());
+		hash = 31 * hash + (null == username ? 0 : username.hashCode());
+		hash = 31 * hash + (null == password ? 0 : password.hashCode());
 		hash = 31 * hash + (null == hostname ? 0 : hostname.hashCode());
 		hash = 31 * hash + (null == port ? 0 : port.hashCode());
 		hash = 31 * hash + (null == path ? 0 : path.hashCode());
@@ -234,14 +274,22 @@ public class Stream {
 		sb.append(protocol)
 			.append("://");
 
+		if (username != null) {
+		    sb.append(username)
+		    .append(":")
+		    .append(password)
+		    .append("@");
+		}
+		
 		sb.append(hostname)
 			.append(':')
 			.append(port)
 			.append(path);
 		
-		if (!query.equals(""))
+		if (query != null) {
 		    sb.append('?')
-				.append(query);
+			.append(query);
+		}
 		
 		return Uri.parse(sb.toString());
 	}
@@ -258,14 +306,22 @@ public class Stream {
 		sb.append(protocol)
 			.append("://");
 
+		if (username != null) {
+		    sb.append(username)
+		    .append(":")
+		    .append(password)
+		    .append("@");
+		}
+		
 		sb.append(hostname)
 			.append(':')
 			.append(port)
 			.append(path);
 		
-		if (!query.equals(""))
+		if (query != null) {
 		    sb.append('?')
-				.append(query);
+			.append(query);
+		}
 		
 		return new URL(sb.toString());
 	}
