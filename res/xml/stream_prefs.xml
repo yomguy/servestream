@@ -36,6 +36,18 @@
 			/>
 
 		<EditTextPreference
+			android:key="username"
+			android:title="@string/streampref_username_title"
+			android:singleLine="true"
+			/>
+			
+		<EditTextPreference
+			android:key="password"
+			android:title="@string/streampref_password_title"
+			android:singleLine="true"
+			/>
+
+		<EditTextPreference
 			android:key="hostname"
 			android:title="@string/streampref_hostname_title"
 			android:singleLine="true"
