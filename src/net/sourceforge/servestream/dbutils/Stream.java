@@ -65,7 +65,13 @@ public class Stream {
 			if (authInfo.length == 2) {
 				this.username = authInfo[0];
 				this.password = authInfo[1];
+			} else {
+				this.username = "";
+				this.password = "";
 			}
+		} else {
+			this.username = "";
+			this.password = "";
 		}
 		
 		this.hostname = url.getHost();
@@ -84,6 +90,8 @@ public class Stream {
 		
 		if (url.getQuery() != null) {
 			this.query = url.getQuery();
+		} else {
+			this.query = "";
 		}
 	}
 	
@@ -123,7 +131,7 @@ public class Stream {
 		this.password = password;
 	}
 
-	public String getPassword() {		
+	public String getPassword() {
 		return password;
 	}
 	
@@ -274,7 +282,7 @@ public class Stream {
 		sb.append(protocol)
 			.append("://");
 
-		if (username != null) {
+		if (!username.equals("")) {
 		    sb.append(username)
 		    .append(":")
 		    .append(password)
@@ -286,7 +294,7 @@ public class Stream {
 			.append(port)
 			.append(path);
 		
-		if (query != null) {
+		if (!query.equals("")) {
 		    sb.append('?')
 			.append(query);
 		}
@@ -306,7 +314,7 @@ public class Stream {
 		sb.append(protocol)
 			.append("://");
 
-		if (username != null) {
+		if (!username.equals("")) {
 		    sb.append(username)
 		    .append(":")
 		    .append(password)
@@ -318,7 +326,7 @@ public class Stream {
 			.append(port)
 			.append(path);
 		
-		if (query != null) {
+		if (!query.equals("")) {
 		    sb.append('?')
 			.append(query);
 		}
