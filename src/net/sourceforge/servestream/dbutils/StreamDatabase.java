@@ -116,43 +116,13 @@ public class StreamDatabase extends SQLiteOpenHelper {
 	
 	public void onRobustUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) throws SQLiteException {
 		
-		if (oldVersion == 1) {
-			
-		    Cursor c = db.query(TABLE_STREAMS, null, null, null, null, null, null);
-
-			ArrayList<Stream> streams = createOldStreamList(c);
-
-		    c.close();
+		//if (oldVersion == 2) {
 			
 			db.execSQL("DROP TABLE IF EXISTS " + TABLE_STREAMS);
 			onCreate(db);
 			
-			for (int i = 0; i < streams.size(); i++) {
-				Log.v(TAG, "writing: " + streams.get(i).getNickname());
-				saveOldStream(streams.get(i), db);
-			}
-			
-			return;
-		}
-		
-		if (oldVersion == 2) {
-			
-		    Cursor c = db.query(TABLE_STREAMS, null, null, null, null, null, null);
-
-			ArrayList<Stream> streams = createOldStreamList2(c);
-
-		    c.close();
-			
-			db.execSQL("DROP TABLE IF EXISTS " + TABLE_STREAMS);
-			onCreate(db);
-			
-			for (int i = 0; i < streams.size(); i++) {
-				Log.v(TAG, "writing: " + streams.get(i).getNickname());
-				saveOldStream2(streams.get(i), db);
-			}
-			
-			return;
-		}
+			//return;
+		//}
 	}
 	
 	/**
@@ -342,10 +312,13 @@ public class StreamDatabase extends SQLiteOpenHelper {
 	public Stream saveStream(Stream stream) {
 		long id;
 
+		SQLiteDatabase db = null;
+		ContentValues contentValues = null;
+		
 		synchronized (m_dbLock) {
-			SQLiteDatabase db = this.getWritableDatabase();
+			db = this.getWritableDatabase();
 
-			ContentValues contentValues = new ContentValues();
+			contentValues = new ContentValues();
 			contentValues.put(FIELD_STREAM_NICKNAME, stream.getNickname());
 			contentValues.put(FIELD_STREAM_PROTOCOL, stream.getProtocol());
 			contentValues.put(FIELD_STREAM_USERNAME, stream.getUsername());
@@ -362,31 +335,34 @@ public class StreamDatabase extends SQLiteOpenHelper {
 
 		stream.setID(id);
 		
-        replaceNullFields(stream);
-		
-        Log.v("TAG", "Stream wrote to database");
-		return stream;
-	}
-	
-	private void replaceNullFields(Stream stream) {
 		synchronized (m_dbLock) {
-			ContentValues contentValues = new ContentValues();
-				
-			if (stream.getUsername().equals(""))
-				contentValues.put(FIELD_STREAM_USERNAME, "");
+			db = null;
+			contentValues = new ContentValues();
 			
-			if (stream.getPassword().equals(""))
-				contentValues.put(FIELD_STREAM_PASSWORD, "");
+			if (stream.getUsername() != null) {
+			    if (stream.getUsername().equals(""))
+				    contentValues.put(FIELD_STREAM_USERNAME, "");
+			}
 			
-			if (stream.getQuery().equals(""))
-				contentValues.put(FIELD_STREAM_QUERY, "");
+			if (stream.getPassword() != null) {
+			    if (stream.getPassword().equals(""))
+				    contentValues.put(FIELD_STREAM_PASSWORD, "");
+			}
+			
+			if (stream.getQuery() != null) {
+			    if (stream.getQuery().equals(""))
+				    contentValues.put(FIELD_STREAM_QUERY, "");
+			}
 			
 			if (contentValues.size() > 0) {
 				Log.v(TAG, "Replacing null values");
-			    SQLiteDatabase db = this.getWritableDatabase();
+			    db = this.getWritableDatabase();
 			    db.update(TABLE_STREAMS, contentValues, "_id = ?", new String[] { String.valueOf(stream.getId()) });
 			}
 		}
+		
+        Log.v("TAG", "Stream wrote to database");
+		return stream;
 	}
 	
 	public HashMap<String, String> getSelectionArgs(Stream stream) {
@@ -403,133 +379,5 @@ public class StreamDatabase extends SQLiteOpenHelper {
 		
 		return selection;
 	}
-	
-    public ArrayList<Stream> getOldStreams() {
-		
-		ArrayList<Stream> streamUrls = new ArrayList<Stream>();
-		
-		synchronized (m_dbLock) {
-			SQLiteDatabase db = this.getWritableDatabase();
 
-		    Cursor c = db.query(TABLE_STREAMS, null, null, null, null, null, null);
-
-		    streamUrls = createOldStreamList(c);
-
-		    c.close();
-		}
-
-		return streamUrls;
-	}
-    
-    private ArrayList<Stream> createOldStreamList(Cursor c) {
-		ArrayList<Stream> streamUrls = new ArrayList<Stream>();
-
-		final int COL_ID = c.getColumnIndexOrThrow("_id"),
-			COL_NICKNAME = c.getColumnIndexOrThrow(FIELD_STREAM_NICKNAME),
-			COL_PROTOCOL = c.getColumnIndexOrThrow(FIELD_STREAM_PROTOCOL),
-			COL_HOST = c.getColumnIndexOrThrow(FIELD_STREAM_HOSTNAME),
-			COL_PORT = c.getColumnIndexOrThrow(FIELD_STREAM_PORT),
-			COL_PATH = c.getColumnIndexOrThrow(FIELD_STREAM_PATH),
-			COL_LASTCONNECT = c.getColumnIndexOrThrow(FIELD_STREAM_LASTCONNECT);
-
-		while (c.moveToNext()) {
-			Stream stream = new Stream();
-
-			stream.setID(c.getLong(COL_ID));
-			stream.setNickname(c.getString(COL_NICKNAME));
-			stream.setProtocol(c.getString(COL_PROTOCOL));
-			stream.setHostname(c.getString(COL_HOST));
-			stream.setPort(c.getString(COL_PORT));
-			stream.setPath(c.getString(COL_PATH));
-			stream.setLastConnect(c.getLong(COL_LASTCONNECT));
-
-			streamUrls.add(stream);
-		}
-
-		return streamUrls;
-	}
-    
-    public Stream saveOldStream(Stream stream, SQLiteDatabase db) {
-		long id;
-
-			ContentValues contentValues = new ContentValues();
-			contentValues.put(FIELD_STREAM_NICKNAME, stream.getNickname());
-			contentValues.put(FIELD_STREAM_PROTOCOL, stream.getProtocol());
-			contentValues.put(FIELD_STREAM_HOSTNAME, stream.getHostname());
-			contentValues.put(FIELD_STREAM_PORT, stream.getPort());
-			contentValues.put(FIELD_STREAM_PATH, stream.getPath());
-			contentValues.put(FIELD_STREAM_QUERY, stream.getQuery());
-			contentValues.put(FIELD_STREAM_LASTCONNECT, stream.getLastConnect());
-			contentValues.put(FIELD_STREAM_COLOR, stream.getColor());
-			contentValues.put(FIELD_STREAM_FONTSIZE, stream.getFontSize());
-			id = db.insert(TABLE_STREAMS, null, contentValues);
-
-		stream.setID(id);
-		
-        Log.v("TAG", "Stream wrote to database");
-		return stream;
-	}
-    
-    private ArrayList<Stream> createOldStreamList2(Cursor c) {
-		ArrayList<Stream> streamUrls = new ArrayList<Stream>();
-
-		final int COL_ID = c.getColumnIndexOrThrow("_id"),
-			COL_NICKNAME = c.getColumnIndexOrThrow(FIELD_STREAM_NICKNAME),
-			COL_PROTOCOL = c.getColumnIndexOrThrow(FIELD_STREAM_PROTOCOL),
-			COL_HOST = c.getColumnIndexOrThrow(FIELD_STREAM_HOSTNAME),
-			COL_PORT = c.getColumnIndexOrThrow(FIELD_STREAM_PORT),
-			COL_PATH = c.getColumnIndexOrThrow(FIELD_STREAM_PATH),
-			COL_QUERY = c.getColumnIndexOrThrow(FIELD_STREAM_QUERY),
-			COL_LASTCONNECT = c.getColumnIndexOrThrow(FIELD_STREAM_LASTCONNECT),
-			COL_COLOR = c.getColumnIndexOrThrow(FIELD_STREAM_COLOR),
-			COL_FONTSIZE = c.getColumnIndexOrThrow(FIELD_STREAM_FONTSIZE);
-
-		while (c.moveToNext()) {
-			Stream stream = new Stream();
-
-			stream.setID(c.getLong(COL_ID));
-			stream.setNickname(c.getString(COL_NICKNAME));
-			stream.setProtocol(c.getString(COL_PROTOCOL));
-			stream.setHostname(c.getString(COL_HOST));
-			stream.setPort(c.getString(COL_PORT));
-			stream.setPath(c.getString(COL_PATH));				
-			stream.setQuery(c.getString(COL_QUERY));
-			
-			if (stream.getQuery() != null && stream.getQuery().equals(""))
-				stream.setQuery(null);
-			
-			stream.setLastConnect(c.getLong(COL_LASTCONNECT));
-			stream.setColor(c.getString(COL_COLOR));
-			stream.setFontSize(c.getLong(COL_FONTSIZE));
-
-			streamUrls.add(stream);
-		}
-
-		return streamUrls;
-	}
-    
-    public Stream saveOldStream2(Stream stream, SQLiteDatabase db) {
-		long id;
-
-			ContentValues contentValues = new ContentValues();
-			contentValues.put(FIELD_STREAM_NICKNAME, stream.getNickname());
-			contentValues.put(FIELD_STREAM_PROTOCOL, stream.getProtocol());
-			contentValues.put(FIELD_STREAM_USERNAME, stream.getUsername());
-			contentValues.put(FIELD_STREAM_PASSWORD, stream.getPassword());
-			contentValues.put(FIELD_STREAM_HOSTNAME, stream.getHostname());
-			contentValues.put(FIELD_STREAM_PORT, stream.getPort());
-			contentValues.put(FIELD_STREAM_PATH, stream.getPath());
-			contentValues.put(FIELD_STREAM_QUERY, stream.getQuery());
-			contentValues.put(FIELD_STREAM_LASTCONNECT, stream.getLastConnect());
-			contentValues.put(FIELD_STREAM_COLOR, stream.getColor());
-			contentValues.put(FIELD_STREAM_FONTSIZE, stream.getFontSize());
-			id = db.insert(TABLE_STREAMS, null, contentValues);
-
-		stream.setID(id);
-		
-		replaceNullFields(stream);
-		
-        Log.v("TAG", "Stream wrote to database");
-		return stream;
-	}
 }
