@@ -24,6 +24,7 @@ import java.util.ArrayList;
 
 import net.sourceforge.servestream.StreamMediaActivity;
 import net.sourceforge.servestream.dbutils.Stream;
+import net.sourceforge.servestream.dbutils.StreamDatabase;
 import net.sourceforge.servestream.utils.M3UPlaylistParser;
 import net.sourceforge.servestream.utils.MediaFile;
 import net.sourceforge.servestream.utils.PLSPlaylistParser;
@@ -68,6 +69,8 @@ public class MediaService extends Service {
 	private SharedPreferences preferences = null;
 	
 	private boolean isOpeningMedia = false;
+
+	protected StreamDatabase streamdb = null;
 	
     public Handler mediaPlayerHandler;
 	public Handler disconnectHandler = null;
@@ -86,9 +89,11 @@ public class MediaService extends Service {
     @Override
     public void onCreate() {
 
+    	Log.v(TAG, "onCreate called");
+    	
 		preferences = PreferenceManager.getDefaultSharedPreferences(this);
-
-		//streamActivityState = StreamMediaActivity.VISIBLE;
+		
+		streamdb = new StreamDatabase(this);
     }
 
     @Override
@@ -105,6 +110,11 @@ public class MediaService extends Service {
     	
 		Log.v(TAG, "onDestroy called");
     	
+		if(streamdb != null) {
+			streamdb.close();
+			streamdb = null;
+		}
+		
         // Cancel the persistent notification.
 		ConnectionNotifier.getInstance().hideRunningNotification(this);
 		
@@ -303,6 +313,12 @@ public class MediaService extends Service {
 	    try {
 	        mediaPlayer.setDataSource(mediaFiles.get(mediaFilesIndex).getURL());
 	        mediaPlayer.prepareAsync();
+	        
+	        //Stream stream = new Stream(mediaFiles.get(mediaFilesIndex).getURL());
+	    	
+	        //if (streamdb.findStream(stream) != null)
+	    	//    streamdb.touchHost(stream);
+	        
     	} catch (Exception ex) {
     		ex.printStackTrace();
     	}
@@ -416,6 +432,12 @@ public class MediaService extends Service {
     		ex.printStackTrace();
     		return false;
     	}
+    	
+	    Stream foundStream = streamdb.findStream(stream);
+		
+	    if (foundStream != null) {
+		    streamdb.touchHost(foundStream);
+	    }
     	
     	return true;
     }
