@@ -361,8 +361,32 @@ public class StreamDatabase extends SQLiteOpenHelper {
 		}
 
 		stream.setID(id);
+		
+        replaceNullFields(stream);
+		
         Log.v("TAG", "Stream wrote to database");
 		return stream;
+	}
+	
+	private void replaceNullFields(Stream stream) {
+		synchronized (m_dbLock) {
+			ContentValues contentValues = new ContentValues();
+				
+			if (stream.getUsername().equals(""))
+				contentValues.put(FIELD_STREAM_USERNAME, "");
+			
+			if (stream.getPassword().equals(""))
+				contentValues.put(FIELD_STREAM_PASSWORD, "");
+			
+			if (stream.getQuery().equals(""))
+				contentValues.put(FIELD_STREAM_QUERY, "");
+			
+			if (contentValues.size() > 0) {
+				Log.v(TAG, "Replacing null values");
+			    SQLiteDatabase db = this.getWritableDatabase();
+			    db.update(TABLE_STREAMS, contentValues, "_id = ?", new String[] { String.valueOf(stream.getId()) });
+			}
+		}
 	}
 	
 	public HashMap<String, String> getSelectionArgs(Stream stream) {
@@ -502,6 +526,8 @@ public class StreamDatabase extends SQLiteOpenHelper {
 			id = db.insert(TABLE_STREAMS, null, contentValues);
 
 		stream.setID(id);
+		
+		replaceNullFields(stream);
 		
         Log.v("TAG", "Stream wrote to database");
 		return stream;
