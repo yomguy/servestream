@@ -398,18 +398,14 @@ public class MediaService extends Service {
     		url = stream.getURL();
     		
         if (isM3UPlaylist(url.getPath())) {
-        	System.out.println("is M3U");
             M3UPlaylistParser playlistParser = new M3UPlaylistParser(url);
             playlistParser.retrieveM3UFiles();
             mediaFiles = playlistParser.getPlaylistFiles();
         } else if (isPLSPlaylist(url.getPath())) {
-        	System.out.println("is PLS");
             PLSPlaylistParser playlistParser = new PLSPlaylistParser(url);
             playlistParser.retrievePLSFiles();
             mediaFiles = playlistParser.getPlaylistFiles();
         } else {
-        	System.out.println("is mediafile");
-        	System.out.println(url.getPath());
         	mediaFiles = new ArrayList<MediaFile>();
         	MediaFile mediaFile = new MediaFile();
         	mediaFile.setURL(url.toString());
