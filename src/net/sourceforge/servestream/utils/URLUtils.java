@@ -48,8 +48,7 @@ public class URLUtils {
 			
 			if (url == null)
 				return contentTypeCode;
-		
-		    String header = null;
+
 		    String contentType = null;
 			
         	if (url.getProtocol().equals("http")) {
@@ -65,15 +64,8 @@ public class URLUtils {
     		conn.setReadTimeout(6000);
 	        conn.setRequestMethod("GET");
 	    
-            int i = 0;
-            while ((header = conn.getHeaderField(i)) != null) {
-                String key = conn.getHeaderFieldKey(i);
-                if (key != null && key.equalsIgnoreCase("Content-type")) {
-                	contentType = header;
-                	contentFound = true;
-                }
-                i++;
-            }
+	        if ((contentType = conn.getContentType()) != null)
+	        	contentFound = true;
             
             if (contentFound) {
             	//TODO fix this
