@@ -119,6 +119,12 @@ public class StreamListActivity extends ListActivity {
 				getResources().getText(R.string.app_name),
 				getResources().getText(R.string.title_stream_list)));
 		
+		quickconnect = (TextView) this.findViewById(R.id.front_quickconnect);
+		quickconnect.setVisibility(m_makingShortcut ? View.GONE : View.VISIBLE);
+		
+		if (getIntent().getData() != null)
+			quickconnect.setText(getIntent().getData().toString());
+		
 		// start thread to check for new version
 		new UpdateHelper(this);
 		
@@ -151,9 +157,6 @@ public class StreamListActivity extends ListActivity {
 			    }
 			}
 		});
-		
-		quickconnect = (TextView) this.findViewById(R.id.front_quickconnect);
-		quickconnect.setVisibility(m_makingShortcut ? View.GONE : View.VISIBLE);
 		
 		this.inflater = LayoutInflater.from(this);
 	}
