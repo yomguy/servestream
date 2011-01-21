@@ -116,13 +116,10 @@ public class StreamDatabase extends SQLiteOpenHelper {
 	
 	public void onRobustUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) throws SQLiteException {
 		
-		//if (oldVersion == 2) {
-			
+		if (oldVersion <= 2) {
 			db.execSQL("DROP TABLE IF EXISTS " + TABLE_STREAMS);
 			onCreate(db);
-			
-			//return;
-		//}
+		}
 	}
 	
 	/**
