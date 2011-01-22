@@ -50,7 +50,6 @@ public class MediaService extends Service {
 
 	public static final int ERROR = -2147483648;
 	public static final int NOW_PLAYING_MESSAGE = 100;
-	public static final int START_SEEK_BAR = 300;
 	public static final int START_DIALOG = 400;
 	public static final int STOP_DIALOG = 500;
 	
@@ -344,9 +343,6 @@ public class MediaService extends Service {
 		    
 	        // if available, send notifications to the activity
 	    	if (streamActivityState == StreamMediaActivity.VISIBLE) {
-	    		
-		        // send a message to start the seek bar 
-		        mediaPlayerHandler.sendMessage(Message.obtain(mediaPlayerHandler, START_SEEK_BAR));
 			
 			    // send a message to stop the "Opening file..." dialog
     		    mediaPlayerHandler.sendMessage(Message.obtain(mediaPlayerHandler, STOP_DIALOG));

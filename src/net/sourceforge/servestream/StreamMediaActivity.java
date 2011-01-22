@@ -159,9 +159,6 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
 						}
 						}).create().show();
 					break;
-		        case MediaService.START_SEEK_BAR:
-                    startSeekBar();
-	                break;
 		        case MediaService.START_DIALOG:
 		        	try {
 		        		dialog = ProgressDialog.show(StreamMediaActivity.this, "", 
@@ -480,8 +477,7 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
                 mediaPlayer.setDisplay(holder);
                 holder.setFixedSize(displayWidth, displayHeight);
                 boundService.resetSurfaceView();
-        	} */       	
-        	startSeekBar();	
+        	} */
         }
     }
     
@@ -492,21 +488,6 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
         Display display = getWindowManager().getDefaultDisplay();
         displayWidth = display.getWidth();
         displayHeight = display.getHeight();
-    }
-    
-    private void startSeekBar() {
-    	int duration = mediaPlayer.getDuration();
-    	
-    	setTimeFormat(mediaPlayer.getDuration());
-    	durationText.setText(getFormattedTime(duration));
-    	
-    	if (duration == 0) {
-        	positionText.setText(getFormattedTime(0, getTimeFormat()));
-    	} else {
-    	    positionText.setText(getFormattedTime(mediaPlayer.getCurrentPosition(), getTimeFormat()));
-    	}
-    	
-        new Thread(this).start();
     }
     
     private void handleInvalidPlaylist() {
