@@ -60,7 +60,7 @@ import android.view.animation.AnimationUtils;
 public class StreamMediaActivity extends Activity implements SurfaceHolder.Callback, Runnable {
     private static final String TAG = "ServeStream.StreamMediaActivity";
     
-	private static final int MEDIA_CONTROLS_DISPLAY_TIME = 2000;
+	//private static final int MEDIA_CONTROLS_DISPLAY_TIME = 2000;
     
 	public static final boolean VISIBLE = true;
 	public static final boolean NOT_VISIBLE = false;
@@ -163,8 +163,12 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
                     startSeekBar();
 	                break;
 		        case MediaService.START_DIALOG:
-		    		dialog = ProgressDialog.show(StreamMediaActivity.this, "", 
-		                    "Opening file...", true);
+		        	try {
+		        		dialog = ProgressDialog.show(StreamMediaActivity.this, "", 
+		        				"Opening file...", true);
+		        	} catch (Exception ex) {
+		        	    ex.printStackTrace();	
+		        	}
 		        	break;
 		        case MediaService.STOP_DIALOG:
 		        	if (dialog != null)
@@ -530,17 +534,15 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
     
     public void run() {
     	
-        //int currentPosition = 0;
     	int currentPosition = mediaPlayer.getCurrentPosition();
         int duration = mediaPlayer.getDuration();
         
-        //seekBar.setProgress(0);
         seekBar.setProgress(currentPosition);
         seekBar.setMax(duration);
         
         Log.v(TAG, String.valueOf(boundService.getStreamActivityState()));
         
-        while (mediaPlayer != null && currentPosition < duration && !boundService.isOpeningMedia() && (boundService.getStreamActivityState() == VISIBLE)) {
+        while (mediaPlayer != null && currentPosition < duration && !boundService.isOpeningMedia()) {
             try {
                 Thread.sleep(1000);
                 currentPosition = mediaPlayer.getCurrentPosition();
@@ -548,7 +550,7 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
                 return;
             }            
             
-            Log.v(TAG, "Still seeking");
+            //Log.v(TAG, "Still seeking");
             
             if (!userIsSeeking) {
                 seekBar.setProgress(currentPosition);
