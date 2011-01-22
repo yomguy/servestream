@@ -33,6 +33,8 @@
 
 package net.sourceforge.servestream;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
 import java.util.ArrayList;
 
 import net.sourceforge.servestream.R;
@@ -122,8 +124,12 @@ public class StreamListActivity extends ListActivity {
 		quickconnect = (TextView) this.findViewById(R.id.front_quickconnect);
 		quickconnect.setVisibility(m_makingShortcut ? View.GONE : View.VISIBLE);
 		
-		if (getIntent().getData() != null)
+		try {
+			if (getIntent().getData() != null)
+				quickconnect.setText(URLDecoder.decode(getIntent().getData().toString(), "UTF-8"));
+		} catch (UnsupportedEncodingException ex) {
 			quickconnect.setText(getIntent().getData().toString());
+		}
 		
 		// start thread to check for new version
 		new UpdateHelper(this);
