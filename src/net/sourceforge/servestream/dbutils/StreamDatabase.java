@@ -55,7 +55,7 @@ import android.util.Log;
 public class StreamDatabase extends SQLiteOpenHelper {
 	public final static String TAG = "ServeStream.StreamDatabase";
 
-	public static final Object[] m_dbLock = new Object[0];
+	public static final Object[] dbLock = new Object[0];
 	
 	public static final String TABLE_STREAMS = "streams";
 	public static final String FIELD_STREAM_NICKNAME = "nickname";	
@@ -70,7 +70,7 @@ public class StreamDatabase extends SQLiteOpenHelper {
 	public final static String FIELD_STREAM_COLOR = "color";
 	public final static String FIELD_STREAM_FONTSIZE = "fontsize";
 	
-	private static final String	DATABASE_NAME = "servestream.db";
+	public static final String	DATABASE_NAME = "servestream.db";
     private static final int DATABASE_VERSION = 3;
     
     private static final String STREAM_TABLE_CREATE =
@@ -133,7 +133,7 @@ public class StreamDatabase extends SQLiteOpenHelper {
 		ContentValues values = new ContentValues();
 		values.put(FIELD_STREAM_LASTCONNECT, now);
 
-		synchronized (m_dbLock) {
+		synchronized (dbLock) {
 			SQLiteDatabase db = this.getWritableDatabase();
 
 			db.update(TABLE_STREAMS, values, "_id = ?", new String[] { String.valueOf(stream.getId()) });
@@ -182,7 +182,7 @@ public class StreamDatabase extends SQLiteOpenHelper {
 		
 		ArrayList<Stream> streamUrls = new ArrayList<Stream>();
 		
-		synchronized (m_dbLock) {
+		synchronized (dbLock) {
 			SQLiteDatabase db = this.getWritableDatabase();
 
 		    Cursor c = db.query(TABLE_STREAMS, null, null, null, null, null, null);
@@ -199,7 +199,7 @@ public class StreamDatabase extends SQLiteOpenHelper {
 		if (stream.getId() < 0)
 			return;
 
-		synchronized (m_dbLock) {
+		synchronized (dbLock) {
 			SQLiteDatabase db = this.getWritableDatabase();
 			db.delete(TABLE_STREAMS, "_id = ?", new String[] { String.valueOf(stream.getId()) });
 		}
@@ -242,7 +242,7 @@ public class StreamDatabase extends SQLiteOpenHelper {
 
 		Stream returnedStream;
 
-		synchronized (m_dbLock) {
+		synchronized (dbLock) {
 			SQLiteDatabase db = getReadableDatabase();
 
 			Cursor c = db.query(TABLE_STREAMS, null,
@@ -312,7 +312,7 @@ public class StreamDatabase extends SQLiteOpenHelper {
 		SQLiteDatabase db = null;
 		ContentValues contentValues = null;
 		
-		synchronized (m_dbLock) {
+		synchronized (dbLock) {
 			db = this.getWritableDatabase();
 
 			contentValues = new ContentValues();
@@ -332,7 +332,7 @@ public class StreamDatabase extends SQLiteOpenHelper {
 
 		stream.setID(id);
 		
-		synchronized (m_dbLock) {
+		synchronized (dbLock) {
 			db = null;
 			contentValues = new ContentValues();
 			
