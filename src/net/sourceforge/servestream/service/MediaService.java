@@ -292,9 +292,6 @@ public class MediaService extends Service {
     }
     
     private void startMedia(int index) {
-    	
-        // Display a notification about us starting.  We put an icon in the status bar.
-		//ConnectionNotifier.getInstance().showRunningNotification(this);
 		
 		// send a message to start the "Opening file..." dialog
     	if (streamActivityState == StreamMediaActivity.VISIBLE)
