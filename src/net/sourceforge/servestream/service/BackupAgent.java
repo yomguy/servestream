@@ -17,16 +17,56 @@
 
 package net.sourceforge.servestream.service;
 
+import java.io.IOException;
+
+import net.sourceforge.servestream.dbutils.StreamDatabase;
 import net.sourceforge.servestream.utils.PreferenceConstants;
 import android.app.backup.BackupAgentHelper;
+import android.app.backup.BackupDataInput;
+import android.app.backup.BackupDataOutput;
+import android.app.backup.FileBackupHelper;
 import android.app.backup.SharedPreferencesBackupHelper;
+import android.os.ParcelFileDescriptor;
+import android.util.Log;
 
 public class BackupAgent extends BackupAgentHelper {
 
+	public final static String TAG = "ServeStream.BackupAgent";
+	
     @Override
     public void onCreate() {
+    	
+    	Log.v(TAG, "onCreate called");
+    	
         SharedPreferencesBackupHelper prefs = new SharedPreferencesBackupHelper(this, getPackageName() +
         		"_preferences");
         addHelper(PreferenceConstants.BACKUP_PREF_KEY, prefs);
+        
+		FileBackupHelper helper = new FileBackupHelper(this, "../databases/" + StreamDatabase.DATABASE_NAME);
+		addHelper(StreamDatabase.DATABASE_NAME, helper);
+    }
+    
+    @Override
+    public void onBackup(ParcelFileDescriptor oldState, BackupDataOutput data,
+              ParcelFileDescriptor newState) throws IOException {
+    	
+    	Log.v(TAG, "onBackup called");
+    	
+        // Hold the lock while the FileBackupHelper performs backup
+        synchronized (StreamDatabase.dbLock) {
+            super.onBackup(oldState, data, newState);
+        }
+    }
+
+    @Override
+    public void onRestore(BackupDataInput data, int appVersionCode,
+            ParcelFileDescriptor newState) throws IOException {
+    	
+    	Log.v(TAG, "onRestore called");
+    	
+        // Hold the lock while the FileBackupHelper restores the file
+        synchronized (StreamDatabase.dbLock) {
+            super.onRestore(data, appVersionCode, newState);
+        }
     }
 }
