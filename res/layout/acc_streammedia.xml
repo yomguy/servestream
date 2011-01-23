@@ -31,6 +31,44 @@
     />
 
 	<RelativeLayout
+		android:id="@+id/media_information_group"
+		android:layout_width="fill_parent"
+		android:layout_height="86dip"
+		android:layout_alignParentTop="true"
+		android:paddingTop="5dip"
+		android:paddingLeft="5dip"
+		android:paddingRight="5dip"
+		android:background="@drawable/semi_transparent_background"
+		>
+		
+		<TextView android:id="@+id/now_playing_text"
+                  android:layout_width="wrap_content" 
+                  android:layout_height="wrap_content"
+            	  android:text="Now playing"
+            	  android:textAppearance="?android:attr/textAppearanceMedium"
+            	  android:layout_centerHorizontal="true"
+            	  />
+        
+        <TextView android:id="@+id/track_number_text"
+                  android:layout_width="wrap_content" 
+                  android:layout_height="wrap_content"
+                  android:textAppearance="?android:attr/textAppearanceSmall"
+		          android:layout_centerHorizontal="true"
+		          android:layout_below="@+id/now_playing_text"
+            	  />
+        
+        <TextView android:id="@+id/track_url_text"
+                  android:layout_width="wrap_content" 
+                  android:layout_height="wrap_content"
+                  android:textAppearance="?android:attr/textAppearanceSmall"
+                  android:gravity="center"
+		          android:layout_centerHorizontal="true"
+		          android:layout_below="@+id/track_number_text"
+            	  />
+		
+	</RelativeLayout>>
+
+	<RelativeLayout
 		android:id="@+id/media_controller_group"
 		android:layout_width="fill_parent"
 		android:layout_height="86dip"
@@ -38,7 +76,7 @@
 		android:paddingTop="5dip"
 		android:paddingLeft="5dip"
 		android:paddingRight="5dip"
-		android:background="#525152"
+		android:background="@drawable/semi_transparent_background"
 		>
 
 		<Button
@@ -95,16 +133,17 @@
 				android:layout_width="fill_parent"
 				android:layout_height="fill_parent"
 				android:layout_below="@+id/previous_button"
-				android:background="#525152"
+				android:background="@drawable/transparent_background"
 				>
             
             <TextView android:id="@+id/position_text"
             	android:layout_width="wrap_content" 
                 android:layout_height="wrap_content"
-                android:layout_alignParentLeft="true"
                 android:paddingBottom="5dip"
+                android:textAppearance="?android:attr/textAppearanceSmall"
+                android:layout_alignParentLeft="true"
                 android:layout_alignParentBottom="true"
-            />
+            	/>
             
              <RelativeLayout
              	android:paddingLeft="4dip"
@@ -115,22 +154,23 @@
 				android:layout_toLeftOf="@+id/duration_text"
 				android:layout_alignParentBottom="true"
 				android:gravity="center_vertical"
-				android:background="#525152"
+				android:background="@drawable/transparent_background"
 				>
                 
                 <SeekBar android:id="@+id/seek_bar"
                 	android:layout_width="fill_parent" 
                     android:layout_height="wrap_content"
-                />
+                	/>
                 
            	</RelativeLayout>
               
             <TextView android:id="@+id/duration_text"
                 android:layout_width="wrap_content" 
                 android:layout_height="wrap_content"
+                android:textAppearance="?android:attr/textAppearanceSmall"
                 android:layout_alignParentRight="true"
             	android:layout_alignTop="@+id/position_text"
-            />
+            	/>
             
             </RelativeLayout>
 
