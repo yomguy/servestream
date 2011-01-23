@@ -73,7 +73,7 @@ public class M3UPlaylistParser {
 		    		MediaFile mediaFile = new MediaFile();
 		    		mediaFile.setURL(line.trim());
 		    		mediaFile.setTrackNumber(numberOfFiles);
-		    		getPlaylistFiles().add(mediaFile);
+		    		playlistFiles.add(mediaFile);
 		    	}           
             }
 
