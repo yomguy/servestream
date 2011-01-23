@@ -20,6 +20,7 @@ package net.sourceforge.servestream;
 import net.sourceforge.servestream.R;
 import net.sourceforge.servestream.dbutils.Stream;
 import net.sourceforge.servestream.service.MediaService;
+import net.sourceforge.servestream.utils.MediaFile;
 
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -60,7 +61,7 @@ import android.view.animation.AnimationUtils;
 public class StreamMediaActivity extends Activity implements SurfaceHolder.Callback, Runnable {
     private static final String TAG = "ServeStream.StreamMediaActivity";
     
-	//private static final int MEDIA_CONTROLS_DISPLAY_TIME = 2000;
+	//private static final int MEDIA_CONTROLS_DISPLAY_TIME = 5000;
     
 	public static final boolean VISIBLE = true;
 	public static final boolean NOT_VISIBLE = false;
@@ -73,7 +74,7 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
     private MediaPlayer mediaPlayer;
 
 	private Animation media_controls_fade_in, media_controls_fade_out;
-	private RelativeLayout mediaControllerGroup;
+	private RelativeLayout mediaInformationGroup, mediaControllerGroup;
     
     private SurfaceView preview = null;
     private SurfaceHolder holder;
@@ -81,8 +82,8 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
     private boolean userIsSeeking = false;
     
     private SeekBar seekBar;
-    private TextView positionText;
-    private TextView durationText;
+    private TextView positionText, durationText;
+    private TextView trackNumber, trackText;
     
     private int timeFormat;
     
@@ -148,6 +149,7 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
 			        Toast t = Toast.makeText(StreamMediaActivity.this, "Now Playing: " + msg.obj, Toast.LENGTH_LONG);
 			        t.setGravity(Gravity.LEFT | Gravity.CENTER, 0, 0);
 			        t.show();
+			        showMediaInfoAndControls();
 			        break;
 		        case MediaService.ERROR:
 					new AlertDialog.Builder(StreamMediaActivity.this)
@@ -159,6 +161,9 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
 						}
 						}).create().show();
 					break;
+		        case MediaService.PREPARE_MEDIA_INFO:
+		        	getMediaInfo();
+		        	break;
 		        case MediaService.START_SEEK_BAR:
                     startSeekBar();
 	                break;
@@ -204,7 +209,10 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
 				ex.printStackTrace();
 			}
 		}
-			
+		
+		trackNumber = (TextView) findViewById(R.id.track_number_text);
+		trackText = (TextView) findViewById(R.id.track_url_text);
+		
 	    positionText = (TextView) findViewById(R.id.position_text);
 	    durationText = (TextView) findViewById(R.id.duration_text);
 	    
@@ -231,7 +239,10 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
 		// preload animation for media controller
 		media_controls_fade_in = AnimationUtils.loadAnimation(this, R.anim.media_controls_fade_in);
 		media_controls_fade_out = AnimationUtils.loadAnimation(this, R.anim.media_controls_fade_out);
-        
+
+		mediaInformationGroup = (RelativeLayout) findViewById(R.id.media_information_group);
+		mediaInformationGroup.setVisibility(View.GONE);
+	
 		mediaControllerGroup = (RelativeLayout) findViewById(R.id.media_controller_group);
 		mediaControllerGroup.setVisibility(View.GONE);
         
@@ -260,6 +271,9 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
 				boundService.previousMediaFile();
 				
 				playPauseButton.setBackgroundResource(R.drawable.pause_button);
+				
+			    mediaInformationGroup.startAnimation(media_controls_fade_out);
+				mediaInformationGroup.setVisibility(View.GONE);
 				
 			    mediaControllerGroup.startAnimation(media_controls_fade_out);
 				mediaControllerGroup.setVisibility(View.GONE);
@@ -298,6 +312,9 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
 				boundService.nextMediaFile();
 				
 				playPauseButton.setBackgroundResource(R.drawable.pause_button);
+
+			    mediaInformationGroup.startAnimation(media_controls_fade_out);
+				mediaInformationGroup.setVisibility(View.GONE);
 				
 			    mediaControllerGroup.startAnimation(media_controls_fade_out);
 				mediaControllerGroup.setVisibility(View.GONE);
@@ -374,21 +391,25 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
 	public boolean onKeyDown(int keyCode, KeyEvent event) {
 		
 	    if (keyCode == KeyEvent.KEYCODE_MENU && mediaControllerGroup.isShown()) {
+	    	mediaInformationGroup.setVisibility(View.GONE);
 	    	mediaControllerGroup.setVisibility(View.GONE);
 	        return true;
 	    }
 		
 	    if (keyCode == KeyEvent.KEYCODE_BACK && mediaControllerGroup.isShown()) {
+	    	mediaInformationGroup.setVisibility(View.GONE);
 	    	mediaControllerGroup.setVisibility(View.GONE);
 	        return true;
 	    }
 	    
 	    if (keyCode == KeyEvent.KEYCODE_SEARCH && !mediaControllerGroup.isShown()) {
+	    	mediaInformationGroup.setVisibility(View.VISIBLE);
 	    	mediaControllerGroup.setVisibility(View.VISIBLE);
 	        return true;
 	    }
 	    
 	    if (keyCode == KeyEvent.KEYCODE_DPAD_CENTER && !mediaControllerGroup.isShown()) {
+	    	mediaInformationGroup.setVisibility(View.VISIBLE);
 	    	mediaControllerGroup.setVisibility(View.VISIBLE);
 	        return true;
 	    }
@@ -417,6 +438,7 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
 		super.onConfigurationChanged(newConfig);
 		
 		if (mediaControllerGroup.isShown()) {
+	    	mediaInformationGroup.setVisibility(View.GONE);
 			mediaControllerGroup.setVisibility(View.GONE);
 		}
 		
@@ -480,7 +502,8 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
                 mediaPlayer.setDisplay(holder);
                 holder.setFixedSize(displayWidth, displayHeight);
                 boundService.resetSurfaceView();
-        	} */       	
+        	} */
+        	getMediaInfo();
         	startSeekBar();	
         }
     }
@@ -492,6 +515,12 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
         Display display = getWindowManager().getDefaultDisplay();
         displayWidth = display.getWidth();
         displayHeight = display.getHeight();
+    }
+    
+    private void getMediaInfo() {
+    	MediaFile mediaFile = boundService.getCurrentMediaInfo();
+    	trackNumber.setText(String.valueOf(mediaFile.getTrackNumber()) + " / " + String.valueOf(boundService.getNumOfQueuedFiles()));
+    	trackText.setText(mediaFile.getURL());
     }
     
     private void startSeekBar() {
@@ -507,6 +536,13 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
     	}
     	
         new Thread(this).start();
+    }
+    
+    private void showMediaInfoAndControls() {
+		mediaInformationGroup.startAnimation(media_controls_fade_in);
+		mediaInformationGroup.setVisibility(View.VISIBLE);
+		mediaControllerGroup.startAnimation(media_controls_fade_in);
+		mediaControllerGroup.setVisibility(View.VISIBLE);
     }
     
     private void handleInvalidPlaylist() {
@@ -564,9 +600,13 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
 
 			public boolean onTouch(View arg0, MotionEvent arg1) {
 				if (mediaControllerGroup.isShown()) {
+				    mediaInformationGroup.startAnimation(media_controls_fade_out);
+				    mediaInformationGroup.setVisibility(View.GONE);
 				    mediaControllerGroup.startAnimation(media_controls_fade_out);
 				    mediaControllerGroup.setVisibility(View.GONE);
 				} else {
+				    mediaInformationGroup.startAnimation(media_controls_fade_in);
+				    mediaInformationGroup.setVisibility(View.VISIBLE);
 					mediaControllerGroup.startAnimation(media_controls_fade_in);
 					mediaControllerGroup.setVisibility(View.VISIBLE);
 					
