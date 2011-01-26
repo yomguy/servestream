@@ -145,10 +145,7 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
 		public void handleMessage(Message msg) {
 			
 			switch (msg.what) {
-		        case MediaService.NOW_PLAYING_MESSAGE:
-			        Toast t = Toast.makeText(StreamMediaActivity.this, "Now Playing: " + msg.obj, Toast.LENGTH_LONG);
-			        t.setGravity(Gravity.LEFT | Gravity.CENTER, 0, 0);
-			        t.show();
+		        case MediaService.SHOW_MEDIA_CONTROLS:
 			        showMediaInfoAndControls();
 			        break;
 		        case MediaService.ERROR:
