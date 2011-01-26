@@ -49,8 +49,8 @@ public class MediaService extends Service {
 	public final static String TAG = "ServeStream.MediaService";
 
 	public static final int ERROR = -2147483648;
-	public static final int NOW_PLAYING_MESSAGE = 100;
-	public static final int PREPARE_MEDIA_INFO = 200;
+	public static final int PREPARE_MEDIA_INFO = 100;
+	public static final int SHOW_MEDIA_CONTROLS = 200;
 	public static final int START_SEEK_BAR = 300;
 	public static final int START_DIALOG = 400;
 	public static final int STOP_DIALOG = 500;
@@ -358,12 +358,9 @@ public class MediaService extends Service {
 			
 			    // send a message to stop the "Opening file..." dialog
     		    mediaPlayerHandler.sendMessage(Message.obtain(mediaPlayerHandler, STOP_DIALOG));
-			
-		        // update the currently playing track
-		        //currentlyPlayingTrack = mediaFiles.get(mediaFilesIndex);
-
-		        // send a message to show a now playing message
-		        mediaPlayerHandler.sendMessage(Message.obtain(mediaPlayerHandler, NOW_PLAYING_MESSAGE, getDecodedNowPlayingTrack()));
+    		    
+		        // send a message to show the media controls 
+		        mediaPlayerHandler.sendMessage(Message.obtain(mediaPlayerHandler, SHOW_MEDIA_CONTROLS));
 	    	}
 		}
     };
