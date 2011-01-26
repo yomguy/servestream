@@ -59,6 +59,11 @@ public class Stream {
 		this.nickname = url.toString();
 		this.protocol = url.getProtocol();
 		
+		if (protocol != null && 
+			!protocol.equalsIgnoreCase("http") && 
+			!protocol.equalsIgnoreCase("https"))
+				throw new MalformedURLException();
+		
 		if (url.getUserInfo() != null) {
 			String [] authInfo = url.getUserInfo().split("\\:");
 			
