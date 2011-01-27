@@ -20,8 +20,8 @@
 
 <selector xmlns:android="http://schemas.android.com/apk/res/android">
 	<item android:state_pressed="true"
-          android:drawable="@drawable/pause_button_pressed" />
+          android:drawable="@drawable/play_button_pressed" />
 	<item android:state_focused="true"
-          android:drawable="@drawable/pause_button_focused" />
-	<item android:drawable="@drawable/pause_button_normal" />
+          android:drawable="@drawable/play_button_focused" />
+	<item android:drawable="@drawable/play_button_normal" />
 </selector>
