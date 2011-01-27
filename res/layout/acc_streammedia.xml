@@ -31,149 +31,140 @@
     />
 
 	<RelativeLayout
-		android:id="@+id/media_information_group"
+		android:id="@+id/media_controls"
 		android:layout_width="fill_parent"
-		android:layout_height="86dip"
+		android:layout_height="fill_parent"
 		android:layout_alignParentTop="true"
-		android:paddingTop="5dip"
-		android:paddingLeft="5dip"
-		android:paddingRight="5dip"
-		android:background="@drawable/semi_transparent_background"
 		>
+
+		<RelativeLayout android:id="@+id/media_info"
+						android:layout_width="fill_parent"
+						android:layout_height="wrap_content"
+						android:layout_alignParentTop="true"
+						android:background="@drawable/semi_transparent_background"
+						>
 		
-		<TextView android:id="@+id/now_playing_text"
-                  android:layout_width="wrap_content" 
-                  android:layout_height="wrap_content"
-            	  android:text="Now playing"
-            	  android:textAppearance="?android:attr/textAppearanceMedium"
-            	  android:layout_centerHorizontal="true"
-            	  />
+						<TextView android:id="@+id/now_playing_text"
+                  	  			  android:layout_width="wrap_content" 
+                  	  			  android:layout_height="wrap_content"
+            	      			  android:text="Now playing"
+            	      			  android:textAppearance="?android:attr/textAppearanceMedium"
+            	      			  android:layout_centerHorizontal="true"
+            	      			  />
         
-        <TextView android:id="@+id/track_number_text"
-                  android:layout_width="wrap_content" 
-                  android:layout_height="wrap_content"
-                  android:textAppearance="?android:attr/textAppearanceSmall"
-		          android:layout_centerHorizontal="true"
-		          android:layout_below="@+id/now_playing_text"
-            	  />
-        
-        <TextView android:id="@+id/track_url_text"
-                  android:layout_width="wrap_content" 
+        				<TextView android:id="@+id/track_number_text"
+                  	  			  android:layout_width="wrap_content" 
+                      			  android:layout_height="wrap_content"
+                      			  android:textAppearance="?android:attr/textAppearanceSmall"
+		              			  android:layout_centerHorizontal="true"
+		              			  android:layout_below="@+id/now_playing_text"
+            	      			  />
+		
+		</RelativeLayout>
+		
+		<TextView android:id="@+id/track_url_text"
+                  android:layout_width="fill_parent" 
                   android:layout_height="wrap_content"
                   android:textAppearance="?android:attr/textAppearanceSmall"
                   android:gravity="center"
 		          android:layout_centerHorizontal="true"
-		          android:layout_below="@+id/track_number_text"
+		          android:layout_below="@+id/media_info"
             	  />
-		
-	</RelativeLayout>>
 
-	<RelativeLayout
-		android:id="@+id/media_controller_group"
-		android:layout_width="fill_parent"
-		android:layout_height="86dip"
-		android:layout_alignParentBottom="true"
-		android:paddingTop="5dip"
-		android:paddingLeft="5dip"
-		android:paddingRight="5dip"
-		android:background="@drawable/semi_transparent_background"
-		>
+		<RelativeLayout
+			android:layout_width="fill_parent"
+			android:layout_height="86dip"
+			android:layout_alignParentBottom="true"
+			android:background="@drawable/semi_transparent_background"
+			>
 
-		<Button
-			android:id="@+id/previous_button"
-			android:paddingRight="1dip"
-			android:layout_width="wrap_content"
-			android:layout_height="wrap_content"
-			android:layout_toLeftOf="@+id/seek_backward_button"
-			android:layout_alignParentTop="true"
-			android:background="@drawable/previous_button"
-			/>
+			<Button android:id="@+id/previous_button"
+					android:layout_width="wrap_content"
+					android:layout_height="wrap_content"
+					android:layout_toLeftOf="@+id/seek_backward_button"
+					android:layout_alignParentTop="true"
+					android:background="@drawable/previous_button"
+					/>
 
-		<Button
-			android:id="@+id/seek_backward_button"
-			android:paddingRight="1dip"
-			android:layout_width="wrap_content"
-			android:layout_height="wrap_content"
-			android:layout_toLeftOf="@+id/play_pause_button"
-			android:layout_alignParentTop="true"
-			android:background="@+drawable/seek_backward_button"
-			/>
+			<Button android:id="@+id/seek_backward_button"
+					android:layout_width="wrap_content"
+					android:layout_height="wrap_content"
+					android:layout_toLeftOf="@+id/play_pause_button"
+					android:layout_alignParentTop="true"
+					android:background="@+drawable/seek_backward_button"
+					/>
 
-		<Button
-			android:id="@+id/play_pause_button"
-			android:paddingRight="1dip"
-			android:layout_width="wrap_content"
-			android:layout_height="wrap_content"
-            android:layout_centerHorizontal="true"  
-			android:layout_alignParentTop="true"
-			android:background="@+drawable/pause_button"
-			/>
+			<Button android:id="@+id/play_pause_button"
+					android:layout_width="wrap_content"
+					android:layout_height="wrap_content"
+            		android:layout_centerHorizontal="true"  
+					android:layout_alignParentTop="true"
+					android:background="@+drawable/pause_button"
+					/>
 			
-		<Button
-			android:id="@+id/seek_forward_button"
-			android:paddingRight="1dip"
-			android:layout_width="wrap_content"
-			android:layout_height="wrap_content"
-			android:layout_toRightOf="@+id/play_pause_button"
-			android:layout_alignParentTop="true"
-			android:background="@+drawable/seek_forward_button"
-			/>
+			<Button android:id="@+id/seek_forward_button"
+					android:layout_width="wrap_content"
+					android:layout_height="wrap_content"
+					android:layout_toRightOf="@+id/play_pause_button"
+					android:layout_alignParentTop="true"
+					android:background="@+drawable/seek_forward_button"
+					/>
 			
-		<Button
-			android:id="@+id/next_button"
-			android:paddingRight="1dip"
-			android:layout_width="wrap_content"
-			android:layout_height="wrap_content"
-			android:layout_toRightOf="@+id/seek_forward_button"
-			android:layout_alignParentTop="true"
-			android:background="@drawable/next_button"
-			/>
+			<Button android:id="@+id/next_button"
+					android:layout_width="wrap_content"
+					android:layout_height="wrap_content"
+					android:layout_toRightOf="@+id/seek_forward_button"
+					android:layout_alignParentTop="true"
+					android:background="@drawable/next_button"
+					/>
         
-            <RelativeLayout
-				android:layout_width="fill_parent"
-				android:layout_height="fill_parent"
-				android:layout_below="@+id/previous_button"
-				android:background="@drawable/transparent_background"
-				>
+        		<RelativeLayout
+					android:layout_width="fill_parent"
+					android:layout_height="fill_parent"
+					android:layout_below="@+id/previous_button"
+					android:background="@drawable/transparent_background"
+					>
             
-            <TextView android:id="@+id/position_text"
-            	android:layout_width="wrap_content" 
-                android:layout_height="wrap_content"
-                android:paddingBottom="5dip"
-                android:textAppearance="?android:attr/textAppearanceSmall"
-                android:layout_alignParentLeft="true"
-                android:layout_alignParentBottom="true"
-            	/>
+            		<TextView android:id="@+id/position_text"
+            			  	  android:layout_width="wrap_content" 
+                		  	  android:layout_height="wrap_content"
+                		  	  android:paddingBottom="5dip"
+                		  	  android:textAppearance="?android:attr/textAppearanceSmall"
+                		  	  android:layout_alignParentLeft="true"
+                		  	  android:layout_alignParentBottom="true"
+            			  	  />
             
-             <RelativeLayout
-             	android:paddingLeft="4dip"
-             	android:paddingRight="4dip"
-				android:layout_width="wrap_content"
-				android:layout_height="wrap_content"
-				android:layout_toRightOf="@+id/position_text"
-				android:layout_toLeftOf="@+id/duration_text"
-				android:layout_alignParentBottom="true"
-				android:gravity="center_vertical"
-				android:background="@drawable/transparent_background"
-				>
+             			<RelativeLayout
+             				android:paddingLeft="4dip"
+             				android:paddingRight="4dip"
+							android:layout_width="wrap_content"
+							android:layout_height="wrap_content"
+							android:layout_toRightOf="@+id/position_text"
+							android:layout_toLeftOf="@+id/duration_text"
+							android:layout_alignParentBottom="true"
+							android:gravity="center_vertical"
+							android:background="@drawable/transparent_background"
+							>
                 
-                <SeekBar android:id="@+id/seek_bar"
-                	android:layout_width="fill_parent" 
-                    android:layout_height="wrap_content"
-                	/>
+                			<SeekBar android:id="@+id/seek_bar"
+                			 		 android:layout_width="fill_parent" 
+                    				 android:layout_height="wrap_content"
+                			 		 />
                 
-           	</RelativeLayout>
+           				</RelativeLayout>
               
-            <TextView android:id="@+id/duration_text"
-                android:layout_width="wrap_content" 
-                android:layout_height="wrap_content"
-                android:textAppearance="?android:attr/textAppearanceSmall"
-                android:layout_alignParentRight="true"
-            	android:layout_alignTop="@+id/position_text"
-            	/>
+            		<TextView android:id="@+id/duration_text"
+							  android:layout_width="wrap_content" 
+                		  	  android:layout_height="wrap_content"
+                		  	  android:textAppearance="?android:attr/textAppearanceSmall"
+                		  	  android:layout_alignParentRight="true"
+            			  	  android:layout_alignTop="@+id/position_text"
+            			  	  />
             
-            </RelativeLayout>
+            	</RelativeLayout>
 
+		</RelativeLayout>
+		
 	</RelativeLayout>
 
 </RelativeLayout>
