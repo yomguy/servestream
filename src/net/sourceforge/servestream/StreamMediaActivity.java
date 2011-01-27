@@ -38,7 +38,6 @@ import android.os.IBinder;
 import android.os.Message;
 import android.util.Log;
 import android.view.Display;
-import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -53,7 +52,6 @@ import android.widget.RelativeLayout;
 import android.widget.SeekBar;
 import android.widget.SeekBar.OnSeekBarChangeListener;
 import android.widget.TextView;
-import android.widget.Toast;
 import android.view.View;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
@@ -74,7 +72,7 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
     private MediaPlayer mediaPlayer;
 
 	private Animation media_controls_fade_in, media_controls_fade_out;
-	private RelativeLayout mediaInformationGroup, mediaControllerGroup;
+	private RelativeLayout mediaControls;
     
     private SurfaceView preview = null;
     private SurfaceHolder holder;
@@ -237,11 +235,8 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
 		media_controls_fade_in = AnimationUtils.loadAnimation(this, R.anim.media_controls_fade_in);
 		media_controls_fade_out = AnimationUtils.loadAnimation(this, R.anim.media_controls_fade_out);
 
-		mediaInformationGroup = (RelativeLayout) findViewById(R.id.media_information_group);
-		mediaInformationGroup.setVisibility(View.GONE);
-	
-		mediaControllerGroup = (RelativeLayout) findViewById(R.id.media_controller_group);
-		mediaControllerGroup.setVisibility(View.GONE);
+		mediaControls = (RelativeLayout) findViewById(R.id.media_controls);
+		mediaControls.setVisibility(View.GONE);
         
 		final Button playPauseButton = (Button) findViewById(R.id.play_pause_button);
 		playPauseButton.setOnClickListener(new OnClickListener() {
@@ -269,11 +264,8 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
 				
 				playPauseButton.setBackgroundResource(R.drawable.pause_button);
 				
-			    mediaInformationGroup.startAnimation(media_controls_fade_out);
-				mediaInformationGroup.setVisibility(View.GONE);
-				
-			    mediaControllerGroup.startAnimation(media_controls_fade_out);
-				mediaControllerGroup.setVisibility(View.GONE);
+			    mediaControls.startAnimation(media_controls_fade_out);
+				mediaControls.setVisibility(View.GONE);
 			}
 			
 		});
@@ -310,11 +302,8 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
 				
 				playPauseButton.setBackgroundResource(R.drawable.pause_button);
 
-			    mediaInformationGroup.startAnimation(media_controls_fade_out);
-				mediaInformationGroup.setVisibility(View.GONE);
-				
-			    mediaControllerGroup.startAnimation(media_controls_fade_out);
-				mediaControllerGroup.setVisibility(View.GONE);
+			    mediaControls.startAnimation(media_controls_fade_out);
+				mediaControls.setVisibility(View.GONE);
 			}
 			
 		});
@@ -387,27 +376,23 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
 	@Override
 	public boolean onKeyDown(int keyCode, KeyEvent event) {
 		
-	    if (keyCode == KeyEvent.KEYCODE_MENU && mediaControllerGroup.isShown()) {
-	    	mediaInformationGroup.setVisibility(View.GONE);
-	    	mediaControllerGroup.setVisibility(View.GONE);
+	    if (keyCode == KeyEvent.KEYCODE_MENU && mediaControls.isShown()) {
+	    	mediaControls.setVisibility(View.GONE);
 	        return true;
 	    }
 		
-	    if (keyCode == KeyEvent.KEYCODE_BACK && mediaControllerGroup.isShown()) {
-	    	mediaInformationGroup.setVisibility(View.GONE);
-	    	mediaControllerGroup.setVisibility(View.GONE);
+	    if (keyCode == KeyEvent.KEYCODE_BACK && mediaControls.isShown()) {
+	    	mediaControls.setVisibility(View.GONE);
 	        return true;
 	    }
 	    
-	    if (keyCode == KeyEvent.KEYCODE_SEARCH && !mediaControllerGroup.isShown()) {
-	    	mediaInformationGroup.setVisibility(View.VISIBLE);
-	    	mediaControllerGroup.setVisibility(View.VISIBLE);
+	    if (keyCode == KeyEvent.KEYCODE_SEARCH && !mediaControls.isShown()) {
+	    	mediaControls.setVisibility(View.VISIBLE);
 	        return true;
 	    }
 	    
-	    if (keyCode == KeyEvent.KEYCODE_DPAD_CENTER && !mediaControllerGroup.isShown()) {
-	    	mediaInformationGroup.setVisibility(View.VISIBLE);
-	    	mediaControllerGroup.setVisibility(View.VISIBLE);
+	    if (keyCode == KeyEvent.KEYCODE_DPAD_CENTER && !mediaControls.isShown()) {
+	    	mediaControls.setVisibility(View.VISIBLE);
 	        return true;
 	    }
 	    
@@ -434,9 +419,8 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
 	public void onConfigurationChanged(Configuration newConfig) {
 		super.onConfigurationChanged(newConfig);
 		
-		if (mediaControllerGroup.isShown()) {
-	    	mediaInformationGroup.setVisibility(View.GONE);
-			mediaControllerGroup.setVisibility(View.GONE);
+		if (mediaControls.isShown()) {
+	    	mediaControls.setVisibility(View.GONE);
 		}
 		
 		// get new window size on orientation change
@@ -536,10 +520,8 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
     }
     
     private void showMediaInfoAndControls() {
-		mediaInformationGroup.startAnimation(media_controls_fade_in);
-		mediaInformationGroup.setVisibility(View.VISIBLE);
-		mediaControllerGroup.startAnimation(media_controls_fade_in);
-		mediaControllerGroup.setVisibility(View.VISIBLE);
+		mediaControls.startAnimation(media_controls_fade_in);
+		mediaControls.setVisibility(View.VISIBLE);
     }
     
     private void handleInvalidPlaylist() {
@@ -596,16 +578,12 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
         preview.setOnTouchListener(new OnTouchListener() {
 
 			public boolean onTouch(View arg0, MotionEvent arg1) {
-				if (mediaControllerGroup.isShown()) {
-				    mediaInformationGroup.startAnimation(media_controls_fade_out);
-				    mediaInformationGroup.setVisibility(View.GONE);
-				    mediaControllerGroup.startAnimation(media_controls_fade_out);
-				    mediaControllerGroup.setVisibility(View.GONE);
+				if (mediaControls.isShown()) {
+				    mediaControls.startAnimation(media_controls_fade_out);
+				    mediaControls.setVisibility(View.GONE);
 				} else {
-				    mediaInformationGroup.startAnimation(media_controls_fade_in);
-				    mediaInformationGroup.setVisibility(View.VISIBLE);
-					mediaControllerGroup.startAnimation(media_controls_fade_in);
-					mediaControllerGroup.setVisibility(View.VISIBLE);
+				    mediaControls.startAnimation(media_controls_fade_in);
+				    mediaControls.setVisibility(View.VISIBLE);
 					
 					/*handler.postDelayed(new Runnable() {
 						public void run() {
