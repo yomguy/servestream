@@ -407,6 +407,11 @@ public class MediaService extends Service {
                     	mediaPlayerState = 0;
                     }
                     break;
+                case TelephonyManager.CALL_STATE_OFFHOOK:
+                    /*if (mediaPlayer.isPlaying()) {
+                    	pauseMedia();
+                    	//mediaPlayerState = 0;
+                    }*/
                 case TelephonyManager.CALL_STATE_IDLE:
                 	if (mediaPlayerState == 0) {
                         resumeMedia();
