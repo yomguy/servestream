@@ -69,6 +69,7 @@
                   android:gravity="center"
 		          android:layout_centerHorizontal="true"
 		          android:layout_below="@+id/media_info"
+		          android:background="@drawable/semi_transparent_background"
             	  />
 
 		<RelativeLayout
