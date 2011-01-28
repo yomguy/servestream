@@ -66,7 +66,6 @@ import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
-import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.AdapterView.OnItemClickListener;
@@ -91,26 +90,6 @@ public class StreamListActivity extends ListActivity {
 			StreamListActivity.this.updateList();
 		}
 	};
-	
-	@Override
-	public void onStart() {
-		super.onStart();
-		
-		updateList();
-		
-		if(this.streamdb == null)
-			this.streamdb = new StreamDatabase(this);
-	}
-	
-	@Override
-	public void onStop() {
-		super.onStop();
-		
-		if(this.streamdb != null) {
-			this.streamdb.close();
-			this.streamdb = null;
-		}
-	}
 	
 	@Override
 	public void onCreate(Bundle icicle) {
@@ -158,8 +137,8 @@ public class StreamListActivity extends ListActivity {
 				hideKeyboard();
 				
 			    if (isValidStream()) {
-			    	saveStream();
 			    	handleStream(requestedStream);
+			    	//saveStream();
 			    }
 			}
 		});
@@ -168,13 +147,28 @@ public class StreamListActivity extends ListActivity {
 	}
 	
 	@Override
+	public void onStart() {
+		super.onStart();
+		
+		updateList();
+		
+		if(this.streamdb == null)
+			this.streamdb = new StreamDatabase(this);
+	}
+	
+	@Override
+	public void onStop() {
+		super.onStop();
+		
+		if(this.streamdb != null) {
+			this.streamdb.close();
+			this.streamdb = null;
+		}
+	}
+	
+	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		super.onCreateOptionsMenu(menu);
-
-		/*MenuItem donate = menu.add(R.string.settings_donate);
-		donate.setIcon(android.R.drawable.ic_menu_share);
-		donate.setIntent(new Intent(Intent.ACTION_VIEW).setData(Uri.parse("http://sourceforge.net/donate/index.php?group_id=361303")));
-		*/
 		
 		MenuItem settings = menu.add(R.string.list_menu_settings);
 		settings.setIcon(android.R.drawable.ic_menu_preferences);
@@ -267,24 +261,24 @@ public class StreamListActivity extends ListActivity {
 			return;
 		} else {
 			intent.setData(stream.getUri());
-			this.startActivity(intent);	
+			this.startActivity(intent);
+			saveStream();
 		}	
 	}
 	
 	class StreamAdapter extends ArrayAdapter<Stream> {
 		
-		private ArrayList<Stream> m_streams;
+		private ArrayList<Stream> streams;
 
 		class ViewHolder {
 			public TextView nickname;
 			public TextView caption;
-			public ImageView icon;
 		}
 
 		public StreamAdapter(Context context, ArrayList<Stream> streams) {
 			super(context, R.layout.item_stream, streams);
 
-			this.m_streams = streams;
+			this.streams = streams;
 		}
 
 		@Override
@@ -298,13 +292,12 @@ public class StreamListActivity extends ListActivity {
 
 				holder.nickname = (TextView)convertView.findViewById(android.R.id.text1);
 				holder.caption = (TextView)convertView.findViewById(android.R.id.text2);
-				holder.icon = (ImageView)convertView.findViewById(android.R.id.icon);
 
 				convertView.setTag(holder);
 			} else
 				holder = (ViewHolder) convertView.getTag();
 
-			Stream stream = m_streams.get(position);
+			Stream stream = streams.get(position);
 
 			holder.nickname.setText(stream.getNickname());
 
@@ -315,37 +308,32 @@ public class StreamListActivity extends ListActivity {
 
 			long now = System.currentTimeMillis() / 1000;
 
-			String nice = context.getString(R.string.bind_never);
+			String lastConnect = context.getString(R.string.bind_never);
 			if (stream.getLastConnect() > 0) {
 				int minutes = (int)((now - stream.getLastConnect()) / 60);
 				if (minutes >= 60) {
 					int hours = (minutes / 60);
 					if (hours >= 24) {
 						int days = (hours / 24);
-						nice = context.getString(R.string.bind_days, days);
+						lastConnect = context.getString(R.string.bind_days, days);
 					} else
-						nice = context.getString(R.string.bind_hours, hours);
+						lastConnect = context.getString(R.string.bind_hours, hours);
 				} else
-					nice = context.getString(R.string.bind_minutes, minutes);
+					lastConnect = context.getString(R.string.bind_minutes, minutes);
 			}
 
-			holder.caption.setText(nice);
+			holder.caption.setText(lastConnect);
 
 			return convertView;
 		}
 	}
 	
-	public boolean isValidStream() {
+	private boolean isValidStream() {
 
-		String stringStream = quickconnect.getText().toString();	
-		
-		if (stringStream == null) {
-			showInvalidURLMessage();
-            return false;
-		}
+		String inputStream = quickconnect.getText().toString();	
 		
 		try {
-			requestedStream = new Stream(stringStream);
+			requestedStream = new Stream(inputStream);
 		} catch (Exception ex) {
 			ex.printStackTrace();
 			showInvalidURLMessage();
