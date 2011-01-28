@@ -42,6 +42,8 @@ import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
 import android.preference.PreferenceManager;
+import android.telephony.PhoneStateListener;
+import android.telephony.TelephonyManager;
 import android.util.Log;
 import android.view.SurfaceHolder;
 
@@ -54,6 +56,8 @@ public class MediaService extends Service {
 	public static final int START_SEEK_BAR = 300;
 	public static final int START_DIALOG = 400;
 	public static final int STOP_DIALOG = 500;
+	
+	private int mediaPlayerState = -1;
 	
 	private boolean streamActivityState;
 	
@@ -93,6 +97,9 @@ public class MediaService extends Service {
     	Log.v(TAG, "onCreate called");
     	
 		preferences = PreferenceManager.getDefaultSharedPreferences(this);
+		
+		TelephonyManager tm = (TelephonyManager)getSystemService(TELEPHONY_SERVICE);
+		tm.listen(m_phoneListener, PhoneStateListener.LISTEN_CALL_STATE);
 		
 		streamdb = new StreamDatabase(this);
     }
@@ -387,6 +394,32 @@ public class MediaService extends Service {
                 startMedia(mediaFilesIndex);
 			}
 		}
+    };
+    
+    private PhoneStateListener m_phoneListener = new PhoneStateListener() {
+    	
+    	public void onCallStateChanged(int state, String incomingNumber) {
+    		try {
+    			switch (state) {
+                case TelephonyManager.CALL_STATE_RINGING:
+                    if (mediaPlayer.isPlaying()) {
+                    	pauseMedia();
+                    	mediaPlayerState = 0;
+                    }
+                    break;
+                case TelephonyManager.CALL_STATE_IDLE:
+                	if (mediaPlayerState == 0) {
+                        resumeMedia();
+                        mediaPlayerState = 0;
+                	}
+                	break;
+                default:
+                    Log.d(TAG, "Invalid phone state: " + state);
+    			}
+    		} catch (Exception ex) {
+    			ex.printStackTrace();
+    		}
+    	}
     };
     
     public void resetSurfaceView() {
