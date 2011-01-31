@@ -53,11 +53,11 @@
 						android:background="@+drawable/shuffle_button"
 						/>
 		
-				<RelativeLayout android:id="@+id/sub_media_info"
+				<RelativeLayout
 						android:layout_width="fill_parent"
 						android:layout_height="wrap_content"
 						android:layout_toRightOf="@+id/shuffle_button"
-						android:layout_toLeftOf="@+id/repeat_all_button"
+						android:layout_toLeftOf="@+id/repeat_button"
 						android:layout_alignParentTop="true"
 						>
 						
@@ -78,13 +78,13 @@
             	      			  />
 				</RelativeLayout>
 		
-				<Button android:id="@+id/repeat_all_button"
+				<Button android:id="@+id/repeat_button"
 						android:layout_width="wrap_content"
 						android:layout_height="wrap_content"
             			android:layout_centerHorizontal="true"
             			android:layout_alignParentRight="true"
 						android:layout_alignParentTop="true"
-						android:background="@+drawable/repeat_all_button"
+						android:background="@+drawable/repeat_one_button"
 						/>
 		
 		</RelativeLayout>
