@@ -91,6 +91,12 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
     
 	private MediaService boundService;
 
+	private boolean shuffleOn = false;
+	private String repeatState = "off";
+	private static final String REPEAT_OFF = "off";
+	private static final String REPEAT_ONE = "one";
+	private static final String REPEAT_ALL = "all";
+	
 	private ServiceConnection connection = new ServiceConnection() {
 	    public void onServiceConnected(ComponentName className, IBinder service) {
 	        // This is called when the connection with the service has been
@@ -238,6 +244,43 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
 		mediaControls = (RelativeLayout) findViewById(R.id.media_controls);
 		mediaControls.setVisibility(View.GONE);
         
+		final Button shuffleButton = (Button) findViewById(R.id.shuffle_button);
+		shuffleButton.setBackgroundResource(R.drawable.shuffle_disabled_button);
+		shuffleButton.setOnClickListener(new OnClickListener() {
+
+			public void onClick(View v) {
+				
+				if (shuffleOn == true) {
+				    shuffleButton.setBackgroundResource(R.drawable.shuffle_disabled_button);
+				    shuffleOn = false;
+				} else {
+					shuffleButton.setBackgroundResource(R.drawable.shuffle_button);
+					shuffleOn = true;
+				}
+			}
+			
+		});
+		
+		final Button repeatButton = (Button) findViewById(R.id.repeat_button);
+		repeatButton.setBackgroundResource(R.drawable.repeat_disabled_button);
+		repeatButton.setOnClickListener(new OnClickListener() {
+
+			public void onClick(View v) {
+				
+				if (repeatState.equals(REPEAT_OFF)) {
+				    repeatButton.setBackgroundResource(R.drawable.repeat_all_button);
+				    repeatState = REPEAT_ALL;
+				} else if (repeatState.equals(REPEAT_ALL)) {
+					repeatButton.setBackgroundResource(R.drawable.repeat_one_button);
+					repeatState = REPEAT_ONE;
+				} else if (repeatState.equals(REPEAT_ONE)) {
+					repeatButton.setBackgroundResource(R.drawable.repeat_disabled_button);
+					repeatState = REPEAT_OFF;
+				}
+			}
+			
+		});
+		
 		final Button playPauseButton = (Button) findViewById(R.id.play_pause_button);
 		playPauseButton.setOnClickListener(new OnClickListener() {
 
