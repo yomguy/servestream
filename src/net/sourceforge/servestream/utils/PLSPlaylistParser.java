@@ -34,7 +34,7 @@ public class PLSPlaylistParser {
     private int numberOfFiles = 0;
     
     private MediaFile mediaFile = null;
-    private boolean parsingEntry = false;
+    private boolean processingEntry = false;
     
 	/**
 	 * Default constructor
@@ -69,16 +69,18 @@ public class PLSPlaylistParser {
 		    // Start the query
 		    reader = new BufferedReader(new InputStreamReader(conn.getInputStream()));
 		    conn.connect();
-        
+		    
 		    while ((line = reader.readLine()) != null) {
 		    	if (!line.trim().equals("")) {
 			    	String [] parsedLine = line.split("\\=");
 			    	
 			    	if (parsedLine.length == 2) {
                         if (parsedLine[0].trim().contains("File")) {
-                        	if (parsingEntry) {
+                        	if (processingEntry)
                                 savePlaylistFile();
-                        	}
+                        	else
+                        		processingEntry = true;
+                        	
         		    		mediaFile = new MediaFile();
                             mediaFile.setURL(parsedLine[1].trim());
                         } else if (parsedLine[0].trim().contains("Title")) {
@@ -89,6 +91,15 @@ public class PLSPlaylistParser {
 			    	}
 		    	}           
             }
+		    
+		    // added in case the file doesn't follow the standard pls
+		    // structure:
+		    // FileX:
+		    // TitleX:
+		    // LengthX:
+        	if (processingEntry) {
+                savePlaylistFile();
+        	}
 
         } catch (Exception ex) {
         	ex.printStackTrace();
@@ -102,7 +113,7 @@ public class PLSPlaylistParser {
     	numberOfFiles = numberOfFiles + 1;
     	mediaFile.setTrackNumber(numberOfFiles);
     	playlistFiles.add(mediaFile);
-    	parsingEntry = false;
+    	processingEntry = false;
     }
 
 	/**
