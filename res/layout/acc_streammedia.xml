@@ -149,6 +149,7 @@
         		<RelativeLayout
 					android:layout_width="fill_parent"
 					android:layout_height="fill_parent"
+					android:paddingBottom="4dip"
 					android:layout_below="@+id/previous_button"
 					android:background="@drawable/transparent_background"
 					>
