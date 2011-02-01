@@ -28,11 +28,9 @@ import net.sourceforge.servestream.dbutils.StreamDatabase;
 import net.sourceforge.servestream.utils.M3UPlaylistParser;
 import net.sourceforge.servestream.utils.MediaFile;
 import net.sourceforge.servestream.utils.PLSPlaylistParser;
-import net.sourceforge.servestream.utils.PreferenceConstants;
 
 import android.app.Service;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.media.MediaPlayer;
 import android.media.MediaPlayer.OnCompletionListener;
 import android.media.MediaPlayer.OnErrorListener;
@@ -41,7 +39,6 @@ import android.os.Binder;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
-import android.preference.PreferenceManager;
 import android.telephony.PhoneStateListener;
 import android.telephony.TelephonyManager;
 import android.util.Log;
@@ -57,6 +54,15 @@ public class MediaService extends Service {
 	public static final int START_DIALOG = 400;
 	public static final int STOP_DIALOG = 500;
 	
+	private String shuffleState;
+	public static final String SHUFFLE_OFF = "off";
+	public static final String SHUFFLE_ON = "on";
+	
+	private String repeatState;
+	public static final String REPEAT_OFF = "off";
+	public static final String REPEAT_ONE = "one";
+	public static final String REPEAT_ALL = "all";
+	
 	private int mediaPlayerState = -1;
 	
 	private boolean streamActivityState;
@@ -71,7 +77,7 @@ public class MediaService extends Service {
 	
     private MediaPlayer mediaPlayer = null;
     
-	private SharedPreferences preferences = null;
+	//private SharedPreferences preferences = null;
 	
 	private boolean isOpeningMedia = false;
 
@@ -96,7 +102,7 @@ public class MediaService extends Service {
 
     	Log.v(TAG, "onCreate called");
     	
-		preferences = PreferenceManager.getDefaultSharedPreferences(this);
+		//preferences = PreferenceManager.getDefaultSharedPreferences(this);
 		
 		TelephonyManager tm = (TelephonyManager)getSystemService(TELEPHONY_SERVICE);
 		tm.listen(m_phoneListener, PhoneStateListener.LISTEN_CALL_STATE);
@@ -222,6 +228,9 @@ public class MediaService extends Service {
     }
     
     public void setMediaPlayer(MediaPlayer mediaPlayer) {
+    	shuffleState = SHUFFLE_OFF;
+    	repeatState = REPEAT_OFF;
+    	
     	this.mediaPlayer = mediaPlayer;
     	this.mediaPlayer.setOnPreparedListener(m_onPreparedListener);
     	this.mediaPlayer.setOnCompletionListener(m_onCompletionListener);
@@ -232,6 +241,22 @@ public class MediaService extends Service {
 			}
 
         });
+    }
+    
+    public String getShuffleState() {
+    	return shuffleState;
+    }
+    
+    public void setShuffleState(String shuffleState) {
+    	this.shuffleState = shuffleState;
+    }
+    
+    public String getRepeatState() {
+    	return repeatState;
+    }
+    
+    public void setRepeatState(String repeatState) {
+    	this.repeatState = repeatState;
     }
     
     public void startMediaPlayer() {
@@ -377,15 +402,17 @@ public class MediaService extends Service {
 		public void onCompletion(MediaPlayer mp) {
 
 			// if repeat preference is set to one, play the media file again
-			if (preferences.getString(PreferenceConstants.REPEAT, "Off").equals("One")) {
-				startMedia(mediaFilesIndex);
+			//if (preferences.getString(PreferenceConstants.REPEAT, "Off").equals("One")) {
+			if (repeatState.equals(REPEAT_ONE)) {
+			    startMedia(mediaFilesIndex);
 				return;
 			}
 			
 			mediaFilesIndex++;
 			
 			if (mediaFilesIndex == mediaFiles.size()) {
-				if (preferences.getString(PreferenceConstants.REPEAT, "Off").equals("All")) {
+				//if (preferences.getString(PreferenceConstants.REPEAT, "Off").equals("All")) {
+				if (repeatState.equals(REPEAT_ALL)) {
 					startMedia(0);
 					return;
 				}
