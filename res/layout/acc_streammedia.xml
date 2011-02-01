@@ -50,7 +50,7 @@
             			android:layout_centerHorizontal="true"
             			android:layout_alignParentLeft="true"
 						android:layout_alignParentTop="true"
-						android:background="@+drawable/shuffle_button"
+						android:background="@+drawable/shuffle_disabled_button"
 						/>
 		
 				<RelativeLayout
@@ -84,7 +84,7 @@
             			android:layout_centerHorizontal="true"
             			android:layout_alignParentRight="true"
 						android:layout_alignParentTop="true"
-						android:background="@+drawable/repeat_one_button"
+						android:background="@+drawable/repeat_disabled_button"
 						/>
 		
 		</RelativeLayout>
