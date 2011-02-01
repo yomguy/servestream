@@ -29,18 +29,11 @@
 		android:defaultValue="Daily"
 		/>
 
+	<!--
 	<PreferenceCategory
 		android:title="@string/pref_playback_category">
-	
-		<ListPreference
-			android:key="repeat"
-			android:title="@string/pref_repeat_title"
-			android:summary="@string/pref_repeat_summary"
-			android:entries="@array/list_repeat"
-			android:entryValues="@array/list_repeat_values"
-			android:defaultValue="Off"
-		/>
 
 	</PreferenceCategory>
+	-->
 
 </PreferenceScreen>
