@@ -50,7 +50,7 @@
             			android:layout_centerHorizontal="true"
             			android:layout_alignParentLeft="true"
 						android:layout_alignParentTop="true"
-						android:background="@+drawable/shuffle_disabled_button"
+						android:background="@+drawable/transparent_button"
 						/>
 		
 				<RelativeLayout
