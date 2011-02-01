@@ -17,6 +17,9 @@
 
 package net.sourceforge.servestream.utils;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
+
 public class MediaFile {
 
 	private String url = null;
@@ -71,4 +74,21 @@ public class MediaFile {
 	public long getLength() {
 		return length;
 	}
+	
+	/**
+	 * 
+	 * @return
+	 */
+    public String getDecodedURL(){
+		String decodedURL = null;
+    	
+    	try {
+			decodedURL = URLDecoder.decode(url, "UTF-8");
+		} catch (UnsupportedEncodingException ex) {
+			ex.printStackTrace();
+			decodedURL = "";
+		}
+		
+		return decodedURL;
+    }
 }
