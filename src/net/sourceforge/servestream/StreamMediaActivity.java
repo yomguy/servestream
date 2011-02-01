@@ -77,6 +77,8 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
     private SurfaceView preview = null;
     private SurfaceHolder holder;
     
+    private Button shuffleButton, repeatButton = null;
+    
     private boolean userIsSeeking = false;
     
     private SeekBar seekBar;
@@ -238,8 +240,8 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
 		mediaControls = (RelativeLayout) findViewById(R.id.media_controls);
 		mediaControls.setVisibility(View.GONE);
         
-		final Button shuffleButton = (Button) findViewById(R.id.shuffle_button);
-		final Button repeatButton = (Button) findViewById(R.id.repeat_button);
+		shuffleButton = (Button) findViewById(R.id.shuffle_button);
+		repeatButton = (Button) findViewById(R.id.repeat_button);
 		
 		shuffleButton.setOnClickListener(new OnClickListener() {
 
@@ -523,7 +525,9 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
                 boundService.resetSurfaceView();
         	} */
         	getMediaInfo();
-        	startSeekBar();	
+        	startSeekBar();
+        	setShuffleButton();
+        	setRepeatButton();
         }
     }
     
@@ -555,6 +559,22 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
     	}
     	
         new Thread(this).start();
+    }
+    
+    private void setShuffleButton() {
+    	if (boundService.getShuffleState().equals(MediaService.SHUFFLE_OFF))
+        	shuffleButton.setBackgroundResource(R.drawable.shuffle_disabled_button);
+        else if (boundService.getShuffleState().equals(MediaService.SHUFFLE_ON))
+        	shuffleButton.setBackgroundResource(R.drawable.shuffle_button);
+    }
+    
+    private void setRepeatButton() {
+        if (boundService.getRepeatState().equals(MediaService.REPEAT_OFF))
+        	repeatButton.setBackgroundResource(R.drawable.repeat_disabled_button);
+        else if (boundService.getRepeatState().equals(MediaService.REPEAT_ALL))
+        	repeatButton.setBackgroundResource(R.drawable.repeat_all_button);
+        else if (boundService.getRepeatState().equals(MediaService.REPEAT_ONE))
+        	repeatButton.setBackgroundResource(R.drawable.repeat_one_button);
     }
     
     private void showMediaInfoAndControls() {
