@@ -22,6 +22,6 @@
 	<item android:state_pressed="true"
           android:drawable="@drawable/shuffle_disabled" />
 	<item android:state_focused="true"
-          android:drawable="@drawable/shuffle_disabled" />
+          android:drawable="@drawable/shuffle_focused" />
 	<item android:drawable="@drawable/shuffle_disabled" />
 </selector>
