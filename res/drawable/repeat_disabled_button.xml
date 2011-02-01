@@ -22,6 +22,6 @@
 	<item android:state_pressed="true"
           android:drawable="@drawable/repeat_disabled" />
 	<item android:state_focused="true"
-          android:drawable="@drawable/repeat_disabled" />
+          android:drawable="@drawable/repeat_all_focused" />
 	<item android:drawable="@drawable/repeat_disabled" />
 </selector>
