@@ -251,7 +251,6 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
 					boundService.setShuffleState(MediaService.SHUFFLE_OFF);
 				    shuffleButton.setBackgroundResource(R.drawable.shuffle_disabled_button);
 				} else if (boundService.getShuffleState().equals(MediaService.SHUFFLE_OFF)) {
-					Log.v(TAG, boundService.getRepeatState());
 					if (boundService.getRepeatState().equals(MediaService.REPEAT_ONE)) {
 						boundService.setRepeatState(MediaService.REPEAT_ALL);
 					    repeatButton.setBackgroundResource(R.drawable.repeat_all_button);
@@ -612,8 +611,6 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
         
         seekBar.setProgress(currentPosition);
         seekBar.setMax(duration);
-        
-        Log.v(TAG, String.valueOf(boundService.getStreamActivityState()));
         
         while (mediaPlayer != null && currentPosition < duration && !boundService.isOpeningMedia()) {
             try {
