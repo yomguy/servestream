@@ -90,8 +90,6 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
     private ProgressDialog dialog = null;
     
 	private MediaService boundService;
-
-	private boolean shuffleOn = false;
 	
 	private ServiceConnection connection = new ServiceConnection() {
 	    public void onServiceConnected(ComponentName className, IBinder service) {
@@ -241,22 +239,29 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
 		mediaControls.setVisibility(View.GONE);
         
 		final Button shuffleButton = (Button) findViewById(R.id.shuffle_button);
+		final Button repeatButton = (Button) findViewById(R.id.repeat_button);
+		
 		shuffleButton.setOnClickListener(new OnClickListener() {
 
 			public void onClick(View v) {
 				
-				if (shuffleOn == true) {
+				if (boundService.getShuffleState().equals(MediaService.SHUFFLE_ON)) {
+					boundService.setShuffleState(MediaService.SHUFFLE_OFF);
 				    shuffleButton.setBackgroundResource(R.drawable.shuffle_disabled_button);
-				    shuffleOn = false;
-				} else {
+				} else if (boundService.getShuffleState().equals(MediaService.SHUFFLE_OFF)) {
+					Log.v(TAG, boundService.getRepeatState());
+					if (boundService.getRepeatState().equals(MediaService.REPEAT_ONE)) {
+						boundService.setRepeatState(MediaService.REPEAT_ALL);
+					    repeatButton.setBackgroundResource(R.drawable.repeat_all_button);
+					}
+					
+					boundService.setShuffleState(MediaService.SHUFFLE_ON);
 					shuffleButton.setBackgroundResource(R.drawable.shuffle_button);
-					shuffleOn = true;
 				}
 			}
 			
 		});
 		
-		final Button repeatButton = (Button) findViewById(R.id.repeat_button);
 		repeatButton.setOnClickListener(new OnClickListener() {
 
 			public void onClick(View v) {
@@ -265,9 +270,14 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
 					boundService.setRepeatState(MediaService.REPEAT_ALL);
 				    repeatButton.setBackgroundResource(R.drawable.repeat_all_button);
 				} else if (boundService.getRepeatState().equals(MediaService.REPEAT_ALL)) {
+					if (boundService.getShuffleState().equals(MediaService.SHUFFLE_ON)) {
+						boundService.setShuffleState(MediaService.SHUFFLE_OFF);
+					    shuffleButton.setBackgroundResource(R.drawable.shuffle_disabled_button);
+					}
+					
 					boundService.setRepeatState(MediaService.REPEAT_ONE);
 					repeatButton.setBackgroundResource(R.drawable.repeat_one_button);
-				} else if (boundService.getRepeatState().equals(MediaService.REPEAT_ONE)) {
+				} else if (boundService.getRepeatState().equals(MediaService.REPEAT_ONE)) {					
 					boundService.setRepeatState(MediaService.REPEAT_OFF);
 					repeatButton.setBackgroundResource(R.drawable.repeat_disabled_button);
 				}
@@ -286,9 +296,6 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
 					boundService.resumeMedia();
 					playPauseButton.setBackgroundResource(R.drawable.pause_button);
 				}
-				
-			    //mediaControllerGroup.startAnimation(media_controls_fade_out);
-				//mediaControllerGroup.setVisibility(View.GONE);
 			}
 			
 		});
@@ -312,9 +319,6 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
 
 			public void onClick(View v) {
 				boundService.seekBackward();
-				
-			    //mediaControllerGroup.startAnimation(media_controls_fade_out);
-				//mediaControllerGroup.setVisibility(View.GONE);
 			}
 			
 		});
@@ -324,9 +328,6 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
 
 			public void onClick(View v) {
 				boundService.seekForward();
-				
-			    //mediaControllerGroup.startAnimation(media_controls_fade_out);
-				//mediaControllerGroup.setVisibility(View.GONE);
 			}
 			
 		});
@@ -538,7 +539,7 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
     private void getMediaInfo() {
     	MediaFile mediaFile = boundService.getCurrentMediaInfo();
     	trackNumber.setText(String.valueOf(mediaFile.getTrackNumber()) + " / " + String.valueOf(boundService.getNumOfQueuedFiles()));
-    	trackText.setText(mediaFile.getURL());
+    	trackText.setText(mediaFile.getDecodedURL());
     }
     
     private void startSeekBar() {
