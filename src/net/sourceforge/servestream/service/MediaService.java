@@ -468,6 +468,7 @@ public class MediaService extends Service {
         	mediaFiles = new ArrayList<MediaFile>();
         	MediaFile mediaFile = new MediaFile();
         	mediaFile.setURL(url.toString());
+        	mediaFile.setTrackNumber(1);
         	mediaFiles.add(mediaFile);
         }
         
