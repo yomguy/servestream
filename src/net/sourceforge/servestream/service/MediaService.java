@@ -17,9 +17,7 @@
 
 package net.sourceforge.servestream.service;
 
-import java.io.UnsupportedEncodingException;
 import java.net.URL;
-import java.net.URLDecoder;
 import java.util.ArrayList;
 
 import net.sourceforge.servestream.StreamMediaActivity;
@@ -76,8 +74,6 @@ public class MediaService extends Service {
 	private String currentlyPlayingTrack = "";
 	
     private MediaPlayer mediaPlayer = null;
-    
-	//private SharedPreferences preferences = null;
 	
 	private boolean isOpeningMedia = false;
 
@@ -101,8 +97,6 @@ public class MediaService extends Service {
     public void onCreate() {
 
     	Log.v(TAG, "onCreate called");
-    	
-		//preferences = PreferenceManager.getDefaultSharedPreferences(this);
 		
 		TelephonyManager tm = (TelephonyManager)getSystemService(TELEPHONY_SERVICE);
 		tm.listen(m_phoneListener, PhoneStateListener.LISTEN_CALL_STATE);
@@ -157,9 +151,6 @@ public class MediaService extends Service {
     	
 		if (!mediaPlayer.isPlaying() || playingVideo()) {
 			stopSelf();
-			
-			//if (disconnectHandler != null)
-			//	Message.obtain(disconnectHandler, -1, "").sendToTarget();
 		}
     	
 		return true;
@@ -208,19 +199,6 @@ public class MediaService extends Service {
     
     public Stream getCurrentStream() {
     	return this.currentStream;
-    }
-    
-    public String getDecodedNowPlayingTrack(){
-		String decodedURL = null;
-    	
-    	try {
-			decodedURL = URLDecoder.decode(this.currentlyPlayingTrack, "UTF-8");
-		} catch (UnsupportedEncodingException ex) {
-			ex.printStackTrace();
-			decodedURL = "";
-		}
-		
-		return decodedURL;
     }
     
     public MediaPlayer getMediaPlayer() {
@@ -357,11 +335,6 @@ public class MediaService extends Service {
     		ex.printStackTrace();
     	}
     }
-    
-    /*public void stopMedia() {
-    	mediaPlayer.stop();
-    	mediaPlayer.reset();
-    }*/
 
     private OnPreparedListener m_onPreparedListener = new OnPreparedListener() {
 
@@ -402,7 +375,6 @@ public class MediaService extends Service {
 		public void onCompletion(MediaPlayer mp) {
 
 			// if repeat preference is set to one, play the media file again
-			//if (preferences.getString(PreferenceConstants.REPEAT, "Off").equals("One")) {
 			if (repeatState.equals(REPEAT_ONE)) {
 			    startMedia(mediaFilesIndex);
 				return;
@@ -411,13 +383,17 @@ public class MediaService extends Service {
 			mediaFilesIndex++;
 			
 			if (mediaFilesIndex == mediaFiles.size()) {
-				//if (preferences.getString(PreferenceConstants.REPEAT, "Off").equals("All")) {
 				if (repeatState.equals(REPEAT_ALL)) {
 					startMedia(0);
 					return;
 				}
 				disconnect();
 			} else {
+				/*if (shuffleState.equals(SHUFFLE_ON)) {
+					Random random = new Random();
+				    mediaFilesIndex = random.nextInt(mediaFiles.size());
+				}*/
+				
                 startMedia(mediaFilesIndex);
 			}
 		}
