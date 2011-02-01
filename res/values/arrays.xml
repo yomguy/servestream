@@ -30,17 +30,5 @@
 		<item>Weekly</item>
 		<item>Never</item>
 	</string-array>
-	
-	<string-array name="list_repeat">
-		<item>@string/list_repeat_off</item>
-		<item>@string/list_repeat_one</item>
-		<item>@string/list_repeat_all</item>
-	</string-array>
-
-	<string-array name="list_repeat_values">
-		<item>Off</item>
-		<item>One</item>
-		<item>All</item>
-	</string-array>
 
 </resources>
