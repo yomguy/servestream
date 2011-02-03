@@ -40,7 +40,7 @@ import android.util.Log;
 
 public class StreamParser {
 
-	public final String UP_ONE_DIRECTORY = "..";
+	private final String UP_ONE_DIRECTORY = "..";
 	
 	URL m_targetURL = null;
 	URL m_indexURL = null;
@@ -89,6 +89,7 @@ public class StreamParser {
 		        String directoryUpOneLevel = new File(m_targetURL.getPath().toString()).getParent();
 		        
 		        Stream stream = new Stream(m_indexURL + directoryUpOneLevel);
+		        stream.setContentType("text/html");
 		        stream.setNickname(UP_ONE_DIRECTORY);
 		        parsedURLs.add(linkCount, stream);
 		        linkCount++;
