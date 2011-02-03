@@ -89,7 +89,7 @@ public class StreamParser {
 		        String directoryUpOneLevel = new File(m_targetURL.getPath().toString()).getParent();
 		        
 		        Stream stream = new Stream(m_indexURL + directoryUpOneLevel);
-		        stream.setContentType("text/html");
+		        stream.setContentType("text");
 		        stream.setNickname(UP_ONE_DIRECTORY);
 		        parsedURLs.add(linkCount, stream);
 		        linkCount++;
@@ -111,7 +111,7 @@ public class StreamParser {
 		    		stream.setNickname(links.get(i).text());
 		        }
 		    	
-		    	stream.setContentType(URLUtils.getContentType(stream.getURL()));
+		    	stream.setContentType(URLUtils.getContentType(stream.getPath()));
 		    	
 		    	parsedURLs.add(linkCount, stream);
 		        linkCount++;
