@@ -18,7 +18,6 @@
 package net.sourceforge.servestream.utils;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -31,9 +30,13 @@ import java.net.URLDecoder;
 
 import javax.net.ssl.HttpsURLConnection;
 
+import net.sourceforge.servestream.dbutils.Stream;
+
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.select.Elements;
+
+import android.util.Log;
 
 public class StreamParser {
 
@@ -41,8 +44,7 @@ public class StreamParser {
 	
 	URL m_targetURL = null;
 	URL m_indexURL = null;
-    ArrayList<String> m_textLinks = null;
-	HashMap<Integer, String> m_fileHrefs = null;
+	ArrayList<Stream> parsedURLs = null;
     
 	/**
 	 * Default constructor
@@ -51,8 +53,7 @@ public class StreamParser {
 		m_targetURL = url;
 		m_indexURL = getHost(m_targetURL);
 
-		m_textLinks = new ArrayList<String>();
-		m_fileHrefs = new HashMap<Integer, String>();
+		parsedURLs = new ArrayList<Stream>();
 	}
     
     public void getListing() {
@@ -86,8 +87,10 @@ public class StreamParser {
 		    // add ".." to the list if we came from a directory
             if (!(m_targetURL.getPath().equals("/") || m_targetURL.getPath().equals(""))) {
 		        String directoryUpOneLevel = new File(m_targetURL.getPath().toString()).getParent();
-		        m_textLinks.add(UP_ONE_DIRECTORY);
-		        m_fileHrefs.put(linkCount, m_indexURL + directoryUpOneLevel);
+		        
+		        Stream stream = new Stream(m_indexURL + directoryUpOneLevel);
+		        stream.setNickname(UP_ONE_DIRECTORY);
+		        parsedURLs.add(linkCount, stream);
 		        linkCount++;
             }
             
@@ -95,16 +98,26 @@ public class StreamParser {
 		    Elements links = doc.select("a");
 
 		    for (int i = 0; i < links.size(); i++) {
-		    	m_textLinks.add(links.get(i).text());
+		    	Stream stream = null;
 		    	
+		    	try {
 		    	// if a link is relative try to make it absolute
 		    	if (!links.get(i).attr("href").contains("/")) {
-		    	    m_fileHrefs.put(linkCount, URLDecoder.decode(m_targetURL + links.get(i).attr("href"), "UTF-8"));
+		    		stream = new Stream(URLDecoder.decode(m_targetURL + links.get(i).attr("href"), "UTF-8"));
+		    		stream.setNickname(links.get(i).text());
 		        } else {
-		        	m_fileHrefs.put(linkCount, URLDecoder.decode(m_indexURL + links.get(i).attr("href"), "UTF-8"));
+		        	stream = new Stream(URLDecoder.decode(m_indexURL + links.get(i).attr("href"), "UTF-8"));
+		    		stream.setNickname(links.get(i).text());
 		        }
-		    	//m_fileHrefs.put(linkCount, m_indexURL + links.get(i).attr("href"));
+		    	
+		    	stream.setContentType(URLUtils.getContentType(stream.getURL()));
+		    	
+		    	parsedURLs.add(linkCount, stream);
 		        linkCount++;
+		    	} catch (MalformedURLException ex) {
+		    		ex.printStackTrace();
+		    		Log.v("StreamParser", "BAD URL");
+		    	}
 		    }		    
 
         } catch (Exception ex) {
@@ -124,18 +137,12 @@ public class StreamParser {
     			":" + String.valueOf(targetURL.getPort()));
     }
     
-    /**
-     * 
-     */
-    public ArrayList<String> getTextLinks() {
-    	return m_textLinks;
+    public Stream getParsedURL(Integer index) {
+    	return parsedURLs.get(index);
     }
     
-    /**
-     * 
-     */
-    public String getHREF(Integer index) {
-    	return m_fileHrefs.get(index);
+    public ArrayList<Stream> getParsedURLs() {
+    	return parsedURLs;
     }
     
 	/**

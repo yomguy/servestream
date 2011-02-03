@@ -87,6 +87,42 @@ public class URLUtils {
 		return contentTypeCode;
 	}
 	
+	public static String getContentType(URL url) {
+		
+		String contentType = null;
+	    HttpURLConnection conn = null;
+		
+		try {
+			
+			if (url == null)
+				return contentType;
+			
+        	if (url.getProtocol().equals("http")) {
+        		conn = (HttpURLConnection) url.openConnection();
+        	} else if (url.getProtocol().equals("https")) {
+        		conn = (HttpsURLConnection) url.openConnection();        		
+        	}
+			
+        	if (conn == null)
+        		return contentType;
+        	
+    		conn.setConnectTimeout(6000);
+    		conn.setReadTimeout(6000);
+	        conn.setRequestMethod("GET");
+	    
+	        contentType = conn.getContentType();
+            
+		} catch (IOException ex) {
+			ex.printStackTrace();
+		} catch (IllegalArgumentException ex) {
+		    ex.printStackTrace();
+		} finally {
+			closeHttpConnection(conn);
+		}
+		
+		return contentType;
+	}
+	
 	/**
 	 * Closes a HttpURLConnection
 	 * 

@@ -109,7 +109,7 @@ public class StreamBrowseActivity extends ListActivity {
 
 		list.setOnItemClickListener(new OnItemClickListener() {
 			public synchronized void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-		        handleStream(streamURLs.getHREF(position));
+		        handleStream(streamURLs.getParsedURL(position));
 			}
 		});
 		
@@ -174,13 +174,13 @@ public class StreamBrowseActivity extends ListActivity {
 		
 		// create menu to handle deleting and sharing lists
 		final AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo) menuInfo;
-		final String streamString = (String) this.getListView().getItemAtPosition(info.position);
+		final Stream stream = (Stream) this.getListView().getItemAtPosition(info.position);
 		
 		try {
-			final Stream stream = new Stream(streamURLs.getHREF(info.position));
+			final String streamURL = stream.getURL().toString();
 		
 		// set the menu title to the name attribute of the URL link
-		menu.setHeaderTitle(streamString);
+		menu.setHeaderTitle(stream.getNickname());
 
 		// save the URL
 		MenuItem save = menu.add(R.string.list_stream_save);
@@ -188,7 +188,7 @@ public class StreamBrowseActivity extends ListActivity {
 			public boolean onMenuItemClick(MenuItem arg0) {
 				// prompt user to make sure they really want this
 				new AlertDialog.Builder(StreamBrowseActivity.this)
-					.setMessage(getString(R.string.save_message, streamString))
+					.setMessage(getString(R.string.save_message, streamURL))
 					.setPositiveButton(R.string.save_pos, new DialogInterface.OnClickListener() {
 						public void onClick(DialogInterface dialog, int which) {
                             saveStream(stream);
@@ -205,7 +205,7 @@ public class StreamBrowseActivity extends ListActivity {
 			public boolean onMenuItemClick(MenuItem arg0) {
 				// display the URL
 				new AlertDialog.Builder(StreamBrowseActivity.this)
-					.setMessage(streamURLs.getHREF(info.position))
+					.setMessage(streamURL)
 					.setPositiveButton(R.string.view_pos, new DialogInterface.OnClickListener() {
 						public void onClick(DialogInterface dialog, int which) {
                             return;
@@ -220,15 +220,12 @@ public class StreamBrowseActivity extends ListActivity {
 		}
 	}
 	
-	public void handleStream(String streamString) {
+	public void handleStream(Stream stream) {
 		
 		Intent intent = null;
-		Stream stream = null;
-		
 		int contentTypeCode = -1;
 		
 		try {
-			stream = new Stream(streamString);
 			contentTypeCode = URLUtils.getContentTypeCode(stream.getURL());
 			Log.v(TAG, "STREAM is: " + stream.getURL());
 		} catch (Exception ex) {
@@ -256,9 +253,9 @@ public class StreamBrowseActivity extends ListActivity {
 		}
 	}
 	
-	class StreamAdapter extends ArrayAdapter<String> {
+	class StreamAdapter extends ArrayAdapter<Stream> {
 		
-		private ArrayList<String> streams;
+		private ArrayList<Stream> streams;
 
 		class ViewHolder {
 			public TextView nickname;
@@ -266,7 +263,7 @@ public class StreamBrowseActivity extends ListActivity {
 			public ImageView icon;
 		}
 
-		public StreamAdapter(Context context, ArrayList<String> streams) {
+		public StreamAdapter(Context context, ArrayList<Stream> streams) {
 			super(context, R.layout.item_browsestream, streams);
 
 			this.streams = streams;
@@ -282,14 +279,30 @@ public class StreamBrowseActivity extends ListActivity {
 				holder = new ViewHolder();
 
 				holder.nickname = (TextView)convertView.findViewById(android.R.id.text1);
+				holder.icon = (ImageView) convertView.findViewById(R.id.icon);
 
 				convertView.setTag(holder);
 			} else
 				holder = (ViewHolder) convertView.getTag();
 
-			String stream = streams.get(position);
+			Stream stream = streams.get(position);
 
-			holder.nickname.setText(stream);
+			//holder.icon.setImageState(new int[] { android.R.attr.state_pressed }, true);
+			String contentType = null;
+			if ((contentType = stream.getContentType()) != null) {
+			    if (contentType.contains("text"))
+			    	holder.icon.setBackgroundResource(R.drawable.folder);
+			    else if (contentType.contains("audio"))
+			    	holder.icon.setBackgroundResource(R.drawable.audio);
+			    else if (contentType.contains("video"))
+			    	holder.icon.setBackgroundResource(R.drawable.video);
+			    else
+			    	holder.icon.setBackgroundResource(R.drawable.none);
+			} else {
+				holder.icon.setBackgroundResource(R.drawable.none);
+			}
+			
+			holder.nickname.setText(stream.getNickname());
 
 			Context context = convertView.getContext();
 
@@ -329,7 +342,7 @@ public class StreamBrowseActivity extends ListActivity {
         public void run() {
         	
     		streamURLs.getListing();
-            uiLoadingThread.setStreams(streamURLs.getTextLinks());
+            uiLoadingThread.setStreams(streamURLs.getParsedURLs());
             handler.post(uiLoadingThread);
    
             // we are done retrieving, parsing and adding links
@@ -341,9 +354,9 @@ public class StreamBrowseActivity extends ListActivity {
     private class UILoadingHelperClass implements Runnable {
         
     	private ListView m_listView = null;
-        private ArrayList<String> m_streams = null;
+        private ArrayList<Stream> m_streams = null;
 
-        public void setStreams(ArrayList<String> streams){
+        public void setStreams(ArrayList<Stream> streams){
             this.m_streams = streams;
         }
 
