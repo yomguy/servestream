@@ -37,6 +37,7 @@ public class Stream {
 	private String path = null;
 	private String query = null;
 	private long lastconnect = -1;
+	private String contentType = null;
 	private String color = null;
 	private long fontsize;
 	
@@ -180,6 +181,14 @@ public class Stream {
 		return lastconnect;
 	}
 
+	public String getContentType() {
+		return contentType;
+	}
+	
+	public void setContentType(String contentType) {
+		this.contentType = contentType;
+	}
+	
 	public void setColor(String color) {
 		this.color = color;
 	}
