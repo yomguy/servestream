@@ -24,13 +24,22 @@
 	android:layout_height="wrap_content"
 	android:padding="10dip"
 	>
-		
+
+	<ImageView
+		android:id="@+id/icon"
+		android:layout_width="wrap_content"
+		android:layout_height="wrap_content"
+		android:layout_alignParentLeft="true"
+		/>
+
 	<TextView
 		android:id="@android:id/text1"  
 		android:layout_width="wrap_content"
 		android:layout_height="wrap_content"
+		android:layout_toRightOf="@+id/icon"
 		android:paddingTop="10dip"
 		android:paddingBottom="10dip"
+		android:paddingLeft="4dip"
 		android:paddingRight="20dip"
 		android:singleLine="true"
 		android:ellipsize="end"
