@@ -186,10 +186,6 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
         setContentView(R.layout.acc_streammedia);
         
         Log.v(TAG, "onCreate called");
-        
-		this.setTitle(String.format("%s: %s",
-				getResources().getText(R.string.app_name),
-				getResources().getText(R.string.title_stream_play))); 
 		
 		// get the phone's display width and height
 		getDisplayMeasurements();
@@ -468,12 +464,13 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
 	    if (newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE) {
 	        getWindow().clearFlags(WindowManager.LayoutParams.FLAG_FORCE_NOT_FULLSCREEN);
 	        getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
-	        holder.setFixedSize(displayWidth, displayHeight);
 	    } else {
 	        getWindow().clearFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
 	        getWindow().setFlags(WindowManager.LayoutParams.FLAG_FORCE_NOT_FULLSCREEN, WindowManager.LayoutParams.FLAG_FORCE_NOT_FULLSCREEN);
-	        holder.setFixedSize(displayWidth, displayHeight);
 	    }
+	    
+	    if (holder != null)
+	    	holder.setFixedSize(displayWidth, displayHeight);
 	}
 
     public void surfaceChanged(SurfaceHolder surfaceholder, int i, int j, int k) {
