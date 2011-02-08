@@ -410,16 +410,6 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
 	
 	@Override
 	public boolean onKeyDown(int keyCode, KeyEvent event) {
-		
-	    if (keyCode == KeyEvent.KEYCODE_MENU && mediaControls.isShown()) {
-	    	mediaControls.setVisibility(View.GONE);
-	        return true;
-	    }
-		
-	    if (keyCode == KeyEvent.KEYCODE_BACK && mediaControls.isShown()) {
-	    	mediaControls.setVisibility(View.GONE);
-	        return true;
-	    }
 	    
 	    if (keyCode == KeyEvent.KEYCODE_SEARCH && !mediaControls.isShown()) {
 	    	mediaControls.setVisibility(View.VISIBLE);
@@ -454,7 +444,9 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
 	public void onConfigurationChanged(Configuration newConfig) {
 		super.onConfigurationChanged(newConfig);
 		
-		if (mediaControls.isShown()) {
+		boolean controlsAreVisible = false;
+		
+		if (controlsAreVisible = mediaControls.isShown()) {
 	    	mediaControls.setVisibility(View.GONE);
 		}
 		
@@ -471,6 +463,9 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
 	    
 	    if (holder != null)
 	    	holder.setFixedSize(displayWidth, displayHeight);
+	    
+	    if (controlsAreVisible)
+	    	mediaControls.setVisibility(View.VISIBLE);
 	}
 
     public void surfaceChanged(SurfaceHolder surfaceholder, int i, int j, int k) {
@@ -524,6 +519,7 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
         	startSeekBar();
         	setShuffleButton();
         	setRepeatButton();
+    		mediaControls.setVisibility(View.VISIBLE);
         }
     }
     
