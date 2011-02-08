@@ -212,13 +212,7 @@ public class MediaService extends Service {
     	this.mediaPlayer = mediaPlayer;
     	this.mediaPlayer.setOnPreparedListener(m_onPreparedListener);
     	this.mediaPlayer.setOnCompletionListener(m_onCompletionListener);
-        this.mediaPlayer.setOnErrorListener(new OnErrorListener() {
-			public boolean onError(MediaPlayer arg0, int arg1, int arg2) {
-			    mediaPlayerHandler.sendMessage(Message.obtain(mediaPlayerHandler, ERROR));
-				return true;
-			}
-
-        });
+        this.mediaPlayer.setOnErrorListener(m_onErrorListener);
     }
     
     public String getShuffleState() {
@@ -397,6 +391,25 @@ public class MediaService extends Service {
                 startMedia(mediaFilesIndex);
 			}
 		}
+    };
+    
+    private OnErrorListener m_onErrorListener = new OnErrorListener() {
+
+		public boolean onError(MediaPlayer mp, int what, int extra) {
+			
+			//if (extra == -1004) {
+			//}
+			
+	        // if available, send notification to the activity
+	    	if (streamActivityState == StreamMediaActivity.VISIBLE) {
+	    		mediaPlayerHandler.sendMessage(Message.obtain(mediaPlayerHandler, ERROR));
+	    	} else {
+	    		
+	    	}
+			
+			return true;
+		};
+    	
     };
     
     private PhoneStateListener m_phoneListener = new PhoneStateListener() {
