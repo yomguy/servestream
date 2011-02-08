@@ -139,15 +139,8 @@
 
 	<!-- Window title for Browsing Streams List -->
 	<string name="title_stream_browse">Browse Streams</string>
-
-	<!-- Window title for Playing Streams List -->
-	<string name="title_stream_play">Play Stream</string>
 	
-	<string name="text_previous_button">Previous</string>
-	
-	<string name="text_next_button">Next</string>
-	
-		<!-- Dialog title when a new version of ServeStream is detected. -->
+	<!-- Dialog title when a new version of ServeStream is detected. -->
 	<string name="upgrade">"New version"</string>
 	<!-- Button selection to upgrade to the latest ServeStream when one is available. -->
 	<string name="upgrade_pos">"Yes, upgrade"</string>
