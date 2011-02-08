@@ -40,6 +40,7 @@
 		<RelativeLayout android:id="@+id/media_info"
 						android:layout_width="fill_parent"
 						android:layout_height="wrap_content"
+						android:paddingTop="6dip"
 						android:layout_alignParentTop="true"
 						android:background="@drawable/semi_transparent_background"
 						>
