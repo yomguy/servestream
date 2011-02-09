@@ -33,6 +33,9 @@ public class M3UPlaylistParser {
     private ArrayList<MediaFile> playlistFiles = null;
     private int numberOfFiles = 0;
     
+    private MediaFile mediaFile = null;
+    private boolean processingEntry = false;
+    
 	/**
 	 * Default constructor
 	 */
@@ -68,12 +71,25 @@ public class M3UPlaylistParser {
 		    conn.connect();
         
 		    while ((line = reader.readLine()) != null) {
-		    	if (!(line.equals("#EXTM3U") || line.contains("#EXTINF") || line.trim().equals(""))) {
-		    		numberOfFiles = numberOfFiles + 1;
-		    		MediaFile mediaFile = new MediaFile();
-		    		mediaFile.setURL(line.trim());
-		    		mediaFile.setTrackNumber(numberOfFiles);
-		    		playlistFiles.add(mediaFile);
+		    	if (!(line.equals("#EXTM3U") || line.trim().equals(""))) {
+		    		
+		    		if (line.contains("#EXTINF")) {
+		    			
+		    			mediaFile = new MediaFile();
+		    			
+		    			int index = line.lastIndexOf(',');
+		    			
+		    			if (index != -1)
+		    				mediaFile.setTitle(line.substring(index + 1));
+		    			
+		    			processingEntry = true;
+		    		} else {
+		    			if (!processingEntry)
+		    				mediaFile = new MediaFile();
+		    			
+		    			mediaFile.setURL(line.trim());
+		    			savePlaylistFile();
+		    		}
 		    	}           
             }
 
@@ -85,6 +101,13 @@ public class M3UPlaylistParser {
         }
     }
 
+    public void savePlaylistFile() {
+    	numberOfFiles = numberOfFiles + 1;
+    	mediaFile.setTrackNumber(numberOfFiles);
+    	playlistFiles.add(mediaFile);
+    	processingEntry = false;
+    }
+    
 	/**
 	 * @return the playlistFiles
 	 */

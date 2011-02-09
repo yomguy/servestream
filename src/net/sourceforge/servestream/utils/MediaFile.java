@@ -24,6 +24,7 @@ public class MediaFile {
 
 	private String url = null;
 	private int trackNumber = -1;
+	private String title = null;
 	private long length = -1;
 	
 	/**
@@ -61,6 +62,20 @@ public class MediaFile {
 		return trackNumber;
 	}
 
+	/**
+	 * @param title the title to set
+	 */
+	public void setTitle(String title) {
+		this.title = title;
+	}
+
+	/**
+	 * @return the title
+	 */
+	public String getTitle() {
+		return title;
+	}
+	
 	/**
 	 * @param length the length to set
 	 */
