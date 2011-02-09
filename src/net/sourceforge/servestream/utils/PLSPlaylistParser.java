@@ -84,7 +84,7 @@ public class PLSPlaylistParser {
         		    		mediaFile = new MediaFile();
                             mediaFile.setURL(parsedLine[1].trim());
                         } else if (parsedLine[0].trim().contains("Title")) {
-                            
+                            mediaFile.setTitle(parsedLine[1].trim());
                         } else if (parsedLine[0].trim().contains("Length")) {
                             savePlaylistFile();
                         }			
