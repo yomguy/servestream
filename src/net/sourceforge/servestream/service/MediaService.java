@@ -19,12 +19,14 @@ package net.sourceforge.servestream.service;
 
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.List;
 
 import net.sourceforge.servestream.StreamMediaActivity;
 import net.sourceforge.servestream.dbutils.Stream;
 import net.sourceforge.servestream.dbutils.StreamDatabase;
 import net.sourceforge.servestream.utils.M3UPlaylistParser;
 import net.sourceforge.servestream.utils.MediaFile;
+import net.sourceforge.servestream.utils.NumberGenerator;
 import net.sourceforge.servestream.utils.PLSPlaylistParser;
 
 import android.app.Service;
@@ -69,6 +71,8 @@ public class MediaService extends Service {
 	
     private ArrayList<MediaFile> mediaFiles = null;
 	private int mediaFilesIndex = 0;
+	private List<Integer> shuffleIntegers = null;
+	private int shuffleFilesIndex = 0;
 	
 	private Stream currentStream = null;
 	private String currentlyPlayingTrack = "";
@@ -221,6 +225,11 @@ public class MediaService extends Service {
     
     public void setShuffleState(String shuffleState) {
     	this.shuffleState = shuffleState;
+    	
+    	if (this.shuffleState.equals(SHUFFLE_ON)) {
+    		shuffleIntegers = NumberGenerator.getRandomIntegers(mediaFilesIndex, mediaFiles.size());
+    		shuffleFilesIndex = 0;
+    	}
     }
     
     public String getRepeatState() {
@@ -236,11 +245,21 @@ public class MediaService extends Service {
     }
     
     public void nextMediaFile() {
-    	
-    	if (mediaFilesIndex == (mediaFiles.size() - 1)) {
-    		startMedia(0);
+    	if (shuffleState.equals(SHUFFLE_ON)) {
+    		if (shuffleFilesIndex == (shuffleIntegers.size() - 1)) {
+        		shuffleIntegers = NumberGenerator.getRandomIntegers(mediaFilesIndex, mediaFiles.size());
+        		shuffleFilesIndex = 0;
+    			startMedia(shuffleIntegers.get(shuffleFilesIndex));
+    		} else {
+    			startMedia(shuffleIntegers.get((shuffleFilesIndex + 1)));
+    			shuffleFilesIndex++;
+    		}
     	} else {
-            startMedia(mediaFilesIndex + 1);
+    		if (mediaFilesIndex == (mediaFiles.size() - 1)) {
+    			startMedia(0);
+    		} else {
+    			startMedia(mediaFilesIndex + 1);
+    		}
     	}
     }
     
@@ -259,10 +278,21 @@ public class MediaService extends Service {
     }
     
     public void previousMediaFile() {
-    	if (mediaFilesIndex == 0) {
-    		startMedia((mediaFiles.size() - 1));
+    	if (shuffleState.equals(SHUFFLE_ON)) {
+    		if (shuffleFilesIndex == 0) {
+        		shuffleIntegers = NumberGenerator.getRandomIntegers(mediaFilesIndex, mediaFiles.size());
+        		shuffleFilesIndex = mediaFiles.size() - 1;
+    			startMedia(shuffleIntegers.get(shuffleFilesIndex));
+    		} else {
+    			startMedia(shuffleIntegers.get((shuffleFilesIndex - 1)));
+    			shuffleFilesIndex--;
+    		}
     	} else {
-            startMedia((mediaFilesIndex - 1));
+        	if (mediaFilesIndex == 0) {
+        		startMedia((mediaFiles.size() - 1));
+        	} else {
+                startMedia((mediaFilesIndex - 1));
+        	}
     	}
     }
     
