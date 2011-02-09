@@ -535,7 +535,11 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
     private void getMediaInfo() {
     	MediaFile mediaFile = boundService.getCurrentMediaInfo();
     	trackNumber.setText(String.valueOf(mediaFile.getTrackNumber()) + " / " + String.valueOf(boundService.getNumOfQueuedFiles()));
-    	trackText.setText(mediaFile.getDecodedURL());
+    	
+    	if (mediaFile.getTitle() != null)
+    	    trackText.setText(mediaFile.getTitle());
+    	else
+    		trackText.setText(mediaFile.getDecodedURL());
     }
     
     private void startSeekBar() {
