@@ -147,6 +147,9 @@
 	<!-- Button selection to skip upgrading to the latest ServeStream when one is available. -->
 	<string name="upgrade_neg">"Not right now"</string>
 	
+	<!-- Text shown on widget one when first loaded -->
+	<string name="widget_one_initial_text">"Touch to select media."</string>
+	
 	<!-- Displayed in the notification bar that music service is running -->
 	<string name="app_is_running">"ServeStream is running"</string>
 	
