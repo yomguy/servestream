@@ -98,8 +98,17 @@
 	<!-- Summary for the update check preference -->
 	<string name="pref_update_summary">Set the maximum frequency to check for ServeStream updates</string>
 
-	<!-- Name of the menu entry for donation -->
-	<string name="settings_donate">Donate</string>
+    <!-- Toast after turning repeat off -->
+    <string name="repeat_off_notif">Repeat is off.</string>
+    <!-- Toast after turning single repeat on -->
+    <string name="repeat_current_notif">Repeating current song.</string>
+    <!-- Toast after turning repeat all on -->
+    <string name="repeat_all_notif">Repeating all songs.</string>
+
+    <!-- Toast after turning shuffle on -->
+    <string name="shuffle_on_notif">Shuffle is on.</string>
+    <!-- Toast after turning shuffle off -->
+    <string name="shuffle_off_notif">Shuffle is off.</string>
 
 	<!-- Stream nickname field preference title -->
 	<string name="streampref_nickname_title">Nickname</string>
