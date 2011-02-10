@@ -52,6 +52,7 @@ import android.widget.RelativeLayout;
 import android.widget.SeekBar;
 import android.widget.SeekBar.OnSeekBarChangeListener;
 import android.widget.TextView;
+import android.widget.Toast;
 import android.view.View;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
@@ -86,6 +87,8 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
     private TextView trackNumber, trackText;
     
     private int timeFormat;
+    
+    private Toast toast;
     
     private Handler handler = new Handler();
     
@@ -246,6 +249,7 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
 				if (boundService.getShuffleState().equals(MediaService.SHUFFLE_ON)) {
 					boundService.setShuffleState(MediaService.SHUFFLE_OFF);
 				    shuffleButton.setBackgroundResource(R.drawable.shuffle_disabled_button);
+				    showToast(R.string.shuffle_off_notif);
 				} else if (boundService.getShuffleState().equals(MediaService.SHUFFLE_OFF)) {
 					if (boundService.getRepeatState().equals(MediaService.REPEAT_ONE)) {
 						boundService.setRepeatState(MediaService.REPEAT_ALL);
@@ -254,6 +258,7 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
 					
 					boundService.setShuffleState(MediaService.SHUFFLE_ON);
 					shuffleButton.setBackgroundResource(R.drawable.shuffle_button);
+					showToast(R.string.shuffle_on_notif);
 				}
 			}
 			
@@ -266,6 +271,7 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
 				if (boundService.getRepeatState().equals(MediaService.REPEAT_OFF)) {
 					boundService.setRepeatState(MediaService.REPEAT_ALL);
 				    repeatButton.setBackgroundResource(R.drawable.repeat_all_button);
+				    showToast(R.string.repeat_all_notif);
 				} else if (boundService.getRepeatState().equals(MediaService.REPEAT_ALL)) {
 					if (boundService.getShuffleState().equals(MediaService.SHUFFLE_ON)) {
 						boundService.setShuffleState(MediaService.SHUFFLE_OFF);
@@ -274,9 +280,11 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
 					
 					boundService.setRepeatState(MediaService.REPEAT_ONE);
 					repeatButton.setBackgroundResource(R.drawable.repeat_one_button);
+					showToast(R.string.repeat_current_notif);
 				} else if (boundService.getRepeatState().equals(MediaService.REPEAT_ONE)) {					
 					boundService.setRepeatState(MediaService.REPEAT_OFF);
 					repeatButton.setBackgroundResource(R.drawable.repeat_disabled_button);
+					showToast(R.string.repeat_off_notif);
 				}
 			}
 			
@@ -654,6 +662,19 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
         holder = preview.getHolder();
         holder.addCallback(this);
         holder.setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
+    }
+    
+    /**
+     * 
+     * 
+     * @param resid
+     */
+    private void showToast(int resid) {
+        if (toast == null) {
+            toast = Toast.makeText(this, "", Toast.LENGTH_SHORT);
+        }
+        toast.setText(resid);
+        toast.show();
     }
     
     public String getFormattedTime(long time) {
