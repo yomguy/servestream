@@ -28,6 +28,7 @@ import net.sourceforge.servestream.utils.M3UPlaylistParser;
 import net.sourceforge.servestream.utils.MediaFile;
 import net.sourceforge.servestream.utils.NumberGenerator;
 import net.sourceforge.servestream.utils.PLSPlaylistParser;
+import net.sourceforge.servestream.widget.ServeStreamAppWidgetOneProvider;
 
 import android.app.Service;
 import android.content.Intent;
@@ -63,6 +64,23 @@ public class MediaService extends Service {
 	public static final String REPEAT_ONE = "one";
 	public static final String REPEAT_ALL = "all";
 	
+    public static final String PLAYSTATE_CHANGED = "net.sourceforge.servestream.playstatechanged";
+    public static final String META_CHANGED = "net.sourceforge.servestream.metachanged";
+    public static final String QUEUE_CHANGED = "net.sourceforge.servestream.queuechanged";
+	
+    //public static final String SERVICECMD = "net.sourceforge.servestream.mediaservicecommand";
+    //public static final String CMDNAME = "command";
+    //public static final String CMDTOGGLEPAUSE = "togglepause";
+    //public static final String CMDSTOP = "stop";
+    //public static final String CMDPAUSE = "pause";
+    //public static final String CMDPREVIOUS = "previous";
+    //public static final String CMDNEXT = "next";
+	
+    public static final String TOGGLEPAUSE_ACTION = "net.sourceforge.servestream.mediaservicecommand.togglepause";
+    public static final String PAUSE_ACTION = "net.sourceforge.servestream.mediaservicecommand.pause";
+    public static final String PREVIOUS_ACTION = "net.sourceforge.servestream.mediaservicecommand.previous";
+    public static final String NEXT_ACTION = "net.sourceforge.servestream.mediaservicecommand.next";
+    
 	private int mediaPlayerState = -1;
 	
 	private boolean streamActivityState;
@@ -85,7 +103,9 @@ public class MediaService extends Service {
 	
     public Handler mediaPlayerHandler;
 	public Handler disconnectHandler = null;
-    
+	
+	private ServeStreamAppWidgetOneProvider mAppWidgetProvider = ServeStreamAppWidgetOneProvider.getInstance();
+	
     /**
      * Class for clients to access.  Because we know this service always
      * runs in the same process as its clients, we don't need to deal with
@@ -110,8 +130,29 @@ public class MediaService extends Service {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
+
+        if (intent != null) {
+            String action = intent.getAction();
+            String cmd = intent.getStringExtra("command");
+            Log.i(TAG, "Received start id " + startId + ": " + intent);
+
+            if (NEXT_ACTION.equals(action)) {
+                nextMediaFile();
+            } else if (PREVIOUS_ACTION.equals(action)) {
+                previousMediaFile();
+            } else if (TOGGLEPAUSE_ACTION.equals(action)) {
+                if (isPlaying()) {
+                    pauseMedia();
+                    //mPausedByTransientLossOfFocus = false;
+                } else {
+                    resumeMedia();
+                }
+            } else if (PAUSE_ACTION.equals(action)) {
+                pauseMedia();
+                //mPausedByTransientLossOfFocus = false;
+            }
+        }
     	
-        Log.i(TAG, "Received start id " + startId + ": " + intent);
         // We want this service to continue running until it is explicitly
         // stopped, so return sticky.
         return START_STICKY;
@@ -264,17 +305,21 @@ public class MediaService extends Service {
     }
     
     public void pauseMedia() {
-    	
-    	ConnectionNotifier.getInstance().hideRunningNotification(this);
-    	
-    	mediaPlayer.pause();
+        synchronized(this) {
+            if (isPlaying()) {
+                mediaPlayer.pause();
+                notifyChange(PLAYSTATE_CHANGED);
+            	ConnectionNotifier.getInstance().hideRunningNotification(this);
+            }
+        }
     }
     
     public void resumeMedia() {
-    	
-		ConnectionNotifier.getInstance().showRunningNotification(this);
-    	
-    	mediaPlayer.start();
+        synchronized(this) {
+            mediaPlayer.start();
+            notifyChange(PLAYSTATE_CHANGED);
+            ConnectionNotifier.getInstance().showRunningNotification(this);
+        }
     }
     
     public void previousMediaFile() {
@@ -350,11 +395,6 @@ public class MediaService extends Service {
 	        mediaPlayer.setDataSource(mediaFiles.get(mediaFilesIndex).getURL());
 	        mediaPlayer.prepareAsync();
 	        
-	        //Stream stream = new Stream(mediaFiles.get(mediaFilesIndex).getURL());
-	    	
-	        //if (streamdb.findStream(stream) != null)
-	    	//    streamdb.touchHost(stream);
-	        
     	} catch (Exception ex) {
     		ex.printStackTrace();
     	}
@@ -391,6 +431,8 @@ public class MediaService extends Service {
 		        // send a message to show the media controls 
 		        mediaPlayerHandler.sendMessage(Message.obtain(mediaPlayerHandler, SHOW_MEDIA_CONTROLS));
 	    	}
+	    	
+	    	notifyChange(PLAYSTATE_CHANGED);
 		}
     };
     
@@ -527,6 +569,26 @@ public class MediaService extends Service {
 	    }
     	
     	return true;
+    }
+    
+    private void notifyChange(String what) {
+        
+        /*Intent i = new Intent(what);
+        i.putExtra("id", Long.valueOf(getAudioId()));
+        i.putExtra("artist", getArtistName());
+        i.putExtra("album",getAlbumName());
+        i.putExtra("track", getTrackName());
+        i.putExtra("playing", isPlaying());
+        sendStickyBroadcast(i);
+        
+        if (what.equals(QUEUE_CHANGED)) {
+            saveQueue(true);
+        } else {
+            saveQueue(false);
+        }*/
+        
+        // Share this notification directly with our widgets
+        mAppWidgetProvider.notifyChange(this, what);
     }
     
     /**
