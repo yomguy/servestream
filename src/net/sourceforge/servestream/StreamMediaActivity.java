@@ -245,21 +245,7 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
 		shuffleButton.setOnClickListener(new OnClickListener() {
 
 			public void onClick(View v) {
-				
-				if (boundService.getShuffleState().equals(MediaService.SHUFFLE_ON)) {
-					boundService.setShuffleState(MediaService.SHUFFLE_OFF);
-				    shuffleButton.setBackgroundResource(R.drawable.shuffle_disabled_button);
-				    showToast(R.string.shuffle_off_notif);
-				} else if (boundService.getShuffleState().equals(MediaService.SHUFFLE_OFF)) {
-					if (boundService.getRepeatState().equals(MediaService.REPEAT_ONE)) {
-						boundService.setRepeatState(MediaService.REPEAT_ALL);
-					    repeatButton.setBackgroundResource(R.drawable.repeat_all_button);
-					}
-					
-					boundService.setShuffleState(MediaService.SHUFFLE_ON);
-					shuffleButton.setBackgroundResource(R.drawable.shuffle_button);
-					showToast(R.string.shuffle_on_notif);
-				}
+				toggleShuffle();
 			}
 			
 		});
@@ -267,25 +253,7 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
 		repeatButton.setOnClickListener(new OnClickListener() {
 
 			public void onClick(View v) {
-				
-				if (boundService.getRepeatState().equals(MediaService.REPEAT_OFF)) {
-					boundService.setRepeatState(MediaService.REPEAT_ALL);
-				    repeatButton.setBackgroundResource(R.drawable.repeat_all_button);
-				    showToast(R.string.repeat_all_notif);
-				} else if (boundService.getRepeatState().equals(MediaService.REPEAT_ALL)) {
-					if (boundService.getShuffleState().equals(MediaService.SHUFFLE_ON)) {
-						boundService.setShuffleState(MediaService.SHUFFLE_OFF);
-					    shuffleButton.setBackgroundResource(R.drawable.shuffle_disabled_button);
-					}
-					
-					boundService.setRepeatState(MediaService.REPEAT_ONE);
-					repeatButton.setBackgroundResource(R.drawable.repeat_one_button);
-					showToast(R.string.repeat_current_notif);
-				} else if (boundService.getRepeatState().equals(MediaService.REPEAT_ONE)) {					
-					boundService.setRepeatState(MediaService.REPEAT_OFF);
-					repeatButton.setBackgroundResource(R.drawable.repeat_disabled_button);
-					showToast(R.string.repeat_off_notif);
-				}
+				cycleRepeat();
 			}
 			
 		});
@@ -525,8 +493,8 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
         	} */
         	getMediaInfo();
         	startSeekBar();
-        	setShuffleButton();
-        	setRepeatButton();
+        	setShuffleButtonImage();
+        	setRepeatButtonImage();
     		mediaControls.setVisibility(View.VISIBLE);
         }
     }
@@ -563,22 +531,6 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
     	}
     	
         new Thread(this).start();
-    }
-    
-    private void setShuffleButton() {
-    	if (boundService.getShuffleState().equals(MediaService.SHUFFLE_OFF))
-        	shuffleButton.setBackgroundResource(R.drawable.shuffle_disabled_button);
-        else if (boundService.getShuffleState().equals(MediaService.SHUFFLE_ON))
-        	shuffleButton.setBackgroundResource(R.drawable.shuffle_button);
-    }
-    
-    private void setRepeatButton() {
-        if (boundService.getRepeatState().equals(MediaService.REPEAT_OFF))
-        	repeatButton.setBackgroundResource(R.drawable.repeat_disabled_button);
-        else if (boundService.getRepeatState().equals(MediaService.REPEAT_ALL))
-        	repeatButton.setBackgroundResource(R.drawable.repeat_all_button);
-        else if (boundService.getRepeatState().equals(MediaService.REPEAT_ONE))
-        	repeatButton.setBackgroundResource(R.drawable.repeat_one_button);
     }
     
     private void showMediaInfoAndControls() {
@@ -675,6 +627,80 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
         }
         toast.setText(resid);
         toast.show();
+    }
+    
+    private void toggleShuffle() {
+        if (boundService == null) {
+            return;
+        }
+        
+        int shuffle = boundService.getShuffleMode();
+        if (shuffle == MediaService.SHUFFLE_NONE) {
+            boundService.setShuffleMode(MediaService.SHUFFLE_ON);
+            if (boundService.getRepeatMode() == MediaService.REPEAT_CURRENT) {
+                boundService.setRepeatMode(MediaService.REPEAT_ALL);
+                setRepeatButtonImage();
+            }
+            showToast(R.string.shuffle_on_notif);
+        } else if (shuffle == MediaService.SHUFFLE_ON) {
+            boundService.setShuffleMode(MediaService.SHUFFLE_NONE);
+            showToast(R.string.shuffle_off_notif);
+        } else {
+            Log.e(TAG, "Invalid shuffle mode: " + shuffle);
+        }
+        setShuffleButtonImage();
+    }
+    
+    private void cycleRepeat() {
+        if (boundService == null) {
+            return;
+        }
+        
+        int mode = boundService.getRepeatMode();
+        if (mode == MediaService.REPEAT_NONE) {
+           boundService.setRepeatMode(MediaService.REPEAT_ALL);
+           showToast(R.string.repeat_all_notif);
+        } else if (mode == MediaService.REPEAT_ALL) {
+            boundService.setRepeatMode(MediaService.REPEAT_CURRENT);
+            if (boundService.getShuffleMode() != MediaService.SHUFFLE_NONE) {
+                boundService.setShuffleMode(MediaService.SHUFFLE_NONE);
+                setShuffleButtonImage();
+            }
+            showToast(R.string.repeat_current_notif);
+        } else {
+            boundService.setRepeatMode(MediaService.REPEAT_NONE);
+            showToast(R.string.repeat_off_notif);
+        }
+        setRepeatButtonImage();
+    }
+    
+    private void setShuffleButtonImage() {
+        if (boundService == null) return;
+            
+        switch (boundService.getShuffleMode()) {
+            case MediaService.SHUFFLE_NONE:
+                shuffleButton.setBackgroundResource(R.drawable.shuffle_disabled_button);
+                break;
+            default:
+                shuffleButton.setBackgroundResource(R.drawable.shuffle_button);
+                break;
+        }
+    }
+    
+    private void setRepeatButtonImage() {
+        if (boundService == null) return;
+
+        switch (boundService.getRepeatMode()) {
+            case MediaService.REPEAT_ALL:
+                repeatButton.setBackgroundResource(R.drawable.repeat_all_button);
+                break;
+            case MediaService.REPEAT_CURRENT:
+                repeatButton.setBackgroundResource(R.drawable.repeat_one_button);
+                break;
+            default:
+                repeatButton.setBackgroundResource(R.drawable.repeat_disabled_button);
+                break;
+        }
     }
     
     public String getFormattedTime(long time) {

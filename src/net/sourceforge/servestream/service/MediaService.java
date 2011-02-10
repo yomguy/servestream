@@ -55,14 +55,14 @@ public class MediaService extends Service {
 	public static final int START_DIALOG = 400;
 	public static final int STOP_DIALOG = 500;
 	
-	private String shuffleState;
-	public static final String SHUFFLE_OFF = "off";
-	public static final String SHUFFLE_ON = "on";
+	private int shuffleMode;
+    public static final int SHUFFLE_NONE = 0;
+    public static final int SHUFFLE_ON = 1;
 	
-	private String repeatState;
-	public static final String REPEAT_OFF = "off";
-	public static final String REPEAT_ONE = "one";
-	public static final String REPEAT_ALL = "all";
+	private int repeatMode;
+    public static final int REPEAT_NONE = 0;
+    public static final int REPEAT_CURRENT = 1;
+    public static final int REPEAT_ALL = 2;
 	
     public static final String PLAYSTATE_CHANGED = "net.sourceforge.servestream.playstatechanged";
     public static final String META_CHANGED = "net.sourceforge.servestream.metachanged";
@@ -251,8 +251,8 @@ public class MediaService extends Service {
     }
     
     public void setMediaPlayer(MediaPlayer mediaPlayer) {
-    	shuffleState = SHUFFLE_OFF;
-    	repeatState = REPEAT_OFF;
+    	shuffleMode = SHUFFLE_NONE;
+    	repeatMode = REPEAT_NONE;
     	
     	this.mediaPlayer = mediaPlayer;
     	this.mediaPlayer.setOnPreparedListener(m_onPreparedListener);
@@ -260,25 +260,25 @@ public class MediaService extends Service {
         this.mediaPlayer.setOnErrorListener(m_onErrorListener);
     }
     
-    public String getShuffleState() {
-    	return shuffleState;
+    public int getShuffleMode() {
+    	return shuffleMode;
     }
     
-    public void setShuffleState(String shuffleState) {
-    	this.shuffleState = shuffleState;
+    public void setShuffleMode(int shuffleMode) {
+    	this.shuffleMode = shuffleMode;
     	
-    	if (this.shuffleState.equals(SHUFFLE_ON)) {
+    	if (this.shuffleMode == SHUFFLE_ON) {
     		shuffleIntegers = NumberGenerator.getRandomIntegers(mediaFilesIndex, mediaFiles.size());
     		shuffleFilesIndex = 0;
     	}
     }
     
-    public String getRepeatState() {
-    	return repeatState;
+    public int getRepeatMode() {
+    	return repeatMode;
     }
     
-    public void setRepeatState(String repeatState) {
-    	this.repeatState = repeatState;
+    public void setRepeatMode(int repeatMode) {
+    	this.repeatMode = repeatMode;
     }
     
     public void startMediaPlayer() {
@@ -286,7 +286,7 @@ public class MediaService extends Service {
     }
     
     public void nextMediaFile() {
-    	if (shuffleState.equals(SHUFFLE_ON)) {
+    	if (shuffleMode == SHUFFLE_ON) {
     		if (shuffleFilesIndex == (shuffleIntegers.size() - 1)) {
         		shuffleIntegers = NumberGenerator.getRandomIntegers(mediaFilesIndex, mediaFiles.size());
         		shuffleFilesIndex = 0;
@@ -323,7 +323,7 @@ public class MediaService extends Service {
     }
     
     public void previousMediaFile() {
-    	if (shuffleState.equals(SHUFFLE_ON)) {
+    	if (shuffleMode == SHUFFLE_ON) {
     		if (shuffleFilesIndex == 0) {
         		shuffleIntegers = NumberGenerator.getRandomIntegers(mediaFilesIndex, mediaFiles.size());
         		shuffleFilesIndex = mediaFiles.size() - 1;
@@ -441,7 +441,7 @@ public class MediaService extends Service {
 		public void onCompletion(MediaPlayer mp) {
 
 			// if repeat preference is set to one, play the media file again
-			if (repeatState.equals(REPEAT_ONE)) {
+			if (repeatMode == REPEAT_CURRENT) {
 			    startMedia(mediaFilesIndex);
 				return;
 			}
@@ -449,7 +449,7 @@ public class MediaService extends Service {
 			mediaFilesIndex++;
 			
 			if (mediaFilesIndex == mediaFiles.size()) {
-				if (repeatState.equals(REPEAT_ALL)) {
+				if (repeatMode == REPEAT_ALL) {
 					startMedia(0);
 					return;
 				}
