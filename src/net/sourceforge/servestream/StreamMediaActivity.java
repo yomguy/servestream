@@ -120,6 +120,10 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
 		        makeSurface();
 			    Log.v(TAG, "Surface Made");
 		    }
+        	
+        	Log.v(TAG, "setting buttom image");
+        	setShuffleButtonImage();
+        	setRepeatButtonImage();
 	    }
 
 	    public void onServiceDisconnected(ComponentName className) {
@@ -489,8 +493,6 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
         	} */
         	getMediaInfo();
         	startSeekBar();
-        	setShuffleButtonImage();
-        	setRepeatButtonImage();
     		mediaControls.setVisibility(View.VISIBLE);
         }
     }
