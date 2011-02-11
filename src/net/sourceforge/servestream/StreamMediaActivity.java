@@ -21,6 +21,7 @@ import net.sourceforge.servestream.R;
 import net.sourceforge.servestream.dbutils.Stream;
 import net.sourceforge.servestream.service.MediaService;
 import net.sourceforge.servestream.utils.MediaFile;
+import net.sourceforge.servestream.utils.MusicUtils;
 
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -85,8 +86,6 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
     private SeekBar seekBar;
     private TextView positionText, durationText;
     private TextView trackNumber, trackText;
-    
-    private int timeFormat;
     
     private Toast toast;
     
@@ -218,7 +217,8 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
 
 			public void onProgressChanged(SeekBar seekBar, int progress,
 					boolean fromUser) {
-		    	positionText.setText(getFormattedTime(progress, getTimeFormat()));
+		    	//positionText.setText(getFormattedTime(progress, getTimeFormat()));
+				updateProgress(progress);
 			}
 
 			public void onStartTrackingTouch(SeekBar seekBar) {
@@ -521,14 +521,17 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
     private void startSeekBar() {
     	int duration = mediaPlayer.getDuration();
     	
-    	setTimeFormat(mediaPlayer.getDuration());
-    	durationText.setText(getFormattedTime(duration));
+    	//mCurrentTime.setText(MusicUtils.makeTimeString(this, pos / 1000));
+    	//setTimeFormat(mediaPlayer.getDuration());
+    	//durationText.setText(getFormattedTime(duration));
+    	refreshNow();
+    	durationText.setText(MusicUtils.makeTimeString(this, duration / 1000));
     	
-    	if (duration == 0) {
+    	/*if (duration == 0) {
         	positionText.setText(getFormattedTime(0, getTimeFormat()));
     	} else {
     	    positionText.setText(getFormattedTime(mediaPlayer.getCurrentPosition(), getTimeFormat()));
-    	}
+    	}*/
     	
         new Thread(this).start();
     }
@@ -702,80 +705,40 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
                 break;
         }
     }
-    
-    public String getFormattedTime(long time) {
-    	long elapsedTime = time;
-    	String formattedTime = "";
+
+    private long refreshNow() {
     	
-    	if (time == 0) {
-    		return "00:00";
-    	} else {
-    	    String format = String.format("%%0%dd", 2);
-    	    elapsedTime = elapsedTime / 1000;
-    	    String seconds = String.format(format, elapsedTime % 60);
-    	    String minutes = String.format(format, (elapsedTime % 3600) / 60);
-    	    String hours = String.format(format, elapsedTime / 3600);
-        
-            if (!hours.equals("00")) {
-                formattedTime = hours + ":" + minutes + ":" + seconds;
-            } else if (!minutes.equals("00")) {
-        	    formattedTime = minutes + ":" + seconds;
-            } else {
-        	    formattedTime = seconds;
-            }
-    	}
-            
-        return formattedTime;  
+    	long duration = mediaPlayer.getDuration();
+    	
+        if(boundService == null)
+            return 500;
+        //long pos = mPosOverride < 0 ? mediaPlayer.position() : mPosOverride;
+		long pos = mediaPlayer.getCurrentPosition();
+		long remaining = 1000 - (pos % 1000);
+		if ((pos >= 0) && (duration > 0)) {
+			positionText.setText(MusicUtils.makeTimeString(this, pos / 1000));
+		    
+		    if (boundService.isPlaying()) {
+		    	positionText.setVisibility(View.VISIBLE);
+		    } else {
+		        // blink the counter
+		        int vis = positionText.getVisibility();
+		        positionText.setVisibility(vis == View.INVISIBLE ? View.VISIBLE : View.INVISIBLE);
+		        remaining = 500;
+		    }
+
+		    //mProgress.setProgress((int) (1000 * pos / mDuration));
+		} else {
+			positionText.setText("--:--");
+		    //mProgress.setProgress(1000);
+		}
+		// return the number of milliseconds until the next full second, so
+		// the counter can be updated at just the right time
+		return remaining;
     }
     
-    public String getFormattedTime(long time, int timeFormat) {
-    	long elapsedTime = time;
-    	String formattedTime = "";
-    	
-    	if (time == 0) {
-    		return "00:00";
-    	} else {
-    	    String format = String.format("%%0%dd", 2);
-    	    elapsedTime = elapsedTime / 1000;
-    	    String seconds = String.format(format, elapsedTime % 60);
-    	    String minutes = String.format(format, (elapsedTime % 3600) / 60);
-    	    String hours = String.format(format, elapsedTime / 3600);
-        
-            if (timeFormat == 1) {
-                formattedTime = hours + ":" + minutes + ":" + seconds;
-            } else if (timeFormat == 2) {
-        	    formattedTime = minutes + ":" + seconds;
-            } else if (timeFormat == 3) {
-        	    formattedTime = seconds;
-            }
-    	}
-        
-        return formattedTime;
-    }
-    
-    public int getTimeFormat() {
-    	return this.timeFormat;
-    }
-    
-    public void setTimeFormat(long time) {
-    	long elapsedTime = time;
-    	
-    	if (time == 0) {
-    	    this.timeFormat = 2;	
-    	} else {
-    	    String format = String.format("%%0%dd", 2);
-    	    elapsedTime = elapsedTime / 1000;
-    	    String minutes = String.format(format, (elapsedTime % 3600) / 60);
-    	    String hours = String.format(format, elapsedTime / 3600);
-        
-            if (!hours.equals("00")) {
-        	    this.timeFormat = 1;
-            } else if (!minutes.equals("00")) {
-        	    this.timeFormat = 2;
-            } else {
-        	    this.timeFormat = 3;
-            }
-        }
+    private void updateProgress(int progress) {
+    	positionText.setText(MusicUtils.makeTimeString(this, Long.valueOf(progress) / 1000));
     }
     
     private void errorOpeningMediaMessage() {

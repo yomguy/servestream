@@ -18,7 +18,7 @@
  */
 -->
 
-<resources>
+<resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
 	
 	<string name="app_desc">An Open-Source HTTP Media Stream Browser and Player.</string>
 	<string name="service_desc">"Allows media to play in the background"</string>
@@ -41,6 +41,21 @@
 	<string name="delete_message">Are you sure you want to delete \'%1$s\'?</string>
 	<string name="delete_pos">Yes, delete</string>
 	<string name="delete_neg">Cancel</string>
+
+    <!--
+    This string is used as the format string in a String.format call,
+    and 5 additional arguments are available for printing:
+    1 - hours
+    2 - minutes
+    3 - minutes%60
+    4 - seconds
+    5 - second%60
+    -->
+    <skip/>
+    <!-- Do not translate. Duration format for duration < 1 hour -->
+    <string translatable="false" name="durationformatshort"><xliff:g id="format">%2$d:%5$02d</xliff:g></string>
+    <!-- Do not translate. Duration format for duration >= 1 hour -->
+    <string translatable="false" name="durationformatlong"><xliff:g id="format">%1$d:%3$02d:%5$02d</xliff:g></string>
 
 	<string name="invalid_playlist_title">Cannot play playlist file</string>
 	<string name="invalid_playlist_message">Sorry, the selected playlist file had no valid entries.</string>
