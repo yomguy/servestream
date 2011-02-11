@@ -517,9 +517,6 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
     private void startSeekBar() {
     	long duration = boundService.getDuration();
     	
-    	//mCurrentTime.setText(MusicUtils.makeTimeString(this, pos / 1000));
-    	//setTimeFormat(mediaPlayer.getDuration());
-    	//durationText.setText(getFormattedTime(duration));
     	refreshNow();
     	durationText.setText(MusicUtils.makeTimeString(this, duration / 1000));
     	
@@ -565,7 +562,7 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
         while (mediaPlayer != null && currentPosition < duration && !boundService.isOpeningMedia()) {
             try {
                 Thread.sleep(1000);
-                currentPosition = mediaPlayer.getCurrentPosition();
+                currentPosition = boundService.getPosition();
             } catch (Exception ex) {
                 return;
             }            
@@ -589,16 +586,6 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
 				} else {
 				    mediaControls.startAnimation(media_controls_fade_in);
 				    mediaControls.setVisibility(View.VISIBLE);
-					
-					/*handler.postDelayed(new Runnable() {
-						public void run() {
-							if (mediaControllerGroup.getVisibility() == View.GONE)
-								return;
-
-							mediaControllerGroup.startAnimation(media_controls_fade_out);
-							mediaControllerGroup.setVisibility(View.GONE);
-						}
-					}, MEDIA_CONTROLS_DISPLAY_TIME);*/
 				}
 				return false;
 			}
@@ -698,12 +685,12 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
 
     private long refreshNow() {
     	
-    	long duration = mediaPlayer.getDuration();
-    	
         if(boundService == null)
             return 500;
+        //TODO fix this added line
+    	long duration = boundService.getDuration();
         //long pos = mPosOverride < 0 ? mediaPlayer.position() : mPosOverride;
-		long pos = mediaPlayer.getCurrentPosition();
+		long pos = boundService.getPosition();
 		long remaining = 1000 - (pos % 1000);
 		if ((pos >= 0) && (duration > 0)) {
 			positionText.setText(MusicUtils.makeTimeString(this, pos / 1000));
