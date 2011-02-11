@@ -284,12 +284,14 @@ public class MediaService extends Service {
     }
     
     public void setShuffleMode(int shuffleMode) {
-    	this.shuffleMode = shuffleMode;
+        synchronized(this) {
+        	this.shuffleMode = shuffleMode;
     	
-    	if (this.shuffleMode == SHUFFLE_ON) {
-    		shuffleIntegers = NumberGenerator.getRandomIntegers(mediaFilesIndex, mediaFiles.size());
-    		shuffleFilesIndex = 0;
-    	}
+        	if (this.shuffleMode == SHUFFLE_ON) {
+        		shuffleIntegers = NumberGenerator.getRandomIntegers(mediaFilesIndex, mediaFiles.size());
+        		shuffleFilesIndex = 0;
+        	}
+        }
     }
     
     public int getRepeatMode() {
@@ -297,7 +299,9 @@ public class MediaService extends Service {
     }
     
     public void setRepeatMode(int repeatMode) {
-    	this.repeatMode = repeatMode;
+        synchronized(this) {
+        	this.repeatMode = repeatMode;
+        }
     }
     
     public void startMediaPlayer() {
