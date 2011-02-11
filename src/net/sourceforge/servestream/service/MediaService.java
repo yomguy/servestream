@@ -249,6 +249,28 @@ public class MediaService extends Service {
     public MediaPlayer getMediaPlayer() {
     	return this.mediaPlayer;
     }
+
+    /**
+     * Returns the current playback position in milliseconds
+     */
+    public long getPosition() {
+    	if (mediaPlayer != null) {
+        //if (mediaPlayer.isInitialized()) {
+            return mediaPlayer.getCurrentPosition();
+        }
+        return -1;
+    }
+
+    /**
+     * Returns the current playback duration in milliseconds
+     */
+    public long getDuration() {
+    	if (mediaPlayer != null) {
+        //if (mediaPlayer.isInitialized()) {
+            return mediaPlayer.getDuration();
+        }
+        return -1;
+    }
     
     public void setMediaPlayer(MediaPlayer mediaPlayer) {
     	shuffleMode = SHUFFLE_NONE;
