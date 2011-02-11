@@ -61,8 +61,6 @@ import android.view.animation.AnimationUtils;
 public class StreamMediaActivity extends Activity implements SurfaceHolder.Callback, Runnable {
     private static final String TAG = "ServeStream.StreamMediaActivity";
     
-	//private static final int MEDIA_CONTROLS_DISPLAY_TIME = 5000;
-    
 	public static final boolean VISIBLE = true;
 	public static final boolean NOT_VISIBLE = false;
 	
@@ -194,13 +192,11 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
 
 		// obtain the requested stream
 		if (getIntent().getData() == null) {
-			Log.e(TAG, "Got null intent data in onCreate()");
 			requestedStream = null;
 		} else {
 			try {
 				requestedStream = new Stream(getIntent().getData().toString());
 			} catch (Exception ex) {
-				//TODO add handling here
 				ex.printStackTrace();
 			}
 		}
@@ -519,19 +515,13 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
     }
     
     private void startSeekBar() {
-    	int duration = mediaPlayer.getDuration();
+    	long duration = boundService.getDuration();
     	
     	//mCurrentTime.setText(MusicUtils.makeTimeString(this, pos / 1000));
     	//setTimeFormat(mediaPlayer.getDuration());
     	//durationText.setText(getFormattedTime(duration));
     	refreshNow();
     	durationText.setText(MusicUtils.makeTimeString(this, duration / 1000));
-    	
-    	/*if (duration == 0) {
-        	positionText.setText(getFormattedTime(0, getTimeFormat()));
-    	} else {
-    	    positionText.setText(getFormattedTime(mediaPlayer.getCurrentPosition(), getTimeFormat()));
-    	}*/
     	
         new Thread(this).start();
     }
@@ -566,11 +556,11 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
     
     public void run() {
     	
-    	int currentPosition = mediaPlayer.getCurrentPosition();
-        int duration = mediaPlayer.getDuration();
+    	long currentPosition = boundService.getPosition();
+        long duration = boundService.getDuration();
         
-        seekBar.setProgress(currentPosition);
-        seekBar.setMax(duration);
+        seekBar.setProgress((int)currentPosition);
+        seekBar.setMax((int)duration);
         
         while (mediaPlayer != null && currentPosition < duration && !boundService.isOpeningMedia()) {
             try {
@@ -583,7 +573,7 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
             //Log.v(TAG, "Still seeking");
             
             if (!userIsSeeking) {
-                seekBar.setProgress(currentPosition);
+                seekBar.setProgress((int)currentPosition);
             }
         }
     }
