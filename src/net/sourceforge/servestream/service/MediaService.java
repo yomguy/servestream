@@ -55,14 +55,14 @@ public class MediaService extends Service {
 	public static final int START_DIALOG = 400;
 	public static final int STOP_DIALOG = 500;
 	
-	private int shuffleMode;
     public static final int SHUFFLE_NONE = 0;
     public static final int SHUFFLE_ON = 1;
+	private int shuffleMode = SHUFFLE_NONE;
 	
-	private int repeatMode;
     public static final int REPEAT_NONE = 0;
     public static final int REPEAT_CURRENT = 1;
     public static final int REPEAT_ALL = 2;
+	private int repeatMode = REPEAT_NONE;;
 	
     public static final String PLAYSTATE_CHANGED = "net.sourceforge.servestream.playstatechanged";
     public static final String META_CHANGED = "net.sourceforge.servestream.metachanged";
@@ -273,9 +273,6 @@ public class MediaService extends Service {
     }
     
     public void setMediaPlayer(MediaPlayer mediaPlayer) {
-    	shuffleMode = SHUFFLE_NONE;
-    	repeatMode = REPEAT_NONE;
-    	
     	this.mediaPlayer = mediaPlayer;
     	this.mediaPlayer.setOnPreparedListener(m_onPreparedListener);
     	this.mediaPlayer.setOnCompletionListener(m_onCompletionListener);
