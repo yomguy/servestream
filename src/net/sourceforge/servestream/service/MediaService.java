@@ -53,7 +53,6 @@ public class MediaService extends Service {
 	public final static String TAG = "ServeStream.MediaService";
 
 	public static final int ERROR = -2147483648;
-	public static final int PREPARE_MEDIA_INFO = 100;
 	public static final int SHOW_MEDIA_CONTROLS = 200;
 	public static final int START_SEEK_BAR = 300;
 	public static final int START_DIALOG = 400;
@@ -191,6 +190,8 @@ public class MediaService extends Service {
 		ConnectionNotifier.getInstance().hideRunningNotification(this);
 		
 		releaseMediaPlayer();
+		
+		unregisterReceiver(mIntentReceiver);
     }
 
     // This is the object that receives interactions from clients.  See
@@ -328,6 +329,7 @@ public class MediaService extends Service {
     }
     
     public void nextMediaFile() {
+    	
     	if (shuffleMode == SHUFFLE_ON) {
     		if (shuffleFilesIndex == (shuffleIntegers.size() - 1)) {
         		shuffleIntegers = NumberGenerator.getRandomIntegers(mediaFilesIndex, mediaFiles.size());
@@ -344,6 +346,8 @@ public class MediaService extends Service {
     			startMedia(mediaFilesIndex + 1);
     		}
     	}
+    	
+    	notifyChange(META_CHANGED);
     }
     
     public void pauseMedia() {
@@ -383,6 +387,8 @@ public class MediaService extends Service {
                 startMedia((mediaFilesIndex - 1));
         	}
     	}
+    	
+    	notifyChange(META_CHANGED);
     }
     
     public void seekTo(int position) {
@@ -463,9 +469,6 @@ public class MediaService extends Service {
 	        // if available, send notifications to the activity
 	    	if (streamActivityState == StreamMediaActivity.VISIBLE) {
 	    		
-	    		// send a message to prepare media information
-		        mediaPlayerHandler.sendMessage(Message.obtain(mediaPlayerHandler, PREPARE_MEDIA_INFO));
-	    		
 		        // send a message to start the seek bar 
 		        mediaPlayerHandler.sendMessage(Message.obtain(mediaPlayerHandler, START_SEEK_BAR));
 			
@@ -477,7 +480,7 @@ public class MediaService extends Service {
 	    	}
 	    	
 	    	isSupposedToBePlaying = true;
-	    	notifyChange(PLAYSTATE_CHANGED);
+	    	notifyChange(META_CHANGED);
 		}
     };
     
@@ -618,19 +621,10 @@ public class MediaService extends Service {
     
     private void notifyChange(String what) {
         
-        /*Intent i = new Intent(what);
-        i.putExtra("id", Long.valueOf(getAudioId()));
-        i.putExtra("artist", getArtistName());
-        i.putExtra("album",getAlbumName());
-        i.putExtra("track", getTrackName());
-        i.putExtra("playing", isPlaying());
+    	Log.v(TAG, "Sending broadcast message");
+    	
+        Intent i = new Intent(what);
         sendStickyBroadcast(i);
-        
-        if (what.equals(QUEUE_CHANGED)) {
-            saveQueue(true);
-        } else {
-            saveQueue(false);
-        }*/
         
         // Share this notification directly with our widgets
         mAppWidgetProvider.notifyChange(this, what);

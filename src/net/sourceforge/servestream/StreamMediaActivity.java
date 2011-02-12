@@ -26,10 +26,12 @@ import net.sourceforge.servestream.utils.MusicUtils;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
+import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.content.res.Configuration;
 import android.media.MediaPlayer;
@@ -163,9 +165,6 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
 						}
 						}).create().show();
 					break;
-		        case MediaService.PREPARE_MEDIA_INFO:
-		        	updateMediaInfo();
-		        	break;
 		        case MediaService.START_SEEK_BAR:
                     startSeekBar();
 	                break;
@@ -281,8 +280,6 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
 			public void onClick(View v) {
 				boundService.previousMediaFile();
 				
-				playPauseButton.setBackgroundResource(R.drawable.pause_button);
-				
 			    mediaControls.startAnimation(media_controls_fade_out);
 				mediaControls.setVisibility(View.GONE);
 			}
@@ -312,8 +309,6 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
 
 			public void onClick(View v) {
 				boundService.nextMediaFile();
-				
-				playPauseButton.setBackgroundResource(R.drawable.pause_button);
 
 			    mediaControls.startAnimation(media_controls_fade_out);
 				mediaControls.setVisibility(View.GONE);
@@ -331,6 +326,11 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
 		// connect with manager service to find all bridges
 		// when connected it will insert all views
 		bindService(new Intent(this, MediaService.class), connection, Context.BIND_AUTO_CREATE);
+		
+        IntentFilter f = new IntentFilter();
+        f.addAction(MediaService.PLAYSTATE_CHANGED);
+        f.addAction(MediaService.META_CHANGED);
+        registerReceiver(mStatusListener, new IntentFilter(f));
 	}
 	
 	@Override
@@ -350,6 +350,8 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
 		super.onStop();
 		
 		Log.v(TAG, "onStop called");
+		
+		unregisterReceiver(mStatusListener);
 		
         //unbindService(connection);
 	}
@@ -738,6 +740,24 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
     private void updateProgress(int progress) {
     	positionText.setText(MusicUtils.makeTimeString(this, Long.valueOf(progress) / 1000));
     }
+    
+    private BroadcastReceiver mStatusListener = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+        	
+        	Log.v(TAG, "received broadcast message");
+        	
+            String action = intent.getAction();
+            if (action.equals(MediaService.META_CHANGED)) {
+                // redraw the artist/title info and
+                // set new max for progress bar
+                updateMediaInfo();
+                setPlayPauseButtonImage();
+            } else if (action.equals(MediaService.PLAYSTATE_CHANGED)) {
+                setPlayPauseButtonImage();
+            }
+        }
+    };
     
     private void errorOpeningMediaMessage() {
 		new AlertDialog.Builder(StreamMediaActivity.this)
