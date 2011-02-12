@@ -363,7 +363,7 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
         Log.v(TAG, "onResume called");
         
         //updateTrackInfo();
-        setPlayPauseButtonImage();
+        //setPlayPauseButtonImage();
     }
 	
 	@Override
@@ -520,6 +520,11 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
     }
     
     private void updateMediaInfo() {
+    	
+        if (boundService == null) {
+            return;
+        }
+    	
     	MediaFile mediaFile = boundService.getCurrentMediaInfo();
     	trackNumber.setText(String.valueOf(mediaFile.getTrackNumber()) + " / " + String.valueOf(boundService.getNumOfQueuedFiles()));
     	
@@ -745,9 +750,12 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
         @Override
         public void onReceive(Context context, Intent intent) {
         	
-        	Log.v(TAG, "received broadcast message");
-        	
             String action = intent.getAction();
+            try {
+            Log.v(TAG, "received broadcast message: " + action);
+            } catch (Exception ex) {
+            	
+            }
             if (action.equals(MediaService.META_CHANGED)) {
                 // redraw the artist/title info and
                 // set new max for progress bar
