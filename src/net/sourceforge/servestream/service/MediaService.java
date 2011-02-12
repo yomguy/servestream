@@ -79,7 +79,7 @@ public class MediaService extends Service {
     public static final String PREVIOUS_ACTION = "net.sourceforge.servestream.mediaservicecommand.previous";
     public static final String NEXT_ACTION = "net.sourceforge.servestream.mediaservicecommand.next";
     
-	private int mediaPlayerState = -1;
+	private boolean pausedDuringPhoneCall = false;
 	
 	private boolean streamActivityState;
 	
@@ -519,18 +519,19 @@ public class MediaService extends Service {
                 case TelephonyManager.CALL_STATE_RINGING:
                     if (isPlaying()) {
                     	pauseMedia();
-                    	mediaPlayerState = 0;
+                    	pausedDuringPhoneCall = true;
                     }
                     break;
                 case TelephonyManager.CALL_STATE_OFFHOOK:
-                    /*if (mediaPlayer.isPlaying()) {
+                    if (isPlaying()) {
                     	pauseMedia();
-                    	//mediaPlayerState = 0;
-                    }*/
+                    	pausedDuringPhoneCall = true;
+                    }
+                    break;
                 case TelephonyManager.CALL_STATE_IDLE:
-                	if (mediaPlayerState == 0) {
+                	if (pausedDuringPhoneCall) {
                         resumeMedia();
-                        mediaPlayerState = 0;
+                        pausedDuringPhoneCall = false;
                 	}
                 	break;
                 default:
