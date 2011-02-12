@@ -164,8 +164,8 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
 						}).create().show();
 					break;
 		        case MediaService.PREPARE_MEDIA_INFO:
-		        	updateMediaInfo();
-		        	break;
+		        	//();
+		        	//break;
 		        case MediaService.START_SEEK_BAR:
                     startSeekBar();
 	                break;
@@ -387,7 +387,6 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
 			try {
 				requestedStream = new Stream(intent.getData().toString());
 			} catch (Exception ex) {
-				//TODO add handling here
 				ex.printStackTrace();
 			}
 		}
