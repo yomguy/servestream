@@ -31,7 +31,11 @@ import net.sourceforge.servestream.utils.PLSPlaylistParser;
 import net.sourceforge.servestream.widget.ServeStreamAppWidgetOneProvider;
 
 import android.app.Service;
+import android.appwidget.AppWidgetManager;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.media.MediaPlayer;
 import android.media.MediaPlayer.OnCompletionListener;
 import android.media.MediaPlayer.OnErrorListener;
@@ -68,13 +72,8 @@ public class MediaService extends Service {
     public static final String META_CHANGED = "net.sourceforge.servestream.metachanged";
     public static final String QUEUE_CHANGED = "net.sourceforge.servestream.queuechanged";
 	
-    //public static final String SERVICECMD = "net.sourceforge.servestream.mediaservicecommand";
-    //public static final String CMDNAME = "command";
-    //public static final String CMDTOGGLEPAUSE = "togglepause";
-    //public static final String CMDSTOP = "stop";
-    //public static final String CMDPAUSE = "pause";
-    //public static final String CMDPREVIOUS = "previous";
-    //public static final String CMDNEXT = "next";
+    public static final String SERVICECMD = "net.sourceforge.servestream.mediaservicecommand";
+    public static final String CMDNAME = "command";
 	
     public static final String TOGGLEPAUSE_ACTION = "net.sourceforge.servestream.mediaservicecommand.togglepause";
     public static final String PAUSE_ACTION = "net.sourceforge.servestream.mediaservicecommand.pause";
@@ -104,7 +103,25 @@ public class MediaService extends Service {
     public Handler mediaPlayerHandler;
 	public Handler disconnectHandler = null;
 	
+	private boolean isSupposedToBePlaying = false;
+	
 	private ServeStreamAppWidgetOneProvider mAppWidgetProvider = ServeStreamAppWidgetOneProvider.getInstance();
+	
+    private BroadcastReceiver mIntentReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            String action = intent.getAction();
+            String cmd = intent.getStringExtra("command");
+            Log.v("mIntentReceiver.onReceive ", action + " / " + cmd);
+
+            if (ServeStreamAppWidgetOneProvider.CMDAPPWIDGETUPDATE.equals(cmd)) {
+                // Someone asked us to refresh a set of specific widgets, probably
+                // because they were just added.
+                int[] appWidgetIds = intent.getIntArrayExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS);
+                mAppWidgetProvider.performUpdate(MediaService.this, appWidgetIds);
+            }
+        }
+    };
 	
     /**
      * Class for clients to access.  Because we know this service always
@@ -122,6 +139,10 @@ public class MediaService extends Service {
 
     	Log.v(TAG, "onCreate called");
 		
+        IntentFilter commandFilter = new IntentFilter();
+        commandFilter.addAction(SERVICECMD);
+        registerReceiver(mIntentReceiver, commandFilter);
+    	
 		TelephonyManager tm = (TelephonyManager)getSystemService(TELEPHONY_SERVICE);
 		tm.listen(m_phoneListener, PhoneStateListener.LISTEN_CALL_STATE);
 		
@@ -143,13 +164,11 @@ public class MediaService extends Service {
             } else if (TOGGLEPAUSE_ACTION.equals(action)) {
                 if (isPlaying()) {
                     pauseMedia();
-                    //mPausedByTransientLossOfFocus = false;
                 } else {
                     resumeMedia();
                 }
             } else if (PAUSE_ACTION.equals(action)) {
                 pauseMedia();
-                //mPausedByTransientLossOfFocus = false;
             }
         }
     	
@@ -194,7 +213,7 @@ public class MediaService extends Service {
 		
 		Log.v(TAG, "onUnbind called");
     	
-		if (!mediaPlayer.isPlaying() || playingVideo()) {
+		if (!isPlaying() || playingVideo()) {
 			stopSelf();
 		}
     	
@@ -216,7 +235,7 @@ public class MediaService extends Service {
     }
     
     public boolean isPlaying() {
-        return mediaPlayer.isPlaying();	
+    	return isSupposedToBePlaying;
     }
     
     private void releaseMediaPlayer() {
@@ -331,6 +350,7 @@ public class MediaService extends Service {
         synchronized(this) {
             if (isPlaying()) {
                 mediaPlayer.pause();
+                isSupposedToBePlaying = false;
                 notifyChange(PLAYSTATE_CHANGED);
             	ConnectionNotifier.getInstance().hideRunningNotification(this);
             }
@@ -340,6 +360,7 @@ public class MediaService extends Service {
     public void resumeMedia() {
         synchronized(this) {
             mediaPlayer.start();
+            isSupposedToBePlaying = true;
             notifyChange(PLAYSTATE_CHANGED);
             ConnectionNotifier.getInstance().showRunningNotification(this);
         }
@@ -409,7 +430,7 @@ public class MediaService extends Service {
     	// set the flag to true which kills the seek bar thread
     	isOpeningMedia = true;
     	
-    	if (mediaPlayer.isPlaying())
+    	if (isPlaying())
     		mediaPlayer.stop();
     	
 	    mediaPlayer.reset();
@@ -455,6 +476,7 @@ public class MediaService extends Service {
 		        mediaPlayerHandler.sendMessage(Message.obtain(mediaPlayerHandler, SHOW_MEDIA_CONTROLS));
 	    	}
 	    	
+	    	isSupposedToBePlaying = true;
 	    	notifyChange(PLAYSTATE_CHANGED);
 		}
     };
@@ -513,7 +535,7 @@ public class MediaService extends Service {
     		try {
     			switch (state) {
                 case TelephonyManager.CALL_STATE_RINGING:
-                    if (mediaPlayer.isPlaying()) {
+                    if (isPlaying()) {
                     	pauseMedia();
                     	mediaPlayerState = 0;
                     }
