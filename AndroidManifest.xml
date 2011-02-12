@@ -53,19 +53,20 @@
 			android:theme="@android:style/Theme.NoTitleBar">
 		</activity>
 
-		<!--
+		
         <receiver android:name=".widget.ServeStreamAppWidgetOneProvider">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
             </intent-filter>
             <meta-data android:name="android.appwidget.provider" android:resource="@xml/appwidget_one" />
         </receiver>
-        -->
+        
 
 	</application>
 
 	<uses-permission android:name="android.permission.INTERNET" />
 	<uses-permission android:name="android.permission.READ_PHONE_STATE" />
+	<uses-permission android:name="android.permission.BROADCAST_STICKY" />
 
 	<supports-screens />
 </manifest>
