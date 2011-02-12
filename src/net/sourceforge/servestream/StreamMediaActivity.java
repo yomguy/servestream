@@ -164,8 +164,8 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
 						}).create().show();
 					break;
 		        case MediaService.PREPARE_MEDIA_INFO:
-		        	//();
-		        	//break;
+		        	updateMediaInfo();
+		        	break;
 		        case MediaService.START_SEEK_BAR:
                     startSeekBar();
 	                break;
