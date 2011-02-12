@@ -36,6 +36,7 @@ import net.sourceforge.servestream.R;
 import net.sourceforge.servestream.StreamListActivity;
 import net.sourceforge.servestream.StreamMediaActivity;
 import net.sourceforge.servestream.service.MediaService;
+import net.sourceforge.servestream.utils.MediaFile;
 import android.app.PendingIntent;
 import android.appwidget.AppWidgetManager;
 import android.appwidget.AppWidgetProvider;
@@ -54,7 +55,7 @@ import android.widget.RemoteViews;
 public class ServeStreamAppWidgetOneProvider extends AppWidgetProvider {
     static final String TAG = "ServeStream.ServeStreamAppWidgetOneProvider";
     
-    public static final String CMDAPPWIDGETUPDATE = "appwidgetoneupdate";
+    public static final String CMDAPPWIDGETUPDATE = "appwidgetupdate";
 
     private static ServeStreamAppWidgetOneProvider sInstance;
     
@@ -69,15 +70,14 @@ public class ServeStreamAppWidgetOneProvider extends AppWidgetProvider {
     public void onUpdate(Context context, AppWidgetManager appWidgetManager, int[] appWidgetIds) {
         defaultAppWidget(context, appWidgetIds);
         
-        Log.v(TAG, "on update called");
         // Send broadcast intent to any running MediaService so it can
         // wrap around with an immediate update.
-        //Intent updateIntent = new Intent(MediaService.SERVICECMD);
-        //updateIntent.putExtra(MediaService.CMDNAME,
-        //        ServeStreamAppWidgetOneProvider.CMDAPPWIDGETUPDATE);
-        //updateIntent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS, appWidgetIds);
-        //updateIntent.addFlags(Intent.FLAG_RECEIVER_REGISTERED_ONLY);
-        //context.sendBroadcast(updateIntent);
+        Intent updateIntent = new Intent(MediaService.SERVICECMD);
+        updateIntent.putExtra(MediaService.CMDNAME,
+                ServeStreamAppWidgetOneProvider.CMDAPPWIDGETUPDATE);
+        updateIntent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS, appWidgetIds);
+        updateIntent.addFlags(Intent.FLAG_RECEIVER_REGISTERED_ONLY);
+        context.sendBroadcast(updateIntent);
     }
     
     /**
@@ -131,31 +131,23 @@ public class ServeStreamAppWidgetOneProvider extends AppWidgetProvider {
      * Update all active widget instances by pushing changes 
      */
     public void performUpdate(MediaService service, int[] appWidgetIds) {
-        final Resources res = service.getResources();
+    	Log.v(TAG, "performUpdate");
         final RemoteViews views = new RemoteViews(service.getPackageName(), R.layout.appwidget_one);
         
-        //CharSequence titleName = service.getTrackName();
-        //CharSequence artistName = service.getArtistName();
-        CharSequence titleName = "";
-        CharSequence artistName = "";
-        CharSequence errorState = null;
+        MediaFile mediaFile = service.getCurrentMediaInfo();
+        String titleName = null;;
+        String url = null;
         
-        //if (titleName == null) {
-            //errorState = res.getText(R.string.emptyplaylist);
-        //	errorState = res.getText(R.string.app_name);
-        //}
+    	if ((titleName = mediaFile.getTitle()) == null)
+    	    titleName = "";
+    	
+    	if ((url = mediaFile.getURL()) == null)
+    	    url = "";
         
-        if (errorState != null) {
-            // Show error state to user
-            views.setViewVisibility(R.id.title, View.GONE);
-            views.setTextViewText(R.id.artist, errorState);
-            
-        } else {
-            // No error, so show normal titles
-            views.setViewVisibility(R.id.title, View.VISIBLE);
-            views.setTextViewText(R.id.title, titleName);
-            views.setTextViewText(R.id.artist, artistName);
-        }
+        // Show media info
+        views.setViewVisibility(R.id.title, View.VISIBLE);
+        views.setTextViewText(R.id.title, titleName);
+        views.setTextViewText(R.id.artist, url);
         
         // Set correct drawable for pause state
         final boolean playing = service.isPlaying();
