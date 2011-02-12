@@ -217,7 +217,6 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
 
 			public void onProgressChanged(SeekBar seekBar, int progress,
 					boolean fromUser) {
-		    	//positionText.setText(getFormattedTime(progress, getTimeFormat()));
 				updateProgress(progress);
 			}
 
@@ -356,16 +355,6 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
         //unbindService(connection);
 	}
 	
-    @Override
-    public void onResume() {
-        super.onResume();
-        
-        Log.v(TAG, "onResume called");
-        
-        //updateTrackInfo();
-        //setPlayPauseButtonImage();
-    }
-	
 	@Override
 	public void onDestroy() {
 		super.onDestroy();
@@ -458,11 +447,11 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
 	}
 
     public void surfaceChanged(SurfaceHolder surfaceholder, int i, int j, int k) {
-        Log.d(TAG, "surfaceChanged called");
+        //Log.d(TAG, "surfaceChanged called");
     }
 
     public void surfaceDestroyed(SurfaceHolder surfaceholder) {
-        Log.d(TAG, "surfaceDestroyed called");
+        //Log.d(TAG, "surfaceDestroyed called");
     }
 
     public void surfaceCreated(SurfaceHolder holder) {
@@ -470,10 +459,6 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
 
     	// let media service know the activity is visible
 		boundService.setStreamActivityState(VISIBLE);
-        
-        if (boundService == null) {
-        	Log.v(TAG, "Service is null");
-        }
         
     	// if the requested stream is null the intent used to launch
     	// StreamMediaActivity did not supply a new URL to stream
