@@ -41,7 +41,7 @@ import net.sourceforge.servestream.R;
 
 public class MusicUtils {
 
-    private static final String TAG = "ServeStream.MusicUtils";
+    //private static final String TAG = "ServeStream.MusicUtils";
     
     /*  Try to use String.format() as little as possible, because it creates a
      *  new Formatter every time you call it, which is very inefficient.
