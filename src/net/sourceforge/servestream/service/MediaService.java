@@ -186,12 +186,12 @@ public class MediaService extends Service {
 			streamdb = null;
 		}
 		
-        // Cancel the persistent notification.
-		ConnectionNotifier.getInstance().hideRunningNotification(this);
-		
 		releaseMediaPlayer();
 		
 		unregisterReceiver(mIntentReceiver);
+		
+        // Cancel the persistent notification.
+		ConnectionNotifier.getInstance().hideRunningNotification(this);
     }
 
     // This is the object that receives interactions from clients.  See
@@ -275,7 +275,6 @@ public class MediaService extends Service {
      */
     public long getPosition() {
     	if (mediaPlayer != null) {
-        //if (mediaPlayer.isInitialized()) {
             return mediaPlayer.getCurrentPosition();
         }
         return -1;
@@ -286,7 +285,6 @@ public class MediaService extends Service {
      */
     public long getDuration() {
     	if (mediaPlayer != null) {
-        //if (mediaPlayer.isInitialized()) {
             return mediaPlayer.getDuration();
         }
         return -1;
@@ -329,25 +327,15 @@ public class MediaService extends Service {
     }
     
     public void nextMediaFile() {
-    	
-    	if (shuffleMode == SHUFFLE_ON) {
-    		if (shuffleFilesIndex == (shuffleIntegers.size() - 1)) {
-        		shuffleIntegers = NumberGenerator.getRandomIntegers(mediaFilesIndex, mediaFiles.size());
-        		shuffleFilesIndex = 0;
-    			startMedia(shuffleIntegers.get(shuffleFilesIndex));
-    		} else {
-    			startMedia(shuffleIntegers.get((shuffleFilesIndex + 1)));
-    			shuffleFilesIndex++;
-    		}
-    	} else {
+    	synchronized (this) {
     		if (mediaFilesIndex == (mediaFiles.size() - 1)) {
     			startMedia(0);
     		} else {
     			startMedia(mediaFilesIndex + 1);
     		}
-    	}
     	
-    	notifyChange(META_CHANGED);
+    		notifyChange(META_CHANGED);
+    	}
     }
     
     public void pauseMedia() {
@@ -371,24 +359,15 @@ public class MediaService extends Service {
     }
     
     public void previousMediaFile() {
-    	if (shuffleMode == SHUFFLE_ON) {
-    		if (shuffleFilesIndex == 0) {
-        		shuffleIntegers = NumberGenerator.getRandomIntegers(mediaFilesIndex, mediaFiles.size());
-        		shuffleFilesIndex = mediaFiles.size() - 1;
-    			startMedia(shuffleIntegers.get(shuffleFilesIndex));
+    	synchronized (this) {
+    		if (mediaFilesIndex == 0) {
+    			startMedia((mediaFiles.size() - 1));
     		} else {
-    			startMedia(shuffleIntegers.get((shuffleFilesIndex - 1)));
-    			shuffleFilesIndex--;
+    			startMedia((mediaFilesIndex - 1));
     		}
-    	} else {
-        	if (mediaFilesIndex == 0) {
-        		startMedia((mediaFiles.size() - 1));
-        	} else {
-                startMedia((mediaFilesIndex - 1));
-        	}
-    	}
     	
-    	notifyChange(META_CHANGED);
+    		notifyChange(META_CHANGED);
+    	}
     }
     
     public void seekTo(int position) {
