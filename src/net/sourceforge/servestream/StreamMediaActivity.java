@@ -78,6 +78,7 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
     private SurfaceHolder holder;
     
     private Button shuffleButton, repeatButton = null;
+    private Button playPauseButton = null;
     
     private boolean userIsSeeking = false;
     
@@ -121,9 +122,9 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
 			    Log.v(TAG, "Surface Made");
 		    }
         	
-        	Log.v(TAG, "setting buttom image");
         	setShuffleButtonImage();
         	setRepeatButtonImage();
+        	setPlayPauseButtonImage();
 	    }
 
 	    public void onServiceDisconnected(ComponentName className) {
@@ -163,7 +164,7 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
 						}).create().show();
 					break;
 		        case MediaService.PREPARE_MEDIA_INFO:
-		        	getMediaInfo();
+		        	updateMediaInfo();
 		        	break;
 		        case MediaService.START_SEEK_BAR:
                     startSeekBar();
@@ -258,16 +259,17 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
 			
 		});
 		
-		final Button playPauseButton = (Button) findViewById(R.id.play_pause_button);
+		playPauseButton = (Button) findViewById(R.id.play_pause_button);
 		playPauseButton.setOnClickListener(new OnClickListener() {
 
 			public void onClick(View v) {
-				if (boundService.isPlaying()) {
-					boundService.pauseMedia();
-					playPauseButton.setBackgroundResource(R.drawable.play_button);
-				} else {
-					boundService.resumeMedia();
-					playPauseButton.setBackgroundResource(R.drawable.pause_button);
+				if (boundService != null) {
+					if (boundService.isPlaying()) {
+						boundService.pauseMedia();
+					} else {
+						boundService.resumeMedia();
+					}
+					setPlayPauseButtonImage();
 				}
 			}
 			
@@ -351,6 +353,16 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
 		
         //unbindService(connection);
 	}
+	
+    @Override
+    public void onResume() {
+        super.onResume();
+        
+        Log.v(TAG, "onResume called");
+        
+        //updateTrackInfo();
+        setPlayPauseButtonImage();
+    }
 	
 	@Override
 	public void onDestroy() {
@@ -491,7 +503,7 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
                 holder.setFixedSize(displayWidth, displayHeight);
                 boundService.resetSurfaceView();
         	} */
-        	getMediaInfo();
+        	updateMediaInfo();
         	startSeekBar();
     		mediaControls.setVisibility(View.VISIBLE);
         }
@@ -506,7 +518,7 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
         displayHeight = display.getHeight();
     }
     
-    private void getMediaInfo() {
+    private void updateMediaInfo() {
     	MediaFile mediaFile = boundService.getCurrentMediaInfo();
     	trackNumber.setText(String.valueOf(mediaFile.getTrackNumber()) + " / " + String.valueOf(boundService.getNumOfQueuedFiles()));
     	
@@ -683,6 +695,14 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
                 repeatButton.setBackgroundResource(R.drawable.repeat_disabled_button);
                 break;
         }
+    }
+    
+    private void setPlayPauseButtonImage() {
+        if (boundService != null && boundService.isPlaying()) {
+			playPauseButton.setBackgroundResource(R.drawable.pause_button);
+		} else {
+			playPauseButton.setBackgroundResource(R.drawable.play_button);
+		}
     }
 
     private long refreshNow() {
