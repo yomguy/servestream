@@ -42,7 +42,8 @@
 		<activity android:name=".HelpTopicActivity" android:configChanges="keyboardHidden|orientation" />
 		<activity android:name=".SettingsActivity" android:configChanges="keyboardHidden|orientation" />
 		<activity android:name=".StreamBrowseActivity" android:configChanges="keyboardHidden|orientation" />
-		<activity android:name=".StreamEditorActivity" android:configChanges="keyboardHidden|orientation" />	
+		<activity android:name=".StreamEditorActivity" android:configChanges="keyboardHidden|orientation" />
+		<activity android:name=".NowPlayingActivity" android:configChanges="keyboardHidden|orientation" />	
 
 		<service android:name=".service.MediaService"
 			android:configChanges="keyboardHidden|orientation"
@@ -53,14 +54,14 @@
 			android:theme="@android:style/Theme.NoTitleBar">
 		</activity>
 
-		
+		<!--
         <receiver android:name=".widget.ServeStreamAppWidgetOneProvider">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
             </intent-filter>
             <meta-data android:name="android.appwidget.provider" android:resource="@xml/appwidget_one" />
         </receiver>
-        
+        -->
 
 	</application>
 
