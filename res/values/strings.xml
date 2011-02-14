@@ -114,16 +114,16 @@
 	<string name="pref_update_summary">Set the maximum frequency to check for ServeStream updates</string>
 
     <!-- Toast after turning repeat off -->
-    <string name="repeat_off_notif">Repeat is off.</string>
+    <string name="repeat_off_notif">Repeat is off</string>
     <!-- Toast after turning single repeat on -->
-    <string name="repeat_current_notif">Repeating current media.</string>
+    <string name="repeat_current_notif">Repeating current media</string>
     <!-- Toast after turning repeat all on -->
-    <string name="repeat_all_notif">Repeating all media.</string>
+    <string name="repeat_all_notif">Repeating all media</string>
 
     <!-- Toast after turning shuffle on -->
-    <string name="shuffle_on_notif">Shuffle is on.</string>
+    <string name="shuffle_on_notif">Shuffle is on</string>
     <!-- Toast after turning shuffle off -->
-    <string name="shuffle_off_notif">Shuffle is off.</string>
+    <string name="shuffle_off_notif">Shuffle is off</string>
 
 	<!-- Stream nickname field preference title -->
 	<string name="streampref_nickname_title">Nickname</string>
