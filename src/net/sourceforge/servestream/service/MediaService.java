@@ -370,8 +370,20 @@ public class MediaService extends Service {
     	}
     }
     
-    public void seekTo(int position) {
-    	mediaPlayer.seekTo(position);
+    /**
+     * Seeks to the position specified.
+     *
+     * @param pos The position to seek to, in milliseconds
+     */
+    public void seek(long pos) {
+    	if (mediaPlayer != null) {
+        //if (mediaPlayer.isInitialized()) {
+            if (pos < 0) pos = 0;
+            if (pos > mediaPlayer.getDuration()) pos = mediaPlayer.getDuration();
+            mediaPlayer.seekTo((int) pos);
+            //return mediaPlayer.seekTo(pos);
+        }
+        //return -1;
     }
     
     public void seekBackward() {
@@ -445,17 +457,17 @@ public class MediaService extends Service {
 	        // update the currently playing track
 	        currentlyPlayingTrack = mediaFiles.get(mediaFilesIndex).getURL();
 		    
+	        // send a message to start the seek bar 
+	        mediaPlayerHandler.sendMessage(Message.obtain(mediaPlayerHandler, START_SEEK_BAR));
+	        
+	        // send a message to show the media controls 
+	        mediaPlayerHandler.sendMessage(Message.obtain(mediaPlayerHandler, SHOW_MEDIA_CONTROLS));
+	        
 	        // if available, send notifications to the activity
 	    	if (streamActivityState == StreamMediaActivity.VISIBLE) {
-	    		
-		        // send a message to start the seek bar 
-		        mediaPlayerHandler.sendMessage(Message.obtain(mediaPlayerHandler, START_SEEK_BAR));
 			
 			    // send a message to stop the "Opening file..." dialog
     		    mediaPlayerHandler.sendMessage(Message.obtain(mediaPlayerHandler, STOP_DIALOG));
-    		    
-		        // send a message to show the media controls 
-		        mediaPlayerHandler.sendMessage(Message.obtain(mediaPlayerHandler, SHOW_MEDIA_CONTROLS));
 	    	}
 	    	
 	    	isSupposedToBePlaying = true;
