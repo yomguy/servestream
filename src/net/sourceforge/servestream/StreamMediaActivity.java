@@ -39,6 +39,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
+import android.os.SystemClock;
 import android.util.Log;
 import android.view.Display;
 import android.view.KeyEvent;
@@ -51,6 +52,7 @@ import android.view.View.OnClickListener;
 import android.view.View.OnTouchListener;
 import android.view.WindowManager;
 import android.widget.Button;
+import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.SeekBar;
 import android.widget.SeekBar.OnSeekBarChangeListener;
@@ -62,6 +64,16 @@ import android.view.animation.AnimationUtils;
 
 public class StreamMediaActivity extends Activity implements SurfaceHolder.Callback, Runnable {
     private static final String TAG = "ServeStream.StreamMediaActivity";
+    
+    private static final int REFRESH = 1;
+    private static final int QUIT = 2;
+    
+    private long mLastSeekEventTime;
+    
+    private ProgressBar mProgress;
+    private long mPosOverride = -1;
+    private boolean mFromTouch = false;
+    private long mDuration;
     
 	public static final boolean VISIBLE = true;
 	public static final boolean NOT_VISIBLE = false;
@@ -91,6 +103,16 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
     private Toast toast;
     
     private Handler handler = new Handler();
+    
+    private boolean paused;
+    
+    private void queueNextRefresh(long delay) {
+        if (!paused) {
+            Message msg = mHandler.obtainMessage(REFRESH);
+            mHandler.removeMessages(REFRESH);
+            mHandler.sendMessageDelayed(msg, delay);
+        }
+    }
     
     private ProgressDialog dialog = null;
     
@@ -211,25 +233,13 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
 	    positionText = (TextView) findViewById(R.id.position_text);
 	    durationText = (TextView) findViewById(R.id.duration_text);
 	    
-        seekBar = (SeekBar) findViewById(R.id.seek_bar);
-        seekBar.setVisibility(SeekBar.VISIBLE);
-        seekBar.setOnSeekBarChangeListener(new OnSeekBarChangeListener() {
-
-			public void onProgressChanged(SeekBar seekBar, int progress,
-					boolean fromUser) {
-				updateProgress(progress);
-			}
-
-			public void onStartTrackingTouch(SeekBar seekBar) {
-                userIsSeeking = true;
-			}
-
-			public void onStopTrackingTouch(SeekBar seekBar) {
-                userIsSeeking = false;
-				boundService.seekTo(seekBar.getProgress());
-			}
-        	
-        });
+	    mProgress = (ProgressBar) findViewById(R.id.seek_bar);
+	    
+        if (mProgress instanceof SeekBar) {
+            SeekBar seeker = (SeekBar) mProgress;
+            seeker.setOnSeekBarChangeListener(mSeekListener);
+        }
+        mProgress.setMax(1000);
 	    
 		// preload animation for media controller
 		media_controls_fade_in = AnimationUtils.loadAnimation(this, R.anim.media_controls_fade_in);
@@ -322,6 +332,8 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
 		
 		Log.v(TAG, "onStart called");
 		
+        paused = false;
+		
 		// connect with manager service to find all bridges
 		// when connected it will insert all views
 		bindService(new Intent(this, MediaService.class), connection, Context.BIND_AUTO_CREATE);
@@ -335,6 +347,8 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
 	@Override
 	public void onPause() {
 		super.onPause();
+		
+        paused = true;
 		
 		Log.v(TAG, "onPause called");
 		
@@ -520,12 +534,14 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
     }
     
     private void startSeekBar() {
-    	long duration = boundService.getDuration();
+    	//long mDuration = boundService.getDuration();
     	
-    	refreshNow();
-    	durationText.setText(MusicUtils.makeTimeString(this, duration / 1000));
+    	mDuration = boundService.getDuration();
+        durationText.setText(MusicUtils.makeTimeString(this, mDuration / 1000));
+        long next = refreshNow();
+        queueNextRefresh(next);
     	
-        new Thread(this).start();
+        //new Thread(this).start();
     }
     
     private void showMediaInfoAndControls() {
@@ -697,39 +713,39 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
     }
 
     private long refreshNow() {
-    	
         if(boundService == null)
             return 500;
-        //TODO fix this added line
-    	long duration = boundService.getDuration();
-        //long pos = mPosOverride < 0 ? mediaPlayer.position() : mPosOverride;
-		long pos = boundService.getPosition();
-		long remaining = 1000 - (pos % 1000);
-		if ((pos >= 0) && (duration > 0)) {
-			positionText.setText(MusicUtils.makeTimeString(this, pos / 1000));
-		    
-		    if (boundService.isPlaying()) {
-		    	positionText.setVisibility(View.VISIBLE);
-		    } else {
-		        // blink the counter
-		        int vis = positionText.getVisibility();
-		        positionText.setVisibility(vis == View.INVISIBLE ? View.VISIBLE : View.INVISIBLE);
-		        remaining = 500;
-		    }
+        try {
+            long pos = mPosOverride < 0 ? boundService.getPosition() : mPosOverride;
+            long remaining = 1000 - (pos % 1000);
+            if ((pos >= 0) && (mDuration > 0)) {
+            	positionText.setText(MusicUtils.makeTimeString(this, pos / 1000));
+                
+                if (boundService.isPlaying()) {
+                	positionText.setVisibility(View.VISIBLE);
+                } else {
+                    // blink the counter
+                    int vis = positionText.getVisibility();
+                    positionText.setVisibility(vis == View.INVISIBLE ? View.VISIBLE : View.INVISIBLE);
+                    remaining = 500;
+                }
 
-		    //mProgress.setProgress((int) (1000 * pos / mDuration));
-		} else {
-			positionText.setText("--:--");
-		    //mProgress.setProgress(1000);
-		}
-		// return the number of milliseconds until the next full second, so
-		// the counter can be updated at just the right time
-		return remaining;
+                mProgress.setProgress((int) (1000 * pos / mDuration));
+            } else {
+            	positionText.setText("--:--");
+                mProgress.setProgress(1000);
+            }
+            // return the number of milliseconds until the next full second, so
+            // the counter can be updated at just the right time
+            return remaining;
+        } catch (Exception ex) {
+        }
+        return 500;
     }
     
-    private void updateProgress(int progress) {
+    /*private void updateProgress(int progress) {
     	positionText.setText(MusicUtils.makeTimeString(this, Long.valueOf(progress) / 1000));
-    }
+    }*/
     
     private BroadcastReceiver mStatusListener = new BroadcastReceiver() {
         @Override
@@ -749,6 +765,71 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
             } else if (action.equals(MediaService.PLAYSTATE_CHANGED)) {
                 setPlayPauseButtonImage();
             }
+        }
+    };
+    
+    private final Handler mHandler = new Handler() {
+        @Override
+        public void handleMessage(Message msg) {
+            switch (msg.what) {
+                //case ALBUM_ART_DECODED:
+                //    mAlbum.setImageBitmap((Bitmap)msg.obj);
+                //    mAlbum.getDrawable().setDither(true);
+                //    break;
+
+                case REFRESH:
+                    long next = refreshNow();
+                    queueNextRefresh(next);
+                    break;
+                    
+                case QUIT:
+                    // This can be moved back to onCreate once the bug that prevents
+                    // Dialogs from being started from onCreate/onResume is fixed.
+                    /*new AlertDialog.Builder(MediaPlaybackActivity.this)
+                            .setTitle(R.string.service_start_error_title)
+                            .setMessage(R.string.service_start_error_msg)
+                            .setPositiveButton(R.string.service_start_error_button,
+                                    new DialogInterface.OnClickListener() {
+                                        public void onClick(DialogInterface dialog, int whichButton) {
+                                            finish();
+                                        }
+                                    })
+                            .setCancelable(false)
+                            .show();*/
+                    break;
+
+                default:
+                    break;
+            }
+        }
+    };
+    
+    private OnSeekBarChangeListener mSeekListener = new OnSeekBarChangeListener() {
+        public void onStartTrackingTouch(SeekBar bar) {
+            mLastSeekEventTime = 0;
+            mFromTouch = true;
+        }
+        public void onProgressChanged(SeekBar bar, int progress, boolean fromuser) {
+            if (!fromuser || (boundService == null)) return;
+            long now = SystemClock.elapsedRealtime();
+            if ((now - mLastSeekEventTime) > 250) {
+                mLastSeekEventTime = now;
+                mPosOverride = mDuration * progress / 1000;
+                try {
+                    boundService.seek(mPosOverride);
+                } catch (Exception ex) {
+                }
+
+                // trackball event, allow progress updates
+                if (!mFromTouch) {
+                    refreshNow();
+                    mPosOverride = -1;
+                }
+            }
+        }
+        public void onStopTrackingTouch(SeekBar bar) {
+            mPosOverride = -1;
+            mFromTouch = false;
         }
     };
     
