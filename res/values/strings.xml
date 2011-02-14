@@ -116,9 +116,9 @@
     <!-- Toast after turning repeat off -->
     <string name="repeat_off_notif">Repeat is off.</string>
     <!-- Toast after turning single repeat on -->
-    <string name="repeat_current_notif">Repeating current song.</string>
+    <string name="repeat_current_notif">Repeating current media.</string>
     <!-- Toast after turning repeat all on -->
-    <string name="repeat_all_notif">Repeating all songs.</string>
+    <string name="repeat_all_notif">Repeating all media.</string>
 
     <!-- Toast after turning shuffle on -->
     <string name="shuffle_on_notif">Shuffle is on.</string>
