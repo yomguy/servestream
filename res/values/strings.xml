@@ -97,6 +97,9 @@
  	<!-- Frequency for which to check for program updates. -->
  	<string name="list_update_never">Never</string>
 
+    <!-- Shown as a transient message whenever a file fails to play -->
+    <string name="playback_failed">Sorry, the player does not support this type of media file.</string>
+
 	<!-- The category title for playback preferences -->
 	<string name="pref_playback_category">Playback</string>
 
@@ -119,6 +122,13 @@
     <string name="repeat_current_notif">Repeating current media</string>
     <!-- Toast after turning repeat all on -->
     <string name="repeat_all_notif">Repeating all media</string>
+
+    <!-- Dialog box title -->
+    <string name="service_start_error_title">Playback problem</string>
+    <!-- Dialog box message -->
+    <string name="service_start_error_msg">Sorry, the media could not be played.</string>
+    <!-- Dialog box button -->
+    <string name="service_start_error_button">OK</string>
 
     <!-- Toast after turning shuffle on -->
     <string name="shuffle_on_notif">Shuffle is on</string>
