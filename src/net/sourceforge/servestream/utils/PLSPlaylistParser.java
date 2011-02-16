@@ -31,6 +31,7 @@ public class PLSPlaylistParser {
 
 	private URL playlistURL = null;
     private ArrayList<MediaFile> playlistFiles = null;
+    private MediaFile [] mPlayListFiles = null;
     private int numberOfFiles = 0;
     
     private MediaFile mediaFile = null;
@@ -101,6 +102,12 @@ public class PLSPlaylistParser {
                 savePlaylistFile();
         	}
 
+		    mPlayListFiles = new MediaFile[playlistFiles.size()];
+		    
+		    for (int i = 0; i < playlistFiles.size(); i++) {
+		    	mPlayListFiles[i] = playlistFiles.get(i);
+		    }
+        	
         } catch (Exception ex) {
         	ex.printStackTrace();
         } finally {
@@ -119,9 +126,12 @@ public class PLSPlaylistParser {
 	/**
 	 * @return the playlistFiles
 	 */
-	public ArrayList<MediaFile> getPlaylistFiles() {
+	/*public ArrayList<MediaFile> getPlaylistFiles() {
 		return playlistFiles;
-	}
+	}*/
+    public MediaFile [] getPlaylistFiles() {
+    	return mPlayListFiles;
+    }
 
 	/**
 	 * @return the numberOfFiles

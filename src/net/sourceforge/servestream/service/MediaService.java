@@ -14,189 +14,274 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+/*
+ * Copyright (C) 2009 The Android Open Source Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
 package net.sourceforge.servestream.service;
 
-import java.net.URL;
-import java.util.ArrayList;
-import java.util.List;
-
-import net.sourceforge.servestream.StreamMediaActivity;
-import net.sourceforge.servestream.dbutils.Stream;
-import net.sourceforge.servestream.dbutils.StreamDatabase;
-import net.sourceforge.servestream.utils.M3UPlaylistParser;
-import net.sourceforge.servestream.utils.MediaFile;
-import net.sourceforge.servestream.utils.NumberGenerator;
-import net.sourceforge.servestream.utils.PLSPlaylistParser;
-import net.sourceforge.servestream.widget.ServeStreamAppWidgetOneProvider;
-
 import android.app.Service;
 import android.appwidget.AppWidgetManager;
-import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.media.MediaPlayer;
-import android.media.MediaPlayer.OnCompletionListener;
-import android.media.MediaPlayer.OnErrorListener;
-import android.media.MediaPlayer.OnPreparedListener;
-import android.os.Binder;
+import android.content.BroadcastReceiver;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
-import android.telephony.PhoneStateListener;
-import android.telephony.TelephonyManager;
 import android.util.Log;
-import android.view.SurfaceHolder;
 
+import java.lang.ref.WeakReference;
+import java.net.URL;
+import java.util.Random;
+import java.util.Vector;
+
+import net.sourceforge.servestream.player.MultiPlayer;
+import net.sourceforge.servestream.utils.M3UPlaylistParser;
+import net.sourceforge.servestream.utils.MediaFile;
+import net.sourceforge.servestream.utils.PLSPlaylistParser;
+import net.sourceforge.servestream.widget.ServeStreamAppWidgetOneProvider;
+
+/**
+ * Provides "background" audio playback capabilities, allowing the
+ * user to switch between activities without stopping playback.
+ */
 public class MediaService extends Service {
-	public final static String TAG = "ServeStream.MediaService";
-
-	public static final int ERROR = -2147483648;
-	public static final int SHOW_MEDIA_CONTROLS = 200;
-	public static final int START_SEEK_BAR = 300;
-	public static final int START_DIALOG = 400;
-	public static final int STOP_DIALOG = 500;
+	private static final String TAG = "ServeStream.MediaService";
 	
+    /** used to specify whether enqueue() should start playing
+     * the new list of files right away, next or once all the currently
+     * queued files have been played
+     */
+    public static final int NOW = 1;
+    public static final int NEXT = 2;
+    public static final int LAST = 3;
+    public static final int PLAYBACKSERVICE_STATUS = 1;
+    
     public static final int SHUFFLE_NONE = 0;
     public static final int SHUFFLE_ON = 1;
-	private int shuffleMode = SHUFFLE_NONE;
-	
+    
     public static final int REPEAT_NONE = 0;
     public static final int REPEAT_CURRENT = 1;
     public static final int REPEAT_ALL = 2;
-	private int repeatMode = REPEAT_NONE;;
-	
+
     public static final String PLAYSTATE_CHANGED = "net.sourceforge.servestream.playstatechanged";
     public static final String META_CHANGED = "net.sourceforge.servestream.metachanged";
     public static final String QUEUE_CHANGED = "net.sourceforge.servestream.queuechanged";
-	
+    public static final String PLAYER_CLOSED = "net.sourceforge.servestream.playerclosed";
+    
     public static final String SERVICECMD = "net.sourceforge.servestream.mediaservicecommand";
     public static final String CMDNAME = "command";
-	
+
     public static final String TOGGLEPAUSE_ACTION = "net.sourceforge.servestream.mediaservicecommand.togglepause";
     public static final String PAUSE_ACTION = "net.sourceforge.servestream.mediaservicecommand.pause";
-    public static final String PREVIOUS_ACTION = "net.sourceforge.servestream.mediaservicecommand.previous";
     public static final String NEXT_ACTION = "net.sourceforge.servestream.mediaservicecommand.next";
-    
-	private boolean pausedDuringPhoneCall = false;
-	
-	private boolean streamActivityState;
-	
-	private final int SEEK_INCREMENT = 15000;
-	
-    private ArrayList<MediaFile> mediaFiles = null;
-	private int mediaFilesIndex = 0;
-	private List<Integer> shuffleIntegers = null;
-	private int shuffleFilesIndex = 0;
-	
-	private Stream currentStream = null;
-	private String currentlyPlayingTrack = "";
-	
-    private MediaPlayer mediaPlayer = null;
-	
-	private boolean isOpeningMedia = false;
 
-	protected StreamDatabase streamdb = null;
-	
-    public Handler mediaPlayerHandler;
-	public Handler disconnectHandler = null;
-	
-	private boolean isSupposedToBePlaying = false;
-	
-	private ServeStreamAppWidgetOneProvider mAppWidgetProvider = ServeStreamAppWidgetOneProvider.getInstance();
-	
+    public static final int TRACK_ENDED = 1;
+    public static final int RELEASE_WAKELOCK = 2;
+    public static final int SERVER_DIED = 3;
+    public static final int PLAYER_PREPARED = 5;
+    private static final int MAX_HISTORY_SIZE = 100;
+    
+    private MultiPlayer mPlayer;
+    private String mFileToPlay;
+    private int mShuffleMode = SHUFFLE_NONE;
+    private int mRepeatMode = REPEAT_NONE;
+    private int mMediaMountedCount = 0;
+    private long [] mAutoShuffleList = null;
+    private long [] mPlayList = null;
+    private MediaFile [] mPlayListFiles = null;
+    private int mPlayListLen = 0;
+    private Vector<Integer> mHistory = new Vector<Integer>(MAX_HISTORY_SIZE);
+    private int mPlayPos = -1;
+    private final Shuffler mRand = new Shuffler();
+    private int mOpenFailedCounter = 0;
+    private int mServiceStartId = -1;
+    private boolean mServiceInUse = false;
+    private boolean mIsSupposedToBePlaying = false;
+    
+    private ServeStreamAppWidgetOneProvider mAppWidgetProvider = ServeStreamAppWidgetOneProvider.getInstance();
+    
+    // interval after which we stop the service when idle
+    private static final int IDLE_DELAY = 60000;
+    
+    private Handler mMediaplayerHandler = new Handler() {
+        @Override
+        public void handleMessage(Message msg) {
+            Log.v(TAG, "mMediaplayerHandler.handleMessage " + msg.what);
+            switch (msg.what) {
+                case SERVER_DIED:
+                    if (mIsSupposedToBePlaying) {
+                        next(true);
+                    } else {
+                        // the server died when we were idle, so just
+                        // reopen the same song (it will start again
+                        // from the beginning though when the user
+                        // restarts)
+                        openCurrent();
+                    }
+                    break;
+                case TRACK_ENDED:
+                    if (mRepeatMode == REPEAT_CURRENT) {
+                        seek(0);
+                        play();
+                    } else {
+                        next(false);
+                    }
+                    break;
+                case PLAYER_PREPARED:
+                    play();
+                    notifyChange(META_CHANGED);
+                	break;
+                default:
+                    break;
+            }
+        }
+    };
+
     private BroadcastReceiver mIntentReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
             String action = intent.getAction();
             String cmd = intent.getStringExtra("command");
-            Log.v("mIntentReceiver.onReceive ", action + " / " + cmd);
-
-            if (ServeStreamAppWidgetOneProvider.CMDAPPWIDGETUPDATE.equals(cmd)) {
+            Log.v(TAG, "mIntentReceiver.onReceive " + action + " / " + cmd);
+            if (NEXT_ACTION.equals(action)) {
+                next(true);
+            } else if (TOGGLEPAUSE_ACTION.equals(action)) {
+                if (isPlaying()) {
+                    pause();
+                } else {
+                    play();
+                }
+            } else if (PAUSE_ACTION.equals(action)) {
+                pause();
+            } else if (ServeStreamAppWidgetOneProvider.CMDAPPWIDGETUPDATE.equals(cmd)) {
                 // Someone asked us to refresh a set of specific widgets, probably
                 // because they were just added.
                 int[] appWidgetIds = intent.getIntArrayExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS);
-                mAppWidgetProvider.performUpdate(MediaService.this, appWidgetIds);
+                mAppWidgetProvider.performUpdate(MediaService.this, appWidgetIds, "");
             }
         }
     };
-	
+
     /**
-     * Class for clients to access.  Because we know this service always
-     * runs in the same process as its clients, we don't need to deal with
-     * IPC.
+     * Default constructor
      */
-    public class MediaBinder extends Binder {
-        public MediaService getService() {
-            return MediaService.this;
-        }
+    public MediaService() {
     }
 
     @Override
     public void onCreate() {
+        super.onCreate();
 
-    	Log.v(TAG, "onCreate called");
-		
+        Log.v(TAG, "onCreate called");
+        
+        // Needs to be done in this thread, since otherwise ApplicationContext.getPowerManager() crashes.
+        mPlayer = new MultiPlayer();
+        mPlayer.setHandler(mMediaplayerHandler);
+        
         IntentFilter commandFilter = new IntentFilter();
         commandFilter.addAction(SERVICECMD);
+        commandFilter.addAction(TOGGLEPAUSE_ACTION);
+        commandFilter.addAction(PAUSE_ACTION);
+        commandFilter.addAction(NEXT_ACTION);
         registerReceiver(mIntentReceiver, commandFilter);
-    	
-		TelephonyManager tm = (TelephonyManager)getSystemService(TELEPHONY_SERVICE);
-		tm.listen(m_phoneListener, PhoneStateListener.LISTEN_CALL_STATE);
-		
-		streamdb = new StreamDatabase(this);
+
+        // If the service was idle, but got killed before it stopped itself, the
+        // system will relaunch it. Make sure it gets stopped again in that case.
+        Message msg = mDelayedStopHandler.obtainMessage();
+        mDelayedStopHandler.sendMessageDelayed(msg, IDLE_DELAY);
     }
 
     @Override
-    public int onStartCommand(Intent intent, int flags, int startId) {
-
-        if (intent != null) {
-            String action = intent.getAction();
-            String cmd = intent.getStringExtra("command");
-            Log.i(TAG, "Received start id " + startId + ": " + intent);
-
-            if (NEXT_ACTION.equals(action)) {
-                nextMediaFile();
-            } else if (PREVIOUS_ACTION.equals(action)) {
-                previousMediaFile();
-            } else if (TOGGLEPAUSE_ACTION.equals(action)) {
-                if (isPlaying()) {
-                    pauseMedia();
-                } else {
-                    resumeMedia();
-                }
-            } else if (PAUSE_ACTION.equals(action)) {
-                pauseMedia();
-            }
+    public void onDestroy() {
+    	
+    	Log.v(TAG, "onDestroy called");
+    	
+        // Check that we're not being destroyed while something is still playing.
+        if (isPlaying()) {
+            Log.e(TAG, "Service being destroyed while still playing.");
         }
-    	
-        // We want this service to continue running until it is explicitly
-        // stopped, so return sticky.
-        return START_STICKY;
-    }
+        
+        // release all MediaPlayer resources
+        mPlayer.release();
+        mPlayer = null;
+        
+        // make sure there aren't any other messages coming
+        mDelayedStopHandler.removeCallbacksAndMessages(null);
+        mMediaplayerHandler.removeCallbacksAndMessages(null);
 
-    @Override
-    public void onDestroy() {  	
-    	
-		Log.v(TAG, "onDestroy called");
-    	
-		if(streamdb != null) {
-			streamdb.close();
-			streamdb = null;
-		}
-		
-		releaseMediaPlayer();
-		
-		unregisterReceiver(mIntentReceiver);
-		
+		notifyChange(PLAYER_CLOSED);
+        
+        unregisterReceiver(mIntentReceiver);
+        
         // Cancel the persistent notification.
 		ConnectionNotifier.getInstance().hideRunningNotification(this);
+        
+        super.onDestroy();
     }
 
-    // This is the object that receives interactions from clients.  See
-    // RemoteService for a more complete example.
-    private final IBinder binder = new MediaBinder();
+    private void loadQueue(String filename) {
+        Log.v(TAG, "Loading Queue");        
+        
+    	URL url = null;
+    	
+    	//TODO add null check
+    	
+    	try {
+    	
+    		url = new URL(filename);
+    		//url = stream.getURL();
+    		
+        if (isM3UPlaylist(url.getPath())) {
+            M3UPlaylistParser playlistParser = new M3UPlaylistParser(url);
+            playlistParser.retrieveM3UFiles();
+            mPlayListFiles = playlistParser.getPlaylistFiles();
+            mPlayListLen = playlistParser.getNumberOfFiles();
+        } else if (isPLSPlaylist(url.getPath())) {
+            PLSPlaylistParser playlistParser = new PLSPlaylistParser(url);
+            playlistParser.retrievePLSFiles();
+            mPlayListFiles = playlistParser.getPlaylistFiles();
+            mPlayListLen = playlistParser.getNumberOfFiles();
+        } else {
+            mPlayListFiles = new MediaFile[1];         
+            MediaFile mediaFile = new MediaFile();
+        	mediaFile.setURL(url.toString());
+        	mediaFile.setTrackNumber(1);
+            mPlayListFiles[0] = mediaFile;
+            mPlayListLen = 1;
+        }
+        
+        mPlayList = new long[mPlayListLen];
+        int len = mPlayListLen;
+        for (int i = 0; i < len; i++) {
+            mPlayList[i] = i;
+        }
+        
+    	} catch(Exception ex) {
+    		ex.printStackTrace();
+    	}
+    	
+	    /*Stream foundStream = streamdb.findStream(stream);
+		
+	    if (foundStream != null) {
+		    streamdb.touchHost(foundStream);
+	    }*/
+    	
+	    mPlayPos = 0;
+    }
     
     @Override
     public IBinder onBind(Intent intent) {
@@ -206,444 +291,677 @@ public class MediaService extends Service {
 		// Make sure we stay running to maintain the bridges
 		startService(new Intent(this, MediaService.class));
     	
-        return binder;
+        mDelayedStopHandler.removeCallbacksAndMessages(null);
+        mServiceInUse = true;
+        return mBinder;
+    }
+
+    @Override
+    public void onRebind(Intent intent) {
+        mDelayedStopHandler.removeCallbacksAndMessages(null);
+        mServiceInUse = true;
+    }
+
+    @Override
+    public int onStartCommand(Intent intent, int flags, int startId) {
+        mServiceStartId = startId;
+        mDelayedStopHandler.removeCallbacksAndMessages(null);
+
+        if (intent != null) {
+            String action = intent.getAction();
+            String cmd = intent.getStringExtra("command");
+            Log.v(TAG, "onStartCommand " + action + " / " + cmd);
+
+            if (NEXT_ACTION.equals(action)) {
+                next(true);
+            } else if (TOGGLEPAUSE_ACTION.equals(action)) {
+                if (isPlaying()) {
+                    pause();
+                } else {
+                    play();
+                }
+            } else if (PAUSE_ACTION.equals(action)) {
+                pause();
+            }
+        }
+        
+        // make sure the service will shut down on its own if it was
+        // just started but not bound to and nothing is playing
+        mDelayedStopHandler.removeCallbacksAndMessages(null);
+        Message msg = mDelayedStopHandler.obtainMessage();
+        mDelayedStopHandler.sendMessageDelayed(msg, IDLE_DELAY);
+        return START_STICKY;
     }
     
     @Override
     public boolean onUnbind(Intent intent) {
-		
-		Log.v(TAG, "onUnbind called");
+        /*mServiceInUse = false;
+
+        if (isPlaying()) {
+            // something is currently playing, or will be playing once 
+            // an in-progress action requesting audio focus ends, so don't stop the service now.
+            return true;
+        }
+        
+        // If there is a playlist but playback is paused, then wait a while
+        // before stopping the service, so that pause/resume isn't slow.
+        // Also delay stopping the service if we're transitioning between tracks.
+        if (mPlayListLen > 0  || mMediaplayerHandler.hasMessages(TRACK_ENDED)) {
+            Message msg = mDelayedStopHandler.obtainMessage();
+            mDelayedStopHandler.sendMessageDelayed(msg, IDLE_DELAY);
+            return true;
+        }
+        
+        // No active playlist, OK to stop the service right now
+        stopSelf(mServiceStartId);*/
     	
-		if (!isPlaying() || playingVideo()) {
+		Log.v(TAG, "onUnbind called");
+		
+		if (!isPlaying()) { // || playingVideo()) {
 			stopSelf();
 		}
     	
-		return true;
+        return true;
     }
     
-    private void disconnect() {
-		
-    	ConnectionNotifier.getInstance().hideRunningNotification(this);
-		
-    	stopSelf();
-    	
-		if (disconnectHandler != null)
-			Message.obtain(disconnectHandler, -1, "").sendToTarget();
-    }
-    
-    public boolean isOpeningMedia() {
-    	return isOpeningMedia;
-    }
-    
-    public boolean isPlaying() {
-    	return isSupposedToBePlaying;
-    }
-    
-    private void releaseMediaPlayer() {
-        if (mediaPlayer != null) {
-            mediaPlayer.release();
-            mediaPlayer = null;
-        }
-    }
-    
-    public void setDisplay(SurfaceHolder holder) {
-        mediaPlayer.setDisplay(holder);
-    }
-    
-    public void setCurrentStream(Stream currentStream) {
-        this.currentStream = currentStream;
-    }
-    
-    public int getNumOfQueuedFiles() {
-    	return mediaFiles.size();
-    }
-    
-    public MediaFile getCurrentMediaInfo() {
-    	return mediaFiles.get(mediaFilesIndex);
-    }
-    
-    public Stream getCurrentStream() {
-    	return this.currentStream;
-    }
-    
-    public MediaPlayer getMediaPlayer() {
-    	return this.mediaPlayer;
-    }
-
-    /**
-     * Returns the current playback position in milliseconds
-     */
-    public long getPosition() {
-    	if (mediaPlayer != null) {
-            return mediaPlayer.getCurrentPosition();
-        }
-        return -1;
-    }
-
-    /**
-     * Returns the current playback duration in milliseconds
-     */
-    public long getDuration() {
-    	if (mediaPlayer != null) {
-            return mediaPlayer.getDuration();
-        }
-        return -1;
-    }
-    
-    public void setMediaPlayer(MediaPlayer mediaPlayer) {
-    	this.mediaPlayer = mediaPlayer;
-    	this.mediaPlayer.setOnPreparedListener(m_onPreparedListener);
-    	this.mediaPlayer.setOnCompletionListener(m_onCompletionListener);
-        this.mediaPlayer.setOnErrorListener(m_onErrorListener);
-    }
-    
-    public int getShuffleMode() {
-    	return shuffleMode;
-    }
-    
-    public void setShuffleMode(int shuffleMode) {
-        synchronized(this) {
-        	this.shuffleMode = shuffleMode;
-    	
-        	if (this.shuffleMode == SHUFFLE_ON) {
-        		shuffleIntegers = NumberGenerator.getRandomIntegers(mediaFilesIndex, mediaFiles.size());
-        		shuffleFilesIndex = 0;
-        	}
-        }
-    }
-    
-    public int getRepeatMode() {
-    	return repeatMode;
-    }
-    
-    public void setRepeatMode(int repeatMode) {
-        synchronized(this) {
-        	this.repeatMode = repeatMode;
-        }
-    }
-    
-    public void startMediaPlayer() {
-        startMedia(0);
-    }
-    
-    public void nextMediaFile() {
-    	synchronized (this) {
-    		if (mediaFilesIndex == (mediaFiles.size() - 1)) {
-    			startMedia(0);
-    		} else {
-    			startMedia(mediaFilesIndex + 1);
-    		}
-    	
-    		notifyChange(META_CHANGED);
-    	}
-    }
-    
-    public void pauseMedia() {
-        synchronized(this) {
-            if (isPlaying()) {
-                mediaPlayer.pause();
-                isSupposedToBePlaying = false;
-                notifyChange(PLAYSTATE_CHANGED);
-            	ConnectionNotifier.getInstance().hideRunningNotification(this);
+    private Handler mDelayedStopHandler = new Handler() {
+        @Override
+        public void handleMessage(Message msg) {
+            // Check again to make sure nothing is playing right now
+            if (isPlaying() || mServiceInUse
+                    || mMediaplayerHandler.hasMessages(TRACK_ENDED)) {
+                return;
             }
+            // save the queue again, because it might have changed
+            // since the user exited the music app (because of
+            // party-shuffle or because the play-position changed)
+            stopSelf(mServiceStartId);
         }
-    }
-    
-    public void resumeMedia() {
-        synchronized(this) {
-            mediaPlayer.start();
-            isSupposedToBePlaying = true;
-            notifyChange(PLAYSTATE_CHANGED);
-            ConnectionNotifier.getInstance().showRunningNotification(this);
-        }
-    }
-    
-    public void previousMediaFile() {
-    	synchronized (this) {
-    		if (mediaFilesIndex == 0) {
-    			startMedia((mediaFiles.size() - 1));
-    		} else {
-    			startMedia((mediaFilesIndex - 1));
-    		}
-    	
-    		notifyChange(META_CHANGED);
-    	}
+    };
+
+    public MultiPlayer getMediaPlayer() {
+    	return mPlayer;
     }
     
     /**
-     * Seeks to the position specified.
-     *
-     * @param pos The position to seek to, in milliseconds
+     * Notify the change-receivers that something has changed.
+     * The intent that is sent contains the following data
+     * for the currently playing track:
+     * "id" - Integer: the database row ID
+     * "artist" - String: the name of the artist
+     * "album" - String: the name of the album
+     * "track" - String: the name of the track
+     * The intent has an action that is one of
+     * "com.android.music.metachanged"
+     * "com.android.music.queuechanged",
+     * "com.android.music.playbackcomplete"
+     * "com.android.music.playstatechanged"
+     * respectively indicating that a new track has
+     * started playing, that the playback queue has
+     * changed, that playback has stopped because
+     * the last file in the list has been played,
+     * or that the play-state changed (paused/resumed).
      */
-    public void seek(long pos) {
-    	if (mediaPlayer != null) {
-        //if (mediaPlayer.isInitialized()) {
-            if (pos < 0) pos = 0;
-            if (pos > mediaPlayer.getDuration()) pos = mediaPlayer.getDuration();
-            mediaPlayer.seekTo((int) pos);
-            //return mediaPlayer.seekTo(pos);
-        }
-        //return -1;
-    }
-    
-    public void seekBackward() {
-    	
-    	int seekPosition = mediaPlayer.getCurrentPosition() - SEEK_INCREMENT;
-    	
-    	if (seekPosition >= 0) {
-    		mediaPlayer.seekTo(seekPosition);
-    	} else {
-    		mediaPlayer.seekTo(0);    		
-    	}
-    }
-
-    public void seekForward() {
-    	
-    	int seekPosition = mediaPlayer.getCurrentPosition() + SEEK_INCREMENT;
-    	
-    	if (seekPosition < mediaPlayer.getDuration()) {
-    		mediaPlayer.seekTo(seekPosition);
-    	} else {
-    		mediaPlayer.seekTo(mediaPlayer.getDuration());    		
-    	}
-    }
-
-    public boolean getStreamActivityState() {
-    	return streamActivityState;
-    }
-    
-    public void setStreamActivityState(boolean state) {
-    	streamActivityState = state;
-    }
-    
-    private void startMedia(int index) {
-		
-		// send a message to start the "Opening file..." dialog
-    	if (streamActivityState == StreamMediaActivity.VISIBLE)
-		    mediaPlayerHandler.sendMessage(Message.obtain(mediaPlayerHandler, START_DIALOG));
-		
-    	mediaFilesIndex = index;
-    	
-    	// set the flag to true which kills the seek bar thread
-    	isOpeningMedia = true;
-    	
-    	if (isPlaying())
-    		mediaPlayer.stop();
-    	
-	    mediaPlayer.reset();
-	        
-	    try {
-	        mediaPlayer.setDataSource(mediaFiles.get(mediaFilesIndex).getURL());
-	        mediaPlayer.prepareAsync();
-	        
-    	} catch (Exception ex) {
-    		ex.printStackTrace();
-    	}
-    }
-
-    private OnPreparedListener m_onPreparedListener = new OnPreparedListener() {
-
-		public void onPrepared(MediaPlayer mp) {
-			
-			// start playing the media file
-			mediaPlayer.start();
-			
-			// show the notification icon
-			ConnectionNotifier.getInstance().showRunningNotification(MediaService.this);
-			
-			// we are finished opening the media, so set the flag to false
-		    isOpeningMedia = false;
-		    
-	        // update the currently playing track
-	        currentlyPlayingTrack = mediaFiles.get(mediaFilesIndex).getURL();
-		    
-	        // send a message to start the seek bar 
-	        mediaPlayerHandler.sendMessage(Message.obtain(mediaPlayerHandler, START_SEEK_BAR));
-	        
-	        // send a message to show the media controls 
-	        mediaPlayerHandler.sendMessage(Message.obtain(mediaPlayerHandler, SHOW_MEDIA_CONTROLS));
-	        
-	        // if available, send notifications to the activity
-	    	if (streamActivityState == StreamMediaActivity.VISIBLE) {
-			
-			    // send a message to stop the "Opening file..." dialog
-    		    mediaPlayerHandler.sendMessage(Message.obtain(mediaPlayerHandler, STOP_DIALOG));
-	    	}
-	    	
-	    	isSupposedToBePlaying = true;
-	    	notifyChange(META_CHANGED);
-		}
-    };
-    
-    private OnCompletionListener m_onCompletionListener = new OnCompletionListener() {
-    	
-		public void onCompletion(MediaPlayer mp) {
-
-			// if repeat preference is set to one, play the media file again
-			if (repeatMode == REPEAT_CURRENT) {
-			    startMedia(mediaFilesIndex);
-				return;
-			}
-			
-			mediaFilesIndex++;
-			
-			if (mediaFilesIndex == mediaFiles.size()) {
-				if (repeatMode == REPEAT_ALL) {
-					startMedia(0);
-					return;
-				}
-				disconnect();
-			} else {
-				/*if (shuffleState.equals(SHUFFLE_ON)) {
-					Random random = new Random();
-				    mediaFilesIndex = random.nextInt(mediaFiles.size());
-				}*/
-				
-                startMedia(mediaFilesIndex);
-			}
-		}
-    };
-    
-    private OnErrorListener m_onErrorListener = new OnErrorListener() {
-
-		public boolean onError(MediaPlayer mp, int what, int extra) {
-			
-			//if (extra == -1004) {
-			//}
-			
-	        // if available, send notification to the activity
-	    	if (streamActivityState == StreamMediaActivity.VISIBLE) {
-	    		mediaPlayerHandler.sendMessage(Message.obtain(mediaPlayerHandler, ERROR));
-	    	} else {
-	    		
-	    	}
-			
-			return true;
-		};
-    	
-    };
-    
-    private PhoneStateListener m_phoneListener = new PhoneStateListener() {
-    	
-    	public void onCallStateChanged(int state, String incomingNumber) {
-    		try {
-    			switch (state) {
-                case TelephonyManager.CALL_STATE_RINGING:
-                    if (isPlaying()) {
-                    	pauseMedia();
-                    	pausedDuringPhoneCall = true;
-                    }
-                    break;
-                case TelephonyManager.CALL_STATE_OFFHOOK:
-                    if (isPlaying()) {
-                    	pauseMedia();
-                    	pausedDuringPhoneCall = true;
-                    }
-                    break;
-                case TelephonyManager.CALL_STATE_IDLE:
-                	if (pausedDuringPhoneCall) {
-                        resumeMedia();
-                        pausedDuringPhoneCall = false;
-                	}
-                	break;
-                default:
-                    Log.d(TAG, "Invalid phone state: " + state);
-    			}
-    		} catch (Exception ex) {
-    			ex.printStackTrace();
-    		}
-    	}
-    };
-    
-    public void resetSurfaceView() {
-    	int position = 0;
-    	
-        try {
-        	position = mediaPlayer.getCurrentPosition();
-    	    mediaPlayer.stop();
-            mediaPlayer.reset();
-			mediaPlayer.setDataSource(mediaFiles.get(mediaFilesIndex).getURL());
-	        mediaPlayer.prepareAsync();
-		    mediaPlayer.start();
-		    mediaPlayer.seekTo(position);
-		} catch (Exception ex) {
-			ex.printStackTrace();
-		}
-    }
-    
-    public boolean queueNewMedia(Stream stream) {
-    
-    	URL url = null;
-    	
-    	//TODO add null check
-    	
-    	try {
-    	
-    		url = stream.getURL();
-    		
-        if (isM3UPlaylist(url.getPath())) {
-            M3UPlaylistParser playlistParser = new M3UPlaylistParser(url);
-            playlistParser.retrieveM3UFiles();
-            mediaFiles = playlistParser.getPlaylistFiles();
-        } else if (isPLSPlaylist(url.getPath())) {
-            PLSPlaylistParser playlistParser = new PLSPlaylistParser(url);
-            playlistParser.retrievePLSFiles();
-            mediaFiles = playlistParser.getPlaylistFiles();
-        } else {
-        	mediaFiles = new ArrayList<MediaFile>();
-        	MediaFile mediaFile = new MediaFile();
-        	mediaFile.setURL(url.toString());
-        	mediaFile.setTrackNumber(1);
-        	mediaFiles.add(mediaFile);
-        }
-        
-    	} catch(Exception ex) {
-    		ex.printStackTrace();
-    		return false;
-    	}
-    	
-	    Stream foundStream = streamdb.findStream(stream);
-		
-	    if (foundStream != null) {
-		    streamdb.touchHost(foundStream);
-	    }
-    	
-    	return true;
-    }
-    
     private void notifyChange(String what) {
         
-    	Log.v(TAG, "Sending broadcast message");
-    	
+    	// send notification to StreamMediaActivity
         Intent i = new Intent(what);
         sendStickyBroadcast(i);
         
         // Share this notification directly with our widgets
         mAppWidgetProvider.notifyChange(this, what);
     }
+
+    /**
+     * Returns the current play list
+     * 
+     * @return An array of integers containing the IDs of the tracks in the play list
+     */
+    public long [] getQueue() {
+        synchronized (this) {
+            int len = mPlayListLen;
+            long [] list = new long[len];
+            for (int i = 0; i < len; i++) {
+                list[i] = mPlayList[i];
+            }
+            return list;
+        }
+    }
+
+    private void openCurrent() {
+        synchronized (this) {
+
+            if (mPlayListLen == 0) {
+                return;
+            }
+            stop(false);
+
+            int id = (int) (mPlayList[mPlayPos]);
+            
+            MediaFile mediaFile = mPlayListFiles[id];
+            open(mediaFile.getURL().toString());
+        }
+    }
+
+    public void queueFirstFile() {
+    	openCurrent();
+    }
     
     /**
-     * Checks if the currently playing media file is a video file
-     * 
-     * @return boolean True if the currently playing file is a video, false otherwise
+     * Opens the specified file and readies it for playback.
+     *
+     * @param path The full path of the file to be opened.
      */
-    private boolean playingVideo() {
-    	String fileExtention = null;
-    	
-    	try {
-    	    if (this.currentlyPlayingTrack.length() > 4) {
-    		    fileExtention = this.currentlyPlayingTrack.substring(this.currentlyPlayingTrack.length() - 4, this.currentlyPlayingTrack.length());
-    	        if (fileExtention.equalsIgnoreCase(".3gp") || fileExtention.equalsIgnoreCase(".mp4")) {
-    	    	    return true;
-    	        }
-    	    }
-    	} catch (Exception ex) {
-    		ex.printStackTrace();
-    		return false;
-    	}
-    	
-    	return false;
+    public void open(String path) {
+        synchronized (this) {
+            if (path == null) {
+                return;
+            }
+
+            mFileToPlay = path;
+            Log.v(TAG, "opening" + mPlayListFiles[mPlayPos].getURL().toString());
+            mPlayer.setDataSource(mPlayListFiles[mPlayPos].getURL());
+            if (! mPlayer.isInitialized()) {
+                stop(true);
+//                if (mOpenFailedCounter++ < 10 &&  mPlayListLen > 1) {
+//                    // beware: this ends up being recursive because next() calls open() again.
+//                    next(false);
+//                }
+//                if (! mPlayer.isInitialized() && mOpenFailedCounter != 0) {
+//                    // need to make sure we only shows this once
+//                    mOpenFailedCounter = 0;
+//                    if (!mQuietMode) {
+//                        Toast.makeText(this, R.string.playback_failed, Toast.LENGTH_SHORT).show();
+//                    }
+//                    Log.d(TAG, "Failed to open file for playback");
+//                }
+//            } else {
+//                mOpenFailedCounter = 0;
+            }
+        }
     }
+
+    /**
+     * Starts playback of a previously opened file.
+     */
+    public void play() {
+
+    	if (mPlayer.isInitialized()) {
+
+            mPlayer.start();
+
+            if (!mIsSupposedToBePlaying) {
+                mIsSupposedToBePlaying = true;
+                notifyChange(PLAYSTATE_CHANGED);
+            }
+            
+            ConnectionNotifier.getInstance().showRunningNotification(this);
+        }
+    }
+    
+    private void stop(boolean remove_status_icon) {
+        if (mPlayer.isInitialized()) {
+            mPlayer.stop();
+        }
+        mFileToPlay = null;
+
+        if (remove_status_icon) {
+            gotoIdleState();
+        } else {
+            stopForeground(false);
+        }
+        if (remove_status_icon) {
+            mIsSupposedToBePlaying = false;
+        }
+        
+        ConnectionNotifier.getInstance().hideRunningNotification(this);
+    }
+
+    /**
+     * Stops playback.
+     */
+    public void stop() {
+        stop(true);
+    }
+
+    /**
+     * Pauses playback (call play() to resume)
+     */
+    public void pause() {
+        synchronized(this) {
+            if (isPlaying()) {
+                mPlayer.pause();
+                gotoIdleState();
+                mIsSupposedToBePlaying = false;
+                notifyChange(PLAYSTATE_CHANGED);
+                ConnectionNotifier.getInstance().hideRunningNotification(this);
+            }
+        }
+    }
+
+    /** Returns whether something is currently playing
+     *
+     * @return true if something is playing (or will be playing shortly, in case
+     * we're currently transitioning between tracks), false if not.
+     */
+    public boolean isPlaying() {
+        return mIsSupposedToBePlaying;
+    }
+
+    /*
+      Desired behavior for prev/next/shuffle:
+
+      - NEXT will move to the next track in the list when not shuffling, and to
+        a track randomly picked from the not-yet-played tracks when shuffling.
+        If all tracks have already been played, pick from the full set, but
+        avoid picking the previously played track if possible.
+      - when shuffling, PREV will go to the previously played track. Hitting PREV
+        again will go to the track played before that, etc. When the start of the
+        history has been reached, PREV is a no-op.
+        When not shuffling, PREV will go to the sequentially previous track (the
+        difference with the shuffle-case is mainly that when not shuffling, the
+        user can back up to tracks that are not in the history).
+
+        Example:
+        When playing an album with 10 tracks from the start, and enabling shuffle
+        while playing track 5, the remaining tracks (6-10) will be shuffled, e.g.
+        the final play order might be 1-2-3-4-5-8-10-6-9-7.
+        When hitting 'prev' 8 times while playing track 7 in this example, the
+        user will go to tracks 9-6-10-8-5-4-3-2. If the user then hits 'next',
+        a random track will be picked again. If at any time user disables shuffling
+        the next/previous track will be picked in sequential order again.
+     */
+
+    public void prev() {
+        synchronized (this) {
+            if (mShuffleMode == SHUFFLE_ON) {
+                // go to previously-played track and remove it from the history
+                int histsize = mHistory.size();
+                if (histsize == 0) {
+                    // prev is a no-op
+                    return;
+                }
+                Integer pos = mHistory.remove(histsize - 1);
+                mPlayPos = pos.intValue();
+            } else {
+                if (mPlayPos > 0) {
+                    mPlayPos--;
+                } else {
+                    mPlayPos = mPlayListLen - 1;
+                }
+            }
+            stop(false);
+            openCurrent();
+        }
+    }
+
+    public void next(boolean force) {
+        synchronized (this) {
+            if (mPlayListLen <= 0) {
+                Log.d(TAG, "No media in playlist queue");
+                return;
+            }
+
+            if (mShuffleMode == SHUFFLE_ON) {
+                // Pick random next track from the not-yet-played ones
+                // TODO: make it work right after adding/removing items in the queue.
+
+                // Store the current file in the history, but keep the history at a
+                // reasonable size
+                if (mPlayPos >= 0) {
+                    mHistory.add(mPlayPos);
+                }
+                if (mHistory.size() > MAX_HISTORY_SIZE) {
+                    mHistory.removeElementAt(0);
+                }
+
+                int numTracks = mPlayListLen;
+                int[] tracks = new int[numTracks];
+                for (int i=0;i < numTracks; i++) {
+                    tracks[i] = i;
+                }
+
+                int numHistory = mHistory.size();
+                int numUnplayed = numTracks;
+                for (int i=0;i < numHistory; i++) {
+                    int idx = mHistory.get(i).intValue();
+                    if (idx < numTracks && tracks[idx] >= 0) {
+                        numUnplayed--;
+                        tracks[idx] = -1;
+                    }
+                }
+
+                // 'numUnplayed' now indicates how many tracks have not yet
+                // been played, and 'tracks' contains the indices of those
+                // tracks.
+                if (numUnplayed <=0) {
+                    // everything's already been played
+                    if (mRepeatMode == REPEAT_ALL || force) {
+                        //pick from full set
+                        numUnplayed = numTracks;
+                        for (int i=0;i < numTracks; i++) {
+                            tracks[i] = i;
+                        }
+                    } else {
+                        // all done
+                        gotoIdleState();
+                        if (mIsSupposedToBePlaying) {
+                            mIsSupposedToBePlaying = false;
+                            notifyChange(PLAYSTATE_CHANGED);
+                        }
+                        return;
+                    }
+                }
+                int skip = mRand.nextInt(numUnplayed);
+                int cnt = -1;
+                while (true) {
+                    while (tracks[++cnt] < 0)
+                        ;
+                    skip--;
+                    if (skip < 0) {
+                        break;
+                    }
+                }
+                mPlayPos = cnt;
+            } else {
+                if (mPlayPos >= mPlayListLen - 1) {
+                    // we're at the end of the list
+                    if (mRepeatMode == REPEAT_NONE && !force) {
+                        // all done
+                        gotoIdleState();
+                        mIsSupposedToBePlaying = false;
+                        notifyChange(PLAYSTATE_CHANGED);
+                        return;
+                    } else if (mRepeatMode == REPEAT_ALL || force) {
+                        mPlayPos = 0;
+                    }
+                } else {
+                    mPlayPos++;
+                }
+            }
+
+            stop(false);
+            openCurrent();
+        }
+    }
+    
+    private void gotoIdleState() {
+        mDelayedStopHandler.removeCallbacksAndMessages(null);
+        Message msg = mDelayedStopHandler.obtainMessage();
+        mDelayedStopHandler.sendMessageDelayed(msg, IDLE_DELAY);
+        stopForeground(true);
+    }
+
+    // check that the specified idx is not in the history (but only look at at
+    // most lookbacksize entries in the history)
+    private boolean wasRecentlyUsed(int idx, int lookbacksize) {
+
+        // early exit to prevent infinite loops in case idx == mPlayPos
+        if (lookbacksize == 0) {
+            return false;
+        }
+
+        int histsize = mHistory.size();
+        if (histsize < lookbacksize) {
+            Log.d(TAG, "lookback too big");
+            lookbacksize = histsize;
+        }
+        int maxidx = histsize - 1;
+        for (int i = 0; i < lookbacksize; i++) {
+            long entry = mHistory.get(maxidx - i);
+            if (entry == idx) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    // A simple variation of Random that makes sure that the
+    // value it returns is not equal to the value it returned
+    // previously, unless the interval is 1.
+    private static class Shuffler {
+        private int mPrevious;
+        private Random mRandom = new Random();
+        public int nextInt(int interval) {
+            int ret;
+            do {
+                ret = mRandom.nextInt(interval);
+            } while (ret == mPrevious && interval > 1);
+            mPrevious = ret;
+            return ret;
+        }
+    };
+    
+    public void setShuffleMode(int shufflemode) {
+        synchronized(this) {
+            if (mShuffleMode == shufflemode && mPlayListLen > 0) {
+                return;
+            }
+            mShuffleMode = shufflemode;
+            /*if (mShuffleMode == SHUFFLE_AUTO) {
+                if (makeAutoShuffleList()) {
+                    mPlayListLen = 0;
+                    doAutoShuffleUpdate();
+                    mPlayPos = 0;
+                    openCurrent();
+                    play();
+                    notifyChange(META_CHANGED);
+                    return;
+                } else {
+                    // failed to build a list of files to shuffle
+                    mShuffleMode = SHUFFLE_NONE;
+                }
+            }*/
+        }
+    }
+    public int getShuffleMode() {
+        return mShuffleMode;
+    }
+    
+    public void setRepeatMode(int repeatmode) {
+        synchronized(this) {
+            mRepeatMode = repeatmode;
+        }
+    }
+    public int getRepeatMode() {
+        return mRepeatMode;
+    }
+
+    public int getMediaMountedCount() {
+        return mMediaMountedCount;
+    }
+
+    /**
+     * Returns the path of the currently playing file, or null if
+     * no file is currently playing.
+     */
+    public String getPath() {
+        return mFileToPlay;
+    }
+    
+    /**
+     * Returns the rowid of the currently playing file, or -1 if
+     * no file is currently playing.
+     */
+    public long getMediaId() {
+        synchronized (this) {
+            if (mPlayPos >= 0 && mPlayer.isInitialized()) {
+                return mPlayList[mPlayPos];
+            }
+        }
+        return -1;
+    }
+    
+    /**
+     * Returns the position in the queue 
+     * @return the position in the queue
+     */
+    public int getQueuePosition() {
+        synchronized(this) {
+            return mPlayPos;
+        }
+    }
+    
+    /**
+     * Starts playing the track at the given position in the queue.
+     * @param pos The position in the queue of the track that will be played.
+     */
+    public void setQueuePosition(int pos) {
+        synchronized(this) {
+            stop(false);
+            mPlayPos = pos;
+            openCurrent();
+            notifyChange(META_CHANGED);
+            /*if (mShuffleMode == SHUFFLE_AUTO) {
+                doAutoShuffleUpdate();
+            }*/
+        }
+    }
+    
+    public String getTrackName() {
+        synchronized (this) {
+        	
+        	MediaFile mediaFile = mPlayListFiles[mPlayPos];
+        	
+            return mediaFile.getTitle();
+        }
+    }
+    
+    public String getMediaURL() {
+        synchronized (this) {
+        	
+        	MediaFile mediaFile = mPlayListFiles[mPlayPos];
+        	
+            return mediaFile.getDecodedURL();
+        }
+    }
+    
+    /**
+     * Returns the duration of the file in milliseconds.
+     * Currently this method returns -1 for the duration of MIDI files.
+     */
+    public long duration() {
+        if (mPlayer.isInitialized()) {
+            return mPlayer.duration();
+        }
+        return -1;
+    }
+
+    /**
+     * Returns the current playback position in milliseconds
+     */
+    public long position() {
+        if (mPlayer.isInitialized()) {
+            return mPlayer.position();
+        }
+        return -1;
+    }
+
+    /**
+     * Seeks to the position specified.
+     *
+     * @param pos The position to seek to, in milliseconds
+     */
+    public long seek(long pos) {
+        if (mPlayer.isInitialized()) {
+            if (pos < 0) pos = 0;
+            if (pos > mPlayer.duration()) pos = mPlayer.duration();
+            return mPlayer.seek(pos);
+        }
+        return -1;
+    }
+    
+    /*
+     * By making this a static class with a WeakReference to the Service, we
+     * ensure that the Service can be GCd even when the system process still
+     * has a remote reference to the stub.
+     */
+    static class ServiceStub extends IMediaService.Stub {
+        WeakReference<MediaService> mService;
+        
+        ServiceStub(MediaService service) {
+            mService = new WeakReference<MediaService>(service);
+        }
+
+        public void openFile(String path)
+        {
+            mService.get().open(path);
+        }
+        public void queueFirstFile() {
+            mService.get().queueFirstFile();
+        }
+        public int getQueuePosition() {
+            return mService.get().getQueuePosition();
+        }
+        public void setQueuePosition(int index) {
+            mService.get().setQueuePosition(index);
+        }
+        public boolean isPlaying() {
+            return mService.get().isPlaying();
+        }
+        public void stop() {
+            mService.get().stop();
+        }
+        public void pause() {
+            mService.get().pause();
+        }
+        public void play() {
+            mService.get().play();
+        }
+        public void prev() {
+            mService.get().prev();
+        }
+        public void next() {
+            mService.get().next(true);
+        }
+        public String getTrackName() {
+        	return mService.get().getTrackName();
+        }
+        public String getMediaURL() {
+        	return mService.get().getMediaURL();
+        }
+        public long [] getQueue() {
+            return mService.get().getQueue();
+        }
+        public String getPath() {
+            return mService.get().getPath();
+        }
+        public long getMediaId() {
+            return mService.get().getMediaId();
+        }
+        public long position() {
+            return mService.get().position();
+        }
+        public long duration() {
+            return mService.get().duration();
+        }
+        public long seek(long pos) {
+            return mService.get().seek(pos);
+        }
+        public void setShuffleMode(int shufflemode) {
+            mService.get().setShuffleMode(shufflemode);
+        }
+        public int getShuffleMode() {
+            return mService.get().getShuffleMode();
+        }
+        public void setRepeatMode(int repeatmode) {
+            mService.get().setRepeatMode(repeatmode);
+        }
+        public int getRepeatMode() {
+            return mService.get().getRepeatMode();
+        }
+        public int getMediaMountedCount() {
+            return mService.get().getMediaMountedCount();
+        }
+        public void loadQueue(String filename) {
+        	mService.get().loadQueue(filename);
+        }
+        public MultiPlayer getMediaPlayer() {
+        	return mService.get().getMediaPlayer();
+        }
+    }
+
+    private final IBinder mBinder = new ServiceStub(this);
     
     private boolean isM3UPlaylist(String path) {
     	int index = 0;
