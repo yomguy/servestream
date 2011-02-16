@@ -115,7 +115,7 @@
 					android:background="@drawable/previous_button"
 					/>
 
-			<Button android:id="@+id/seek_backward_button"
+			<net.sourceforge.servestream.button.RepeatingImageButton android:id="@+id/seek_backward_button"
 					android:layout_width="wrap_content"
 					android:layout_height="wrap_content"
 					android:layout_toLeftOf="@+id/play_pause_button"
@@ -131,7 +131,7 @@
 					android:background="@+drawable/pause_button"
 					/>
 			
-			<Button android:id="@+id/seek_forward_button"
+			<net.sourceforge.servestream.button.RepeatingImageButton android:id="@+id/seek_forward_button"
 					android:layout_width="wrap_content"
 					android:layout_height="wrap_content"
 					android:layout_toRightOf="@+id/play_pause_button"
@@ -160,7 +160,9 @@
                 		  	  android:layout_height="wrap_content"
                 		  	  android:paddingBottom="5dip"
                 		  	  android:paddingLeft="4dip"
-                		  	  android:textAppearance="?android:attr/textAppearanceSmall"
+                		  	  android:textAppearance="?android:attr/textAppearanceMedium"
+                              android:textSize="14sp"
+                              android:textStyle="bold"
                 		  	  android:layout_alignParentLeft="true"
                 		  	  android:layout_alignParentBottom="true"
             			  	  />
@@ -188,7 +190,9 @@
 							  android:layout_width="wrap_content" 
                 		  	  android:layout_height="wrap_content"
              				  android:paddingRight="4dip"
-                		  	  android:textAppearance="?android:attr/textAppearanceSmall"
+                		  	  android:textAppearance="?android:attr/textAppearanceMedium"
+                              android:textSize="14sp"
+                              android:textStyle="bold"
                 		  	  android:layout_alignParentRight="true"
             			  	  android:layout_alignTop="@+id/position_text"
             			  	  />
