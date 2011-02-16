@@ -36,7 +36,6 @@ import net.sourceforge.servestream.R;
 import net.sourceforge.servestream.StreamListActivity;
 import net.sourceforge.servestream.StreamMediaActivity;
 import net.sourceforge.servestream.service.MediaService;
-import net.sourceforge.servestream.utils.MediaFile;
 import android.app.PendingIntent;
 import android.appwidget.AppWidgetManager;
 import android.appwidget.AppWidgetProvider;
@@ -89,7 +88,7 @@ public class ServeStreamAppWidgetOneProvider extends AppWidgetProvider {
         final RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.appwidget_one);
         
         views.setViewVisibility(R.id.title, View.GONE);
-        views.setTextViewText(R.id.artist, res.getText(R.string.widget_one_initial_text));
+        views.setTextViewText(R.id.url, res.getText(R.string.widget_one_initial_text));
 
         linkButtons(context, views, false /* not playing */);
         pushUpdate(context, appWidgetIds, views);
@@ -121,8 +120,9 @@ public class ServeStreamAppWidgetOneProvider extends AppWidgetProvider {
     public void notifyChange(MediaService service, String what) {
         if (hasInstances(service)) {
             if (MediaService.META_CHANGED.equals(what) ||
-            		MediaService.PLAYSTATE_CHANGED.equals(what)) {
-                performUpdate(service, null);
+            		MediaService.PLAYSTATE_CHANGED.equals(what) ||
+            			MediaService.PLAYER_CLOSED.equals(what)) {
+                performUpdate(service, null, what);
             }
         }
     }
@@ -130,25 +130,28 @@ public class ServeStreamAppWidgetOneProvider extends AppWidgetProvider {
     /**
      * Update all active widget instances by pushing changes 
      */
-    public void performUpdate(MediaService service, int[] appWidgetIds) {
+    public void performUpdate(MediaService service, int[] appWidgetIds, String what) {
     	Log.v(TAG, "performUpdate");
+    	final Resources res = service.getResources();
         final RemoteViews views = new RemoteViews(service.getPackageName(), R.layout.appwidget_one);
         
-        MediaFile mediaFile = service.getCurrentMediaInfo();
-        String titleName = null;;
-        String url = null;
+        if (what.equals(MediaService.PLAYER_CLOSED)) {
+        	views.setViewVisibility(R.id.title, View.GONE);
+            views.setTextViewText(R.id.url, res.getText(R.string.widget_one_initial_text));
+        } else {
+        	CharSequence titleName = service.getTrackName();
+        	CharSequence mediaURL = service.getMediaURL();
+        	//CharSequence errorState = null;
         
-    	if ((titleName = mediaFile.getTitle()) == null)
-    	    titleName = "";
-    	
-    	if ((url = mediaFile.getURL()) == null)
-    	    url = "";
+        	if (titleName == null)
+        		titleName = "No track info available";
         
-        // Show media info
-        views.setViewVisibility(R.id.title, View.VISIBLE);
-        views.setTextViewText(R.id.title, titleName);
-        views.setTextViewText(R.id.artist, url);
-        
+        	// Show media info
+        	views.setViewVisibility(R.id.title, View.VISIBLE);
+        	views.setTextViewText(R.id.title, titleName);
+        	views.setTextViewText(R.id.url, mediaURL);
+        }
+        	
         // Set correct drawable for pause state
         final boolean playing = service.isPlaying();
         if (playing) {
@@ -162,7 +165,7 @@ public class ServeStreamAppWidgetOneProvider extends AppWidgetProvider {
         
         pushUpdate(service, appWidgetIds, views);
     }
-
+    
     /**
      * Link up various button actions using {@link PendingIntents}.
      * 
