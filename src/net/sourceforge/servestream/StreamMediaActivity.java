@@ -33,7 +33,6 @@
 package net.sourceforge.servestream;
 
 import net.sourceforge.servestream.button.RepeatingImageButton;
-import net.sourceforge.servestream.dbutils.Stream;
 import net.sourceforge.servestream.player.MultiPlayer;
 import net.sourceforge.servestream.service.IMediaService;
 import net.sourceforge.servestream.service.MediaService;
@@ -108,8 +107,9 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
 	private int mDisplayWidth = 0;
 	private int mDisplayHeight = 0;
     
-	private Stream mRequestedStream = null;
-    
+	//private Stream mRequestedStream = null;
+    private String mRequestedStream = null;
+	
     /** Called when the activity is first created. */
     @Override
     public void onCreate(Bundle icicle)
@@ -400,34 +400,57 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
     public void surfaceCreated(SurfaceHolder holder) {
         Log.d(TAG, "surfaceCreated called");
         
+		// obtain the requested stream
+		if (getIntent().getData() == null) {
+			mRequestedStream = null;
+		} else {
+			try {
+				mRequestedStream = getIntent().getData().toString();
+				//mRequestedStream = new Stream(getIntent().getData().toString());
+			} catch (Exception ex) {
+				ex.printStackTrace();
+			}
+		}
+        
     	// if the requested stream is null the intent used to launch
     	// StreamMediaActivity did not supply a new URL to stream
-        //if (requestedStream != null && !requestedStream.equals(boundService.getCurrentStream())) {
-            try {
-            	MultiPlayer mp = mMediaService.getMediaPlayer();
-            	mp.setDisplay(holder);
-                holder.setFixedSize(mDisplayWidth, mDisplayHeight);
-                
-                startPlayback();
-                
-                setRepeatButtonImage();
-                setShuffleButtonImage();
-                setPauseButtonImage();
-                
-            } catch (Exception ex) {
-                Log.e(TAG, "error: " + ex.getMessage());
-            }
-        //} else {
-        	/*if (boundService.isPlayingVideo()) {
-            	makeSurface();
-                mediaPlayer.setDisplay(holder);
-                holder.setFixedSize(displayWidth, displayHeight);
-                boundService.resetSurfaceView();
-        	} */
-        //	updateMediaInfo();
-        //	startSeekBar();
-    	//	mediaControls.setVisibility(View.VISIBLE);
-        //}
+        try {
+			if ((mRequestedStream != null && mMediaService.getPlayListPath() == null) || 
+					(mRequestedStream != null && !mRequestedStream.equals(mMediaService.getPlayListPath()))) {
+				
+				Log.v(TAG, mRequestedStream);
+				if (mMediaService.getPlayListPath() != null)
+				Log.v(TAG, mMediaService.getPlayListPath());
+				
+			    try {
+			    	MultiPlayer mp = mMediaService.getMediaPlayer();
+			    	mp.setDisplay(holder);
+			        holder.setFixedSize(mDisplayWidth, mDisplayHeight);
+			        
+			        startPlayback();
+			        
+			        setRepeatButtonImage();
+			        setShuffleButtonImage();
+			        setPauseButtonImage();
+			        
+			    } catch (Exception ex) {
+			        Log.e(TAG, "error: " + ex.getMessage());
+			    }
+			} else {
+				/*if (boundService.isPlayingVideo()) {
+			    	makeSurface();
+			        mediaPlayer.setDisplay(holder);
+			        holder.setFixedSize(displayWidth, displayHeight);
+			        boundService.resetSurfaceView();
+				} */
+			//	updateMediaInfo();
+			//	startSeekBar();
+			//	mediaControls.setVisibility(View.VISIBLE);
+			}
+		} catch (RemoteException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
     	
     }
 
@@ -601,19 +624,9 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
         if(mMediaService == null)
             return;
         
-		// obtain the requested stream
-		if (getIntent().getData() == null) {
-			mRequestedStream = null;
-		} else {
-			try {
-				mRequestedStream = new Stream(getIntent().getData().toString());
-			} catch (Exception ex) {
-				ex.printStackTrace();
-			}
-		}
-        
-        if (mRequestedStream != null) {
-        	filename = mRequestedStream.getUri().toString();
+        //if (mRequestedStream != null) {
+        filename = mRequestedStream;
+        	//filename = mRequestedStream.getUri().toString();
             
         	try {
 				mMediaService.loadQueue(filename);
@@ -623,7 +636,7 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
             } catch (Exception ex) {
                 Log.v(TAG, "couldn't start playback: " + ex);
             }
-        }
+        //}
 
         //updateTrackInfo();
         //long next = refreshNow();

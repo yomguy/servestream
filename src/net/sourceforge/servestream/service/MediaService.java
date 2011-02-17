@@ -101,9 +101,9 @@ public class MediaService extends Service {
     
     private MultiPlayer mPlayer;
     private String mFileToPlay;
+    private String mPlayListToPlay;
     private int mShuffleMode = SHUFFLE_NONE;
     private int mRepeatMode = REPEAT_NONE;
-    private int mMediaMountedCount = 0;
     private long [] mPlayList = null;
     private MediaFile [] mPlayListFiles = null;
     private int mPlayListLen = 0;
@@ -290,6 +290,7 @@ public class MediaService extends Service {
 	    }*/
     	
 	    mPlayPos = 0;
+	    mPlayListToPlay = filename;
     }
     
     @Override
@@ -744,16 +745,20 @@ public class MediaService extends Service {
         return mRepeatMode;
     }
 
-    public int getMediaMountedCount() {
-        return mMediaMountedCount;
-    }
-
     /**
      * Returns the path of the currently playing file, or null if
      * no file is currently playing.
      */
     public String getPath() {
         return mFileToPlay;
+    }
+    
+    /**
+     * Returns the path of the currently playlist file, or null if
+     * no playlist is currently playing.
+     */
+    public String getPlayListPath() {
+    	return mPlayListToPlay;
     }
     
     /**
@@ -912,6 +917,9 @@ public class MediaService extends Service {
         public String getPath() {
             return mService.get().getPath();
         }
+        public String getPlayListPath() {
+        	return mService.get().getPlayListPath();
+        }
         public long getMediaId() {
             return mService.get().getMediaId();
         }
@@ -935,9 +943,6 @@ public class MediaService extends Service {
         }
         public int getRepeatMode() {
             return mService.get().getRepeatMode();
-        }
-        public int getMediaMountedCount() {
-            return mService.get().getMediaMountedCount();
         }
         public void loadQueue(String filename) {
         	mService.get().loadQueue(filename);
