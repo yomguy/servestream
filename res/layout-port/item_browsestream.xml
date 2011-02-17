@@ -45,7 +45,8 @@
 		android:paddingRight="20dip"
 		android:singleLine="true"
 		android:ellipsize="end"
-		android:textAppearance="?android:attr/textAppearanceSmall"
+		android:textColor="@color/white"
+        android:textSize="14sp"
 		/>
 
 </RelativeLayout>
