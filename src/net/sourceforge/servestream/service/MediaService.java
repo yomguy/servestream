@@ -147,7 +147,7 @@ public class MediaService extends Service {
                     break;
                 case PLAYER_PREPARED:
                     Intent i = new Intent(STOP_DIALOG);
-                    sendStickyBroadcast(i);
+                    sendBroadcast(i);
                     play();
                     notifyChange(META_CHANGED);
                 	break;
@@ -416,7 +416,7 @@ public class MediaService extends Service {
         
     	// send notification to StreamMediaActivity
         Intent i = new Intent(what);
-        sendStickyBroadcast(i);
+        sendBroadcast(i);
         
         // Share this notification directly with our widgets
         mAppWidgetProvider.notifyChange(this, what);
@@ -469,7 +469,7 @@ public class MediaService extends Service {
             }
 
             Intent i = new Intent(START_DIALOG);
-            sendStickyBroadcast(i);
+            sendBroadcast(i);
             
             mFileToPlay = path;
             Log.v(TAG, "opening" + mPlayListFiles[mPlayPos].getURL().toString());

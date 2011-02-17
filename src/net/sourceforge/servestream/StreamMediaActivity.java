@@ -99,7 +99,7 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
     private Toast mToast;
 
     private TextView mTrackNumber;
-    private TextView mTrackText;
+    private TextView mTrackName;
     
     private SurfaceView preview = null;
     private SurfaceHolder holder;
@@ -153,6 +153,9 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
         }
         mProgress.setMax(1000);
         
+	    mTrackNumber = (TextView) findViewById(R.id.track_number_text);
+	    mTrackName = (TextView) findViewById(R.id.track_url_text);
+        
 		// preload animation for media controller
 		media_controls_fade_in = AnimationUtils.loadAnimation(this, R.anim.media_controls_fade_in);
 		media_controls_fade_out = AnimationUtils.loadAnimation(this, R.anim.media_controls_fade_out);
@@ -160,8 +163,6 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
 		mMediaControls = (RelativeLayout) findViewById(R.id.media_controls);
 		mMediaControls.setVisibility(View.GONE);
 		
-	    mTrackNumber = (TextView) findViewById(R.id.track_number_text);
-	    mTrackText = (TextView) findViewById(R.id.track_url_text);
     }
 
     private OnSeekBarChangeListener mSeekListener = new OnSeekBarChangeListener() {
@@ -308,7 +309,7 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
         Log.v(TAG, "onResume called");
         
         //updateTrackInfo();
-        setPauseButtonImage();
+        //setPauseButtonImage();
     }
 
     @Override
@@ -443,13 +444,16 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
 			        holder.setFixedSize(displayWidth, displayHeight);
 			        boundService.resetSurfaceView();
 				} */
-			//	updateMediaInfo();
-			//	startSeekBar();
-			//	mediaControls.setVisibility(View.VISIBLE);
+				updateTrackInfo();
+                setRepeatButtonImage();
+                setShuffleButtonImage();
+                setPauseButtonImage();
+                queueNextRefresh(1);
+				mMediaControls.setVisibility(View.VISIBLE);
 			}
-		} catch (RemoteException e) {
+		} catch (RemoteException ex) {
 			// TODO Auto-generated catch block
-			e.printStackTrace();
+			ex.printStackTrace();
 		}
     	
     }
@@ -636,11 +640,6 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
             } catch (Exception ex) {
                 Log.v(TAG, "couldn't start playback: " + ex);
             }
-        //}
-
-        //updateTrackInfo();
-        //long next = refreshNow();
-        //queueNextRefresh(next);
     }
 
     private ServiceConnection connection = new ServiceConnection() {
@@ -658,32 +657,6 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
     		        makeSurface();
     			    Log.v(TAG, "Surface Made");
     		    }
-                
-                /*try {
-                    // Assume something is playing when the service says it is,
-                    // but also if the audio ID is valid but the service is paused.
-                    if (mMediaService.getAudioId() >= 0 || mMediaService.isPlaying() ||
-                            mMediaService.getPath() != null) {
-                        // something is playing now, we're done
-                        mRepeatButton.setVisibility(View.VISIBLE);
-                        mShuffleButton.setVisibility(View.VISIBLE);
-                        setRepeatButtonImage();
-                        setShuffleButtonImage();
-                        setPauseButtonImage();
-                        return;
-                    }
-                } catch (RemoteException ex) {
-                }*/
-                // Service is dead or not playing anything. If we got here as part
-                // of a "play this file" Intent, exit. Otherwise go to the Music
-                // app start screen.
-                /*if (getIntent().getData() == null) {
-                    Intent intent = new Intent(Intent.ACTION_MAIN);
-                    intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                    intent.setClass(StreamMediaActivity.this, MusicBrowserActivity.class);
-                    startActivity(intent);
-                }*/
-                //finish();
             }
             public void onServiceDisconnected(ComponentName classname) {
     	        // This is called when the connection with the service has been
@@ -741,7 +714,6 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
     private ImageView mAlbum;
     private TextView mCurrentTime;
     private TextView mTotalTime;
-    private TextView mTrackName;
     private ProgressBar mProgress;
     private long mPosOverride = -1;
     private boolean mFromTouch = false;
@@ -750,7 +722,7 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
 
     private static final int REFRESH = 1;
     private static final int QUIT = 2;
-    private static final int GET_ALBUM_ART = 3;
+    //private static final int GET_ALBUM_ART = 3;
     private static final int ALBUM_ART_DECODED = 4;
 
     private void queueNextRefresh(long delay) {
@@ -869,10 +841,7 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
             }
             
             mTrackNumber.setText(mMediaService.getTrackNumber());
-            mTrackText.setText(mMediaService.getTrackName());
-            
-            mRepeatButton.setVisibility(View.VISIBLE);
-            mShuffleButton.setVisibility(View.VISIBLE);
+            mTrackName.setText(mMediaService.getTrackName());
     		
             mDuration = mMediaService.duration();
             mTotalTime.setText(MusicUtils.makeTimeString(this, mDuration / 1000));
