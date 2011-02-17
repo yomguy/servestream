@@ -855,6 +855,7 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
                 return;
             }
             
+            mTrackNumber.setText(mMediaService.getTrackNumber());
             mTrackText.setText(mMediaService.getTrackName());
             
             mRepeatButton.setVisibility(View.VISIBLE);

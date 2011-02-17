@@ -792,6 +792,15 @@ public class MediaService extends Service {
         }
     }
     
+    public String getTrackNumber() {
+    	synchronized (this) {
+    		
+    		MediaFile mediaFile = mPlayListFiles[mPlayPos];
+    		
+    		return (mediaFile.getTrackNumber() + " / " + mPlayListLen);
+    	}
+    }
+    
     public String getTrackName() {
         synchronized (this) {
         	
@@ -887,6 +896,9 @@ public class MediaService extends Service {
         }
         public void next() {
             mService.get().next(true);
+        }
+        public String getTrackNumber() {
+        	return mService.get().getTrackNumber();
         }
         public String getTrackName() {
         	return mService.get().getTrackName();

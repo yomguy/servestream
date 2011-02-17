@@ -46,6 +46,7 @@ interface IMediaService
     void play();
     void prev();
     void next();
+    String getTrackNumber();
     String getTrackName();
     String getMediaURL();
     long duration();
