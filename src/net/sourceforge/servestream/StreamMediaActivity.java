@@ -40,6 +40,7 @@ import net.sourceforge.servestream.service.MediaService;
 import net.sourceforge.servestream.utils.MusicUtils;
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.app.ProgressDialog;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
@@ -81,6 +82,8 @@ import android.widget.SeekBar.OnSeekBarChangeListener;
 public class StreamMediaActivity extends Activity implements SurfaceHolder.Callback {
     private static final String TAG = "ServeStream.StreamMediaActivity";
 
+    private ProgressDialog dialog = null;
+    
 	private Animation media_controls_fade_in, media_controls_fade_out;
 	private RelativeLayout mMediaControls;
     
@@ -132,7 +135,6 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
         mSeekBackwardButton = (RepeatingImageButton) findViewById(R.id.seek_backward_button);
         mSeekBackwardButton.setRepeatListener(mRewListener, 260);
         mPauseButton = (Button) findViewById(R.id.play_pause_button);
-        mPauseButton.requestFocus();
         mPauseButton.setOnClickListener(mPauseListener);
         mSeekForwardButton = (RepeatingImageButton) findViewById(R.id.seek_forward_button);
         mSeekForwardButton.setRepeatListener(mFfwdListener, 260);
@@ -262,6 +264,8 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
         IntentFilter f = new IntentFilter();
         f.addAction(MediaService.PLAYSTATE_CHANGED);
         f.addAction(MediaService.META_CHANGED);
+        f.addAction(MediaService.START_DIALOG);
+        f.addAction(MediaService.STOP_DIALOG);
         registerReceiver(mStatusListener, new IntentFilter(f));
     }
     
@@ -303,7 +307,7 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
         
         Log.v(TAG, "onResume called");
         
-        updateTrackInfo();
+        //updateTrackInfo();
         setPauseButtonImage();
     }
 
@@ -818,8 +822,24 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
                 updateTrackInfo();
                 setPauseButtonImage();
                 queueNextRefresh(1);
+        		mMediaControls.startAnimation(media_controls_fade_in);
+        		mMediaControls.setVisibility(View.VISIBLE);
             } else if (action.equals(MediaService.PLAYSTATE_CHANGED)) {
                 setPauseButtonImage();
+            } else if (action.equals(MediaService.START_DIALOG)) {
+            	Log.v(TAG, "STARTING DIALOG!");
+	        	try {
+	        		dialog = ProgressDialog.show(StreamMediaActivity.this, "", 
+	        				"Opening file...", true);
+	        	} catch (Exception ex) {
+	        	    ex.printStackTrace();	
+	        	}
+            } else if (action.equals(MediaService.STOP_DIALOG)) {
+        		mHandler.post(new Runnable() {
+        			public void run() {
+                        dialog.dismiss();
+        			}
+        		});
             }
         }
     };
@@ -836,8 +856,6 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
             }
             
             mTrackText.setText(mMediaService.getTrackName());
-    		mMediaControls.startAnimation(media_controls_fade_in);
-    		mMediaControls.setVisibility(View.VISIBLE);
             
             mRepeatButton.setVisibility(View.VISIBLE);
             mShuffleButton.setVisibility(View.VISIBLE);
