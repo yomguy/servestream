@@ -55,12 +55,12 @@ interface IMediaService
     long [] getQueue();
     void setQueuePosition(int index);
     String getPath();
+    String getPlayListPath();
     long getMediaId();
     void setShuffleMode(int shufflemode);
     int getShuffleMode();
     void setRepeatMode(int repeatmode);
     int getRepeatMode();
-    int getMediaMountedCount();
     void loadQueue(String filename);
     MultiPlayer getMediaPlayer();
 }
