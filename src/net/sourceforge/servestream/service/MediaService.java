@@ -41,6 +41,8 @@ import android.content.BroadcastReceiver;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
+import android.telephony.PhoneStateListener;
+import android.telephony.TelephonyManager;
 import android.util.Log;
 
 import java.lang.ref.WeakReference;
@@ -79,6 +81,8 @@ public class MediaService extends Service {
 
     public static final String PLAYSTATE_CHANGED = "net.sourceforge.servestream.playstatechanged";
     public static final String META_CHANGED = "net.sourceforge.servestream.metachanged";
+    public static final String START_DIALOG = "net.sourceforge.servestream.startdialog";
+    public static final String STOP_DIALOG = "net.sourceforge.servestream.stopdialog";
     public static final String QUEUE_CHANGED = "net.sourceforge.servestream.queuechanged";
     public static final String PLAYER_CLOSED = "net.sourceforge.servestream.playerclosed";
     
@@ -100,17 +104,17 @@ public class MediaService extends Service {
     private int mShuffleMode = SHUFFLE_NONE;
     private int mRepeatMode = REPEAT_NONE;
     private int mMediaMountedCount = 0;
-    private long [] mAutoShuffleList = null;
     private long [] mPlayList = null;
     private MediaFile [] mPlayListFiles = null;
     private int mPlayListLen = 0;
     private Vector<Integer> mHistory = new Vector<Integer>(MAX_HISTORY_SIZE);
     private int mPlayPos = -1;
     private final Shuffler mRand = new Shuffler();
-    private int mOpenFailedCounter = 0;
+    //private int mOpenFailedCounter = 0;
     private int mServiceStartId = -1;
     private boolean mServiceInUse = false;
     private boolean mIsSupposedToBePlaying = false;
+    private boolean mPausedDuringPhoneCall = false;
     
     private ServeStreamAppWidgetOneProvider mAppWidgetProvider = ServeStreamAppWidgetOneProvider.getInstance();
     
@@ -142,6 +146,8 @@ public class MediaService extends Service {
                     }
                     break;
                 case PLAYER_PREPARED:
+                    Intent i = new Intent(STOP_DIALOG);
+                    sendStickyBroadcast(i);
                     play();
                     notifyChange(META_CHANGED);
                 	break;
@@ -187,6 +193,9 @@ public class MediaService extends Service {
         super.onCreate();
 
         Log.v(TAG, "onCreate called");
+        
+		TelephonyManager tm = (TelephonyManager)getSystemService(TELEPHONY_SERVICE);
+		tm.listen(mPhoneListener, PhoneStateListener.LISTEN_CALL_STATE);
         
         // Needs to be done in this thread, since otherwise ApplicationContext.getPowerManager() crashes.
         mPlayer = new MultiPlayer();
@@ -458,6 +467,9 @@ public class MediaService extends Service {
                 return;
             }
 
+            Intent i = new Intent(START_DIALOG);
+            sendStickyBroadcast(i);
+            
             mFileToPlay = path;
             Log.v(TAG, "opening" + mPlayListFiles[mPlayPos].getURL().toString());
             mPlayer.setDataSource(mPlayListFiles[mPlayPos].getURL());
@@ -478,6 +490,9 @@ public class MediaService extends Service {
 //            } else {
 //                mOpenFailedCounter = 0;
             }
+            
+            //i = new Intent(STOP_DIALOG);
+            //sendStickyBroadcast(i);
         }
     }
 
@@ -692,30 +707,6 @@ public class MediaService extends Service {
         stopForeground(true);
     }
 
-    // check that the specified idx is not in the history (but only look at at
-    // most lookbacksize entries in the history)
-    private boolean wasRecentlyUsed(int idx, int lookbacksize) {
-
-        // early exit to prevent infinite loops in case idx == mPlayPos
-        if (lookbacksize == 0) {
-            return false;
-        }
-
-        int histsize = mHistory.size();
-        if (histsize < lookbacksize) {
-            Log.d(TAG, "lookback too big");
-            lookbacksize = histsize;
-        }
-        int maxidx = histsize - 1;
-        for (int i = 0; i < lookbacksize; i++) {
-            long entry = mHistory.get(maxidx - i);
-            if (entry == idx) {
-                return true;
-            }
-        }
-        return false;
-    }
-
     // A simple variation of Random that makes sure that the
     // value it returns is not equal to the value it returned
     // previously, unless the interval is 1.
@@ -738,20 +729,6 @@ public class MediaService extends Service {
                 return;
             }
             mShuffleMode = shufflemode;
-            /*if (mShuffleMode == SHUFFLE_AUTO) {
-                if (makeAutoShuffleList()) {
-                    mPlayListLen = 0;
-                    doAutoShuffleUpdate();
-                    mPlayPos = 0;
-                    openCurrent();
-                    play();
-                    notifyChange(META_CHANGED);
-                    return;
-                } else {
-                    // failed to build a list of files to shuffle
-                    mShuffleMode = SHUFFLE_NONE;
-                }
-            }*/
         }
     }
     public int getShuffleMode() {
@@ -812,9 +789,6 @@ public class MediaService extends Service {
             mPlayPos = pos;
             openCurrent();
             notifyChange(META_CHANGED);
-            /*if (mShuffleMode == SHUFFLE_AUTO) {
-                doAutoShuffleUpdate();
-            }*/
         }
     }
     
@@ -962,6 +936,38 @@ public class MediaService extends Service {
     }
 
     private final IBinder mBinder = new ServiceStub(this);
+    
+    private PhoneStateListener mPhoneListener = new PhoneStateListener() {
+    	
+    	public void onCallStateChanged(int state, String incomingNumber) {
+    		try {
+    			switch (state) {
+                case TelephonyManager.CALL_STATE_RINGING:
+                    if (isPlaying()) {
+                    	pause();
+                    	mPausedDuringPhoneCall = true;
+                    }
+                    break;
+                case TelephonyManager.CALL_STATE_OFFHOOK:
+                    if (isPlaying()) {
+                    	pause();
+                    	mPausedDuringPhoneCall = true;
+                    }
+                    break;
+                case TelephonyManager.CALL_STATE_IDLE:
+                	if (mPausedDuringPhoneCall) {
+                		play();
+                        mPausedDuringPhoneCall = false;
+                	}
+                	break;
+                default:
+                    Log.d(TAG, "Invalid phone state: " + state);
+    			}
+    		} catch (Exception ex) {
+    			ex.printStackTrace();
+    		}
+    	}
+    };
     
     private boolean isM3UPlaylist(String path) {
     	int index = 0;
