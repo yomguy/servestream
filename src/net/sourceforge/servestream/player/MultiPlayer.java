@@ -134,9 +134,11 @@ public class MultiPlayer implements Parcelable {
                 return true;
             default:
                 Log.d("MultiPlayer", "Error: " + what + "," + extra);
-                break;
+                mHandler.sendEmptyMessage(MediaService.PLAYER_ERROR);
+                return true;
+                //break;
             }
-            return false;
+            //return false;
         }
     };
 
