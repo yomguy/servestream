@@ -116,7 +116,7 @@ public class MediaService extends Service {
     private Vector<Integer> mHistory = new Vector<Integer>(MAX_HISTORY_SIZE);
     private int mPlayPos = -1;
     private final Shuffler mRand = new Shuffler();
-    //private int mOpenFailedCounter = 0;
+    private int mOpenFailedCounter = 0;
     private int mServiceStartId = -1;
     private boolean mServiceInUse = false;
     private boolean mIsSupposedToBePlaying = false;
@@ -155,6 +155,7 @@ public class MediaService extends Service {
                 case PLAYER_PREPARED:
                     Intent i = new Intent(STOP_DIALOG);
                     sendBroadcast(i);
+                    handleError();
                     play();
                     notifyChange(META_CHANGED);
                 	break;
@@ -504,8 +505,8 @@ public class MediaService extends Service {
             mFileToPlay = path;
             Log.v(TAG, "opening" + mPlayListFiles[mPlayPos].getURL().toString());
             mPlayer.setDataSource(mPlayListFiles[mPlayPos].getURL());
-            if (!mPlayer.isInitialized()) {
-                stop(true);
+            //if (!mPlayer.isInitialized()) {
+             //   stop(true);
                 /*if (mOpenFailedCounter++ < 10 &&  mPlayListLen > 1) {
                     // beware: this ends up being recursive because next() calls open() again.
                     next(false);
@@ -520,7 +521,7 @@ public class MediaService extends Service {
                 }*/
             //} else {
             //    mOpenFailedCounter = 0;
-            }
+            //}
         }
     }
 
@@ -1077,5 +1078,25 @@ public class MediaService extends Service {
     	    return true;		
 
     	return false;
+    }
+    
+    private void handleError() {
+    	if (!mPlayer.isInitialized()) {
+           stop(true);
+           if (mOpenFailedCounter++ < 10 &&  mPlayListLen > 1) {
+               // beware: this ends up being recursive because next() calls open() again.
+               next(false);
+           }
+           if (!mPlayer.isInitialized() && mOpenFailedCounter != 0) {
+               // need to make sure we only shows this once
+               mOpenFailedCounter = 0;
+               //if (!mQuietMode) {
+               //    Toast.makeText(this, R.string.playback_failed, Toast.LENGTH_SHORT).show();
+               //}
+               Log.d(TAG, "Failed to open file for playback");
+           }
+       } else {
+           mOpenFailedCounter = 0;
+       }
     }
 }
