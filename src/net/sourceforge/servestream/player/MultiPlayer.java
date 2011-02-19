@@ -54,16 +54,20 @@ public class MultiPlayer implements Parcelable {
             Log.v(TAG, "Preparing media plyer");
         } catch (IOException ex) {
             // TODO: notify the user why the file couldn't be opened
+        	Log.v(TAG, "Error initializing");
+        	ex.printStackTrace();
             mIsInitialized = false;
             return;
         } catch (IllegalArgumentException ex) {
+        	Log.v(TAG, "Error initializing");
+        	ex.printStackTrace();
             // TODO: notify the user why the file couldn't be opened
             mIsInitialized = false;
             return;
         }
         mMediaPlayer.setOnCompletionListener(listener);
         mMediaPlayer.setOnErrorListener(errorListener);
-        mIsInitialized = true;
+        //mIsInitialized = true;
     }
         
     public boolean isInitialized() {
@@ -102,6 +106,9 @@ public class MultiPlayer implements Parcelable {
 			Log.v(TAG, "media player is prepared!");
 			// start playing the media file
 			//start();
+	        //mMediaPlayer.setOnCompletionListener(listener);
+	        //mMediaPlayer.setOnErrorListener(errorListener);
+	        mIsInitialized = true;
 			mHandler.sendEmptyMessage(MediaService.PLAYER_PREPARED);
 		}
     };
@@ -114,9 +121,7 @@ public class MultiPlayer implements Parcelable {
             // This temporary wakelock is released when the RELEASE_WAKELOCK
             // message is processed, but just in case, put a timeout on it.
             //mWakeLock.acquire(30000);
-        	Log.v(TAG, "onCompletion called!");
             mHandler.sendEmptyMessage(MediaService.TRACK_ENDED);
-            mHandler.sendEmptyMessage(MediaService.RELEASE_WAKELOCK);
         }
     };
 
@@ -135,11 +140,13 @@ public class MultiPlayer implements Parcelable {
                 return true;
             default:
                 Log.d("MultiPlayer", "Error: " + what + "," + extra);
-                mHandler.sendEmptyMessage(MediaService.PLAYER_ERROR);
-                return true;
-                //break;
+                mIsInitialized = false;
+                mHandler.sendEmptyMessage(MediaService.PLAYER_PREPARED);
+                //mHandler.sendEmptyMessage(MediaService.PLAYER_ERROR);
+                //return true;
+                break;
             }
-            //return false;
+            return false;
         }
     };
 
