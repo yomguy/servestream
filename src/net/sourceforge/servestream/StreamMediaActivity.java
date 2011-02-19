@@ -270,6 +270,7 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
         f.addAction(MediaService.META_CHANGED);
         f.addAction(MediaService.START_DIALOG);
         f.addAction(MediaService.STOP_DIALOG);
+        f.addAction(MediaService.ERROR_MESSAGE);
         registerReceiver(mStatusListener, new IntentFilter(f));
     }
     
@@ -852,6 +853,15 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
 	        	}
             } else if (action.equals(MediaService.STOP_DIALOG)) {
             	dismissDialog();
+            } else if (action.equals(MediaService.ERROR_MESSAGE)) {
+				new AlertDialog.Builder(StreamMediaActivity.this)
+				.setTitle(R.string.cannot_play_media_title)
+				.setMessage(R.string.cannot_play_media_message)
+				.setPositiveButton(R.string.cannot_play_media_pos, new DialogInterface.OnClickListener() {
+					public void onClick(DialogInterface dialog, int which) {
+						finish();
+					}
+					}).create().show();
             }
         }
     };
