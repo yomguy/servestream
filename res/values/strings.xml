@@ -184,6 +184,9 @@
 	<!-- Text shown on widget one when first loaded -->
 	<string name="widget_one_initial_text">"Touch to select media."</string>
 	
+	<!-- Text shown on widget one when first loaded -->
+	<string name="widget_one_track_info_unavailable">"No track info available"</string>
+	
 	<!-- Displayed in the notification bar that music service is running -->
 	<string name="app_is_running">"ServeStream is running"</string>
 	
