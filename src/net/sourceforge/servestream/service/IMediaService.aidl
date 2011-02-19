@@ -53,6 +53,7 @@ interface IMediaService
     long position();
     long seek(long pos);
     long [] getQueue();
+    int getPlayListLength();
     void setQueuePosition(int index);
     String getPath();
     String getPlayListPath();
@@ -61,6 +62,7 @@ interface IMediaService
     int getShuffleMode();
     void setRepeatMode(int repeatmode);
     int getRepeatMode();
-    void loadQueue(String filename);
+    boolean loadQueue(String filename);
     MultiPlayer getMediaPlayer();
+    void setParentActivityState(int state);
 }

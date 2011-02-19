@@ -46,10 +46,13 @@ import android.telephony.TelephonyManager;
 import android.util.Log;
 
 import java.lang.ref.WeakReference;
-import java.net.URL;
+import java.net.MalformedURLException;
 import java.util.Random;
 import java.util.Vector;
 
+import net.sourceforge.servestream.StreamMediaActivity;
+import net.sourceforge.servestream.dbutils.Stream;
+import net.sourceforge.servestream.dbutils.StreamDatabase;
 import net.sourceforge.servestream.player.MultiPlayer;
 import net.sourceforge.servestream.utils.M3UPlaylistParser;
 import net.sourceforge.servestream.utils.MediaFile;
@@ -99,7 +102,10 @@ public class MediaService extends Service {
     public static final int PLAYER_PREPARED = 5;
     private static final int MAX_HISTORY_SIZE = 100;
     
+    protected StreamDatabase mStreamdb = null;
+    
     private MultiPlayer mPlayer;
+    private int mParentActivityState = StreamMediaActivity.VISIBLE;
     private String mFileToPlay;
     private String mPlayListToPlay;
     private int mShuffleMode = SHUFFLE_NONE;
@@ -194,6 +200,8 @@ public class MediaService extends Service {
 
         Log.v(TAG, "onCreate called");
         
+        mStreamdb = new StreamDatabase(this);
+        
 		TelephonyManager tm = (TelephonyManager)getSystemService(TELEPHONY_SERVICE);
 		tm.listen(mPhoneListener, PhoneStateListener.LISTEN_CALL_STATE);
         
@@ -219,6 +227,11 @@ public class MediaService extends Service {
     	
     	Log.v(TAG, "onDestroy called");
     	
+		if(mStreamdb != null) {
+			mStreamdb.close();
+			mStreamdb = null;
+		}
+    	
         // Check that we're not being destroyed while something is still playing.
         if (isPlaying()) {
             Log.e(TAG, "Service being destroyed while still playing.");
@@ -242,55 +255,58 @@ public class MediaService extends Service {
         super.onDestroy();
     }
 
-    private void loadQueue(String filename) {
+    private boolean loadQueue(String filename) {
         Log.v(TAG, "Loading Queue");        
         
-    	URL url = null;
-    	
-    	//TODO add null check
+        boolean retVal = true;
+    	Stream stream;
+    	Stream foundStream = null;
     	
     	try {
+			stream = new Stream(filename);
     	
-    		url = new URL(filename);
-    		//url = stream.getURL();
+			//TODO add null check
     		
-        if (isM3UPlaylist(url.getPath())) {
-            M3UPlaylistParser playlistParser = new M3UPlaylistParser(url);
-            playlistParser.retrieveM3UFiles();
-            mPlayListFiles = playlistParser.getPlaylistFiles();
-            mPlayListLen = playlistParser.getNumberOfFiles();
-        } else if (isPLSPlaylist(url.getPath())) {
-            PLSPlaylistParser playlistParser = new PLSPlaylistParser(url);
-            playlistParser.retrievePLSFiles();
-            mPlayListFiles = playlistParser.getPlaylistFiles();
-            mPlayListLen = playlistParser.getNumberOfFiles();
-        } else {
-            mPlayListFiles = new MediaFile[1];         
-            MediaFile mediaFile = new MediaFile();
-        	mediaFile.setURL(url.toString());
-        	mediaFile.setTrackNumber(1);
-            mPlayListFiles[0] = mediaFile;
-            mPlayListLen = 1;
-        }
+			if (isM3UPlaylist(stream.getURL().getPath())) {
+				M3UPlaylistParser playlistParser = new M3UPlaylistParser(stream.getURL());
+				playlistParser.retrieveM3UFiles();
+				mPlayListFiles = playlistParser.getPlaylistFiles();
+				mPlayListLen = playlistParser.getNumberOfFiles();
+			} else if (isPLSPlaylist(stream.getURL().getPath())) {
+				PLSPlaylistParser playlistParser = new PLSPlaylistParser(stream.getURL());
+				playlistParser.retrievePLSFiles();
+				mPlayListFiles = playlistParser.getPlaylistFiles();
+				mPlayListLen = playlistParser.getNumberOfFiles();
+			} else {
+				mPlayListFiles = new MediaFile[1];         
+				MediaFile mediaFile = new MediaFile();
+				mediaFile.setURL(stream.getURL().toString());
+				mediaFile.setTrackNumber(1);
+				mPlayListFiles[0] = mediaFile;
+				mPlayListLen = 1;
+			}
         
-        mPlayList = new long[mPlayListLen];
-        int len = mPlayListLen;
-        for (int i = 0; i < len; i++) {
-            mPlayList[i] = i;
-        }
+		    mPlayPos = 0;
+		    mPlayListToPlay = filename;
+			mPlayList = new long[mPlayListLen];
+			int len = mPlayListLen;
+			
+			for (int i = 0; i < len; i++) {
+				mPlayList[i] = i;
+			}
         
-    	} catch(Exception ex) {
-    		ex.printStackTrace();
-    	}
-    	
-	    /*Stream foundStream = streamdb.findStream(stream);
+		    foundStream = mStreamdb.findStream(stream);
+		    
+		    if (foundStream != null) {
+			    mStreamdb.touchHost(foundStream);
+		    }
+		    
+		} catch (MalformedURLException ex) {
+			ex.printStackTrace();
+			retVal = false;
+		}
 		
-	    if (foundStream != null) {
-		    streamdb.touchHost(foundStream);
-	    }*/
-    	
-	    mPlayPos = 0;
-	    mPlayListToPlay = filename;
+		return retVal;
     }
     
     @Override
@@ -367,7 +383,7 @@ public class MediaService extends Service {
     	
 		Log.v(TAG, "onUnbind called");
 		
-		if (!isPlaying()) { // || playingVideo()) {
+		if (!isPlaying() || playingVideo()) {
 			stopSelf();
 		}
     	
@@ -391,6 +407,10 @@ public class MediaService extends Service {
 
     public MultiPlayer getMediaPlayer() {
     	return mPlayer;
+    }
+    
+    public void setParentActivityState(int state) {
+    	mParentActivityState = state;
     }
     
     /**
@@ -436,6 +456,15 @@ public class MediaService extends Service {
             }
             return list;
         }
+    }
+    
+    /**
+     * Returns the number of files in the current playlist
+     * 
+     * @return An integer 
+     */
+    public int getPlayListLength() {
+    	return mPlayListLen;
     }
 
     private void openCurrent() {
@@ -914,6 +943,9 @@ public class MediaService extends Service {
         public long [] getQueue() {
             return mService.get().getQueue();
         }
+        public int getPlayListLength() {
+        	return mService.get().getPlayListLength();
+        }
         public String getPath() {
             return mService.get().getPath();
         }
@@ -944,11 +976,14 @@ public class MediaService extends Service {
         public int getRepeatMode() {
             return mService.get().getRepeatMode();
         }
-        public void loadQueue(String filename) {
-        	mService.get().loadQueue(filename);
+        public boolean loadQueue(String filename) {
+        	return mService.get().loadQueue(filename);
         }
         public MultiPlayer getMediaPlayer() {
         	return mService.get().getMediaPlayer();
+        }
+        public void setParentActivityState(int state) {
+        	mService.get().setParentActivityState(state);
         }
     }
 
@@ -985,6 +1020,29 @@ public class MediaService extends Service {
     		}
     	}
     };
+    
+    /**
+     * Checks if the currently playing media file is a video file
+     * 
+     * @return boolean True if the currently playing file is a video, false otherwise
+     */
+    private boolean playingVideo() {
+    	String fileExtention = null;
+    	
+    	try {
+    	    if (this.mFileToPlay.length() > 4) {
+    		    fileExtention = this.mFileToPlay.substring(this.mFileToPlay.length() - 4, this.mFileToPlay.length());
+    	        if (fileExtention.equalsIgnoreCase(".3gp") || fileExtention.equalsIgnoreCase(".mp4")) {
+    	    	    return true;
+    	        }
+    	    }
+    	} catch (Exception ex) {
+    		ex.printStackTrace();
+    		return false;
+    	}
+    	
+    	return false;
+    }
     
     private boolean isM3UPlaylist(String path) {
     	int index = 0;

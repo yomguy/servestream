@@ -81,7 +81,10 @@ import android.widget.SeekBar.OnSeekBarChangeListener;
 public class StreamMediaActivity extends Activity implements SurfaceHolder.Callback {
     private static final String TAG = "ServeStream.StreamMediaActivity";
 
-    private ProgressDialog dialog = null;
+    public static int VISIBLE = 1;
+    public static int GONE = 2;
+    
+    private ProgressDialog mDialog = null;
     
 	private Animation media_controls_fade_in, media_controls_fade_out;
 	private RelativeLayout mMediaControls;
@@ -271,6 +274,35 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
     }
     
     @Override
+    public void onResume() {
+        super.onResume();
+        
+        Log.v(TAG, "onResume called");
+        
+    	/*try {
+			mMediaService.setParentActivityState(VISIBLE);
+		} catch (RemoteException ex) {
+			ex.printStackTrace();
+		}*/
+    }
+    
+    @Override
+    public void onPause() {
+    	super.onPause();
+    	
+    	Log.v(TAG, "onPause called");
+    	
+    	if (mDialog != null)
+            dismissDialog();
+    	
+    	try {
+			mMediaService.setParentActivityState(GONE);
+		} catch (RemoteException ex) {
+			ex.printStackTrace();
+		}
+    }
+    
+    @Override
     public void onStop() {
     	
     	Log.v(TAG, "onStop called");
@@ -298,18 +330,6 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
         
 		Log.d(TAG, "onNewIntent called");
 		
-    	// let media service know the activity is visible
-		//boundService.setStreamActivityState(VISIBLE);
-    }
-    
-    @Override
-    public void onResume() {
-        super.onResume();
-        
-        Log.v(TAG, "onResume called");
-        
-        //updateTrackInfo();
-        //setPauseButtonImage();
     }
 
     @Override
@@ -633,7 +653,18 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
         	//filename = mRequestedStream.getUri().toString();
             
         	try {
-				mMediaService.loadQueue(filename);
+				//mMediaService.loadQueue(filename);
+				
+                if (!mMediaService.loadQueue(filename)) {
+                	errorOpeningMediaMessage();
+                	return;
+                }
+                
+                if (mMediaService.getPlayListLength() == 0) {
+                	handleInvalidPlaylist();
+                    return;
+                }
+				
                 mMediaService.stop();
                 mMediaService.queueFirstFile();
                 setIntent(new Intent());
@@ -814,17 +845,13 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
             } else if (action.equals(MediaService.START_DIALOG)) {
             	Log.v(TAG, "STARTING DIALOG!");
 	        	try {
-	        		dialog = ProgressDialog.show(StreamMediaActivity.this, "", 
+	        		mDialog = ProgressDialog.show(StreamMediaActivity.this, "", 
 	        				"Opening file...", true);
 	        	} catch (Exception ex) {
 	        	    ex.printStackTrace();	
 	        	}
             } else if (action.equals(MediaService.STOP_DIALOG)) {
-        		mHandler.post(new Runnable() {
-        			public void run() {
-                        dialog.dismiss();
-        			}
-        		});
+            	dismissDialog();
             }
         }
     };
@@ -850,4 +877,36 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
         }
     }
     
+    private void errorOpeningMediaMessage() {
+		new AlertDialog.Builder(StreamMediaActivity.this)
+		.setMessage("Sorry, the following URL cannot be opened")
+		.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+			public void onClick(DialogInterface dialog, int which) {
+				finish();
+			}
+			}).create().show();
+    }
+    
+    private void handleInvalidPlaylist() {
+
+    	if (mDialog != null)
+    		dismissDialog();
+
+		new AlertDialog.Builder(StreamMediaActivity.this)
+		.setTitle(R.string.invalid_playlist_title)
+		.setMessage(R.string.invalid_playlist_message)
+		.setPositiveButton(R.string.invalid_playlist_pos, new DialogInterface.OnClickListener() {
+			public void onClick(DialogInterface dialog, int which) {
+				finish();
+			}
+			}).create().show();
+    }
+    
+	private void dismissDialog() {
+		mHandler.post(new Runnable() {
+			public void run() {
+				mDialog.dismiss();
+			}
+		});
+	}
 }
