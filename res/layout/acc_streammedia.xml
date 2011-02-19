@@ -65,8 +65,8 @@
 						<TextView android:id="@+id/now_playing_text"
                   	  			  android:layout_width="wrap_content" 
                   	  			  android:layout_height="wrap_content"
-            	      			  android:text="Now playing"
             	      			  android:textAppearance="?android:attr/textAppearanceMedium"
+            	      			  android:text="@string/nowplaying_title"
             	      			  android:layout_centerHorizontal="true"
             	      			  />
         
@@ -160,9 +160,7 @@
                 		  	  android:layout_height="wrap_content"
                 		  	  android:paddingBottom="5dip"
                 		  	  android:paddingLeft="4dip"
-                		  	  android:textAppearance="?android:attr/textAppearanceMedium"
-                              android:textSize="14sp"
-                              android:textStyle="bold"
+                		  	  android:textAppearance="?android:attr/textAppearanceSmall"
                 		  	  android:layout_alignParentLeft="true"
                 		  	  android:layout_alignParentBottom="true"
             			  	  />
@@ -190,9 +188,7 @@
 							  android:layout_width="wrap_content" 
                 		  	  android:layout_height="wrap_content"
              				  android:paddingRight="4dip"
-                		  	  android:textAppearance="?android:attr/textAppearanceMedium"
-                              android:textSize="14sp"
-                              android:textStyle="bold"
+                		  	  android:textAppearance="?android:attr/textAppearanceSmall"
                 		  	  android:layout_alignParentRight="true"
             			  	  android:layout_alignTop="@+id/position_text"
             			  	  />
