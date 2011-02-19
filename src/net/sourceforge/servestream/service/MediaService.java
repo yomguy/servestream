@@ -50,7 +50,6 @@ import java.net.MalformedURLException;
 import java.util.Random;
 import java.util.Vector;
 
-import net.sourceforge.servestream.StreamMediaActivity;
 import net.sourceforge.servestream.dbutils.Stream;
 import net.sourceforge.servestream.dbutils.StreamDatabase;
 import net.sourceforge.servestream.player.MultiPlayer;
@@ -107,7 +106,6 @@ public class MediaService extends Service {
     protected StreamDatabase mStreamdb = null;
     
     private MultiPlayer mPlayer;
-    private int mParentActivityState = StreamMediaActivity.VISIBLE;
     private String mFileToPlay;
     private String mPlayListToPlay;
     private int mShuffleMode = SHUFFLE_NONE;
@@ -118,7 +116,7 @@ public class MediaService extends Service {
     private Vector<Integer> mHistory = new Vector<Integer>(MAX_HISTORY_SIZE);
     private int mPlayPos = -1;
     private final Shuffler mRand = new Shuffler();
-    //private int mOpenFailedCounter = 0;
+    private int mOpenFailedCounter = 0;
     private int mServiceStartId = -1;
     private boolean mServiceInUse = false;
     private boolean mIsSupposedToBePlaying = false;
@@ -135,6 +133,7 @@ public class MediaService extends Service {
             Log.v(TAG, "mMediaplayerHandler.handleMessage " + msg.what);
             switch (msg.what) {
                 case SERVER_DIED:
+                	Log.v(TAG, "server died!");
                     if (mIsSupposedToBePlaying) {
                         next(true);
                     } else {
@@ -415,10 +414,6 @@ public class MediaService extends Service {
     	return mPlayer;
     }
     
-    public void setParentActivityState(int state) {
-    	mParentActivityState = state;
-    }
-    
     /**
      * Notify the change-receivers that something has changed.
      * The intent that is sent contains the following data
@@ -509,22 +504,22 @@ public class MediaService extends Service {
             mFileToPlay = path;
             Log.v(TAG, "opening" + mPlayListFiles[mPlayPos].getURL().toString());
             mPlayer.setDataSource(mPlayListFiles[mPlayPos].getURL());
-            if (! mPlayer.isInitialized()) {
+            if (!mPlayer.isInitialized()) {
                 stop(true);
-//                if (mOpenFailedCounter++ < 10 &&  mPlayListLen > 1) {
-//                    // beware: this ends up being recursive because next() calls open() again.
-//                    next(false);
-//                }
-//                if (! mPlayer.isInitialized() && mOpenFailedCounter != 0) {
-//                    // need to make sure we only shows this once
-//                    mOpenFailedCounter = 0;
-//                    if (!mQuietMode) {
-//                        Toast.makeText(this, R.string.playback_failed, Toast.LENGTH_SHORT).show();
-//                    }
-//                    Log.d(TAG, "Failed to open file for playback");
-//                }
-//            } else {
-//                mOpenFailedCounter = 0;
+                if (mOpenFailedCounter++ < 10 &&  mPlayListLen > 1) {
+                    // beware: this ends up being recursive because next() calls open() again.
+                    next(false);
+                }
+                if (!mPlayer.isInitialized() && mOpenFailedCounter != 0) {
+                    // need to make sure we only shows this once
+                    mOpenFailedCounter = 0;
+                    //if (!mQuietMode) {
+                    //    Toast.makeText(this, R.string.playback_failed, Toast.LENGTH_SHORT).show();
+                    //}
+                    Log.d(TAG, "Failed to open file for playback");
+                }
+            } else {
+                mOpenFailedCounter = 0;
             }
             
             //i = new Intent(STOP_DIALOG);
@@ -987,9 +982,6 @@ public class MediaService extends Service {
         }
         public MultiPlayer getMediaPlayer() {
         	return mService.get().getMediaPlayer();
-        }
-        public void setParentActivityState(int state) {
-        	mService.get().setParentActivityState(state);
         }
     }
 

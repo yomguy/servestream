@@ -48,7 +48,6 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.content.res.Configuration;
-import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
@@ -69,7 +68,6 @@ import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.view.View.OnTouchListener;
 import android.widget.Button;
-import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.SeekBar;
@@ -81,6 +79,7 @@ import android.widget.SeekBar.OnSeekBarChangeListener;
 public class StreamMediaActivity extends Activity implements SurfaceHolder.Callback {
     private static final String TAG = "ServeStream.StreamMediaActivity";
 
+    private int mParentActivityState = StreamMediaActivity.VISIBLE;
     public static int VISIBLE = 1;
     public static int GONE = 2;
     
@@ -280,6 +279,8 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
         
         Log.v(TAG, "onResume called");
         
+        mParentActivityState = VISIBLE;
+        
     	/*try {
 			mMediaService.setParentActivityState(VISIBLE);
 		} catch (RemoteException ex) {
@@ -293,14 +294,11 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
     	
     	Log.v(TAG, "onPause called");
     	
+    	mParentActivityState = GONE;
+    	
     	if (mDialog != null)
             dismissDialog();
-    	
-    	try {
-			mMediaService.setParentActivityState(GONE);
-		} catch (RemoteException ex) {
-			ex.printStackTrace();
-		}
+
     }
     
     @Override
@@ -743,7 +741,6 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
         }
     }
     
-    private ImageView mAlbum;
     private TextView mCurrentTime;
     private TextView mTotalTime;
     private ProgressBar mProgress;
@@ -753,9 +750,6 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
     private boolean paused;
 
     private static final int REFRESH = 1;
-    private static final int QUIT = 2;
-    //private static final int GET_ALBUM_ART = 3;
-    private static final int ALBUM_ART_DECODED = 4;
 
     private void queueNextRefresh(long delay) {
         if (!paused) {
@@ -800,28 +794,9 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
         @Override
         public void handleMessage(Message msg) {
             switch (msg.what) {
-                case ALBUM_ART_DECODED:
-                    mAlbum.setImageBitmap((Bitmap)msg.obj);
-                    mAlbum.getDrawable().setDither(true);
-                    break;
                 case REFRESH:
                     long next = refreshNow();
                     queueNextRefresh(next);
-                    break;                    
-                case QUIT:
-                    // This can be moved back to onCreate once the bug that prevents
-                    // Dialogs from being started from onCreate/onResume is fixed.
-                    new AlertDialog.Builder(StreamMediaActivity.this)
-                            .setTitle(R.string.service_start_error_title)
-                            .setMessage(R.string.service_start_error_msg)
-                            .setPositiveButton(R.string.service_start_error_button,
-                                    new DialogInterface.OnClickListener() {
-                                        public void onClick(DialogInterface dialog, int whichButton) {
-                                            finish();
-                                        }
-                                    })
-                            .setCancelable(false)
-                            .show();
                     break;
                 default:
                     break;
@@ -844,15 +819,19 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
             } else if (action.equals(MediaService.PLAYSTATE_CHANGED)) {
                 setPauseButtonImage();
             } else if (action.equals(MediaService.START_DIALOG)) {
-            	Log.v(TAG, "STARTING DIALOG!");
 	        	try {
-	        		mDialog = ProgressDialog.show(StreamMediaActivity.this, "", 
-	        				"Opening file...", true);
+	        		if (mParentActivityState == VISIBLE) {
+	                	Log.v(TAG, "STARTING DIALOG!");
+	        			mDialog = ProgressDialog.show(StreamMediaActivity.this, "", 
+	        					"Opening file...", true);
+	        		}
 	        	} catch (Exception ex) {
 	        	    ex.printStackTrace();	
 	        	}
             } else if (action.equals(MediaService.STOP_DIALOG)) {
-            	dismissDialog();
+            	if (mParentActivityState == VISIBLE) {
+            		dismissDialog();
+            	}
             } else if (action.equals(MediaService.ERROR_MESSAGE)) {
 				new AlertDialog.Builder(StreamMediaActivity.this)
 				.setTitle(R.string.cannot_play_media_title)
@@ -871,6 +850,7 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
             return;
         }
         try {
+        	//TODO ?
             String path = mMediaService.getPath();
             if (path == null) {
                 finish();
@@ -879,6 +859,10 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
             
             mTrackNumber.setText(mMediaService.getTrackNumber());
             mTrackName.setText(mMediaService.getTrackName());
+            
+            if (mTrackName == null) {
+            	mTrackName.setText(mMediaService.getMediaURL());
+            }
     		
             mDuration = mMediaService.duration();
             mTotalTime.setText(MusicUtils.makeTimeString(this, mDuration / 1000));
