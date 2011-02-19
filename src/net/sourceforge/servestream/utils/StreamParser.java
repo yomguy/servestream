@@ -103,13 +103,19 @@ public class StreamParser {
 		    	
 		    	try {
 		    	// if a link is relative try to make it absolute
-		    	if (!links.get(i).attr("href").contains("/")) {
-		    		stream = new Stream(URLDecoder.decode(m_targetURL + links.get(i).attr("href"), "UTF-8"));
-		    		stream.setNickname(links.get(i).text());
-		        } else {
-		        	stream = new Stream(URLDecoder.decode(m_indexURL + links.get(i).attr("href"), "UTF-8"));
-		    		stream.setNickname(links.get(i).text());
-		        }
+		    	//if (!links.get(i).attr("href").contains("/")) {
+		    	//	stream = new Stream(URLDecoder.decode(m_targetURL + links.get(i).attr("href"), "UTF-8"));
+		    	//	stream.setNickname(links.get(i).text());
+		        //} else {
+		    		
+		    		if (m_indexURL.getPath().equals("")) {
+		    			stream = new Stream(URLDecoder.decode(m_indexURL + "/" + links.get(i).attr("href"), "UTF-8"));
+		    			stream.setNickname(links.get(i).text());
+		    		} else {
+			        	stream = new Stream(URLDecoder.decode(m_indexURL + links.get(i).attr("href"), "UTF-8"));
+			    		stream.setNickname(links.get(i).text());
+		    		}
+		        //}
 		    	
 		    	stream.setContentType(URLUtils.getContentType(stream.getPath()));
 		    	
