@@ -64,5 +64,4 @@ interface IMediaService
     int getRepeatMode();
     boolean loadQueue(String filename);
     MultiPlayer getMediaPlayer();
-    void setParentActivityState(int state);
 }
