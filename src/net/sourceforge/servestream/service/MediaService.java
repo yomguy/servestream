@@ -88,6 +88,7 @@ public class MediaService extends Service {
     public static final String STOP_DIALOG = "net.sourceforge.servestream.stopdialog";
     public static final String QUEUE_CHANGED = "net.sourceforge.servestream.queuechanged";
     public static final String PLAYER_CLOSED = "net.sourceforge.servestream.playerclosed";
+    public static final String ERROR_MESSAGE = "net.sourceforge.servestream.errormessage";
     
     public static final String SERVICECMD = "net.sourceforge.servestream.mediaservicecommand";
     public static final String CMDNAME = "command";
@@ -100,6 +101,7 @@ public class MediaService extends Service {
     public static final int RELEASE_WAKELOCK = 2;
     public static final int SERVER_DIED = 3;
     public static final int PLAYER_PREPARED = 5;
+    public static final int PLAYER_ERROR = 6;
     private static final int MAX_HISTORY_SIZE = 100;
     
     protected StreamDatabase mStreamdb = null;
@@ -156,6 +158,10 @@ public class MediaService extends Service {
                     sendBroadcast(i);
                     play();
                     notifyChange(META_CHANGED);
+                	break;
+                case PLAYER_ERROR:
+                	i = new Intent(ERROR_MESSAGE);
+                	sendBroadcast(i);
                 	break;
                 default:
                     break;
