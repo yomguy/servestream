@@ -131,7 +131,6 @@ public class ServeStreamAppWidgetOneProvider extends AppWidgetProvider {
      * Update all active widget instances by pushing changes 
      */
     public void performUpdate(MediaService service, int[] appWidgetIds, String what) {
-    	Log.v(TAG, "performUpdate");
     	final Resources res = service.getResources();
         final RemoteViews views = new RemoteViews(service.getPackageName(), R.layout.appwidget_one);
         
@@ -144,7 +143,7 @@ public class ServeStreamAppWidgetOneProvider extends AppWidgetProvider {
         	//CharSequence errorState = null;
         
         	if (titleName == null)
-        		titleName = "No track info available";
+        		titleName = res.getText(R.string.widget_one_track_info_unavailable);
         
         	// Show media info
         	views.setViewVisibility(R.id.title, View.VISIBLE);
