@@ -116,7 +116,7 @@ public class MediaService extends Service {
     private Vector<Integer> mHistory = new Vector<Integer>(MAX_HISTORY_SIZE);
     private int mPlayPos = -1;
     private final Shuffler mRand = new Shuffler();
-    private int mOpenFailedCounter = 0;
+    //private int mOpenFailedCounter = 0;
     private int mServiceStartId = -1;
     private boolean mServiceInUse = false;
     private boolean mIsSupposedToBePlaying = false;
@@ -506,7 +506,7 @@ public class MediaService extends Service {
             mPlayer.setDataSource(mPlayListFiles[mPlayPos].getURL());
             if (!mPlayer.isInitialized()) {
                 stop(true);
-                if (mOpenFailedCounter++ < 10 &&  mPlayListLen > 1) {
+                /*if (mOpenFailedCounter++ < 10 &&  mPlayListLen > 1) {
                     // beware: this ends up being recursive because next() calls open() again.
                     next(false);
                 }
@@ -517,13 +517,10 @@ public class MediaService extends Service {
                     //    Toast.makeText(this, R.string.playback_failed, Toast.LENGTH_SHORT).show();
                     //}
                     Log.d(TAG, "Failed to open file for playback");
-                }
-            } else {
-                mOpenFailedCounter = 0;
+                }*/
+            //} else {
+            //    mOpenFailedCounter = 0;
             }
-            
-            //i = new Intent(STOP_DIALOG);
-            //sendStickyBroadcast(i);
         }
     }
 
