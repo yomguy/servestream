@@ -281,11 +281,6 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
         
         mParentActivityState = VISIBLE;
         
-    	/*try {
-			mMediaService.setParentActivityState(VISIBLE);
-		} catch (RemoteException ex) {
-			ex.printStackTrace();
-		}*/
     }
     
     @Override
@@ -307,6 +302,7 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
     	Log.v(TAG, "onStop called");
     	
         paused = true;
+        
         mHandler.removeMessages(REFRESH);
         unregisterReceiver(mStatusListener);
         super.onStop();
@@ -426,7 +422,6 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
 		} else {
 			try {
 				mRequestedStream = getIntent().getData().toString();
-				//mRequestedStream = new Stream(getIntent().getData().toString());
 			} catch (Exception ex) {
 				ex.printStackTrace();
 			}
@@ -452,6 +447,7 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
 			        setRepeatButtonImage();
 			        setShuffleButtonImage();
 			        setPauseButtonImage();
+			        showToast(R.string.media_controls_notif);
 			        
 			    } catch (Exception ex) {
 			        Log.e(TAG, "error: " + ex.getMessage());
@@ -647,12 +643,9 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
         if(mMediaService == null)
             return;
         
-        //if (mRequestedStream != null) {
         filename = mRequestedStream;
-        	//filename = mRequestedStream.getUri().toString();
             
         	try {
-				//mMediaService.loadQueue(filename);
 				
                 if (!mMediaService.loadQueue(filename)) {
                 	errorOpeningMediaMessage();

@@ -125,7 +125,7 @@ public class MediaService extends Service {
     private ServeStreamAppWidgetOneProvider mAppWidgetProvider = ServeStreamAppWidgetOneProvider.getInstance();
     
     // interval after which we stop the service when idle
-    private static final int IDLE_DELAY = 60000;
+    //private static final int IDLE_DELAY = 60000;
     
     private Handler mMediaplayerHandler = new Handler() {
         @Override
@@ -224,8 +224,8 @@ public class MediaService extends Service {
 
         // If the service was idle, but got killed before it stopped itself, the
         // system will relaunch it. Make sure it gets stopped again in that case.
-        Message msg = mDelayedStopHandler.obtainMessage();
-        mDelayedStopHandler.sendMessageDelayed(msg, IDLE_DELAY);
+        //Message msg = mDelayedStopHandler.obtainMessage();
+        //mDelayedStopHandler.sendMessageDelayed(msg, IDLE_DELAY);
     }
 
     @Override
@@ -248,7 +248,7 @@ public class MediaService extends Service {
         mPlayer = null;
         
         // make sure there aren't any other messages coming
-        mDelayedStopHandler.removeCallbacksAndMessages(null);
+        //mDelayedStopHandler.removeCallbacksAndMessages(null);
         mMediaplayerHandler.removeCallbacksAndMessages(null);
 
 		notifyChange(PLAYER_CLOSED);
@@ -323,21 +323,21 @@ public class MediaService extends Service {
 		// Make sure we stay running to maintain the bridges
 		startService(new Intent(this, MediaService.class));
     	
-        mDelayedStopHandler.removeCallbacksAndMessages(null);
+        //mDelayedStopHandler.removeCallbacksAndMessages(null);
         mServiceInUse = true;
         return mBinder;
     }
 
     @Override
     public void onRebind(Intent intent) {
-        mDelayedStopHandler.removeCallbacksAndMessages(null);
+        //mDelayedStopHandler.removeCallbacksAndMessages(null);
         mServiceInUse = true;
     }
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         mServiceStartId = startId;
-        mDelayedStopHandler.removeCallbacksAndMessages(null);
+        //mDelayedStopHandler.removeCallbacksAndMessages(null);
 
         if (intent != null) {
             String action = intent.getAction();
@@ -359,46 +359,51 @@ public class MediaService extends Service {
         
         // make sure the service will shut down on its own if it was
         // just started but not bound to and nothing is playing
-        mDelayedStopHandler.removeCallbacksAndMessages(null);
-        Message msg = mDelayedStopHandler.obtainMessage();
-        mDelayedStopHandler.sendMessageDelayed(msg, IDLE_DELAY);
+        //mDelayedStopHandler.removeCallbacksAndMessages(null);
+        //Message msg = mDelayedStopHandler.obtainMessage();
+        //mDelayedStopHandler.sendMessageDelayed(msg, IDLE_DELAY);
         return START_STICKY;
     }
     
     @Override
     public boolean onUnbind(Intent intent) {
-        /*mServiceInUse = false;
+    	
+		Log.v(TAG, "onUnbind called");
+    	
+        mServiceInUse = false;
 
-        if (isPlaying()) {
+        /*if (isPlaying()) {
             // something is currently playing, or will be playing once 
             // an in-progress action requesting audio focus ends, so don't stop the service now.
             return true;
-        }
+        }*/
         
         // If there is a playlist but playback is paused, then wait a while
         // before stopping the service, so that pause/resume isn't slow.
         // Also delay stopping the service if we're transitioning between tracks.
-        if (mPlayListLen > 0  || mMediaplayerHandler.hasMessages(TRACK_ENDED)) {
+        //if (mPlayListLen > 0  || mMediaplayerHandler.hasMessages(TRACK_ENDED)) {
+        /*if (mMediaplayerHandler.hasMessages(TRACK_ENDED)) {
             Message msg = mDelayedStopHandler.obtainMessage();
             mDelayedStopHandler.sendMessageDelayed(msg, IDLE_DELAY);
             return true;
-        }
+        }*/
         
         // No active playlist, OK to stop the service right now
-        stopSelf(mServiceStartId);*/
-    	
-		Log.v(TAG, "onUnbind called");
+        //stopSelf(mServiceStartId);
 		
 		if (!isPlaying() || playingVideo()) {
-			stopSelf();
+			stopSelf(mServiceStartId);
 		}
     	
+		Log.v(TAG, "onUnbind succedded");
+		
         return true;
     }
     
-    private Handler mDelayedStopHandler = new Handler() {
+    /*private Handler mDelayedStopHandler = new Handler() {
         @Override
         public void handleMessage(Message msg) {
+        	Log.v(TAG, "mDelayedStopHandler called");
             // Check again to make sure nothing is playing right now
             if (isPlaying() || mServiceInUse
                     || mMediaplayerHandler.hasMessages(TRACK_ENDED)) {
@@ -409,7 +414,7 @@ public class MediaService extends Service {
             // party-shuffle or because the play-position changed)
             stopSelf(mServiceStartId);
         }
-    };
+    };*/
 
     public MultiPlayer getMediaPlayer() {
     	return mPlayer;
@@ -505,23 +510,6 @@ public class MediaService extends Service {
             mFileToPlay = path;
             Log.v(TAG, "opening" + mPlayListFiles[mPlayPos].getURL().toString());
             mPlayer.setDataSource(mPlayListFiles[mPlayPos].getURL());
-            //if (!mPlayer.isInitialized()) {
-             //   stop(true);
-                /*if (mOpenFailedCounter++ < 10 &&  mPlayListLen > 1) {
-                    // beware: this ends up being recursive because next() calls open() again.
-                    next(false);
-                }
-                if (!mPlayer.isInitialized() && mOpenFailedCounter != 0) {
-                    // need to make sure we only shows this once
-                    mOpenFailedCounter = 0;
-                    //if (!mQuietMode) {
-                    //    Toast.makeText(this, R.string.playback_failed, Toast.LENGTH_SHORT).show();
-                    //}
-                    Log.d(TAG, "Failed to open file for playback");
-                }*/
-            //} else {
-            //    mOpenFailedCounter = 0;
-            //}
         }
     }
 
@@ -550,7 +538,7 @@ public class MediaService extends Service {
         mFileToPlay = null;
 
         if (remove_status_icon) {
-            gotoIdleState();
+            //gotoIdleState();
         } else {
             stopForeground(false);
         }
@@ -575,7 +563,7 @@ public class MediaService extends Service {
         synchronized(this) {
             if (isPlaying()) {
                 mPlayer.pause();
-                gotoIdleState();
+                //gotoIdleState();
                 mIsSupposedToBePlaying = false;
                 notifyChange(PLAYSTATE_CHANGED);
                 ConnectionNotifier.getInstance().hideRunningNotification(this);
@@ -688,7 +676,7 @@ public class MediaService extends Service {
                         }
                     } else {
                         // all done
-                        gotoIdleState();
+                        //gotoIdleState();
                         if (mIsSupposedToBePlaying) {
                             mIsSupposedToBePlaying = false;
                             notifyChange(PLAYSTATE_CHANGED);
@@ -712,7 +700,7 @@ public class MediaService extends Service {
                     // we're at the end of the list
                     if (mRepeatMode == REPEAT_NONE && !force) {
                         // all done
-                        gotoIdleState();
+                        //gotoIdleState();
                         mIsSupposedToBePlaying = false;
                         notifyChange(PLAYSTATE_CHANGED);
                         return;
@@ -729,12 +717,12 @@ public class MediaService extends Service {
         }
     }
     
-    private void gotoIdleState() {
+    /*private void gotoIdleState() {
         mDelayedStopHandler.removeCallbacksAndMessages(null);
         Message msg = mDelayedStopHandler.obtainMessage();
         mDelayedStopHandler.sendMessageDelayed(msg, IDLE_DELAY);
         stopForeground(true);
-    }
+    }*/
 
     // A simple variation of Random that makes sure that the
     // value it returns is not equal to the value it returned
