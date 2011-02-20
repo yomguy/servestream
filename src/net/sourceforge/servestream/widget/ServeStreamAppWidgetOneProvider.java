@@ -136,6 +136,8 @@ public class ServeStreamAppWidgetOneProvider extends AppWidgetProvider {
         if (what.equals(MediaService.PLAYER_CLOSED)) {
         	views.setViewVisibility(R.id.title, View.GONE);
             views.setTextViewText(R.id.url, res.getText(R.string.widget_one_initial_text));
+            
+            linkButtons(service, views, false /* not playing */);
         } else {
         	CharSequence titleName = service.getTrackName();
         	CharSequence mediaURL = service.getMediaURL();
@@ -148,18 +150,18 @@ public class ServeStreamAppWidgetOneProvider extends AppWidgetProvider {
         	views.setViewVisibility(R.id.title, View.VISIBLE);
         	views.setTextViewText(R.id.title, titleName);
         	views.setTextViewText(R.id.url, mediaURL);
-        }
         	
-        // Set correct drawable for pause state
-        final boolean playing = service.isPlaying();
-        if (playing) {
-            views.setImageViewResource(R.id.control_play, R.drawable.ic_appwidget_music_pause);
-        } else {
-            views.setImageViewResource(R.id.control_play, R.drawable.ic_appwidget_music_play);
+            // Set correct drawable for pause state
+            final boolean playing = service.isPlaying();
+            if (playing) {
+                views.setImageViewResource(R.id.control_play, R.drawable.ic_appwidget_music_pause);
+            } else {
+                views.setImageViewResource(R.id.control_play, R.drawable.ic_appwidget_music_play);
+            }
+            
+            // Link actions buttons to intents
+            linkButtons(service, views, true);
         }
-
-        // Link actions buttons to intents
-        linkButtons(service, views, playing);
         
         pushUpdate(service, appWidgetIds, views);
     }
