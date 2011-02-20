@@ -97,6 +97,9 @@
  	<!-- Frequency for which to check for program updates. -->
  	<string name="list_update_never">Never</string>
 
+    <!-- Toast to let people know how to hide media controls -->
+    <string name="media_controls_notif">Tap screen to hide media controls</string>
+
     <!-- Title of the media player -->
     <string name="nowplaying_title">Now playing</string>
 

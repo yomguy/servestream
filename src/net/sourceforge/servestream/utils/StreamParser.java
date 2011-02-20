@@ -102,25 +102,20 @@ public class StreamParser {
 		    	Stream stream = null;
 		    	
 		    	try {
-		    	// if a link is relative try to make it absolute
-		    	//if (!links.get(i).attr("href").contains("/")) {
-		    	//	stream = new Stream(URLDecoder.decode(m_targetURL + links.get(i).attr("href"), "UTF-8"));
-		    	//	stream.setNickname(links.get(i).text());
-		        //} else {
 		    		
-		    		if (m_indexURL.getPath().equals("")) {
-		    			stream = new Stream(URLDecoder.decode(m_indexURL + "/" + links.get(i).attr("href"), "UTF-8"));
-		    			stream.setNickname(links.get(i).text());
-		    		} else {
-			        	stream = new Stream(URLDecoder.decode(m_indexURL + links.get(i).attr("href"), "UTF-8"));
-			    		stream.setNickname(links.get(i).text());
-		    		}
-		        //}
+		    		String link = links.get(i).attr("href");
+		    		int pathLength = link.length();
+		    		if (pathLength >= 1 && !link.substring(0, 1).equals("/"))
+		    			link = "/" + link;
+		    		
+			        //stream = new Stream(URLDecoder.decode(m_indexURL + links.get(i).attr("href"), "UTF-8"));
+			        stream = new Stream(URLDecoder.decode(m_indexURL + link, "UTF-8"));
+			    	stream.setNickname(links.get(i).text());
 		    	
-		    	stream.setContentType(URLUtils.getContentType(stream.getPath()));
+			    	stream.setContentType(URLUtils.getContentType(stream.getPath()));
 		    	
-		    	parsedURLs.add(linkCount, stream);
-		        linkCount++;
+			    	parsedURLs.add(linkCount, stream);
+			        linkCount++;
 		    	} catch (MalformedURLException ex) {
 		    		ex.printStackTrace();
 		    		Log.v("StreamParser", "BAD URL");
