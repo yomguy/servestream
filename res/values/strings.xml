@@ -58,7 +58,7 @@
     <string translatable="false" name="durationformatlong"><xliff:g id="format">%1$d:%3$02d:%5$02d</xliff:g></string>
 
 	<string name="invalid_playlist_title">Cannot play playlist file</string>
-	<string name="invalid_playlist_message">Sorry, the selected playlist file contains no valid entries.</string>
+	<string name="invalid_playlist_message">Sorry, the selected playlist file has no valid entries.</string>
 	<string name="invalid_playlist_pos">OK</string>
 
 	<string name="invalid_url_message">Please enter a valid URL.</string>

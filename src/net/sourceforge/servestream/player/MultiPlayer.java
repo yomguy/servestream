@@ -48,8 +48,9 @@ public class MultiPlayer implements Parcelable {
         try {
             mMediaPlayer.reset();
             mMediaPlayer.setOnPreparedListener(onPreparedListener);
+            mMediaPlayer.setOnCompletionListener(completionListener);
+            mMediaPlayer.setOnErrorListener(errorListener);
             mMediaPlayer.setDataSource(path);
-            //mMediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
             mMediaPlayer.prepareAsync();
             Log.v(TAG, "Preparing media plyer");
         } catch (IOException ex) {
@@ -65,9 +66,6 @@ public class MultiPlayer implements Parcelable {
             mIsInitialized = false;
             return;
         }
-        mMediaPlayer.setOnCompletionListener(listener);
-        mMediaPlayer.setOnErrorListener(errorListener);
-        //mIsInitialized = true;
     }
         
     public boolean isInitialized() {
@@ -103,24 +101,17 @@ public class MultiPlayer implements Parcelable {
     MediaPlayer.OnPreparedListener onPreparedListener = new MediaPlayer.OnPreparedListener() {
 		public void onPrepared(MediaPlayer mp) {
 			
-			Log.v(TAG, "media player is prepared!");
-			// start playing the media file
-			//start();
-	        //mMediaPlayer.setOnCompletionListener(listener);
-	        //mMediaPlayer.setOnErrorListener(errorListener);
+			Log.v(TAG, "media player is prepared");
 	        mIsInitialized = true;
 			mHandler.sendEmptyMessage(MediaService.PLAYER_PREPARED);
 		}
     };
     
-    MediaPlayer.OnCompletionListener listener = new MediaPlayer.OnCompletionListener() {
+    MediaPlayer.OnCompletionListener completionListener = new MediaPlayer.OnCompletionListener() {
         public void onCompletion(MediaPlayer mp) {
-            // Acquire a temporary wakelock, since when we return from
-            // this callback the MediaPlayer will release its wakelock
-            // and allow the device to go to sleep.
-            // This temporary wakelock is released when the RELEASE_WAKELOCK
-            // message is processed, but just in case, put a timeout on it.
-            //mWakeLock.acquire(30000);
+            
+        	Log.v(TAG, "onCompletionListener called");
+        	
             mHandler.sendEmptyMessage(MediaService.TRACK_ENDED);
         }
     };
@@ -129,21 +120,17 @@ public class MultiPlayer implements Parcelable {
         public boolean onError(MediaPlayer mp, int what, int extra) {
             switch (what) {
             case MediaPlayer.MEDIA_ERROR_SERVER_DIED:
+            	Log.v(TAG, "onError called");
                 mIsInitialized = false;
                 mMediaPlayer.release();
-                // Creating a new MediaPlayer and settings its wakemode does not
-                // require the media service, so it's OK to do this now, while the
-                // service is still being restarted
                 mMediaPlayer = new MediaPlayer(); 
-               // mMediaPlayer.setWakeMode(MediaPlaybackService.this, PowerManager.PARTIAL_WAKE_LOCK);
                 mHandler.sendMessageDelayed(mHandler.obtainMessage(MediaService.SERVER_DIED), 2000);
                 return true;
             default:
+            	Log.v(TAG, "onError called");
                 Log.d("MultiPlayer", "Error: " + what + "," + extra);
                 mIsInitialized = false;
                 mHandler.sendEmptyMessage(MediaService.PLAYER_PREPARED);
-                //mHandler.sendEmptyMessage(MediaService.PLAYER_ERROR);
-                //return true;
                 break;
             }
             return false;

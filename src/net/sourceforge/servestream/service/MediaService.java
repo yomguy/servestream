@@ -96,6 +96,7 @@ public class MediaService extends Service {
     public static final String QUEUE_CHANGED = "net.sourceforge.servestream.queuechanged";
     public static final String PLAYER_CLOSED = "net.sourceforge.servestream.playerclosed";
     public static final String ERROR_MESSAGE = "net.sourceforge.servestream.errormessage";
+    public static final String CLOSE_PLAYER = "net.sourceforge.servestream.closeplayer";
     
     public static final String SERVICECMD = "net.sourceforge.servestream.mediaservicecommand";
     public static final String CMDNAME = "command";
@@ -164,9 +165,10 @@ public class MediaService extends Service {
                 case PLAYER_PREPARED:
                     Intent i = new Intent(STOP_DIALOG);
                     sendBroadcast(i);
-                    handleError();
+                    if (handleError()) {
                     play();
                     notifyChange(META_CHANGED);
+                    }
                 	break;
                 case PLAYER_ERROR:
                 	i = new Intent(ERROR_MESSAGE);
@@ -430,12 +432,7 @@ public class MediaService extends Service {
     	@Override
     	public void handleMessage(Message msg) {
     		Log.v(TAG, "mSleepTimerHandler called");
-    		// If we are still playing media pause the player
-    		// before going to sleep
-            if (isPlaying()) {
-                pause();
-            }
-    		//stopSelf(mServiceStartId);
+    		notifyChange(CLOSE_PLAYER);
     	}
     };
     
@@ -699,11 +696,12 @@ public class MediaService extends Service {
                         }
                     } else {
                         // all done
+                    	notifyChange(CLOSE_PLAYER);
                         //gotoIdleState();
-                        if (mIsSupposedToBePlaying) {
+                        /*if (mIsSupposedToBePlaying) {
                             mIsSupposedToBePlaying = false;
                             notifyChange(PLAYSTATE_CHANGED);
-                        }
+                        }*/
                         return;
                     }
                 }
@@ -725,7 +723,8 @@ public class MediaService extends Service {
                         // all done
                         //gotoIdleState();
                         mIsSupposedToBePlaying = false;
-                        notifyChange(PLAYSTATE_CHANGED);
+                        //notifyChange(PLAYSTATE_CHANGED);
+                        notifyChange(CLOSE_PLAYER);
                         return;
                     } else if (mRepeatMode == REPEAT_ALL || force) {
                         mPlayPos = 0;
@@ -1134,23 +1133,27 @@ public class MediaService extends Service {
     	return false;
     }
     
-    private void handleError() {
+    private boolean handleError() {
     	if (!mPlayer.isInitialized()) {
-           stop(true);
-           if (mOpenFailedCounter++ < 10 &&  mPlayListLen > 1) {
-               // beware: this ends up being recursive because next() calls open() again.
-               next(false);
-           }
-           if (!mPlayer.isInitialized() && mOpenFailedCounter != 0) {
-               // need to make sure we only shows this once
-               mOpenFailedCounter = 0;
-               //if (!mQuietMode) {
-               //    Toast.makeText(this, R.string.playback_failed, Toast.LENGTH_SHORT).show();
-               //}
-               Log.d(TAG, "Failed to open file for playback");
-           }
-       } else {
-           mOpenFailedCounter = 0;
-       }
+    		stop(true);
+            if (mOpenFailedCounter++ < 10 &&  mPlayListLen > 1) {
+            	// beware: this ends up being recursive because next() calls open() again.
+                next(false);
+            }
+            if (!mPlayer.isInitialized() && mOpenFailedCounter != 0) {
+                // need to make sure we only shows this once
+                mOpenFailedCounter = 0;
+                //if (!mQuietMode) {
+                //    Toast.makeText(this, R.string.playback_failed, Toast.LENGTH_SHORT).show();
+                //}
+                Log.d(TAG, "Failed to open file for playback");
+                mMediaplayerHandler.sendEmptyMessage(MediaService.PLAYER_ERROR);
+                return false;
+            }
+        } else {
+            mOpenFailedCounter = 0;
+        }
+    	
+        return true;
     }
 }
