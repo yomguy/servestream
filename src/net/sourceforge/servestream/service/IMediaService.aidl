@@ -62,6 +62,8 @@ interface IMediaService
     int getShuffleMode();
     void setRepeatMode(int repeatmode);
     int getRepeatMode();
+    void setSleepTimerMode(int sleepmode);
+    int getSleepTimerMode();
     boolean loadQueue(String filename);
     MultiPlayer getMediaPlayer();
 }
