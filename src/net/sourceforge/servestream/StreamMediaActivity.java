@@ -271,6 +271,10 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
         f.addAction(MediaService.STOP_DIALOG);
         f.addAction(MediaService.ERROR_MESSAGE);
         registerReceiver(mStatusListener, new IntentFilter(f));
+        
+        f = new IntentFilter();
+        f.addAction(MediaService.CLOSE_PLAYER);
+        registerReceiver(mDisconnectListener, new IntentFilter(f));
     }
     
     @Override
@@ -313,6 +317,8 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
 		super.onDestroy();
 		
         Log.v(TAG,"onDestroy called");
+        
+        unregisterReceiver(mDisconnectListener);
         
         // Detach our existing connection.
         unbindService(connection);
@@ -886,6 +892,16 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
         }
     };
     
+    private BroadcastReceiver mDisconnectListener = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            String action = intent.getAction();
+            if (action.equals(MediaService.CLOSE_PLAYER)) {
+            	finish();
+            }
+        }
+    };
+    
     private void updateTrackInfo() {
         if (mMediaService == null) {
             return;
@@ -894,7 +910,7 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
         	//TODO ?
             String path = mMediaService.getPath();
             if (path == null) {
-                finish();
+                //finish();
                 return;
             }
             
@@ -908,7 +924,7 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
             mDuration = mMediaService.duration();
             mTotalTime.setText(MusicUtils.makeTimeString(this, mDuration / 1000));
         } catch (RemoteException ex) {
-            finish();
+            //finish();
         }
     }
     
