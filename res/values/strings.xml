@@ -73,6 +73,15 @@
 
 	<string name="view_pos">OK</string>
 	
+	<!-- Default sleep timer selection -->
+ 	<string name="list_sleep_timer_off">Off</string>
+ 	<string name="list_sleep_timer_ten_min">10 minutes</string>
+ 	<string name="list_sleep_timer_twenty_min">20 minutes</string>
+ 	<string name="list_sleep_timer_thirty_min">30 minutes</string>
+ 	<string name="list_sleep_timer_fourty_min">40 minutes</string>
+ 	<string name="list_sleep_timer_fifty_min">50 minutes</string>
+ 	<string name="list_sleep_timer_sixty_min">60 minutes</string>
+	
 	<string name="list_stream_edit">Edit stream</string>
 	<string name="list_stream_delete">Delete stream</string>
 	<string name="list_stream_save">Save stream</string>
@@ -99,6 +108,9 @@
 
     <!-- Toast to let people know how to hide media controls -->
     <string name="media_controls_notif">Tap screen to hide media controls</string>
+
+    <!-- Title of sleep timer menu entry -->
+    <string name="menu_sleep_timer">Sleep Timer</string>
 
     <!-- Title of the media player -->
     <string name="nowplaying_title">Now playing</string>
@@ -135,6 +147,11 @@
     <string name="service_start_error_msg">Sorry, the media could not be played.</string>
     <!-- Dialog box button -->
     <string name="service_start_error_button">OK</string>
+
+    <!-- Toast after turning sleep timer off -->
+    <string name="sleep_timer_on_notif">Sleep timer is set for</string>
+    <!-- Toast after turning sleep timer on -->
+    <string name="sleep_timer_off_notif">Sleep timer is off</string>
 
     <!-- Toast after turning shuffle on -->
     <string name="shuffle_on_notif">Shuffle is on</string>
