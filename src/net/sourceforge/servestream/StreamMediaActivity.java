@@ -78,7 +78,7 @@ import android.widget.SeekBar.OnSeekBarChangeListener;
 
 public class StreamMediaActivity extends Activity implements SurfaceHolder.Callback {
     private static final String TAG = "ServeStream.StreamMediaActivity";
-
+    
     private int mParentActivityState = StreamMediaActivity.VISIBLE;
     public static int VISIBLE = 1;
     public static int GONE = 2;
@@ -339,8 +339,48 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
 		help.setIcon(android.R.drawable.ic_menu_help);
 		help.setIntent(new Intent(StreamMediaActivity.this, HelpActivity.class));
 
+		MenuItem sleepTimer = menu.add(0, -2, 0, R.string.menu_sleep_timer);
+		sleepTimer.setIcon(android.R.drawable.ic_menu_manage);
+		
 		return true;
     }
+    
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+    	try {
+    		switch(item.getItemId()) {
+        		case (-2): {
+        			final String [] sleepTimerModes = getSleepTimerModes();
+        			int sleepTimerMode = 0;
+					sleepTimerMode = mMediaService.getSleepTimerMode();
+					AlertDialog.Builder builder = new AlertDialog.Builder(this);
+					builder.setTitle(R.string.menu_sleep_timer);
+					builder.setSingleChoiceItems(sleepTimerModes, sleepTimerMode, new DialogInterface.OnClickListener() {
+						public void onClick(DialogInterface dialog, int item) {
+							try {
+								mMediaService.setSleepTimerMode(item);
+								if (item == MediaService.SLEEP_TIMER_OFF) {
+									showToast(R.string.sleep_timer_off_notif);
+								} else {
+								    showToast(getString(R.string.sleep_timer_on_notif) + " " + sleepTimerModes[mMediaService.getSleepTimerMode()]);
+								}
+								dialog.dismiss();
+							} catch (RemoteException e) {
+								e.printStackTrace();
+							}
+						}
+					}).show();
+					return true;
+				}
+         	}
+         	
+		} catch (RemoteException ex) {
+			ex.printStackTrace();
+		}
+         	
+		return false;
+    }       
+
     
     @Override
 	public void onConfigurationChanged(Configuration newConfig) {
@@ -635,6 +675,14 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
         mToast.setText(resid);
         mToast.show();
     }
+    
+    private void showToast(String message) {
+        if (mToast == null) {
+            mToast = Toast.makeText(this, "", Toast.LENGTH_SHORT);
+        }
+        mToast.setText(message);
+        mToast.show();
+    }
 
     private void startPlayback() {
 
@@ -896,4 +944,18 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
 			}
 		});
 	}
+	
+    public String [] getSleepTimerModes() {
+    	String [] sleepModes = new String[7];
+    	
+    	sleepModes[0] = getString(R.string.list_sleep_timer_off);
+        sleepModes[1] = getString(R.string.list_sleep_timer_ten_min);
+        sleepModes[2] = getString(R.string.list_sleep_timer_twenty_min);
+        sleepModes[3] = getString(R.string.list_sleep_timer_thirty_min);
+        sleepModes[4] = getString(R.string.list_sleep_timer_fourty_min);
+        sleepModes[5] = getString(R.string.list_sleep_timer_fifty_min);
+        sleepModes[6] = getString(R.string.list_sleep_timer_sixty_min);
+    	
+    	return sleepModes;
+    }
 }

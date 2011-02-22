@@ -81,6 +81,14 @@ public class MediaService extends Service {
     public static final int REPEAT_CURRENT = 1;
     public static final int REPEAT_ALL = 2;
 
+    public static final int SLEEP_TIMER_OFF = 0;
+    public static final int SLEEP_TIMER_TEN_MIN = 1;
+    public static final int SLEEP_TIMER_TWENTY_MIN = 2;
+    public static final int SLEEP_TIMER_THIRTY_MIN = 3;
+    public static final int SLEEP_TIMER_FOURTY_MIN = 4;
+    public static final int SLEEP_TIMER_FIFTY_MIN = 5;
+    public static final int SLEEP_TIMER_SIXTY_MIN = 6;
+    
     public static final String PLAYSTATE_CHANGED = "net.sourceforge.servestream.playstatechanged";
     public static final String META_CHANGED = "net.sourceforge.servestream.metachanged";
     public static final String START_DIALOG = "net.sourceforge.servestream.startdialog";
@@ -110,6 +118,7 @@ public class MediaService extends Service {
     private String mPlayListToPlay;
     private int mShuffleMode = SHUFFLE_NONE;
     private int mRepeatMode = REPEAT_NONE;
+    private int mSleepTimerMode = SLEEP_TIMER_OFF;
     private long [] mPlayList = null;
     private MediaFile [] mPlayListFiles = null;
     private int mPlayListLen = 0;
@@ -249,6 +258,7 @@ public class MediaService extends Service {
         
         // make sure there aren't any other messages coming
         //mDelayedStopHandler.removeCallbacksAndMessages(null);
+        mSleepTimerHandler.removeCallbacksAndMessages(null);
         mMediaplayerHandler.removeCallbacksAndMessages(null);
 
 		notifyChange(PLAYER_CLOSED);
@@ -416,6 +426,19 @@ public class MediaService extends Service {
         }
     };*/
 
+    private Handler mSleepTimerHandler = new Handler() {
+    	@Override
+    	public void handleMessage(Message msg) {
+    		Log.v(TAG, "mSleepTimerHandler called");
+    		// If we are still playing media pause the player
+    		// before going to sleep
+            if (isPlaying()) {
+                pause();
+            }
+    		//stopSelf(mServiceStartId);
+    	}
+    };
+    
     public MultiPlayer getMediaPlayer() {
     	return mPlayer;
     }
@@ -760,7 +783,44 @@ public class MediaService extends Service {
     public int getRepeatMode() {
         return mRepeatMode;
     }
-
+    
+    public void setSleepTimerMode(int sleepmode) {
+    	synchronized(this) {
+    		mSleepTimerMode = sleepmode;
+    		
+    		mSleepTimerHandler.removeCallbacksAndMessages(null);
+    		Message msg = mSleepTimerHandler.obtainMessage();
+    	
+    		switch (mSleepTimerMode) {
+    			case SLEEP_TIMER_TEN_MIN:
+    				mSleepTimerHandler.sendMessageDelayed(msg, 600000);
+    				break;
+    			case SLEEP_TIMER_TWENTY_MIN:
+    				mSleepTimerHandler.sendMessageDelayed(msg, 1200000);
+    				break;
+    			case SLEEP_TIMER_THIRTY_MIN:
+    				mSleepTimerHandler.sendMessageDelayed(msg, 1800000);
+    				break;
+    			case SLEEP_TIMER_FOURTY_MIN:
+    				mSleepTimerHandler.sendMessageDelayed(msg, 2400000);
+    				break;
+    			case SLEEP_TIMER_FIFTY_MIN:
+    				mSleepTimerHandler.sendMessageDelayed(msg, 3000000);
+    				break;
+    			case SLEEP_TIMER_SIXTY_MIN:
+    				mSleepTimerHandler.sendMessageDelayed(msg, 3600000);
+    				break;
+    			default:
+    				Log.v(TAG, "Invalid sleep mode selected");
+    				break;
+    		}
+    	}
+    }
+    
+    public int getSleepTimerMode() {
+    	return mSleepTimerMode;
+    }
+    
     /**
      * Returns the path of the currently playing file, or null if
      * no file is currently playing.
@@ -962,6 +1022,12 @@ public class MediaService extends Service {
         }
         public int getRepeatMode() {
             return mService.get().getRepeatMode();
+        }
+        public void setSleepTimerMode(int sleepmode) {
+        	mService.get().setSleepTimerMode(sleepmode);
+        }
+        public int getSleepTimerMode() {
+        	return mService.get().getSleepTimerMode();
         }
         public boolean loadQueue(String filename) {
         	return mService.get().loadQueue(filename);
