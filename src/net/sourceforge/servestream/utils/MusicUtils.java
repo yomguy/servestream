@@ -32,21 +32,10 @@
 
 package net.sourceforge.servestream.utils;
 
-import android.content.ContentResolver;
 import android.content.Context;
-import android.database.Cursor;
-import android.net.Uri;
 
-import java.io.Reader;
-import java.io.StringReader;
 import java.util.Formatter;
 import java.util.Locale;
-
-import org.jdom.Document;
-import org.jdom.Element;
-import org.jdom.input.SAXBuilder;
-import org.jdom.output.Format;
-import org.jdom.output.XMLOutputter;
 
 import net.sourceforge.servestream.R;
 
@@ -83,7 +72,7 @@ public class MusicUtils {
         return sFormatter.format(durationformat, timeArgs).toString();
     }
     
-    public static String mediaFileToXML(MediaFile mediaFile) {
+    /*public static String mediaFileToXML(MediaFile mediaFile) {
     	String XML;
     	XMLOutputter outputter = new XMLOutputter();
     	
@@ -151,5 +140,5 @@ public class MusicUtils {
             c.close();
         }
         return id;
-    }
+    }*/
 }
