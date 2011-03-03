@@ -38,8 +38,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.BroadcastReceiver;
-import android.content.SharedPreferences;
-import android.content.SharedPreferences.Editor;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
@@ -49,7 +47,6 @@ import android.util.Log;
 
 import java.lang.ref.WeakReference;
 import java.net.MalformedURLException;
-import java.util.ArrayList;
 import java.util.Random;
 import java.util.Vector;
 
@@ -58,7 +55,6 @@ import net.sourceforge.servestream.dbutils.StreamDatabase;
 import net.sourceforge.servestream.player.MultiPlayer;
 import net.sourceforge.servestream.utils.M3UPlaylistParser;
 import net.sourceforge.servestream.utils.MediaFile;
-import net.sourceforge.servestream.utils.MusicUtils;
 import net.sourceforge.servestream.utils.PLSPlaylistParser;
 import net.sourceforge.servestream.widget.ServeStreamAppWidgetOneProvider;
 
@@ -137,15 +133,7 @@ public class MediaService extends Service {
     private boolean mQuietMode = false;
     private boolean mPausedDuringPhoneCall = false;
     
-    private SharedPreferences mPreferences;
-    // We use this to distinguish between different cards when saving/restoring playlists.
-    // This will have to change if we want to support multiple simultaneous cards.
-    private int mCardId;
-    
     private ServeStreamAppWidgetOneProvider mAppWidgetProvider = ServeStreamAppWidgetOneProvider.getInstance();
-    
-    // interval after which we stop the service when idle
-    //private static final int IDLE_DELAY = 60000;
     
     private Handler mMediaplayerHandler = new Handler() {
         @Override
@@ -227,9 +215,6 @@ public class MediaService extends Service {
 
         Log.v(TAG, "onCreate called");
         
-        mPreferences = getSharedPreferences("ServeStream", MODE_WORLD_READABLE | MODE_WORLD_WRITEABLE);
-        mCardId = MusicUtils.getCardId(this);
-        
         mStreamdb = new StreamDatabase(this);
         
 		TelephonyManager tm = (TelephonyManager)getSystemService(TELEPHONY_SERVICE);
@@ -239,9 +224,6 @@ public class MediaService extends Service {
         mPlayer = new MultiPlayer();
         mPlayer.setHandler(mMediaplayerHandler);
         
-        Log.v(TAG, "Reloading queue!");
-        //reloadQueue();
-        
         IntentFilter commandFilter = new IntentFilter();
         commandFilter.addAction(SERVICECMD);
         commandFilter.addAction(TOGGLEPAUSE_ACTION);
@@ -249,10 +231,6 @@ public class MediaService extends Service {
         commandFilter.addAction(NEXT_ACTION);
         registerReceiver(mIntentReceiver, commandFilter);
 
-        // If the service was idle, but got killed before it stopped itself, the
-        // system will relaunch it. Make sure it gets stopped again in that case.
-        //Message msg = mDelayedStopHandler.obtainMessage();
-        //mDelayedStopHandler.sendMessageDelayed(msg, IDLE_DELAY);
     }
 
     @Override
@@ -275,7 +253,6 @@ public class MediaService extends Service {
         mPlayer = null;
         
         // make sure there aren't any other messages coming
-        //mDelayedStopHandler.removeCallbacksAndMessages(null);
         mSleepTimerHandler.removeCallbacksAndMessages(null);
         mMediaplayerHandler.removeCallbacksAndMessages(null);
 
@@ -289,184 +266,184 @@ public class MediaService extends Service {
         super.onDestroy();
     }
 
-    private void saveQueue(boolean full) {
-
-        Editor ed = mPreferences.edit();
-        if (full) {
-            StringBuilder q = new StringBuilder();
-            
-            // The current playlist is save
-            int len = mPlayListLen;
-            for (int i = 0; i < len; i++) {
-            	MediaFile mediaFile = mPlayListFiles[i];
-            	q.append(MusicUtils.mediaFileToXML(mediaFile));
-            	//q.append("\n");
-            }
-            //Log.i("@@@@ service", "created queue string in " + (System.currentTimeMillis() - start) + " ms");
-            ed.putString("queue", q.toString());
-            Log.v(TAG, "Saved: " + q.toString());
-            ed.putInt("cardid", mCardId);
-            if (mShuffleMode != SHUFFLE_NONE) {
-                // In shuffle mode we need to save the history too
-                len = mHistory.size();
-                q.setLength(0);
-                for (int i = 0; i < len; i++) {
-                    int n = mHistory.get(i);
-                    if (n == 0) {
-                        q.append("0;");
-                    } else {
-                        while (n != 0) {
-                            int digit = (n & 0xf);
-                            n >>>= 4;
-                            q.append(digit);
-                        }
-                        q.append(";");
-                    }
-                }
-                ed.putString("history", q.toString());
-            }
-        }
-        ed.putInt("curpos", mPlayPos);
-        if (mPlayer.isInitialized()) {
-            ed.putLong("seekpos", mPlayer.position());
-        }
-        ed.putInt("repeatmode", mRepeatMode);
-        ed.putInt("shufflemode", mShuffleMode);
-        ed.commit();
-        //SharedPreferencesCompat.apply(ed);
-
-        //Log.i("@@@@ service", "saved state in " + (System.currentTimeMillis() - start) + " ms");
-    }
+//    private void saveQueue(boolean full) {
+//
+//        Editor ed = mPreferences.edit();
+//        if (full) {
+//            StringBuilder q = new StringBuilder();
+//            
+//            // The current playlist is save
+//            int len = mPlayListLen;
+//            for (int i = 0; i < len; i++) {
+//            	MediaFile mediaFile = mPlayListFiles[i];
+//            	q.append(MusicUtils.mediaFileToXML(mediaFile));
+//            	//q.append("\n");
+//            }
+//            //Log.i("@@@@ service", "created queue string in " + (System.currentTimeMillis() - start) + " ms");
+//            ed.putString("queue", q.toString());
+//            Log.v(TAG, "Saved: " + q.toString());
+//            ed.putInt("cardid", mCardId);
+//            if (mShuffleMode != SHUFFLE_NONE) {
+//                // In shuffle mode we need to save the history too
+//                len = mHistory.size();
+//                q.setLength(0);
+//                for (int i = 0; i < len; i++) {
+//                    int n = mHistory.get(i);
+//                    if (n == 0) {
+//                        q.append("0;");
+//                    } else {
+//                        while (n != 0) {
+//                            int digit = (n & 0xf);
+//                            n >>>= 4;
+//                            q.append(digit);
+//                        }
+//                        q.append(";");
+//                    }
+//                }
+//                ed.putString("history", q.toString());
+//            }
+//        }
+//        ed.putInt("curpos", mPlayPos);
+//        if (mPlayer.isInitialized()) {
+//            ed.putLong("seekpos", mPlayer.position());
+//        }
+//        ed.putInt("repeatmode", mRepeatMode);
+//        ed.putInt("shufflemode", mShuffleMode);
+//        ed.commit();
+//        //SharedPreferencesCompat.apply(ed);
+//
+//        //Log.i("@@@@ service", "saved state in " + (System.currentTimeMillis() - start) + " ms");
+//    }
     
-    private void reloadQueue() {
-    	ArrayList<MediaFile> mediaFiles = new ArrayList<MediaFile>();
-    	
-        String q = null;
-        
-        int id = mCardId;
-        if (mPreferences.contains("cardid")) {
-            id = mPreferences.getInt("cardid", ~mCardId);
-        }
-        if (id == mCardId) {
-            // Only restore the saved playlist if the card is still
-            // the same one as when the playlist was saved
-            q = mPreferences.getString("queue", "");
-        }
-        int qlen = q != null ? q.length() : 0;
-        if (qlen > 1) {
-            //Log.i("@@@@ service", "loaded queue: " + q);
-            int plen = 0;
-            String file = "";
-            for (int i = 0; i < qlen; i++) {
-                char c = q.charAt(i);
-                if (c == '\n') {
-                	MediaFile mediaFile = MusicUtils.XMLToMediaFile(file);
-                	mediaFiles.add(mediaFile);
-                    plen++;
-                    file = "";
-                } else {
-                	file = file + c;
-                }
-            }
-            mPlayListLen = plen;
-
-            int pos = mPreferences.getInt("curpos", 0);
-            //if (pos < 0 || pos >= mPlayListLen) {
-                // The saved playlist is bogus, discard it
-                //mPlayListLen = 0;
-                //return;
-            //}
-            mPlayPos = pos;
-
-            // Make sure we don't auto-skip to the next song, since that
-            // also starts playback. What could happen in that case is:
-            // - music is paused
-            // - go to UMS and delete some files, including the currently playing one
-            // - come back from UMS
-            // (time passes)
-            // - music app is killed for some reason (out of memory)
-            // - music service is restarted, service restores state, doesn't find
-            //   the "current" file, goes to the next and: playback starts on its
-            //   own, potentially at some random inconvenient time.
-            //mOpenFailedCounter = 20;
-            //mQuietMode = true;
-            //openCurrent();
-            //mQuietMode = false;
-            //if (!mPlayer.isInitialized()) {
-                // couldn't restore the saved state
-            //    mPlayListLen = 0;
-            //    return;
-            //}
-            
-            long seekpos = mPreferences.getLong("seekpos", 0);
-            seek(seekpos >= 0 && seekpos < duration() ? seekpos : 0);
-            Log.d(TAG, "restored queue, currently at position "
-                    + position() + "/" + duration()
-                    + " (requested " + seekpos + ")");
-            
-            int repmode = mPreferences.getInt("repeatmode", REPEAT_NONE);
-            if (repmode != REPEAT_ALL && repmode != REPEAT_CURRENT) {
-                repmode = REPEAT_NONE;
-            }
-            mRepeatMode = repmode;
-
-            mPlayList = new long[mPlayListLen];
-            mPlayListFiles = new MediaFile[mPlayListLen];
-            
-            for (int i = 0; i < mPlayListLen; i++) {
-            	mPlayList[i] = i;
-			    mPlayListFiles[i] = mediaFiles.get(i);
-            }
-            
-            mFileToPlay = mPlayListFiles[mPlayPos].getURL();
-            
-            //int shufmode = mPreferences.getInt("shufflemode", SHUFFLE_NONE);
-            //if (shufmode != SHUFFLE_AUTO && shufmode != SHUFFLE_NORMAL) {
-            //    shufmode = SHUFFLE_NONE;
-            //}
-            //if (shufmode != SHUFFLE_NONE) {
-                // in shuffle mode we need to restore the history too
-            //    q = mPreferences.getString("history", "");
-            //    qlen = q != null ? q.length() : 0;
-            //    if (qlen > 1) {
-            //        plen = 0;
-            //        n = 0;
-            //        shift = 0;
-            //        mHistory.clear();
-            //        for (int i = 0; i < qlen; i++) {
-            //            char c = q.charAt(i);
-            //            if (c == ';') {
-            //                if (n >= mPlayListLen) {
-            //                    // bogus history data
-            //                    mHistory.clear();
-            //                    break;
-            //                }
-            //                mHistory.add(n);
-            //                n = 0;
-            //                shift = 0;
-            //            } else {
-            //                if (c >= '0' && c <= '9') {
-            //                    n += ((c - '0') << shift);
-            //                } else if (c >= 'a' && c <= 'f') {
-            //                    n += ((10 + c - 'a') << shift);
-            //                } else {
-            //                    // bogus history data
-            //                    mHistory.clear();
-            //                    break;
-            //                }
-            //                shift += 4;
-            //            }
-            //        }
-            //    }
-            //}
-            //if (shufmode == SHUFFLE_AUTO) {
-            //    if (! makeAutoShuffleList()) {
-            //        shufmode = SHUFFLE_NONE;
-            //    }
-            //}
-            //mShuffleMode = shufmode;
-        }
-    }
+//    private void reloadQueue() {
+//    	ArrayList<MediaFile> mediaFiles = new ArrayList<MediaFile>();
+//    	
+//        String q = null;
+//        
+//        int id = mCardId;
+//        if (mPreferences.contains("cardid")) {
+//            id = mPreferences.getInt("cardid", ~mCardId);
+//        }
+//        if (id == mCardId) {
+//            // Only restore the saved playlist if the card is still
+//            // the same one as when the playlist was saved
+//            q = mPreferences.getString("queue", "");
+//        }
+//        int qlen = q != null ? q.length() : 0;
+//        if (qlen > 1) {
+//            //Log.i("@@@@ service", "loaded queue: " + q);
+//            int plen = 0;
+//            String file = "";
+//            for (int i = 0; i < qlen; i++) {
+//                char c = q.charAt(i);
+//                if (c == '\n') {
+//                	MediaFile mediaFile = MusicUtils.XMLToMediaFile(file);
+//                	mediaFiles.add(mediaFile);
+//                    plen++;
+//                    file = "";
+//                } else {
+//                	file = file + c;
+//                }
+//            }
+//            mPlayListLen = plen;
+//
+//            int pos = mPreferences.getInt("curpos", 0);
+//            //if (pos < 0 || pos >= mPlayListLen) {
+//                // The saved playlist is bogus, discard it
+//                //mPlayListLen = 0;
+//                //return;
+//            //}
+//            mPlayPos = pos;
+//
+//            // Make sure we don't auto-skip to the next song, since that
+//            // also starts playback. What could happen in that case is:
+//            // - music is paused
+//            // - go to UMS and delete some files, including the currently playing one
+//            // - come back from UMS
+//            // (time passes)
+//            // - music app is killed for some reason (out of memory)
+//            // - music service is restarted, service restores state, doesn't find
+//            //   the "current" file, goes to the next and: playback starts on its
+//            //   own, potentially at some random inconvenient time.
+//            //mOpenFailedCounter = 20;
+//            //mQuietMode = true;
+//            //openCurrent();
+//            //mQuietMode = false;
+//            //if (!mPlayer.isInitialized()) {
+//                // couldn't restore the saved state
+//            //    mPlayListLen = 0;
+//            //    return;
+//            //}
+//            
+//            long seekpos = mPreferences.getLong("seekpos", 0);
+//            seek(seekpos >= 0 && seekpos < duration() ? seekpos : 0);
+//            Log.d(TAG, "restored queue, currently at position "
+//                    + position() + "/" + duration()
+//                    + " (requested " + seekpos + ")");
+//            
+//            int repmode = mPreferences.getInt("repeatmode", REPEAT_NONE);
+//            if (repmode != REPEAT_ALL && repmode != REPEAT_CURRENT) {
+//                repmode = REPEAT_NONE;
+//            }
+//            mRepeatMode = repmode;
+//
+//            mPlayList = new long[mPlayListLen];
+//            mPlayListFiles = new MediaFile[mPlayListLen];
+//            
+//            for (int i = 0; i < mPlayListLen; i++) {
+//            	mPlayList[i] = i;
+//			    mPlayListFiles[i] = mediaFiles.get(i);
+//            }
+//            
+//            mFileToPlay = mPlayListFiles[mPlayPos].getURL();
+//            
+//            //int shufmode = mPreferences.getInt("shufflemode", SHUFFLE_NONE);
+//            //if (shufmode != SHUFFLE_AUTO && shufmode != SHUFFLE_NORMAL) {
+//            //    shufmode = SHUFFLE_NONE;
+//            //}
+//            //if (shufmode != SHUFFLE_NONE) {
+//                // in shuffle mode we need to restore the history too
+//            //    q = mPreferences.getString("history", "");
+//            //    qlen = q != null ? q.length() : 0;
+//            //    if (qlen > 1) {
+//            //        plen = 0;
+//            //        n = 0;
+//            //        shift = 0;
+//            //        mHistory.clear();
+//            //        for (int i = 0; i < qlen; i++) {
+//            //            char c = q.charAt(i);
+//            //            if (c == ';') {
+//            //                if (n >= mPlayListLen) {
+//            //                    // bogus history data
+//            //                    mHistory.clear();
+//            //                    break;
+//            //                }
+//            //                mHistory.add(n);
+//            //                n = 0;
+//            //                shift = 0;
+//            //            } else {
+//            //                if (c >= '0' && c <= '9') {
+//            //                    n += ((c - '0') << shift);
+//            //                } else if (c >= 'a' && c <= 'f') {
+//            //                    n += ((10 + c - 'a') << shift);
+//            //                } else {
+//            //                    // bogus history data
+//            //                    mHistory.clear();
+//            //                    break;
+//            //                }
+//            //                shift += 4;
+//            //            }
+//            //        }
+//            //    }
+//            //}
+//            //if (shufmode == SHUFFLE_AUTO) {
+//            //    if (! makeAutoShuffleList()) {
+//            //        shufmode = SHUFFLE_NONE;
+//            //    }
+//            //}
+//            //mShuffleMode = shufmode;
+//        }
+//    }
     
     private boolean loadQueue(String filename) {
         Log.v(TAG, "Loading Queue");        
@@ -530,21 +507,18 @@ public class MediaService extends Service {
 		// Make sure we stay running to maintain the bridges
 		startService(new Intent(this, MediaService.class));
     	
-        //mDelayedStopHandler.removeCallbacksAndMessages(null);
         mServiceInUse = true;
         return mBinder;
     }
 
     @Override
     public void onRebind(Intent intent) {
-        //mDelayedStopHandler.removeCallbacksAndMessages(null);
         mServiceInUse = true;
     }
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         mServiceStartId = startId;
-        //mDelayedStopHandler.removeCallbacksAndMessages(null);
 
         if (intent != null) {
             String action = intent.getAction();
@@ -564,11 +538,6 @@ public class MediaService extends Service {
             }
         }
         
-        // make sure the service will shut down on its own if it was
-        // just started but not bound to and nothing is playing
-        //mDelayedStopHandler.removeCallbacksAndMessages(null);
-        //Message msg = mDelayedStopHandler.obtainMessage();
-        //mDelayedStopHandler.sendMessageDelayed(msg, IDLE_DELAY);
         return START_STICKY;
     }
     
@@ -578,28 +547,6 @@ public class MediaService extends Service {
 		Log.v(TAG, "onUnbind called");
     	
         mServiceInUse = false;
-
-        // save the current playlist
-        //saveQueue(true);
-        
-        /*if (isPlaying()) {
-            // something is currently playing, or will be playing once 
-            // an in-progress action requesting audio focus ends, so don't stop the service now.
-            return true;
-        }*/
-        
-        // If there is a playlist but playback is paused, then wait a while
-        // before stopping the service, so that pause/resume isn't slow.
-        // Also delay stopping the service if we're transitioning between tracks.
-        //if (mPlayListLen > 0  || mMediaplayerHandler.hasMessages(TRACK_ENDED)) {
-        /*if (mMediaplayerHandler.hasMessages(TRACK_ENDED)) {
-            Message msg = mDelayedStopHandler.obtainMessage();
-            mDelayedStopHandler.sendMessageDelayed(msg, IDLE_DELAY);
-            return true;
-        }*/
-        
-        // No active playlist, OK to stop the service right now
-        //stopSelf(mServiceStartId);
 		
 		if (!isPlaying() || playingVideo()) {
 			stopSelf(mServiceStartId);
@@ -609,27 +556,12 @@ public class MediaService extends Service {
 		
         return true;
     }
-    
-    /*private Handler mDelayedStopHandler = new Handler() {
-        @Override
-        public void handleMessage(Message msg) {
-        	Log.v(TAG, "mDelayedStopHandler called");
-            // Check again to make sure nothing is playing right now
-            if (isPlaying() || mServiceInUse
-                    || mMediaplayerHandler.hasMessages(TRACK_ENDED)) {
-                return;
-            }
-            // save the queue again, because it might have changed
-            // since the user exited the music app (because of
-            // party-shuffle or because the play-position changed)
-            stopSelf(mServiceStartId);
-        }
-    };*/
 
     private Handler mSleepTimerHandler = new Handler() {
     	@Override
     	public void handleMessage(Message msg) {
     		Log.v(TAG, "mSleepTimerHandler called");
+    		pause();
     		notifyChange(CLOSE_PLAYER);
     	}
     };
@@ -756,7 +688,7 @@ public class MediaService extends Service {
         mFileToPlay = null;
 
         if (remove_status_icon) {
-            //gotoIdleState();
+
         } else {
             stopForeground(false);
         }
@@ -781,7 +713,6 @@ public class MediaService extends Service {
         synchronized(this) {
             if (isPlaying()) {
                 mPlayer.pause();
-                //gotoIdleState();
                 mIsSupposedToBePlaying = false;
                 notifyChange(PLAYSTATE_CHANGED);
                 ConnectionNotifier.getInstance().hideRunningNotification(this);
@@ -895,11 +826,6 @@ public class MediaService extends Service {
                     } else {
                         // all done
                     	notifyChange(CLOSE_PLAYER);
-                        //gotoIdleState();
-                        /*if (mIsSupposedToBePlaying) {
-                            mIsSupposedToBePlaying = false;
-                            notifyChange(PLAYSTATE_CHANGED);
-                        }*/
                         return;
                     }
                 }
@@ -919,9 +845,7 @@ public class MediaService extends Service {
                     // we're at the end of the list
                     if (mRepeatMode == REPEAT_NONE && !force) {
                         // all done
-                        //gotoIdleState();
                         mIsSupposedToBePlaying = false;
-                        //notifyChange(PLAYSTATE_CHANGED);
                         notifyChange(CLOSE_PLAYER);
                         return;
                     } else if (mRepeatMode == REPEAT_ALL || force) {
@@ -936,13 +860,6 @@ public class MediaService extends Service {
             openCurrent();
         }
     }
-    
-    /*private void gotoIdleState() {
-        mDelayedStopHandler.removeCallbacksAndMessages(null);
-        Message msg = mDelayedStopHandler.obtainMessage();
-        mDelayedStopHandler.sendMessageDelayed(msg, IDLE_DELAY);
-        stopForeground(true);
-    }*/
 
     // A simple variation of Random that makes sure that the
     // value it returns is not equal to the value it returned
