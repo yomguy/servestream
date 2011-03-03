@@ -915,10 +915,11 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
             }
             
             mTrackNumber.setText(mMediaService.getTrackNumber());
-            mTrackName.setText(mMediaService.getTrackName());
             
-            if (mTrackName == null) {
+            if (mMediaService.getTrackName() == null) {
             	mTrackName.setText(mMediaService.getMediaURL());
+            } else {
+                mTrackName.setText(mMediaService.getTrackName());
             }
     		
             mDuration = mMediaService.duration();
