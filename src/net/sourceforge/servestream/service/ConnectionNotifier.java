@@ -102,13 +102,11 @@ public abstract class ConnectionNotifier {
 
 		@Override
 		public void showRunningNotification(Service context) {
-			context.setForeground(true);
 			getNotificationManager(context).notify(ONLINE_NOTIFICATION, newRunningNotification(context));
 		}
 
 		@Override
 		public void hideRunningNotification(Service context) {
-			context.setForeground(false);
 			getNotificationManager(context).cancel(ONLINE_NOTIFICATION);
 		}
 	}
