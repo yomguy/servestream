@@ -29,11 +29,16 @@
 		android:defaultValue="Daily"
 		/>
 
-	<!--
 	<PreferenceCategory
-		android:title="@string/pref_playback_category">
+		android:title="@string/pref_general_settings_category">
+
+		<CheckBoxPreference
+			android:key="autosave"
+			android:title="@string/pref_autosave_title"
+			android:summary="@string/pref_autosave_summary"
+			android:defaultValue="true"
+			/>
 
 	</PreferenceCategory>
-	-->
 
 </PreferenceScreen>

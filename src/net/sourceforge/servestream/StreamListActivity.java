@@ -40,6 +40,7 @@ import java.util.ArrayList;
 import net.sourceforge.servestream.R;
 import net.sourceforge.servestream.dbutils.Stream;
 import net.sourceforge.servestream.dbutils.StreamDatabase;
+import net.sourceforge.servestream.utils.PreferenceConstants;
 import net.sourceforge.servestream.utils.URLUtils;
 import net.sourceforge.servestream.utils.UpdateHelper;
 
@@ -48,9 +49,11 @@ import android.app.ListActivity;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.preference.PreferenceManager;
 import android.util.Log;
 
 import android.view.ContextMenu;
@@ -82,6 +85,9 @@ public class StreamListActivity extends ListActivity {
 	
 	protected StreamDatabase streamdb = null;
 	protected LayoutInflater inflater = null;
+	
+	private SharedPreferences mPreferences = null;
+	
 	protected boolean m_makingShortcut = false;
 	
 	protected Handler updateHandler = new Handler() {
@@ -99,6 +105,9 @@ public class StreamListActivity extends ListActivity {
 		this.setTitle(String.format("%s: %s",
 				getResources().getText(R.string.app_name),
 				getResources().getText(R.string.title_stream_list)));
+		
+		// check for eula agreement
+		mPreferences = PreferenceManager.getDefaultSharedPreferences(this);
 		
 		quickconnect = (TextView) this.findViewById(R.id.front_quickconnect);
 		quickconnect.setVisibility(m_makingShortcut ? View.GONE : View.VISIBLE);
@@ -262,7 +271,9 @@ public class StreamListActivity extends ListActivity {
 		} else {
 			intent.setData(stream.getUri());
 			this.startActivity(intent);
-			saveStream();
+			
+			if (mPreferences.getBoolean(PreferenceConstants.AUTOSAVE, true))
+			    saveStream();
 		}	
 	}
 	
