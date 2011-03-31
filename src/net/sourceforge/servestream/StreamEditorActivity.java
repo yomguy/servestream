@@ -149,7 +149,6 @@ public class StreamEditorActivity extends PreferenceActivity implements OnShared
 				
 			}
 
-			@Override
 			public android.content.SharedPreferences.Editor putStringSet(
 					String arg0, Set<String> arg1) {
 				// TODO Auto-generated method stub
@@ -201,7 +200,6 @@ public class StreamEditorActivity extends PreferenceActivity implements OnShared
 			listeners.remove(listener);
 		}
 
-		@Override
 		public Set<String> getStringSet(String arg0, Set<String> arg1) {
 			// TODO Auto-generated method stub
 			return null;
