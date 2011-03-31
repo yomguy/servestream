@@ -21,6 +21,7 @@ import android.media.MediaPlayer;
 import android.os.Handler;
 import android.os.Parcel;
 import android.os.Parcelable;
+import android.os.PowerManager.WakeLock;
 import android.util.Log;
 import android.view.SurfaceHolder;
 
@@ -39,6 +40,7 @@ public class MultiPlayer implements Parcelable {
 	private MediaPlayer mMediaPlayer = new MediaPlayer();
     private Handler mHandler;
     private boolean mIsInitialized = false;
+    private WakeLock mWakeLock = null;
 
     public MultiPlayer() {
         
@@ -112,7 +114,14 @@ public class MultiPlayer implements Parcelable {
             
         	Log.v(TAG, "onCompletionListener called");
         	
+            // Acquire a temporary wakelock, since when we return from
+            // this callback the MediaPlayer will release its wakelock
+            // and allow the device to go to sleep.
+            // This temporary wakelock is released when the RELEASE_WAKELOCK
+            // message is processed, but just in case, put a timeout on it.
+            mWakeLock.acquire(30000);
             mHandler.sendEmptyMessage(MediaService.TRACK_ENDED);
+            mHandler.sendEmptyMessage(MediaService.RELEASE_WAKELOCK);
         }
     };
 
@@ -158,6 +167,10 @@ public class MultiPlayer implements Parcelable {
     	mMediaPlayer.setDisplay(holder);
     }
 
+    public void setWakeLock(WakeLock wakeLock) {
+    	mWakeLock = wakeLock;
+    }
+    
 	public int describeContents() {
 		
 		return 0;
