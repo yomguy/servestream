@@ -41,6 +41,8 @@ import android.content.BroadcastReceiver;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
+import android.os.PowerManager;
+import android.os.PowerManager.WakeLock;
 import android.telephony.PhoneStateListener;
 import android.telephony.TelephonyManager;
 import android.util.Log;
@@ -127,6 +129,7 @@ public class MediaService extends Service {
     private int mPlayPos = -1;
     private final Shuffler mRand = new Shuffler();
     private int mOpenFailedCounter = 0;
+    private WakeLock mWakeLock;
     private int mServiceStartId = -1;
     private boolean mServiceInUse = false;
     private boolean mIsSupposedToBePlaying = false;
@@ -159,6 +162,9 @@ public class MediaService extends Service {
                     } else {
                         next(false);
                     }
+                    break;
+                case RELEASE_WAKELOCK:
+                    mWakeLock.release();
                     break;
                 case PLAYER_PREPARED:
                     Intent i = new Intent(STOP_DIALOG);
@@ -224,6 +230,11 @@ public class MediaService extends Service {
         mPlayer = new MultiPlayer();
         mPlayer.setHandler(mMediaplayerHandler);
         
+        PowerManager pm = (PowerManager)getSystemService(Context.POWER_SERVICE);
+        mWakeLock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, this.getClass().getName());
+        mWakeLock.setReferenceCounted(false);
+        mPlayer.setWakeLock(mWakeLock);
+        
         IntentFilter commandFilter = new IntentFilter();
         commandFilter.addAction(SERVICECMD);
         commandFilter.addAction(TOGGLEPAUSE_ACTION);
@@ -263,6 +274,7 @@ public class MediaService extends Service {
         // Cancel the persistent notification.
 		ConnectionNotifier.getInstance().hideRunningNotification(this);
         
+		mWakeLock.release();
         super.onDestroy();
     }
 
