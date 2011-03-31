@@ -50,6 +50,8 @@ public class PreferenceConstants {
 	public static final String UPDATE_WEEKLY = "Weekly";
 	public static final String UPDATE_NEVER = "Never";
 
+	public static final String AUTOSAVE = "autosave";
+	
 	public static final String LAST_CHECKED = "lastchecked";
 
 	public static final String ROTATION = "rotation";
