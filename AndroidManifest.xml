@@ -5,7 +5,7 @@
 	android:versionCode="36"
 	android:installLocation="auto">
 
-	<uses-sdk android:targetSdkVersion="10" android:minSdkVersion="8" />
+	<uses-sdk android:targetSdkVersion="11" android:minSdkVersion="8" />
 
 	<application
 		android:icon="@drawable/icon"
