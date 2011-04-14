@@ -115,6 +115,9 @@
     <!-- Title of the media player -->
     <string name="nowplaying_title">Now playing</string>
 
+	<!-- The dialog message when opening a URL -->
+	<string name="opening_url_message">Opening URL...</string>
+
     <!-- Shown as a transient message whenever a file fails to play -->
     <string name="playback_failed">Sorry, the player does not support this type of media file.</string>
 
