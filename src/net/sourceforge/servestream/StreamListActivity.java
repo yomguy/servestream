@@ -46,10 +46,12 @@ import net.sourceforge.servestream.utils.UpdateHelper;
 
 import android.app.AlertDialog;
 import android.app.ListActivity;
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -76,6 +78,10 @@ import android.widget.AdapterView.OnItemClickListener;
 public class StreamListActivity extends ListActivity {
 	public final static String TAG = "ServeStream.StreamListActivity";
 	
+	
+	private final static int START_ACTIVITY = 2;
+	private final static int ERROR_MESSAGE = 3;
+	
 	public final static int REQUEST_EDIT = 1;
 	
 	private TextView quickconnect = null;
@@ -89,6 +95,17 @@ public class StreamListActivity extends ListActivity {
 	private SharedPreferences mPreferences = null;
 	
 	protected boolean m_makingShortcut = false;
+	
+	protected Handler mHandler = new Handler() {
+		@Override
+		public void handleMessage(Message msg) {
+			if (msg.what == START_ACTIVITY) {
+				beginActivity((Intent)msg.obj);
+			} else if (msg.what == ERROR_MESSAGE) {
+				showURLNotFoundMessage();
+			}
+		}
+	};
 	
 	protected Handler updateHandler = new Handler() {
 		@Override
@@ -132,7 +149,10 @@ public class StreamListActivity extends ListActivity {
 				hideKeyboard();
 				
 				requestedStream = (Stream) parent.getAdapter().getItem(position);
-				handleStream(requestedStream);
+				StreamListAsyncTask streamListAsyncTask = new StreamListAsyncTask();
+				streamListAsyncTask.setHandler(mHandler);
+				streamListAsyncTask.execute(requestedStream);
+
 			}
 		});
 
@@ -146,8 +166,9 @@ public class StreamListActivity extends ListActivity {
 				hideKeyboard();
 				
 			    if (isValidStream()) {
-			    	handleStream(requestedStream);
-			    	//saveStream();
+					StreamListAsyncTask streamListAsyncTask = new StreamListAsyncTask();
+					streamListAsyncTask.setHandler(mHandler);
+					streamListAsyncTask.execute(requestedStream);
 			    }
 			}
 		});
@@ -244,37 +265,12 @@ public class StreamListActivity extends ListActivity {
 
 		this.setListAdapter(adapter);
 	}
-
-	public void handleStream(Stream stream) {
+	
+	private void beginActivity(Intent intent) {
+		this.startActivity(intent);
 		
-		Intent intent = null;
-		int contentTypeCode = -1;
-		
-		try {
-			contentTypeCode = URLUtils.getContentTypeCode(stream.getURL());
-			Log.v(TAG, "STREAM is: " + stream.getURL());
-		} catch (Exception ex) {
-			ex.printStackTrace();
-			showURLNotFoundMessage();
-			return;
-		}
-		
-		if (contentTypeCode == URLUtils.DIRECTORY) {
-			intent = new Intent(StreamListActivity.this, StreamBrowseActivity.class);
-		} else if (contentTypeCode == URLUtils.MEDIA_FILE) {
-			intent = new Intent(StreamListActivity.this, StreamMediaActivity.class);			
-		}
-		
-		if (intent == null) {
-			showURLNotFoundMessage();
-			return;
-		} else {
-			intent.setData(stream.getUri());
-			this.startActivity(intent);
-			
-			if (mPreferences.getBoolean(PreferenceConstants.AUTOSAVE, true))
-			    saveStream();
-		}	
+		if (mPreferences.getBoolean(PreferenceConstants.AUTOSAVE, true))
+		    saveStream();
 	}
 	
 	class StreamAdapter extends ArrayAdapter<Stream> {
@@ -391,4 +387,80 @@ public class StreamListActivity extends ListActivity {
 			}
 			}).create().show();	
 	}
+
+	public class StreamListAsyncTask extends AsyncTask<Stream, Void, Intent> {
+
+		ProgressDialog mDialog;
+		Handler mHandler;
+		
+	    public StreamListAsyncTask() {
+	        super();
+	    }
+
+	    @Override
+	    protected void onPreExecute() {
+	    	mDialog = new ProgressDialog(StreamListActivity.this);
+	        mDialog.setMessage(getString(R.string.opening_url_message));
+	        mDialog.setIndeterminate(true);
+	        mDialog.setCancelable(true);
+	        mDialog.show();
+	    }
+	    
+		@Override
+		protected Intent doInBackground(Stream... stream) {
+		    return handleStream(stream[0]);
+		}
+
+		@Override
+		protected void onPostExecute(Intent result) {
+			mDialog.dismiss();
+			
+			if (result != null) {
+				Message msg = Message.obtain();
+				msg.what = START_ACTIVITY;
+				msg.obj = result;
+				mHandler.sendMessage(msg);
+			} else {
+				Message msg = Message.obtain();
+				msg.what = ERROR_MESSAGE;
+				mHandler.sendMessage(msg);
+			}
+		}
+
+		public Intent handleStream(Stream stream) {
+			
+			Intent intent = null;
+			int contentTypeCode = -1;
+			
+			try {
+				contentTypeCode = URLUtils.getContentTypeCode(stream.getURL());
+				Log.v(TAG, "STREAM is: " + stream.getURL());
+			} catch (Exception ex) {
+				ex.printStackTrace();
+				//showURLNotFoundMessage();
+				return null;
+			}
+			
+			if (contentTypeCode == URLUtils.DIRECTORY) {
+				intent = new Intent(StreamListActivity.this, StreamBrowseActivity.class);
+			} else if (contentTypeCode == URLUtils.MEDIA_FILE) {
+				intent = new Intent(StreamListActivity.this, StreamMediaActivity.class);			
+			}
+			
+			if (intent == null) {
+				//showURLNotFoundMessage();
+				return null;
+			} else {
+				intent.setData(stream.getUri());
+			}
+			
+			return intent;
+		}
+		
+		public void setHandler(Handler mHandler) {
+			this.mHandler = mHandler;
+		}
+		
+	}
+
 }
