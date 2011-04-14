@@ -957,7 +957,8 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
 	private void dismissDialog() {
 		mHandler.post(new Runnable() {
 			public void run() {
-				mDialog.dismiss();
+				if (mDialog != null)
+				    mDialog.dismiss();
 			}
 		});
 	}
