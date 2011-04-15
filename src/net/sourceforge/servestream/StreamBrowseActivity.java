@@ -105,6 +105,7 @@ public class StreamBrowseActivity extends ListActivity {
 		this.streamdb = new StreamDatabase(this);
 		
 		ListView list = this.getListView();
+		list.setFastScrollEnabled(true);
 		uiLoadingThread.setListView(this.getListView());
 
 		list.setOnItemClickListener(new OnItemClickListener() {
