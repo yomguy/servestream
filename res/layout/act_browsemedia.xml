@@ -51,10 +51,17 @@
            		  
 	</RelativeLayout>
 
+    <View android:id="@+id/divider"
+    	  android:layout_width="fill_parent"
+    	  android:layout_height="1dip"
+    	  android:background="@drawable/appwidget_divider"
+    	  android:layout_above="@+id/home_tab"
+    	  /> 
+
 	<RelativeLayout
 		android:layout_width="fill_parent"
 		android:layout_height="wrap_content"
-		android:layout_above="@+id/home_tab"
+		android:layout_above="@+id/divider"
 		>
 
 		<ListView
