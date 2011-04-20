@@ -18,7 +18,9 @@
 		<meta-data android:name="com.google.android.backup.api_key"
     		android:value="AEdPqrEAAAAIWcqt9c_ET5W0EpBB9ZCQGbBhfrOetXL6t6Cdwg" />
 
-		<activity android:name=".StreamListActivity" >
+		<activity android:name=".StreamListActivity"
+		    android:launchMode="singleTop" >
+		    
 			<intent-filter>
 				<action android:name="android.intent.action.MAIN" />
 				<category android:name="android.intent.category.LAUNCHER" />
