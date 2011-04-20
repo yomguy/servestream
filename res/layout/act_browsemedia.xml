@@ -25,18 +25,52 @@
 	android:layout_height="fill_parent"
 	>
 
-	<ListView
-		android:id="@android:id/list"
-		android:layout_width="fill_parent"
-		android:layout_height="fill_parent"
-		/>
+	<RelativeLayout
+		android:id="@+id/home_tab"
+	    android:layout_width="fill_parent"
+		android:layout_height="wrap_content"
+		android:layout_alignParentBottom="true"
+		>
+		
+		<Button android:id="@+id/home_button"
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content"
+				android:layout_centerHorizontal="true"
+				android:layout_alignParentTop="true"
+				android:background="@drawable/ic_tab_home"
+				/>
+		
+        <TextView
+                  android:layout_width="wrap_content" 
+                  android:layout_height="wrap_content"
+                  android:textAppearance="?android:attr/textAppearanceSmall"
+                  android:text="Home"
+		          android:layout_centerHorizontal="true"
+		       	  android:layout_below="@+id/home_button"
+           		  />
+           		  
+	</RelativeLayout>
 
-	<TextView
-		android:id="@android:id/empty"
+	<RelativeLayout
 		android:layout_width="fill_parent"
-		android:layout_height="fill_parent"
-		android:textAppearance="?android:attr/textAppearanceMedium"
-		android:gravity="center"
-		/>
+		android:layout_height="wrap_content"
+		android:layout_above="@+id/home_tab"
+		>
+
+		<ListView
+			android:id="@android:id/list"
+			android:layout_width="fill_parent"
+			android:layout_height="fill_parent"
+			android:layout_alignParentTop="true"
+			/>
+
+		<TextView
+			android:id="@android:id/empty"
+			android:layout_width="fill_parent"
+			android:layout_height="fill_parent"
+			android:textAppearance="?android:attr/textAppearanceMedium"
+			android:gravity="center"
+			/>
+	</RelativeLayout>
 
 </RelativeLayout>
