@@ -56,8 +56,10 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.MenuItem.OnMenuItemClickListener;
+import android.view.View.OnClickListener;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
@@ -74,6 +76,7 @@ public class StreamBrowseActivity extends ListActivity {
     
 	protected StreamDatabase streamdb = null;
 	protected LayoutInflater inflater = null;
+	private Button mHomeButton = null;
 
     private final Handler handler = new Handler();
     private final UILoadingHelperClass uiLoadingThread = new UILoadingHelperClass();
@@ -115,6 +118,14 @@ public class StreamBrowseActivity extends ListActivity {
 		});
 		
 		this.registerForContextMenu(list);
+		
+		mHomeButton = (Button) this.findViewById(R.id.home_button);
+		mHomeButton.setOnClickListener(new OnClickListener() {
+
+			public void onClick(View arg0) {
+				returnHome();
+			}
+		});
 		
 		this.inflater = LayoutInflater.from(this);
     }
@@ -252,6 +263,10 @@ public class StreamBrowseActivity extends ListActivity {
 			cannotOpenURLMessage();
 			return;
 		}
+	}
+	
+	private void returnHome() {
+		this.startActivity(new Intent(StreamBrowseActivity.this, StreamListActivity.class));
 	}
 	
 	class StreamAdapter extends ArrayAdapter<Stream> {
