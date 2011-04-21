@@ -209,6 +209,21 @@ public class MediaService extends Service {
         }
     };
 
+    private BroadcastReceiver mDockReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            String action = intent.getAction();
+            String cmd = intent.getStringExtra("command");
+            Log.v(TAG, "mDockReceiver.onReceive " + action + " / " + cmd);
+        	if(intent.getExtras().containsKey(Intent.EXTRA_DOCK_STATE)){
+                int dockState = intent.getExtras().getInt(Intent.EXTRA_DOCK_STATE, 1);
+                if(dockState == Intent.EXTRA_DOCK_STATE_UNDOCKED){
+                    pause();
+                }
+            }
+        }
+    };
+    
     /**
      * Default constructor
      */
@@ -242,6 +257,9 @@ public class MediaService extends Service {
         commandFilter.addAction(NEXT_ACTION);
         registerReceiver(mIntentReceiver, commandFilter);
 
+        //commandFilter = new IntentFilter();
+        //commandFilter.addAction(Intent.ACTION_DOCK_EVENT);
+        //registerReceiver(mDockReceiver,commandFilter);
     }
 
     @Override
