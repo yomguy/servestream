@@ -34,6 +34,7 @@
 package net.sourceforge.servestream;
 
 import java.io.UnsupportedEncodingException;
+import java.net.HttpURLConnection;
 import java.net.URLDecoder;
 import java.util.ArrayList;
 
@@ -76,8 +77,7 @@ import android.widget.TextView;
 import android.widget.AdapterView.OnItemClickListener;
 
 public class StreamListActivity extends ListActivity {
-	public final static String TAG = "ServeStream.StreamListActivity";
-	
+	public final static String TAG = "ServeStream.StreamListActivity";	
 	
 	private final static int START_ACTIVITY = 2;
 	private final static int ERROR_MESSAGE = 3;
@@ -149,9 +149,9 @@ public class StreamListActivity extends ListActivity {
 				hideKeyboard();
 				
 				requestedStream = (Stream) parent.getAdapter().getItem(position);
-				StreamListAsyncTask streamListAsyncTask = new StreamListAsyncTask();
-				streamListAsyncTask.setHandler(mHandler);
-				streamListAsyncTask.execute(requestedStream);
+				DetermineIntentAsyncTask determineIntentAsyncTask = new DetermineIntentAsyncTask();
+				determineIntentAsyncTask.setHandler(mHandler);
+				determineIntentAsyncTask.execute(requestedStream);
 
 			}
 		});
@@ -166,9 +166,9 @@ public class StreamListActivity extends ListActivity {
 				hideKeyboard();
 				
 			    if (isValidStream()) {
-					StreamListAsyncTask streamListAsyncTask = new StreamListAsyncTask();
-					streamListAsyncTask.setHandler(mHandler);
-					streamListAsyncTask.execute(requestedStream);
+					DetermineIntentAsyncTask determineIntentAsyncTask = new DetermineIntentAsyncTask();
+					determineIntentAsyncTask.setHandler(mHandler);
+					determineIntentAsyncTask.execute(requestedStream);
 			    }
 			}
 		});
@@ -388,12 +388,12 @@ public class StreamListActivity extends ListActivity {
 			}).create().show();	
 	}
 
-	public class StreamListAsyncTask extends AsyncTask<Stream, Void, Intent> {
+	public class DetermineIntentAsyncTask extends AsyncTask<Stream, Void, Intent> {
 
 		ProgressDialog mDialog;
 		Handler mHandler;
 		
-	    public StreamListAsyncTask() {
+	    public DetermineIntentAsyncTask() {
 	        super();
 	    }
 
@@ -430,10 +430,11 @@ public class StreamListActivity extends ListActivity {
 		public Intent handleStream(Stream stream) {
 			
 			Intent intent = null;
-			int contentTypeCode = -1;
+			String contentTypeCode = null;
+			URLUtils urlUtils = null;
 			
 			try {
-				contentTypeCode = URLUtils.getContentTypeCode(stream.getURL());
+				urlUtils = new URLUtils(stream.getURL());
 				Log.v(TAG, "STREAM is: " + stream.getURL());
 			} catch (Exception ex) {
 				ex.printStackTrace();
@@ -441,11 +442,16 @@ public class StreamListActivity extends ListActivity {
 				return null;
 			}
 			
-			if (contentTypeCode == URLUtils.DIRECTORY) {
-				intent = new Intent(StreamListActivity.this, StreamBrowseActivity.class);
-			} else if (contentTypeCode == URLUtils.MEDIA_FILE) {
-				intent = new Intent(StreamListActivity.this, StreamMediaActivity.class);			
-			}
+			if (urlUtils.getResponseCode() == HttpURLConnection.HTTP_OK) {
+			
+				contentTypeCode = urlUtils.getContentType();
+				
+				if (contentTypeCode.equalsIgnoreCase("text/html")) {
+					intent = new Intent(StreamListActivity.this, StreamBrowseActivity.class);
+				} else { //if (contentTypeCode == URLUtils.MEDIA_FILE) {
+					intent = new Intent(StreamListActivity.this, StreamMediaActivity.class);			
+				}
+		    }
 			
 			if (intent == null) {
 				//showURLNotFoundMessage();
