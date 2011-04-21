@@ -54,6 +54,9 @@
 		<activity android:name=".StreamMediaActivity" android:configChanges="keyboardHidden|orientation"
 			android:launchMode="singleTop"
 			android:theme="@android:style/Theme.NoTitleBar">
+			<intent-filter>
+				<!--action android:name="android.intent.action.DOCK_EVENT" /-->
+			</intent-filter>
 		</activity>
 
         <receiver android:name=".widget.ServeStreamAppWidgetOneProvider">
