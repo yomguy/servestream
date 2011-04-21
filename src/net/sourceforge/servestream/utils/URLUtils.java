@@ -26,31 +26,27 @@ import javax.net.ssl.HttpsURLConnection;
 
 public class URLUtils {
 	
-	public final static int DIRECTORY = 100;
-	public final static int MEDIA_FILE = 200;
 	public final static int NOT_FOUND = -1;
 	
-	private final static String MIME_HTML = "text/html";
+	private int mResponseCode = -1;
+	private String mContentType = "";
+	private boolean mContentFound = false;
 	
 	/*
 	 * Default constructor
 	 */
-    public URLUtils() {
-    	
+    public URLUtils(URL url) {
+    	getURLInformation(url);
     }
 	
-	public static int getContentTypeCode(URL url) {
+	private void getURLInformation(URL url) {
 		
-		boolean contentFound = false;
-		int contentTypeCode = NOT_FOUND;
 	    HttpURLConnection conn = null;
 		
 		try {
 			
 			if (url == null)
-				return contentTypeCode;
-
-		    String contentType = null;
+				return;
 			
         	if (url.getProtocol().equals("http")) {
         		conn = (HttpURLConnection) url.openConnection();
@@ -59,23 +55,16 @@ public class URLUtils {
         	}
 			
         	if (conn == null)
-        		return NOT_FOUND;
+        		return;
         	
     		conn.setConnectTimeout(6000);
     		conn.setReadTimeout(6000);
 	        conn.setRequestMethod("GET");
+	        
+	        mResponseCode = conn.getResponseCode();
 	    
-	        if ((contentType = conn.getContentType()) != null)
-	        	contentFound = true;
-            
-            if (contentFound) {
-            	//TODO fix this
-            	if (contentType.contains(MIME_HTML)) {
-        			contentTypeCode = DIRECTORY;
-                } else {
-        			contentTypeCode = MEDIA_FILE;
-                }
-            }
+	        if ((mContentType = conn.getContentType()) != null)
+	        	mContentFound = true;
             
 		} catch (IOException ex) {
 			ex.printStackTrace();
@@ -85,43 +74,6 @@ public class URLUtils {
 			closeHttpConnection(conn);
 		}
 		
-		return contentTypeCode;
-	}
-	
-	public static String getContentType(URL url) {
-		
-		String contentType = null;
-	    HttpURLConnection conn = null;
-		
-		try {
-			
-			if (url == null)
-				return contentType;
-			
-        	if (url.getProtocol().equals("http")) {
-        		conn = (HttpURLConnection) url.openConnection();
-        	} else if (url.getProtocol().equals("https")) {
-        		conn = (HttpsURLConnection) url.openConnection();        		
-        	}
-			
-        	if (conn == null)
-        		return contentType;
-        	
-    		conn.setConnectTimeout(6000);
-    		conn.setReadTimeout(6000);
-	        conn.setRequestMethod("GET");
-	    
-	        contentType = conn.getContentType();
-            
-		} catch (IOException ex) {
-			ex.printStackTrace();
-		} catch (IllegalArgumentException ex) {
-		    ex.printStackTrace();
-		} finally {
-			closeHttpConnection(conn);
-		}
-		
-		return contentType;
 	}
 	
 	public static String getContentType(String path) {
@@ -223,4 +175,22 @@ public class URLUtils {
     	
     	conn.disconnect();
     }
+    
+    /**
+     * Returns the response code from the URL
+     * 
+     * @return int The response code from the URL
+     */
+	public int getResponseCode() {
+	    return mResponseCode;
+	}
+
+    /**
+     * Returns the content type from the URL
+     * 
+     * @return String The content type from the URL
+     */
+	public String getContentType() {
+		return mContentType;
+	}
 }
