@@ -39,8 +39,6 @@ import org.jsoup.select.Elements;
 import android.util.Log;
 
 public class StreamParser {
-
-	private final String UP_ONE_DIRECTORY = "..";
 	
 	URL m_targetURL = null;
 	URL m_indexURL = null;
@@ -82,17 +80,6 @@ public class StreamParser {
 		    
 		    while ((line = reader.readLine()) != null) {
                 html = html + line;
-            }
-            
-		    // add ".." to the list if we came from a directory
-            if (!(m_targetURL.getPath().equals("/") || m_targetURL.getPath().equals(""))) {
-		        String directoryUpOneLevel = new File(m_targetURL.getPath().toString()).getParent();
-		        
-		        Stream stream = new Stream(m_indexURL + directoryUpOneLevel);
-		        stream.setContentType("text");
-		        stream.setNickname(UP_ONE_DIRECTORY);
-		        parsedURLs.add(linkCount, stream);
-		        linkCount++;
             }
             
 		    Document doc = Jsoup.parse(html);
