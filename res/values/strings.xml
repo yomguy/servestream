@@ -106,6 +106,9 @@
  	<!-- Frequency for which to check for program updates. -->
  	<string name="list_update_never">Never</string>
 
+	<!-- The dialog message when loading a URL -->
+	<string name="loading_message">Loading. Please wait...</string>
+
     <!-- Toast to let people know how to hide media controls -->
     <string name="media_controls_notif">Tap screen to hide media controls</string>
 
