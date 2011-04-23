@@ -87,7 +87,7 @@ public class StreamListActivity extends ListActivity {
 	private Stream mRequestedStream = null;
 	
 	protected StreamDatabase mStreamdb = null;
-	protected LayoutInflater inflater = null;
+	protected LayoutInflater mInflater = null;
 	
 	private SharedPreferences mPreferences = null;
 	
@@ -153,7 +153,7 @@ public class StreamListActivity extends ListActivity {
 			}
 		});
 		
-		this.inflater = LayoutInflater.from(this);
+		this.mInflater = LayoutInflater.from(this);
 	}
 	
 	@Override
@@ -266,7 +266,7 @@ public class StreamListActivity extends ListActivity {
 			ViewHolder holder;
 
 			if (convertView == null) {
-				convertView = inflater.inflate(R.layout.item_stream, null, false);
+				convertView = mInflater.inflate(R.layout.item_stream, null, false);
 
 				holder = new ViewHolder();
 

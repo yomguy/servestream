@@ -33,8 +33,10 @@
 
 package net.sourceforge.servestream;
 
+import java.io.File;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.ArrayList;
 
 import net.sourceforge.servestream.dbutils.Stream;
@@ -50,10 +52,9 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Message;
 import android.util.Log;
 import android.view.ContextMenu;
+import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -71,29 +72,14 @@ import android.widget.AdapterView.OnItemClickListener;
 
 public class StreamBrowseActivity extends ListActivity {
 	public final static String TAG = "ServeStream.StreamBrowseActivity";
-	
-	private final static int START_ACTIVITY = 2;
-	private final static int ERROR_MESSAGE = 3;
-	
-	ArrayList<Stream> mStreamURLs = new ArrayList<Stream>();
-	Stream requestedStreamURL = null;
     
-    ArrayAdapter<String> adapter = null;
+    private Stream mBaseURL = null;
+	private Stream mCurrentURL = null;
+	private ArrayList <Stream> mCurrentListing = new ArrayList<Stream>();	
     
-	protected StreamDatabase streamdb = null;
-	protected LayoutInflater inflater = null;
+	protected StreamDatabase mStreamdb = null;
+	protected LayoutInflater mInflater = null;
 	private Button mHomeButton = null;
-
-	protected Handler mHandler = new Handler() {
-		@Override
-		public void handleMessage(Message msg) {
-			if (msg.what == START_ACTIVITY) {
-				beginActivity((Intent)msg.obj);
-			} else if (msg.what == ERROR_MESSAGE) {
-				cannotOpenURLMessage();
-			}
-		}
-	};
 	
     @Override
     public void onCreate(Bundle icicle) {
@@ -106,25 +92,25 @@ public class StreamBrowseActivity extends ListActivity {
 				getResources().getText(R.string.title_stream_browse)));        
 		
 		try {
-			Log.v(TAG, getIntent().getData().toString());			
-			requestedStreamURL = new Stream(getIntent().getData().toString());
+			Log.v(TAG, getIntent().getData().toString());
+			mBaseURL = new Stream(getIntent().getData().toString());
+			mCurrentURL = mBaseURL;
 		} catch (Exception ex) {
 			ex.printStackTrace();
 		}
 	    	
-		HTMLParseAsyncTask htmlParseAsyncTask = new HTMLParseAsyncTask();
-		htmlParseAsyncTask.execute(requestedStreamURL);
+		new HTMLParseAsyncTask().execute(mCurrentURL);
 		
-		this.streamdb = new StreamDatabase(this);
+		// connect with streams database
+		this.mStreamdb = new StreamDatabase(this);
 		
 		ListView list = this.getListView();
 		list.setFastScrollEnabled(true);
 
 		list.setOnItemClickListener(new OnItemClickListener() {
 			public synchronized void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-				DetermineIntentAsyncTask determineIntentAsyncTask = new DetermineIntentAsyncTask();
-				determineIntentAsyncTask.setHandler(mHandler);
-				determineIntentAsyncTask.execute(mStreamURLs.get(position));
+				mCurrentURL = mCurrentListing.get(position);
+				new DetermineIntentAsyncTask().execute(mCurrentURL);
 			}
 		});
 		
@@ -134,11 +120,11 @@ public class StreamBrowseActivity extends ListActivity {
 		mHomeButton.setOnClickListener(new OnClickListener() {
 
 			public void onClick(View arg0) {
-				returnHome();
+				StreamBrowseActivity.this.startActivity(new Intent(StreamBrowseActivity.this, StreamListActivity.class));
 			}
 		});
 		
-		this.inflater = LayoutInflater.from(this);
+		this.mInflater = LayoutInflater.from(this);
     }
     
 	@Override
@@ -147,16 +133,16 @@ public class StreamBrowseActivity extends ListActivity {
 		
 		// connect to the stream database if we don't
 		// already have a connection
-		if(this.streamdb == null)
-			this.streamdb = new StreamDatabase(this);
+		if(this.mStreamdb == null)
+			this.mStreamdb = new StreamDatabase(this);
 		
 		// if the current URL exists in the stream database
 		// update its timestamp
 		try {
-		    Stream stream = streamdb.findStream(requestedStreamURL);
+		    Stream stream = mStreamdb.findStream(mCurrentURL);
 		
 		    if (stream != null) {
-			    streamdb.touchHost(stream);
+			    mStreamdb.touchHost(stream);
 		    }
 		}
 		catch (Exception ex) {
@@ -169,9 +155,9 @@ public class StreamBrowseActivity extends ListActivity {
 		super.onStop();
 		
 		// close the connection to the database
-		if(this.streamdb != null) {
-			this.streamdb.close();
-			this.streamdb = null;
+		if(this.mStreamdb != null) {
+			this.mStreamdb.close();
+			this.mStreamdb = null;
 		}
 	}
 	
@@ -243,18 +229,36 @@ public class StreamBrowseActivity extends ListActivity {
 		}
 	}
 	
-	private void setStreamURLs(ArrayList<Stream> streamURLs) {
-		mStreamURLs = streamURLs;
+	@Override
+	public boolean onKeyDown(int keyCode, KeyEvent event) {
+	    
+	    if (keyCode == KeyEvent.KEYCODE_BACK) {
+			if (mCurrentURL.equals(mBaseURL)) {
+				finish();
+			} else {
+				try {
+				    String parentDirectory = getHost(mCurrentURL.getURL()) + new File(mCurrentURL.getPath().toString()).getParent();
+					mCurrentURL = new Stream(parentDirectory);
+					new HTMLParseAsyncTask().execute(mCurrentURL);
+				} catch (MalformedURLException ex) {
+					ex.printStackTrace();
+				}
+			}
+	        return true;
+	    }
+	    
+	    return super.onKeyDown(keyCode, event);
 	}
-	
-	private void beginActivity(Intent intent) {
-		this.startActivity(intent);
-	}
-	
-	private void returnHome() {
-		this.startActivity(new Intent(StreamBrowseActivity.this, StreamListActivity.class));
-	}
-	
+
+    /**
+     * 
+     */
+    private String getHost(URL targetURL) throws MalformedURLException {
+    	return targetURL.getProtocol() + 
+    			"://" + targetURL.getHost() + 
+    			":" + String.valueOf(targetURL.getPort());
+    }
+    
 	class StreamAdapter extends ArrayAdapter<Stream> {
 		
 		private ArrayList<Stream> streams;
@@ -276,7 +280,7 @@ public class StreamBrowseActivity extends ListActivity {
 			ViewHolder holder;
 
 			if (convertView == null) {
-				convertView = inflater.inflate(R.layout.item_browsestream, null, false);
+				convertView = mInflater.inflate(R.layout.item_browsestream, null, false);
 
 				holder = new ViewHolder();
 
@@ -320,10 +324,10 @@ public class StreamBrowseActivity extends ListActivity {
 	 * @param targetStream The stream URL to add to the database
 	 */
 	private void saveStream(Stream targetStream) {
-		Stream stream = streamdb.findStream(targetStream);
+		Stream stream = mStreamdb.findStream(targetStream);
 		
 		if (stream == null) {
-			streamdb.saveStream(targetStream);
+			mStreamdb.saveStream(targetStream);
 		}
 	}
     
@@ -338,8 +342,7 @@ public class StreamBrowseActivity extends ListActivity {
     
     public class HTMLParseAsyncTask extends AsyncTask<Stream, Void, StreamAdapter> {
 
-		ProgressDialog mDialog;
-		StreamAdapter adapter;
+		private ProgressDialog mDialog;
 		
 	    public HTMLParseAsyncTask() {
 	        super();
@@ -348,7 +351,7 @@ public class StreamBrowseActivity extends ListActivity {
 	    @Override
 	    protected void onPreExecute() {
 	    	mDialog = new ProgressDialog(StreamBrowseActivity.this);
-	        mDialog.setMessage("Loading. Please wait...");
+	    	mDialog.setMessage(getString(R.string.loading_message));
 	        mDialog.setIndeterminate(true);
 	        mDialog.setCancelable(true);
 	        mDialog.show();
@@ -361,11 +364,11 @@ public class StreamBrowseActivity extends ListActivity {
 			try {
 				streamParser = new StreamParser(stream[0].getURL());
 				streamParser.getListing();
+				StreamBrowseActivity.this.mCurrentListing = streamParser.getParsedURLs();
 			} catch (MalformedURLException ex) {
 				ex.printStackTrace();
 			}
 			
-			setStreamURLs(streamParser.getParsedURLs());
 	        return new StreamAdapter(StreamBrowseActivity.this, streamParser.getParsedURLs());
 		}
 
@@ -379,8 +382,8 @@ public class StreamBrowseActivity extends ListActivity {
     
     public class DetermineIntentAsyncTask extends AsyncTask<Stream, Void, Intent> {
 
-		ProgressDialog mDialog;
-		Handler mHandler;
+		private ProgressDialog mDialog;
+		private ArrayList<Stream> streams;
 		
 	    public DetermineIntentAsyncTask() {
 	        super();
@@ -389,7 +392,7 @@ public class StreamBrowseActivity extends ListActivity {
 	    @Override
 	    protected void onPreExecute() {
 	    	mDialog = new ProgressDialog(StreamBrowseActivity.this);
-	        mDialog.setMessage(getString(R.string.opening_url_message));
+	        mDialog.setMessage(getString(R.string.loading_message));
 	        mDialog.setIndeterminate(true);
 	        mDialog.setCancelable(true);
 	        mDialog.show();
@@ -402,18 +405,17 @@ public class StreamBrowseActivity extends ListActivity {
 
 		@Override
 		protected void onPostExecute(Intent result) {
-			if (result != null) {
-				Message msg = Message.obtain();
-				msg.what = START_ACTIVITY;
-				msg.obj = result;
-				mHandler.sendMessage(msg);
-			} else {
-				Message msg = Message.obtain();
-				msg.what = ERROR_MESSAGE;
-				mHandler.sendMessage(msg);
-			}
-			
 			mDialog.dismiss();
+			
+			if (result != null) {
+				StreamBrowseActivity.this.startActivity(result);
+			} else {
+				if (streams == null) {
+				    StreamBrowseActivity.this.cannotOpenURLMessage();
+				} else {
+					setListAdapter(new StreamAdapter(StreamBrowseActivity.this, streams));
+				}
+			}
 		}
 
 		public Intent handleStream(Stream stream) {
@@ -427,34 +429,33 @@ public class StreamBrowseActivity extends ListActivity {
 				Log.v(TAG, "STREAM is: " + stream.getURL());
 			} catch (Exception ex) {
 				ex.printStackTrace();
-				//showURLNotFoundMessage();
 				return null;
 			}
 			
-			if (urlUtils.getResponseCode() == HttpURLConnection.HTTP_OK) {
-			
+			if (urlUtils.getResponseCode() == HttpURLConnection.HTTP_OK) {			
 				contentTypeCode = urlUtils.getContentType();
 				
 				if (contentTypeCode.equalsIgnoreCase("text/html")) {
-					intent = new Intent(StreamBrowseActivity.this, StreamBrowseActivity.class);
-				} else { //if (contentTypeCode == URLUtils.MEDIA_FILE) {
+					StreamParser streamParser = null;
+				    
+					try {
+					    streamParser = new StreamParser(stream.getURL());
+					    streamParser.getListing();
+					    StreamBrowseActivity.this.mCurrentListing = streamParser.getParsedURLs();
+					    streams = streamParser.getParsedURLs();
+				    } catch (MalformedURLException ex) {
+					    ex.printStackTrace();
+				    }
+				} else {
 					intent = new Intent(StreamBrowseActivity.this, StreamMediaActivity.class);			
 				}
 		    }
 			
-			if (intent == null) {
-				//showURLNotFoundMessage();
-				return null;
-			} else {
+			if (intent != null) {
 				intent.setData(stream.getUri());
 			}
 			
 			return intent;
 		}
-		
-		public void setHandler(Handler mHandler) {
-			this.mHandler = mHandler;
-		}
-			
 	}
 }
