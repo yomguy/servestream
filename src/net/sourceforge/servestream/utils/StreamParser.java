@@ -41,6 +41,7 @@ public class StreamParser {
 	
 	URL m_targetURL = null;
 	URL m_indexURL = null;
+	String mPath = null;
 	ArrayList<Stream> parsedURLs = null;
     
 	/**
@@ -50,6 +51,9 @@ public class StreamParser {
 		m_targetURL = url;
 		m_indexURL = getHost(m_targetURL);
 
+		mPath = m_targetURL.getPath();
+		Log.v("POOP ", mPath);
+		
 		parsedURLs = new ArrayList<Stream>();
 	}
     
@@ -91,10 +95,14 @@ public class StreamParser {
 		    		
 		    		String link = links.get(i).attr("href");
 		    		int pathLength = link.length();
-		    		if (pathLength >= 1 && !link.substring(0, 1).equals("/"))
-		    			link = "/" + link;
+		    		if (pathLength >= 1 && !link.substring(0, 1).equals("/")) {
+		    			if (mPath.length() >= 1 && !mPath.substring(mPath.length() - 1).equals("/")) {
+		    			    link = mPath + "/" + link;
+		    			} else {	
+		    			    link = mPath + link;
+		    			}
+		    		}
 		    		
-			        //stream = new Stream(URLDecoder.decode(m_indexURL + links.get(i).attr("href"), "UTF-8"));
 			        stream = new Stream(URLDecoder.decode(m_indexURL + link, "UTF-8"));
 			    	stream.setNickname(links.get(i).text());
 		    	
