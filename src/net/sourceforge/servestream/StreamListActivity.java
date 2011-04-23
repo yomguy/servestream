@@ -134,7 +134,7 @@ public class StreamListActivity extends ListActivity {
 				hideKeyboard();
 				
 				mRequestedStream = (Stream) parent.getAdapter().getItem(position);
-				handleStream(mRequestedStream);
+				new DetermineIntentAsyncTask().execute(mRequestedStream);
 			}
 		});
 
@@ -148,7 +148,7 @@ public class StreamListActivity extends ListActivity {
 				hideKeyboard();
 				
 			    if (isValidStream()) {
-			    	handleStream(mRequestedStream);
+			    	new DetermineIntentAsyncTask().execute(mRequestedStream);
 			    }
 			}
 		});
@@ -244,10 +244,6 @@ public class StreamListActivity extends ListActivity {
 		StreamAdapter adapter = new StreamAdapter(this, streams);
 
 		this.setListAdapter(adapter);
-	}
-	
-	private void handleStream(Stream stream) {
-		new DetermineIntentAsyncTask(this).execute(mRequestedStream);
 	}
 	
 	class StreamAdapter extends ArrayAdapter<Stream> {
@@ -367,12 +363,10 @@ public class StreamListActivity extends ListActivity {
 
 	public class DetermineIntentAsyncTask extends AsyncTask<Stream, Void, Intent> {
 
-		ProgressDialog mDialog;
-		StreamListActivity streamListActivity;
+		private ProgressDialog mDialog;
 		
-	    public DetermineIntentAsyncTask(StreamListActivity streamListActivity) {
+	    public DetermineIntentAsyncTask() {
 	        super();
-	        this.streamListActivity = streamListActivity;
 	    }
 
 	    @Override
@@ -394,12 +388,12 @@ public class StreamListActivity extends ListActivity {
 			mDialog.dismiss();
 			
 			if (result != null) {
-				streamListActivity.startActivity(result);
+				StreamListActivity.this.startActivity(result);
 				
 				if (mPreferences.getBoolean(PreferenceConstants.AUTOSAVE, true))
 				    saveStream();
 			} else {
-				streamListActivity.showURLNotFoundMessage();
+				StreamListActivity.this.showURLNotFoundMessage();
 			}
 		}
 
@@ -432,8 +426,7 @@ public class StreamListActivity extends ListActivity {
 			}
 			
 			return intent;
-		}
-		
+		}		
 	}
 
 }
