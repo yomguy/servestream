@@ -52,7 +52,6 @@ public class StreamParser {
 		m_indexURL = getHost(m_targetURL);
 
 		mPath = m_targetURL.getPath();
-		Log.v("POOP ", mPath);
 		
 		parsedURLs = new ArrayList<Stream>();
 	}
