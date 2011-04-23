@@ -257,9 +257,9 @@ public class MediaService extends Service {
         commandFilter.addAction(NEXT_ACTION);
         registerReceiver(mIntentReceiver, commandFilter);
 
-        //commandFilter = new IntentFilter();
-        //commandFilter.addAction(Intent.ACTION_DOCK_EVENT);
-        //registerReceiver(mDockReceiver,commandFilter);
+        commandFilter = new IntentFilter();
+        commandFilter.addAction(Intent.ACTION_DOCK_EVENT);
+        registerReceiver(mDockReceiver,commandFilter);
     }
 
     @Override
@@ -726,7 +726,8 @@ public class MediaService extends Service {
             mIsSupposedToBePlaying = false;
         }
         
-        ConnectionNotifier.getInstance().hideRunningNotification(this);
+        if (remove_status_icon)
+            ConnectionNotifier.getInstance().hideRunningNotification(this);
     }
 
     /**
