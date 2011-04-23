@@ -79,33 +79,19 @@ import android.widget.AdapterView.OnItemClickListener;
 public class StreamListActivity extends ListActivity {
 	public final static String TAG = "ServeStream.StreamListActivity";	
 	
-	private final static int START_ACTIVITY = 2;
-	private final static int ERROR_MESSAGE = 3;
-	
 	public final static int REQUEST_EDIT = 1;
 	
-	private TextView quickconnect = null;
-	private Button goButton = null;
+	private TextView mQuickconnect = null;
+	private Button mGoButton = null;
 	
-	private Stream requestedStream = null;
+	private Stream mRequestedStream = null;
 	
-	protected StreamDatabase streamdb = null;
+	protected StreamDatabase mStreamdb = null;
 	protected LayoutInflater inflater = null;
 	
 	private SharedPreferences mPreferences = null;
 	
 	protected boolean m_makingShortcut = false;
-	
-	protected Handler mHandler = new Handler() {
-		@Override
-		public void handleMessage(Message msg) {
-			if (msg.what == START_ACTIVITY) {
-				beginActivity((Intent)msg.obj);
-			} else if (msg.what == ERROR_MESSAGE) {
-				showURLNotFoundMessage();
-			}
-		}
-	};
 	
 	protected Handler updateHandler = new Handler() {
 		@Override
@@ -123,24 +109,23 @@ public class StreamListActivity extends ListActivity {
 				getResources().getText(R.string.app_name),
 				getResources().getText(R.string.title_stream_list)));
 		
-		// check for eula agreement
 		mPreferences = PreferenceManager.getDefaultSharedPreferences(this);
 		
-		quickconnect = (TextView) this.findViewById(R.id.front_quickconnect);
-		quickconnect.setVisibility(m_makingShortcut ? View.GONE : View.VISIBLE);
+		mQuickconnect = (TextView) this.findViewById(R.id.front_quickconnect);
+		mQuickconnect.setVisibility(m_makingShortcut ? View.GONE : View.VISIBLE);
 		
 		try {
 			if (getIntent().getData() != null)
-				quickconnect.setText(URLDecoder.decode(getIntent().getData().toString(), "UTF-8"));
+				mQuickconnect.setText(URLDecoder.decode(getIntent().getData().toString(), "UTF-8"));
 		} catch (UnsupportedEncodingException ex) {
-			quickconnect.setText(getIntent().getData().toString());
+			mQuickconnect.setText(getIntent().getData().toString());
 		}
 		
 		// start thread to check for new version
 		new UpdateHelper(this);
 		
 		// connect with streams database and populate list
-		this.streamdb = new StreamDatabase(this);
+		this.mStreamdb = new StreamDatabase(this);
 		
 		ListView list = this.getListView();
 		list.setOnItemClickListener(new OnItemClickListener() {
@@ -148,27 +133,22 @@ public class StreamListActivity extends ListActivity {
 
 				hideKeyboard();
 				
-				requestedStream = (Stream) parent.getAdapter().getItem(position);
-				DetermineIntentAsyncTask determineIntentAsyncTask = new DetermineIntentAsyncTask();
-				determineIntentAsyncTask.setHandler(mHandler);
-				determineIntentAsyncTask.execute(requestedStream);
-
+				mRequestedStream = (Stream) parent.getAdapter().getItem(position);
+				handleStream(mRequestedStream);
 			}
 		});
 
 		this.registerForContextMenu(list);
 
-		goButton = (Button) this.findViewById(R.id.go_button);
-		goButton.setOnClickListener(new OnClickListener() {
+		mGoButton = (Button) this.findViewById(R.id.go_button);
+		mGoButton.setOnClickListener(new OnClickListener() {
 
 			public void onClick(View arg0) {
 				
 				hideKeyboard();
 				
 			    if (isValidStream()) {
-					DetermineIntentAsyncTask determineIntentAsyncTask = new DetermineIntentAsyncTask();
-					determineIntentAsyncTask.setHandler(mHandler);
-					determineIntentAsyncTask.execute(requestedStream);
+			    	handleStream(mRequestedStream);
 			    }
 			}
 		});
@@ -182,17 +162,17 @@ public class StreamListActivity extends ListActivity {
 		
 		updateList();
 		
-		if(this.streamdb == null)
-			this.streamdb = new StreamDatabase(this);
+		if(this.mStreamdb == null)
+			this.mStreamdb = new StreamDatabase(this);
 	}
 	
 	@Override
 	public void onStop() {
 		super.onStop();
 		
-		if(this.streamdb != null) {
-			this.streamdb.close();
-			this.streamdb = null;
+		if(this.mStreamdb != null) {
+			this.mStreamdb.close();
+			this.mStreamdb = null;
 		}
 	}
 	
@@ -241,7 +221,7 @@ public class StreamListActivity extends ListActivity {
 					.setMessage(getString(R.string.delete_message, stream.getNickname()))
 					.setPositiveButton(R.string.delete_pos, new DialogInterface.OnClickListener() {
 						public void onClick(DialogInterface dialog, int which) {
-							streamdb.deleteStream(stream);
+							mStreamdb.deleteStream(stream);
 							updateHandler.sendEmptyMessage(-1);
 						}
 						})
@@ -256,21 +236,18 @@ public class StreamListActivity extends ListActivity {
 		
 		ArrayList<Stream> streams = new ArrayList<Stream>();
 
-		if (streamdb == null)
-			streamdb = new StreamDatabase(this);   
+		if (mStreamdb == null)
+			mStreamdb = new StreamDatabase(this);   
 
-		streams = streamdb.getStreams();
+		streams = mStreamdb.getStreams();
 
 		StreamAdapter adapter = new StreamAdapter(this, streams);
 
 		this.setListAdapter(adapter);
 	}
 	
-	private void beginActivity(Intent intent) {
-		this.startActivity(intent);
-		
-		if (mPreferences.getBoolean(PreferenceConstants.AUTOSAVE, true))
-		    saveStream();
+	private void handleStream(Stream stream) {
+		new DetermineIntentAsyncTask(this).execute(mRequestedStream);
 	}
 	
 	class StreamAdapter extends ArrayAdapter<Stream> {
@@ -337,10 +314,10 @@ public class StreamListActivity extends ListActivity {
 	
 	private boolean isValidStream() {
 
-		String inputStream = quickconnect.getText().toString();	
+		String inputStream = mQuickconnect.getText().toString();	
 		
 		try {
-			requestedStream = new Stream(inputStream);
+			mRequestedStream = new Stream(inputStream);
 		} catch (Exception ex) {
 			ex.printStackTrace();
 			showInvalidURLMessage();
@@ -354,10 +331,10 @@ public class StreamListActivity extends ListActivity {
 	 * Saves a stream to the stream database
 	 */
 	private void saveStream() {
-		Stream stream = streamdb.findStream(requestedStream);
+		Stream stream = mStreamdb.findStream(mRequestedStream);
 		
 		if (stream == null) {
-			streamdb.saveStream(requestedStream);
+			mStreamdb.saveStream(mRequestedStream);
 		}
 	}
 	
@@ -366,7 +343,7 @@ public class StreamListActivity extends ListActivity {
 	 */
 	private void hideKeyboard() {
 		InputMethodManager inputManager = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
-		View textView = quickconnect;
+		View textView = mQuickconnect;
 		inputManager.hideSoftInputFromWindow(textView.getWindowToken(), 0);
 	}
 	
@@ -391,10 +368,11 @@ public class StreamListActivity extends ListActivity {
 	public class DetermineIntentAsyncTask extends AsyncTask<Stream, Void, Intent> {
 
 		ProgressDialog mDialog;
-		Handler mHandler;
+		StreamListActivity streamListActivity;
 		
-	    public DetermineIntentAsyncTask() {
+	    public DetermineIntentAsyncTask(StreamListActivity streamListActivity) {
 	        super();
+	        this.streamListActivity = streamListActivity;
 	    }
 
 	    @Override
@@ -416,14 +394,12 @@ public class StreamListActivity extends ListActivity {
 			mDialog.dismiss();
 			
 			if (result != null) {
-				Message msg = Message.obtain();
-				msg.what = START_ACTIVITY;
-				msg.obj = result;
-				mHandler.sendMessage(msg);
+				streamListActivity.startActivity(result);
+				
+				if (mPreferences.getBoolean(PreferenceConstants.AUTOSAVE, true))
+				    saveStream();
 			} else {
-				Message msg = Message.obtain();
-				msg.what = ERROR_MESSAGE;
-				mHandler.sendMessage(msg);
+				streamListActivity.showURLNotFoundMessage();
 			}
 		}
 
@@ -438,33 +414,24 @@ public class StreamListActivity extends ListActivity {
 				Log.v(TAG, "STREAM is: " + stream.getURL());
 			} catch (Exception ex) {
 				ex.printStackTrace();
-				//showURLNotFoundMessage();
 				return null;
 			}
 			
-			if (urlUtils.getResponseCode() == HttpURLConnection.HTTP_OK) {
-			
+			if (urlUtils.getResponseCode() == HttpURLConnection.HTTP_OK) {			
 				contentTypeCode = urlUtils.getContentType();
 				
 				if (contentTypeCode.equalsIgnoreCase("text/html")) {
 					intent = new Intent(StreamListActivity.this, StreamBrowseActivity.class);
-				} else { //if (contentTypeCode == URLUtils.MEDIA_FILE) {
+				} else {
 					intent = new Intent(StreamListActivity.this, StreamMediaActivity.class);			
 				}
 		    }
 			
-			if (intent == null) {
-				//showURLNotFoundMessage();
-				return null;
-			} else {
+			if (intent != null) {
 				intent.setData(stream.getUri());
 			}
 			
 			return intent;
-		}
-		
-		public void setHandler(Handler mHandler) {
-			this.mHandler = mHandler;
 		}
 		
 	}
