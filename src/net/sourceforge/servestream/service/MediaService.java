@@ -55,6 +55,7 @@ import java.util.Vector;
 import net.sourceforge.servestream.dbutils.Stream;
 import net.sourceforge.servestream.dbutils.StreamDatabase;
 import net.sourceforge.servestream.player.MultiPlayer;
+import net.sourceforge.servestream.utils.ASXPlaylistParser;
 import net.sourceforge.servestream.utils.M3UPlaylistParser;
 import net.sourceforge.servestream.utils.MediaFile;
 import net.sourceforge.servestream.utils.PLSPlaylistParser;
@@ -495,6 +496,11 @@ public class MediaService extends Service {
 			} else if (isPLSPlaylist(stream.getURL().getPath())) {
 				PLSPlaylistParser playlistParser = new PLSPlaylistParser(stream.getURL());
 				playlistParser.retrievePLSFiles();
+				mPlayListFiles = playlistParser.getPlaylistFiles();
+				mPlayListLen = playlistParser.getNumberOfFiles();
+			} else if (isASXPlaylist(stream.getURL().getPath())) {
+				ASXPlaylistParser playlistParser = new ASXPlaylistParser(stream.getURL());
+				playlistParser.retrieveASXFiles();
 				mPlayListFiles = playlistParser.getPlaylistFiles();
 				mPlayListLen = playlistParser.getNumberOfFiles();
 			} else {
@@ -1274,6 +1280,26 @@ public class MediaService extends Service {
     		return false;
     		
     	if (path.substring(index, path.length()).equalsIgnoreCase(".pls"))
+    	    return true;		
+
+    	return false;
+    }
+
+    private boolean isASXPlaylist(String path) {
+    	int index = 0;
+    	
+    	if (path == null)
+    	    return false;
+    	
+        index = path.lastIndexOf(".");
+    		
+    	if (index == -1)    	
+        	return false;
+    	
+    	if ((path.length() - index) != 4)
+    		return false;
+    		
+    	if (path.substring(index, path.length()).equalsIgnoreCase(".asx"))
     	    return true;		
 
     	return false;
