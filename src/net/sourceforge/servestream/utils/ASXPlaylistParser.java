@@ -42,8 +42,6 @@ public class ASXPlaylistParser {
     private MediaFile [] mPlayListFiles = null;
     private int numberOfFiles = 0;
     
-    private MediaFile mediaFile = null;
-    
 	/**
 	 * Default constructor
 	 */
@@ -84,7 +82,7 @@ public class ASXPlaylistParser {
             }
 		    
 		    parseXML(xml);
-		    
+
 		    mPlayListFiles = new MediaFile[playlistFiles.size()];
 		    
 		    for (int i = 0; i < playlistFiles.size(); i++) {
@@ -128,10 +126,43 @@ public class ASXPlaylistParser {
     
     private void buildPlaylistEntry(List<Element> children) {
     	
+    	MediaFile mediaFile = new MediaFile();
+    	
     	for(int i = 0; i < children.size(); i++) {
+    	    String attributeName = children.get(i).getName();
     		
-    		System.out.println(children.get(i).getAttributeValue("href"));
+    	    if (attributeName.equalsIgnoreCase("ABSTRACT")) {
+    	    } else if (attributeName.equalsIgnoreCase("AUTHOR")) {
+    	    } else if (attributeName.equalsIgnoreCase("BASE")) {
+    	    } else if (attributeName.equalsIgnoreCase("COPYRIGHT")) {
+    	    } else if (attributeName.equalsIgnoreCase("DURATION")) {
+    	    } else if (attributeName.equalsIgnoreCase("ENDMARKER")) {
+    	    } else if (attributeName.equalsIgnoreCase("MOREINFO")) {
+    	    } else if (attributeName.equalsIgnoreCase("PARAM")) {
+    	    } else if (attributeName.equalsIgnoreCase("REF")) {
+    	    	String href = children.get(i).getAttributeValue("href");
+    	    	
+    	    	if (href == null) {
+    	    	    href = children.get(i).getValue();
+    	    	}
+    	    	
+    	    	System.out.println(href);
+    	    	mediaFile.setURL(href);
+    	    } else if (attributeName.equalsIgnoreCase("STARTMARKER")) {
+    	    } else if (attributeName.equalsIgnoreCase("STARTTIME")) {
+    	    } else if (attributeName.equalsIgnoreCase("TITLE")) {
+    	    	String title = children.get(i).getValue();
+    	    	
+    	    	if (title != null) {
+    	    		System.out.println(title);
+    	    		mediaFile.setTitle(title);
+    	    	}
+    	    }
     	}
+    	
+    	numberOfFiles = numberOfFiles + 1;
+    	mediaFile.setTrackNumber(numberOfFiles);
+    	playlistFiles.add(mediaFile);
     }
 	
     public MediaFile [] getPlaylistFiles() {
