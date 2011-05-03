@@ -109,8 +109,8 @@ public class StreamBrowseActivity extends ListActivity {
 
 		list.setOnItemClickListener(new OnItemClickListener() {
 			public synchronized void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-				mCurrentURL = mCurrentListing.get(position);
-				new DetermineIntentAsyncTask().execute(mCurrentURL);
+				//mCurrentURL = mCurrentListing.get(position);
+				new DetermineIntentAsyncTask().execute(mCurrentListing.get(position));
 			}
 		});
 		
@@ -233,11 +233,17 @@ public class StreamBrowseActivity extends ListActivity {
 	public boolean onKeyDown(int keyCode, KeyEvent event) {
 	    
 	    if (keyCode == KeyEvent.KEYCODE_BACK) {
-			if (mCurrentURL.equals(mBaseURL)) {
+	    	String parent = new File(mCurrentURL.getPath().toString()).getParent();
+	    	
+			if (mCurrentURL.equals(mBaseURL) || parent == null) {
 				finish();
 			} else {
 				try {
-				    String parentDirectory = getHost(mCurrentURL.getURL()) + new File(mCurrentURL.getPath().toString()).getParent();
+					String parentDirectory = null;
+					
+				    parentDirectory = getHost(mCurrentURL.getURL()) + parent;
+				    
+				    Log.v("Parent dir", parentDirectory);
 					mCurrentURL = new Stream(parentDirectory);
 					new HTMLParseAsyncTask().execute(mCurrentURL);
 				} catch (MalformedURLException ex) {
@@ -364,12 +370,12 @@ public class StreamBrowseActivity extends ListActivity {
 			try {
 				streamParser = new StreamParser(stream[0].getURL());
 				streamParser.getListing();
-				StreamBrowseActivity.this.mCurrentListing = streamParser.getParsedURLs();
+				StreamBrowseActivity.this.mCurrentListing = streamParser.getParsedLinks();
 			} catch (MalformedURLException ex) {
 				ex.printStackTrace();
 			}
 			
-	        return new StreamAdapter(StreamBrowseActivity.this, streamParser.getParsedURLs());
+	        return new StreamAdapter(StreamBrowseActivity.this, streamParser.getParsedLinks());
 		}
 
 		@Override
@@ -384,6 +390,7 @@ public class StreamBrowseActivity extends ListActivity {
 
 		private ProgressDialog mDialog;
 		private ArrayList<Stream> streams;
+		private Stream mPreviousURL;
 		
 	    public DetermineIntentAsyncTask() {
 	        super();
@@ -400,6 +407,7 @@ public class StreamBrowseActivity extends ListActivity {
 	    
 		@Override
 		protected Intent doInBackground(Stream... stream) {
+			mPreviousURL = stream[0];
 		    return handleStream(stream[0]);
 		}
 
@@ -414,6 +422,7 @@ public class StreamBrowseActivity extends ListActivity {
 				    StreamBrowseActivity.this.cannotOpenURLMessage();
 				} else {
 					setListAdapter(new StreamAdapter(StreamBrowseActivity.this, streams));
+					StreamBrowseActivity.this.mCurrentURL = mPreviousURL;
 				}
 			}
 		}
@@ -441,8 +450,8 @@ public class StreamBrowseActivity extends ListActivity {
 					try {
 					    streamParser = new StreamParser(stream.getURL());
 					    streamParser.getListing();
-					    StreamBrowseActivity.this.mCurrentListing = streamParser.getParsedURLs();
-					    streams = streamParser.getParsedURLs();
+					    StreamBrowseActivity.this.mCurrentListing = streamParser.getParsedLinks();
+					    streams = streamParser.getParsedLinks();
 				    } catch (MalformedURLException ex) {
 					    ex.printStackTrace();
 				    }
