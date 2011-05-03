@@ -414,10 +414,12 @@ public class StreamListActivity extends ListActivity {
 			if (urlUtils.getResponseCode() == HttpURLConnection.HTTP_OK) {			
 				contentTypeCode = urlUtils.getContentType();
 				
-				if (contentTypeCode.equalsIgnoreCase("text/html")) {
-					intent = new Intent(StreamListActivity.this, StreamBrowseActivity.class);
-				} else {
-					intent = new Intent(StreamListActivity.this, StreamMediaActivity.class);			
+				if (contentTypeCode != null) {
+				    if (contentTypeCode.equalsIgnoreCase("text/html")) {
+					    intent = new Intent(StreamListActivity.this, StreamBrowseActivity.class);
+				    } else {
+					    intent = new Intent(StreamListActivity.this, StreamMediaActivity.class);			
+				    }
 				}
 		    }
 			
