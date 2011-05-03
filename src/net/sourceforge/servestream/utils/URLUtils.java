@@ -63,6 +63,9 @@ public class URLUtils {
 	        
 	        mResponseCode = conn.getResponseCode();
 	    
+	        if (mResponseCode == -1)
+	        	mResponseCode = HttpURLConnection.HTTP_OK;
+	        
 	        if ((mContentType = conn.getContentType()) != null)
 	        	mContentFound = true;
             
