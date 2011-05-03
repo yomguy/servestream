@@ -38,38 +38,33 @@ import org.jsoup.select.Elements;
 import android.util.Log;
 
 public class StreamParser {
+	public final static String TAG = "ServeStream.StreamParser";
 	
-	URL m_targetURL = null;
-	URL m_indexURL = null;
-	String mPath = null;
-	ArrayList<Stream> parsedURLs = null;
+	URL mBaseURL = null;
+	ArrayList<Stream> mParsedLinks = null;
     
 	/**
 	 * Default constructor
 	 */
 	public StreamParser(URL url) throws MalformedURLException {
-		m_targetURL = url;
-		m_indexURL = getHost(m_targetURL);
-
-		mPath = m_targetURL.getPath();
-		
-		parsedURLs = new ArrayList<Stream>();
+		mBaseURL = url;
+		mParsedLinks = new ArrayList<Stream>();
 	}
     
     public void getListing() {
     	
         int linkCount = 0;
 		HttpURLConnection conn = null;
-        String html = null;
+        String html = "";
         String line = null;
         BufferedReader reader = null;;
         
         try {
         	
-        	if (m_targetURL.getProtocol().equals("http")) {
-        		conn = (HttpURLConnection) m_targetURL.openConnection();
-        	} else if (m_targetURL.getProtocol().equals("https")) {
-        		conn = (HttpsURLConnection) m_targetURL.openConnection();        		
+        	if (mBaseURL.getProtocol().equals("http")) {
+        		conn = (HttpURLConnection) mBaseURL.openConnection();
+        	} else if (mBaseURL.getProtocol().equals("https")) {
+        		conn = (HttpsURLConnection) mBaseURL.openConnection();        		
         	}
         	
     		conn.setConnectTimeout(6000);
@@ -85,33 +80,25 @@ public class StreamParser {
             }
             
 		    Document doc = Jsoup.parse(html);
-		    Elements links = doc.select("a");
+		    Elements links = doc.select("a[href]");
 
 		    for (int i = 0; i < links.size(); i++) {
 		    	Stream stream = null;
 		    	
 		    	try {
 		    		
-		    		String link = links.get(i).attr("href");
-		    		int pathLength = link.length();
-		    		if (pathLength >= 1 && !link.substring(0, 1).equals("/")) {
-		    			if (mPath.length() >= 1 && !mPath.substring(mPath.length() - 1).equals("/")) {
-		    			    link = mPath + "/" + link;
-		    			} else {	
-		    			    link = mPath + link;
-		    			}
-		    		}
-		    		
-			        stream = new Stream(URLDecoder.decode(m_indexURL + link, "UTF-8"));
-			    	stream.setNickname(links.get(i).text());
-		    	
+		    		links.get(i).setBaseUri(mBaseURL.toString());
+		    		String link = links.get(i).attr("abs:href");
+
+		    		stream = new Stream(URLDecoder.decode(link, "UTF-8"));
+		    		stream.setNickname(links.get(i).text());
 			    	stream.setContentType(URLUtils.getContentType(stream.getPath()));
 		    	
-			    	parsedURLs.add(linkCount, stream);
+			    	mParsedLinks.add(linkCount, stream);
 			        linkCount++;
 		    	} catch (MalformedURLException ex) {
 		    		ex.printStackTrace();
-		    		Log.v("StreamParser", "BAD URL");
+		    		Log.v(TAG, "BAD URL");
 		    	}
 		    }		    
 
@@ -124,20 +111,22 @@ public class StreamParser {
     }
     
     /**
+     * Method to return a specific link from the list of parsed links
      * 
+     * @param index The position of a link object in the list
+     * @return Stream A link from the list of parsed links
      */
-    private URL getHost(URL targetURL) throws MalformedURLException {
-    	return new URL(targetURL.getProtocol() + 
-    			"://" + targetURL.getHost() + 
-    			":" + String.valueOf(targetURL.getPort()));
+    public Stream getParsedLinks(Integer index) {
+    	return mParsedLinks.get(index);
     }
     
-    public Stream getParsedURL(Integer index) {
-    	return parsedURLs.get(index);
-    }
-    
-    public ArrayList<Stream> getParsedURLs() {
-    	return parsedURLs;
+    /**
+     * Method to return a list of parsed links
+     * 
+     * @return ArrayList List of parsed links
+     */
+    public ArrayList<Stream> getParsedLinks() {
+    	return mParsedLinks;
     }
     
 	/**
