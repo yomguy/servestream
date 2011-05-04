@@ -247,7 +247,7 @@ public class MediaService extends Service {
         mPlayer.setHandler(mMediaplayerHandler);
         
         PowerManager pm = (PowerManager)getSystemService(Context.POWER_SERVICE);
-        mWakeLock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, this.getClass().getName());
+        mWakeLock = pm.newWakeLock(PowerManager.SCREEN_BRIGHT_WAKE_LOCK, this.getClass().getName());
         mWakeLock.setReferenceCounted(false);
         mPlayer.setWakeLock(mWakeLock);
         
