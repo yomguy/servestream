@@ -20,7 +20,11 @@ package net.sourceforge.servestream.utils;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 
-public class MediaFile {
+import android.os.Parcel;
+import android.os.Parcelable;
+import android.util.Log;
+
+public class MediaFile implements Parcelable {
 
 	private String url = null;
 	private int trackNumber = -1;
@@ -106,4 +110,26 @@ public class MediaFile {
 		
 		return decodedURL;
     }
+    
+	@Override
+	public int describeContents() {
+		return 0;
+	}
+
+	@Override
+	public void writeToParcel(Parcel dest, int flags) {
+		
+	}
+	
+	public static final Parcelable.Creator<MediaFile> CREATOR = new
+	Parcelable.Creator<MediaFile>() {
+	    public MediaFile createFromParcel(Parcel in) {
+	    	Log.v("ParcelableTest","Creating from parcel");
+	    	return new MediaFile();
+	    }
+
+	    public MediaFile[] newArray(int size) {
+	    	return new MediaFile[size];
+	    }
+	};
 }
