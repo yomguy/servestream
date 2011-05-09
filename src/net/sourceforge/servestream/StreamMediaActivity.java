@@ -346,7 +346,11 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
 		help.setIntent(new Intent(StreamMediaActivity.this, HelpActivity.class));
 
 		MenuItem sleepTimer = menu.add(0, -2, 0, R.string.menu_sleep_timer);
-		sleepTimer.setIcon(android.R.drawable.ic_menu_manage);
+		sleepTimer.setIcon(R.drawable.ic_menu_sleep_timer);
+		
+		MenuItem nowPlaying = menu.add(R.string.title_now_playing);
+		nowPlaying.setIcon(R.drawable.ic_menu_now_playing);
+		nowPlaying.setIntent(new Intent(StreamMediaActivity.this, NowPlayingActivity.class));
 		
 		return true;
     }
