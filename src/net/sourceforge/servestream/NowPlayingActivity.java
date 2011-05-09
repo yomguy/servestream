@@ -45,7 +45,8 @@ public class NowPlayingActivity extends ListActivity {
 	public final static String TAG = "ServeStream.NowPlayingActivity";
 	
     private IMediaService mMediaService = null;
-	
+    private NowPlayingAdapter mAdapter = null;
+    
 	protected LayoutInflater mInflater = null;
 	
     private BroadcastReceiver mStatusListener = new BroadcastReceiver() {
@@ -69,7 +70,7 @@ public class NowPlayingActivity extends ListActivity {
 	        // cast its IBinder to a concrete class and directly access it.
             mMediaService = IMediaService.Stub.asInterface(obj);
             
-        	updateList();
+        	createList();
         }
         public void onServiceDisconnected(ComponentName classname) {
 	        // This is called when the connection with the service has been
@@ -132,7 +133,7 @@ public class NowPlayingActivity extends ListActivity {
         unregisterReceiver(mStatusListener);
 	}
 	
-	protected void updateList() {
+	protected void createList() {
 		
 		MediaFile[] streams = null;
 		
@@ -142,9 +143,14 @@ public class NowPlayingActivity extends ListActivity {
 			e.printStackTrace();
 		}
 
-		NowPlayingAdapter adapter = new NowPlayingAdapter(this, streams);
-
-		this.setListAdapter(adapter);
+		mAdapter = new NowPlayingAdapter(this, streams);
+		
+		this.setListAdapter(mAdapter);
+	}
+	
+	protected void updateList() {
+		
+		mAdapter.notifyDataSetChanged();
 	}
 	
 	class NowPlayingAdapter extends ArrayAdapter<MediaFile> {
