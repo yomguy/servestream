@@ -638,14 +638,14 @@ public class MediaService extends Service {
     /**
      * Returns the current play list
      * 
-     * @return An array of integers containing the IDs of the tracks in the play list
+     * @return An array of MediaFile objects containing the tracks in the play list
      */
-    public long [] getQueue() {
+    public MediaFile [] getQueue() {
         synchronized (this) {
             int len = mPlayListLen;
-            long [] list = new long[len];
+            MediaFile [] list = new MediaFile [len];
             for (int i = 0; i < len; i++) {
-                list[i] = mPlayList[i];
+                list[i] = mPlayListFiles[i];
             }
             return list;
         }
@@ -1138,7 +1138,7 @@ public class MediaService extends Service {
         public String getMediaURL() {
         	return mService.get().getMediaURL();
         }
-        public long [] getQueue() {
+        public MediaFile [] getQueue() {
             return mService.get().getQueue();
         }
         public int getPlayListLength() {

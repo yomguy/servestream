@@ -34,6 +34,7 @@ package net.sourceforge.servestream.service;
 
 import android.graphics.Bitmap;
 import net.sourceforge.servestream.player.MultiPlayer;
+import net.sourceforge.servestream.utils.MediaFile;
 
 interface IMediaService
 {
@@ -52,7 +53,7 @@ interface IMediaService
     long duration();
     long position();
     long seek(long pos);
-    long [] getQueue();
+    MediaFile [] getQueue();
     int getPlayListLength();
     void setQueuePosition(int index);
     String getPath();
