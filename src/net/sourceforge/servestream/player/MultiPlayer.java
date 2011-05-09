@@ -173,26 +173,23 @@ public class MultiPlayer implements Parcelable {
     }
     
 	public int describeContents() {
-		
 		return 0;
 	}
 
 	public void writeToParcel(Parcel dest, int flags) {
-		// TODO Auto-generated method stub
-		
+
 	}
 	
-	  public static final Parcelable.Creator<MultiPlayer> CREATOR = new
-	  Parcelable.Creator<MultiPlayer>() {
-	      public MultiPlayer createFromParcel(Parcel in) {
-	          Log.v("ParcelableTest","Creating from parcel");
-	              return new MultiPlayer();
-	      }
+	public static final Parcelable.Creator<MultiPlayer> CREATOR = new
+	Parcelable.Creator<MultiPlayer>() {
+	    public MultiPlayer createFromParcel(Parcel in) {
+	    	Log.v("ParcelableTest","Creating from parcel");
+	    	return new MultiPlayer();
+	    }
 
-	      public MultiPlayer[] newArray(int size) {
-	              return new MultiPlayer[size];
-	      }
-	  };
-
+	    public MultiPlayer[] newArray(int size) {
+	    	return new MultiPlayer[size];
+	    }
+	};
 	
 }
