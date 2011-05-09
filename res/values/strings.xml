@@ -115,8 +115,8 @@
     <!-- Title of sleep timer menu entry -->
     <string name="menu_sleep_timer">Sleep Timer</string>
 
-    <!-- Title of the media player -->
-    <string name="nowplaying_title">Now playing</string>
+	<!-- Title of the media player -->
+	<string name="nowplaying_title">Now playing</string>
 
 	<!-- The dialog message when opening a URL -->
 	<string name="opening_url_message">Opening URL...</string>
@@ -201,6 +201,9 @@
 
 	<!-- Window title for Help index -->
 	<string name="title_help">Help</string>
+
+	<!-- Window title for Now Playing Activity -->
+	<string name="title_now_playing">Now Playing</string>
 
 	<!-- Window title for main Stream List -->
 	<string name="title_stream_list">Streams</string>
