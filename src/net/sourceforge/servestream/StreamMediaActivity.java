@@ -58,6 +58,7 @@ import android.util.Log;
 import android.view.Display;
 import android.view.KeyEvent;
 import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.SurfaceHolder;
@@ -330,36 +331,22 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
         setIntent(intent);
         
 		Log.d(TAG, "onNewIntent called");
-		
-    }
-
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-		super.onCreateOptionsMenu(menu);
-
-		MenuItem settings = menu.add(R.string.list_menu_settings);
-		settings.setIcon(android.R.drawable.ic_menu_preferences);
-		settings.setIntent(new Intent(StreamMediaActivity.this, SettingsActivity.class));
-
-		MenuItem help = menu.add(R.string.title_help);
-		help.setIcon(android.R.drawable.ic_menu_help);
-		help.setIntent(new Intent(StreamMediaActivity.this, HelpActivity.class));
-
-		MenuItem sleepTimer = menu.add(0, -2, 0, R.string.menu_sleep_timer);
-		sleepTimer.setIcon(R.drawable.ic_menu_sleep_timer);
-		
-		MenuItem nowPlaying = menu.add(R.string.title_now_playing);
-		nowPlaying.setIcon(R.drawable.ic_menu_now_playing);
-		nowPlaying.setIntent(new Intent(StreamMediaActivity.this, NowPlayingActivity.class));
-		
-		return true;
     }
     
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
     	try {
     		switch(item.getItemId()) {
-        		case (-2): {
+    		    case (R.id.menu_item_shuffle):
+    		    	toggleShuffle();
+    		    	break;
+    		    case (R.id.menu_item_repeat):
+    		    	cycleRepeat();
+    		        break;
+        		case (R.id.menu_item_now_playing):
+        			startActivity(new Intent(StreamMediaActivity.this, NowPlayingActivity.class));
+        		    break;
+        		case (R.id.menu_item_sleep_timer): {
         			final String [] sleepTimerModes = getSleepTimerModes();
         			int sleepTimerMode = 0;
 					sleepTimerMode = mMediaService.getSleepTimerMode();
@@ -382,6 +369,12 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
 					}).show();
 					return true;
 				}
+        		case (R.id.menu_item_settings):
+        			startActivity(new Intent(StreamMediaActivity.this, SettingsActivity.class));
+        			break;
+        		case (R.id.menu_item_help):
+        			startActivity(new Intent(StreamMediaActivity.this, HelpActivity.class));
+        			break;
          	}
          	
 		} catch (RemoteException ex) {
@@ -391,6 +384,12 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
 		return false;
     }       
 
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.stream_media_menu, menu);
+        return true;
+    }
     
     @Override
 	public void onConfigurationChanged(Configuration newConfig) {
