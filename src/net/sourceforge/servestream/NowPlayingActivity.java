@@ -30,7 +30,6 @@ import android.content.ServiceConnection;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.os.RemoteException;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -60,6 +59,16 @@ public class NowPlayingActivity extends ListActivity {
         }
     };
 	
+    private BroadcastReceiver mDisconnectListener = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            String action = intent.getAction();
+            if (action.equals(MediaService.CLOSE_PLAYER)) {
+            	finish();
+            }
+        }
+    };
+    
     private ServiceConnection connection = new ServiceConnection() {
         public void onServiceConnected(ComponentName classname, IBinder obj) {
 	        // This is called when the connection with the service has been
@@ -126,6 +135,10 @@ public class NowPlayingActivity extends ListActivity {
         f.addAction(MediaService.PLAYSTATE_CHANGED);
         f.addAction(MediaService.META_CHANGED);
         registerReceiver(mStatusListener, new IntentFilter(f));
+        
+        f = new IntentFilter();
+        f.addAction(MediaService.CLOSE_PLAYER);
+        registerReceiver(mDisconnectListener, new IntentFilter(f));
 	}
 	
 	@Override
@@ -137,6 +150,13 @@ public class NowPlayingActivity extends ListActivity {
         mMediaService = null;
         
         unregisterReceiver(mStatusListener);
+	}
+	
+	@Override
+	public void onDestroy() {
+		super.onDestroy();
+		
+		unregisterReceiver(mDisconnectListener);
 	}
 	
 	protected void createList() {
