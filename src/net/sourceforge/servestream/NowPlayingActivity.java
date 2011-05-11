@@ -45,9 +45,8 @@ public class NowPlayingActivity extends ListActivity {
 	public final static String TAG = "ServeStream.NowPlayingActivity";
 	
     private IMediaService mMediaService = null;
+	private LayoutInflater mInflater = null;
     private NowPlayingAdapter mAdapter = null;
-    
-	protected LayoutInflater mInflater = null;
 	
     private BroadcastReceiver mStatusListener = new BroadcastReceiver() {
         @Override
@@ -56,7 +55,7 @@ public class NowPlayingActivity extends ListActivity {
             if (action.equals(MediaService.META_CHANGED)) {
                 updateList();
             } else if (action.equals(MediaService.PLAYSTATE_CHANGED)) {
-                //setPauseButtonImage();
+            	updateList();
             }
         }
     };
@@ -70,7 +69,11 @@ public class NowPlayingActivity extends ListActivity {
 	        // cast its IBinder to a concrete class and directly access it.
             mMediaService = IMediaService.Stub.asInterface(obj);
             
-        	createList();
+            if (mAdapter == null) {
+            	createList();
+            } else {
+            	updateList();
+            }
         }
         public void onServiceDisconnected(ComponentName classname) {
 	        // This is called when the connection with the service has been
@@ -95,10 +98,13 @@ public class NowPlayingActivity extends ListActivity {
 
 		list.setOnItemClickListener(new OnItemClickListener() {
 			public synchronized void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-				//mCurrentURL = mCurrentListing.get(position);
-				Log.v(TAG, "Pressed");
 				try {
-					mMediaService.setQueuePosition(position);
+					
+					if (mMediaService.getQueuePosition() == position) {
+					    doPauseResume();
+					} else {
+					    mMediaService.setQueuePosition(position);
+					}
 				} catch (RemoteException e) {
 					e.printStackTrace();
 				}
@@ -148,8 +154,20 @@ public class NowPlayingActivity extends ListActivity {
 		this.setListAdapter(mAdapter);
 	}
 	
-	protected void updateList() {
-		
+    private void doPauseResume() {
+        try {
+            if(mMediaService != null) {
+                if (mMediaService.isPlaying()) {
+                    mMediaService.pause();
+                } else {
+                    mMediaService.play();
+                }
+            }
+        } catch (RemoteException ex) {
+        }
+    }
+	
+	private void updateList() {
 		mAdapter.notifyDataSetChanged();
 	}
 	
@@ -191,12 +209,24 @@ public class NowPlayingActivity extends ListActivity {
 			MediaFile stream = streams[position];
 			
 			holder.trackNumber.setText(String.valueOf(stream.getTrackNumber()));
-			holder.trackTitle.setText(String.valueOf(stream.getTitle()));
+			
+			String titleName = stream.getTitle();
+			
+        	if (titleName == null) {
+        		holder.trackTitle.setText(R.string.widget_one_track_info_unavailable);
+        	} else {
+			    holder.trackTitle.setText(String.valueOf(stream.getTitle()));
+        	}
+        	
 			holder.trackURL.setText(String.valueOf(stream.getURL()));
 
 			try {
 				if (mMediaService.getQueuePosition() == position) {
-					holder.icon.setBackgroundResource(R.drawable.volume);
+					if (mMediaService.isPlaying()) {
+					    holder.icon.setBackgroundResource(R.drawable.volume);
+					} else {
+						holder.icon.setBackgroundResource(R.drawable.pause);
+					}
 				} else {
 					holder.icon.setBackgroundResource(R.drawable.none);
 				}
