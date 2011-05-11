@@ -382,7 +382,7 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
 		}
          	
 		return false;
-    }       
+    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
