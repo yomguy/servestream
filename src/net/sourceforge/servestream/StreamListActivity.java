@@ -62,6 +62,7 @@ import android.util.Log;
 import android.view.ContextMenu;
 import android.view.LayoutInflater;
 import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
@@ -177,19 +178,25 @@ public class StreamListActivity extends ListActivity {
 	}
 	
 	@Override
-	public boolean onCreateOptionsMenu(Menu menu) {
-		super.onCreateOptionsMenu(menu);
-		
-		MenuItem settings = menu.add(R.string.list_menu_settings);
-		settings.setIcon(android.R.drawable.ic_menu_preferences);
-		settings.setIntent(new Intent(StreamListActivity.this, SettingsActivity.class));
+    public boolean onOptionsItemSelected(MenuItem item) {
+    	switch(item.getItemId()) {
+        	case (R.id.menu_item_settings):
+        		startActivity(new Intent(StreamListActivity.this, SettingsActivity.class));
+        		break;
+        	case (R.id.menu_item_help):
+        		startActivity(new Intent(StreamListActivity.this, HelpActivity.class));
+        		break;
+    	}
+    	
+		return false;
+    }
 
-		MenuItem help = menu.add(R.string.title_help);
-		help.setIcon(android.R.drawable.ic_menu_help);
-		help.setIntent(new Intent(StreamListActivity.this, HelpActivity.class));
-
-		return true;
-	}
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.stream_list_menu, menu);
+        return true;
+    }
 	
 	@Override
 	public void onCreateContextMenu(ContextMenu menu, View v, ContextMenu.ContextMenuInfo menuInfo) {
