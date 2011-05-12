@@ -26,6 +26,8 @@ import javax.net.ssl.HttpsURLConnection;
 
 public class URLUtils {
 	
+	public final static String USER_AGENT = "ServeStream";
+	
 	public final static int NOT_FOUND = -1;
 	
 	private int mResponseCode = -1;
@@ -57,6 +59,7 @@ public class URLUtils {
         	if (conn == null)
         		return;
         	
+        	conn.setRequestProperty("User-Agent", USER_AGENT);
     		conn.setConnectTimeout(6000);
     		conn.setReadTimeout(6000);
 	        conn.setRequestMethod("GET");

@@ -64,7 +64,8 @@ public class M3UPlaylistParser {
         	} else if (playlistURL.getProtocol().equalsIgnoreCase("https")) {
         		conn = (HttpsURLConnection) playlistURL.openConnection();        		
         	}
-        	
+     
+        	conn.setRequestProperty("User-Agent", URLUtils.USER_AGENT);
 		    conn.setRequestMethod("GET");
 		    
 		    // Start the query

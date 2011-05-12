@@ -67,6 +67,7 @@ public class StreamParser {
         		conn = (HttpsURLConnection) mBaseURL.openConnection();        		
         	}
         	
+        	conn.setRequestProperty("User-Agent", URLUtils.USER_AGENT);
     		conn.setConnectTimeout(6000);
     		conn.setReadTimeout(6000);
 		    conn.setRequestMethod("GET");
