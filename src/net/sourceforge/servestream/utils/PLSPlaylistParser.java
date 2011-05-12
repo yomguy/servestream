@@ -65,6 +65,7 @@ public class PLSPlaylistParser {
         		conn = (HttpsURLConnection) playlistURL.openConnection();        		
         	}
         	
+        	conn.setRequestProperty("User-Agent", URLUtils.USER_AGENT);
 		    conn.setRequestMethod("GET");
 		    
 		    // Start the query
