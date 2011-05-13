@@ -19,6 +19,7 @@
     		android:value="AEdPqrEAAAAIWcqt9c_ET5W0EpBB9ZCQGbBhfrOetXL6t6Cdwg" />
 
 		<activity android:name=".StreamListActivity"
+			android:configChanges="keyboardHidden|orientation"
 		    android:launchMode="singleTop" >
 		    
 			<intent-filter>
