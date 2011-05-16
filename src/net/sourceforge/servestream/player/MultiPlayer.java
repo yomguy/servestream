@@ -40,7 +40,6 @@ public class MultiPlayer implements Parcelable {
 	private MediaPlayer mMediaPlayer = new MediaPlayer();
     private Handler mHandler;
     private boolean mIsInitialized = false;
-    private WakeLock mWakeLock = null;
 
     public MultiPlayer() {
         
@@ -119,8 +118,6 @@ public class MultiPlayer implements Parcelable {
             // and allow the device to go to sleep.
             // This temporary wakelock is released when the RELEASE_WAKELOCK
             // message is processed, but just in case, put a timeout on it.
-            //mWakeLock.acquire(30000);
-            mWakeLock.acquire();
             mHandler.sendEmptyMessage(MediaService.TRACK_ENDED);
             mHandler.sendEmptyMessage(MediaService.RELEASE_WAKELOCK);
         }
@@ -166,10 +163,6 @@ public class MultiPlayer implements Parcelable {
 
     public void setDisplay(SurfaceHolder holder) {
     	mMediaPlayer.setDisplay(holder);
-    }
-
-    public void setWakeLock(WakeLock wakeLock) {
-    	mWakeLock = wakeLock;
     }
     
 	public int describeContents() {
