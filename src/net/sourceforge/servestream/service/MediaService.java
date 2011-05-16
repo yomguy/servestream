@@ -249,7 +249,6 @@ public class MediaService extends Service {
         PowerManager pm = (PowerManager)getSystemService(Context.POWER_SERVICE);
         mWakeLock = pm.newWakeLock(PowerManager.SCREEN_BRIGHT_WAKE_LOCK, this.getClass().getName());
         mWakeLock.setReferenceCounted(false);
-        mPlayer.setWakeLock(mWakeLock);
         
         IntentFilter commandFilter = new IntentFilter();
         commandFilter.addAction(SERVICECMD);
@@ -690,6 +689,8 @@ public class MediaService extends Service {
                 return;
             }
 
+            mWakeLock.acquire();
+            
             Intent i = new Intent(START_DIALOG);
             sendBroadcast(i);
             
