@@ -18,7 +18,9 @@
 package net.sourceforge.servestream.utils;
 
 import java.io.IOException;
+import java.net.Authenticator;
 import java.net.HttpURLConnection;
+import java.net.PasswordAuthentication;
 import java.net.URL;
 import java.util.HashMap;
 
@@ -44,11 +46,25 @@ public class URLUtils {
 	private void getURLInformation(URL url) {
 		
 	    HttpURLConnection conn = null;
-		
+	    
 		try {
 			
 			if (url == null)
 				return;
+			
+		    if (url.getUserInfo() != null) {
+		    	String [] userInfo = url.getUserInfo().split("\\:");
+		    	
+		    	if (userInfo.length == 2) {
+		    		final String username = userInfo[0];
+		    		final String password = userInfo[1];
+		    		Authenticator.setDefault(new Authenticator() {
+		    			protected PasswordAuthentication getPasswordAuthentication() {
+		    				return new PasswordAuthentication(username, password.toCharArray());
+		    			}  
+		    		});
+		    	}
+		    }
 			
         	if (url.getProtocol().equals("http")) {
         		conn = (HttpURLConnection) url.openConnection();
