@@ -111,12 +111,10 @@ public class MediaFile implements Parcelable {
 		return decodedURL;
     }
     
-	@Override
 	public int describeContents() {
 		return 0;
 	}
 
-	@Override
 	public void writeToParcel(Parcel dest, int flags) {
 		
 	}
@@ -132,4 +130,5 @@ public class MediaFile implements Parcelable {
 	    	return new MediaFile[size];
 	    }
 	};
+
 }
