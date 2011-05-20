@@ -21,7 +21,6 @@ import android.media.MediaPlayer;
 import android.os.Handler;
 import android.os.Parcel;
 import android.os.Parcelable;
-import android.os.PowerManager.WakeLock;
 import android.util.Log;
 import android.view.SurfaceHolder;
 
