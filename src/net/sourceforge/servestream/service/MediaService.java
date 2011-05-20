@@ -707,6 +707,9 @@ public class MediaService extends Service {
 
     	if (mPlayer.isInitialized()) {
 
+    		if (!mWakeLock.isHeld())
+    			mWakeLock.acquire();
+    		
             mPlayer.start();
 
             if (!mIsSupposedToBePlaying) {
@@ -750,6 +753,7 @@ public class MediaService extends Service {
     public void pause() {
         synchronized(this) {
             if (isPlaying()) {
+            	mWakeLock.release();
                 mPlayer.pause();
                 mIsSupposedToBePlaying = false;
                 notifyChange(PLAYSTATE_CHANGED);
