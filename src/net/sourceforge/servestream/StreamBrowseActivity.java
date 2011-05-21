@@ -72,7 +72,7 @@ import android.widget.TextView;
 import android.widget.AdapterView.OnItemClickListener;
 
 public class StreamBrowseActivity extends ListActivity {
-	public final static String TAG = "ServeStream.StreamBrowseActivity";
+	public final static String TAG = StreamBrowseActivity.class.getName();
     
     private Stream mBaseURL = null;
 	private Stream mCurrentURL = null;
@@ -164,12 +164,12 @@ public class StreamBrowseActivity extends ListActivity {
 	@Override
     public boolean onOptionsItemSelected(MenuItem item) {
     	switch(item.getItemId()) {
+        	case (R.id.menu_item_refresh):
+        		new HTMLParseAsyncTask().execute(mCurrentURL);
+        		break;
         	case (R.id.menu_item_settings):
         		startActivity(new Intent(StreamBrowseActivity.this, SettingsActivity.class));
-        		break;
-        	case (R.id.menu_item_help):
-        		startActivity(new Intent(StreamBrowseActivity.this, HelpActivity.class));
-        		break;
+    			break;
     	}
     	
 		return false;
@@ -178,7 +178,7 @@ public class StreamBrowseActivity extends ListActivity {
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         MenuInflater inflater = getMenuInflater();
-        inflater.inflate(R.menu.stream_list_menu, menu);
+        inflater.inflate(R.menu.stream_browse_menu, menu);
         return true;
     }
 	
@@ -213,7 +213,7 @@ public class StreamBrowseActivity extends ListActivity {
 				return true;
 			}
 		});
-		
+	
 		// view the URL
 		MenuItem view = menu.add(R.string.list_stream_view);
 		view.setOnMenuItemClickListener(new OnMenuItemClickListener() {
