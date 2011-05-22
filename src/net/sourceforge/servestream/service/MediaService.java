@@ -49,11 +49,13 @@ import android.util.Log;
 
 import java.lang.ref.WeakReference;
 import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.Random;
 import java.util.Vector;
 
 import net.sourceforge.servestream.dbutils.Stream;
 import net.sourceforge.servestream.dbutils.StreamDatabase;
+import net.sourceforge.servestream.metadata.SHOUTcastMetadata;
 import net.sourceforge.servestream.player.MultiPlayer;
 import net.sourceforge.servestream.utils.ASXPlaylistParser;
 import net.sourceforge.servestream.utils.M3UPlaylistParser;
@@ -94,6 +96,7 @@ public class MediaService extends Service {
     
     public static final String PLAYSTATE_CHANGED = "net.sourceforge.servestream.playstatechanged";
     public static final String META_CHANGED = "net.sourceforge.servestream.metachanged";
+    public static final String SHOUTCAST_META_CHANGED = "net.sourceforge.servestream.shoutcastmetachanged";
     public static final String START_DIALOG = "net.sourceforge.servestream.startdialog";
     public static final String STOP_DIALOG = "net.sourceforge.servestream.stopdialog";
     public static final String QUEUE_CHANGED = "net.sourceforge.servestream.queuechanged";
@@ -114,6 +117,8 @@ public class MediaService extends Service {
     public static final int PLAYER_PREPARED = 5;
     public static final int PLAYER_ERROR = 6;
     private static final int MAX_HISTORY_SIZE = 100;
+    
+    private static final int SHOUTCAST_METADATA_REFRESH = 1;
     
     protected StreamDatabase mStreamdb = null;
     
@@ -136,6 +141,7 @@ public class MediaService extends Service {
     private boolean mIsSupposedToBePlaying = false;
     private boolean mQuietMode = false;
     private boolean mPausedDuringPhoneCall = false;
+    private SHOUTcastMetadata mSHOUTcastMetadata = null;
     
     private ServeStreamAppWidgetOneProvider mAppWidgetProvider = ServeStreamAppWidgetOneProvider.getInstance();
     
@@ -185,6 +191,31 @@ public class MediaService extends Service {
         }
     };
 
+    private final Handler mSHOUTcastMetadataHandler = new Handler() {
+        @Override
+        public void handleMessage(Message msg) {
+            switch (msg.what) {
+                case SHOUTCAST_METADATA_REFRESH:
+                	mSHOUTcastMetadata.refreshMetadata();
+                	
+					Log.v(TAG, mSHOUTcastMetadata.getTitle());
+					Log.v(TAG, mSHOUTcastMetadata.getArtist());
+
+		    		MediaFile mediaFile = mPlayListFiles[mPlayPos];
+		    		mediaFile.setTitle(mSHOUTcastMetadata.getArtist() + " - " + mSHOUTcastMetadata.getTitle());
+					
+		    		notifyChange(SHOUTCAST_META_CHANGED);
+		    		
+			        msg = mSHOUTcastMetadataHandler.obtainMessage(SHOUTCAST_METADATA_REFRESH);
+			        mSHOUTcastMetadataHandler.removeMessages(SHOUTCAST_METADATA_REFRESH);
+			        mSHOUTcastMetadataHandler.sendMessageDelayed(msg, 4000);
+                    break;
+                default:
+                    break;
+            }
+        }
+    };
+    
     private BroadcastReceiver mIntentReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
@@ -284,6 +315,7 @@ public class MediaService extends Service {
         // make sure there aren't any other messages coming
         mSleepTimerHandler.removeCallbacksAndMessages(null);
         mMediaplayerHandler.removeCallbacksAndMessages(null);
+        //mSHOUTcastMetadataHandler.removeMessages(SHOUTCAST_METADATA_REFRESH);
 
 		notifyChange(PLAYER_CLOSED);
         
@@ -695,6 +727,15 @@ public class MediaService extends Service {
             sendBroadcast(i);
             
             mFileToPlay = path;
+            
+            /*try {
+				mSHOUTcastMetadata = new SHOUTcastMetadata(new URL(mPlayListFiles[mPlayPos].getURL()));
+	            if (mSHOUTcastMetadata.containsMetadata())
+	                mSHOUTcastMetadataHandler.sendEmptyMessage(SHOUTCAST_METADATA_REFRESH);
+			} catch (MalformedURLException e) {
+				e.printStackTrace();
+			}*/
+            
             Log.v(TAG, "opening" + mPlayListFiles[mPlayPos].getURL().toString());
             mPlayer.setDataSource(mPlayListFiles[mPlayPos].getURL());
         }
