@@ -57,7 +57,7 @@ public class StreamParser {
 		HttpURLConnection conn = null;
         String html = "";
         String line = null;
-        BufferedReader reader = null;;
+        BufferedReader reader = null;
         
         try {
         	
