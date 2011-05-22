@@ -334,6 +334,9 @@ public class StreamListActivity extends ListActivity {
 	 * Saves a stream to the stream database
 	 */
 	private void saveStream() {
+		if (mStreamdb == null)
+			return;
+		
 		Stream stream = mStreamdb.findStream(mRequestedStream);
 		
 		if (stream == null) {
