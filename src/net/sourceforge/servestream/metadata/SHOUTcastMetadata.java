@@ -179,11 +179,11 @@ public class SHOUTcastMetadata {
 		if (streamTitle == null)
 			return;
  
-		String title = streamTitle.substring(0, streamTitle.indexOf("-")).trim();
-		mTitle = title;
-		
-		String artist = streamTitle.substring(streamTitle.indexOf("-") + 1).trim();
+		String artist = streamTitle.substring(0, streamTitle.indexOf("-")).trim();
 		mArtist = artist;
+		
+		String title = streamTitle.substring(streamTitle.indexOf("-") + 1).trim();
+		mTitle = title;
 	}
 	
 	/**
@@ -192,7 +192,7 @@ public class SHOUTcastMetadata {
 	 * @return String
 	 * @throws IOException
 	 */
-	public String getArtist() throws IOException {
+	public String getArtist() {
 		if (mArtist == null)
 			return "Unknown";
 		
@@ -205,7 +205,7 @@ public class SHOUTcastMetadata {
 	 * @return String
 	 * @throws IOException
 	 */
-	public String getTitle() throws IOException {
+	public String getTitle() {
 		if (mTitle == null)
 			return "Unknown";
 		
