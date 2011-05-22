@@ -50,7 +50,7 @@ import android.widget.LinearLayout;
  *
  */
 public class HelpActivity extends Activity {
-	public final static String TAG = "ServeStream.HelpActivity";
+	public final static String TAG = HelpActivity.class.getName();
 
 	public final static String HELPDIR = "help";
 	public final static String SUFFIX = ".html";

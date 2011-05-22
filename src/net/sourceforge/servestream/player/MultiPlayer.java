@@ -34,7 +34,7 @@ import net.sourceforge.servestream.service.MediaService;
  * other media files.
  */
 public class MultiPlayer implements Parcelable {
-	private static final String TAG = "ServeStream.MultiPlayer";
+	private static final String TAG = MultiPlayer.class.getName();
 	
 	private MediaPlayer mMediaPlayer = new MediaPlayer();
     private Handler mHandler;

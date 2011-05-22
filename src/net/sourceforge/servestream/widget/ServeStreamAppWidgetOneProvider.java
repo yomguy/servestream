@@ -51,7 +51,7 @@ import android.widget.RemoteViews;
  * with play/pause and next track buttons.  
  */
 public class ServeStreamAppWidgetOneProvider extends AppWidgetProvider {
-    static final String TAG = "ServeStream.ServeStreamAppWidgetOneProvider";
+    static final String TAG = ServeStreamAppWidgetOneProvider.class.getName();
     
     public static final String CMDAPPWIDGETUPDATE = "appwidgetupdate";
 

@@ -53,7 +53,7 @@ import android.util.Log;
  * @author jsharkey
  */
 public class StreamDatabase extends SQLiteOpenHelper {
-	public final static String TAG = "ServeStream.StreamDatabase";
+	public final static String TAG = StreamDatabase.class.getName();
 
 	public static final Object[] dbLock = new Object[0];
 	

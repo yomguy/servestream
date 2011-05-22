@@ -38,7 +38,7 @@ import org.jsoup.select.Elements;
 import android.util.Log;
 
 public class StreamParser {
-	public final static String TAG = "ServeStream.StreamParser";
+	public final static String TAG = StreamParser.class.getName();
 	
 	URL mBaseURL = null;
 	ArrayList<Stream> mParsedLinks = null;

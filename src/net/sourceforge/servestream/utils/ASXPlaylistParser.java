@@ -35,7 +35,7 @@ import org.jdom.JDOMException;
 import org.jdom.input.SAXBuilder;
 
 public class ASXPlaylistParser {
-	public final static String TAG = "ServeStream.ASXPlaylistParser";
+	public final static String TAG = ASXPlaylistParser.class.getName();
 
 	private URL playlistURL = null;
     private ArrayList<MediaFile> playlistFiles = null;

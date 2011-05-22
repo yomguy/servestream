@@ -79,8 +79,7 @@ import android.util.Log;
  * @author jsharkey
  */
 public final class UpdateHelper implements Runnable {
-
-	public final static String TAG = "ServeStream.UpdateHelper";
+	public final static String TAG = UpdateHelper.class.getName();
 	public final static String UPDATE_URL = "http://servestream.sourceforge.net/version";
 
 	protected Context context;

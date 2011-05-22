@@ -78,7 +78,7 @@ import android.widget.TextView;
 import android.widget.AdapterView.OnItemClickListener;
 
 public class StreamListActivity extends ListActivity {
-	public final static String TAG = "ServeStream.StreamListActivity";	
+	public final static String TAG = StreamListActivity.class.getName();	
 	
 	public final static int REQUEST_EDIT = 1;
 	
