@@ -31,7 +31,7 @@ import android.util.Log;
 
 public class BackupAgent extends BackupAgentHelper {
 
-	public final static String TAG = "ServeStream.BackupAgent";
+	public final static String TAG = BackupAgent.class.getName();
 	
     @Override
     public void onCreate() {

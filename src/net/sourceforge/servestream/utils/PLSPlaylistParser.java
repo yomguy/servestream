@@ -27,7 +27,7 @@ import java.util.ArrayList;
 import javax.net.ssl.HttpsURLConnection;
 
 public class PLSPlaylistParser {
-	public final static String TAG = "ServeStream.PLSPlaylistParser";
+	public final static String TAG = PLSPlaylistParser.class.getName();
 
 	private URL playlistURL = null;
     private ArrayList<MediaFile> playlistFiles = null;

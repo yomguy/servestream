@@ -66,7 +66,7 @@ import net.sourceforge.servestream.widget.ServeStreamAppWidgetOneProvider;
  * user to switch between activities without stopping playback.
  */
 public class MediaService extends Service {
-	private static final String TAG = "ServeStream.MediaService";
+	private static final String TAG = MediaService.class.getName();
 	
     /** used to specify whether enqueue() should start playing
      * the new list of files right away, next or once all the currently

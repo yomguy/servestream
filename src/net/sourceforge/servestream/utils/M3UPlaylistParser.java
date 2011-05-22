@@ -27,7 +27,7 @@ import java.util.ArrayList;
 import javax.net.ssl.HttpsURLConnection;
 
 public class M3UPlaylistParser {
-	public final static String TAG = "ServeStream.M3UPlaylistParser";
+	public final static String TAG = M3UPlaylistParser.class.getName();
 
 	private URL playlistURL = null;
     private ArrayList<MediaFile> playlistFiles = null;

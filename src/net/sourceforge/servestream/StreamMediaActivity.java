@@ -78,7 +78,7 @@ import android.widget.SeekBar.OnSeekBarChangeListener;
 
 
 public class StreamMediaActivity extends Activity implements SurfaceHolder.Callback {
-    private static final String TAG = "ServeStream.StreamMediaActivity";
+    private static final String TAG = StreamMediaActivity.class.getName();
     
     private int mParentActivityState = StreamMediaActivity.VISIBLE;
     public static int VISIBLE = 1;

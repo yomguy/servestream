@@ -41,7 +41,7 @@ import android.widget.TextView;
 import android.widget.AdapterView.OnItemClickListener;
 
 public class NowPlayingActivity extends ListActivity {
-	public final static String TAG = "ServeStream.NowPlayingActivity";
+	public final static String TAG = NowPlayingActivity.class.getName();
 	
     private IMediaService mMediaService = null;
 	private LayoutInflater mInflater = null;

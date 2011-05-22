@@ -44,7 +44,7 @@ import android.os.Bundle;
  *
  */
 public class HelpTopicActivity extends Activity {
-	public final static String TAG = "ServeStream.HelpActivity";
+	public final static String TAG = HelpActivity.class.getName();
 
 	@Override
 	public void onCreate(Bundle icicle) {
