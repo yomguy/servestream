@@ -866,6 +866,8 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
                 queueNextRefresh(1);
         		mMediaControls.startAnimation(media_controls_fade_in);
         		mMediaControls.setVisibility(View.VISIBLE);
+            } else if (action.equals(MediaService.SHOUTCAST_META_CHANGED)) {
+            	updateTrackInfo();
             } else if (action.equals(MediaService.PLAYSTATE_CHANGED)) {
                 setPauseButtonImage();
             } else if (action.equals(MediaService.START_DIALOG)) {
