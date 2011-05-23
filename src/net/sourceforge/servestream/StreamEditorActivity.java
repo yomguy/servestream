@@ -213,7 +213,7 @@ public class StreamEditorActivity extends PreferenceActivity implements OnShared
 		return this.pref;
 	}
 
-	protected static final String TAG = "ServeStream.StreamEditorActivity";
+	protected static final String TAG = StreamEditorActivity.class.getName();
 
 	protected StreamDatabase m_streamdb = null;
 
