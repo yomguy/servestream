@@ -5,7 +5,7 @@
 	android:versionCode="42"
 	android:installLocation="auto">
 
-	<uses-sdk android:targetSdkVersion="11" android:minSdkVersion="8" />
+	<uses-sdk android:targetSdkVersion="12" android:minSdkVersion="8" />
 
 	<application
 		android:icon="@drawable/icon"
@@ -14,10 +14,6 @@
 		android:allowBackup="true"
 		android:backupAgent=".service.BackupAgent"
 		android:killAfterRestore="true">
-
-        <provider android:name=".alarm.AlarmProvider"
-                android:authorities="net.sourceforge.servestream.alarm"
-                android:exported="false" />
 
 		<meta-data android:name="com.google.android.backup.api_key"
     		android:value="AEdPqrEAAAAIWcqt9c_ET5W0EpBB9ZCQGbBhfrOetXL6t6Cdwg" />
@@ -45,15 +41,8 @@
 			</intent-filter>
 		</activity>
 
-        <activity android:name=".AlarmClock"
-                android:taskAffinity=""
-                android:excludeFromRecents="true"
-                android:configChanges="orientation|keyboardHidden|keyboard|navigation"
-                android:exported="true" />
-
 		<activity android:name=".HelpActivity" android:configChanges="keyboardHidden|orientation" />
 		<activity android:name=".HelpTopicActivity" android:configChanges="keyboardHidden|orientation" />
-        <activity android:name=".SetAlarm" android:configChanges="orientation|keyboardHidden|keyboard" />
 		<activity android:name=".SettingsActivity" android:configChanges="keyboardHidden|orientation" />
 		<activity android:name=".StreamBrowseActivity" android:configChanges="keyboardHidden|orientation" />
 		<activity android:name=".StreamEditorActivity" android:configChanges="keyboardHidden|orientation" />
@@ -84,7 +73,6 @@
 	<uses-permission android:name="android.permission.INTERNET" />
 	<uses-permission android:name="android.permission.READ_PHONE_STATE" />
 	<uses-permission android:name="android.permission.BROADCAST_STICKY" />
-	<uses-permission android:name="android.permission.WRITE_SETTINGS" />
 
 	<supports-screens />
 </manifest>
