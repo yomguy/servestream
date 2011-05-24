@@ -228,7 +228,7 @@ public class SetAlarm extends PreferenceActivity
         mRepeatPref.setDaysOfWeek(alarm.daysOfWeek);
         mVibratePref.setChecked(alarm.vibrate);
         // Give the alert uri to the preference.
-        mAlarmPref.setAlert(alarm.alert);
+        //mAlarmPref.setAlert(alarm.alert);
         updateTime();
     }
 
@@ -292,7 +292,7 @@ public class SetAlarm extends PreferenceActivity
         alarm.daysOfWeek = mRepeatPref.getDaysOfWeek();
         alarm.vibrate = mVibratePref.isChecked();
         alarm.label = mLabel.getText();
-        alarm.alert = mAlarmPref.getAlert();
+        //alarm.alert = mAlarmPref.getAlert();
 
         long time;
         if (alarm.id == -1) {

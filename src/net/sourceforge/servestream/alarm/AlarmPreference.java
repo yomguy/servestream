@@ -32,52 +32,48 @@
 
 package net.sourceforge.servestream.alarm;
 
-import net.sourceforge.servestream.R;
+import android.app.AlertDialog;
 import android.content.Context;
-import android.media.Ringtone;
-import android.media.RingtoneManager;
-import android.net.Uri;
-import android.preference.RingtonePreference;
+import android.content.DialogInterface;
+import android.preference.ListPreference;
 import android.util.AttributeSet;
 
 /**
  * The RingtonePreference does not have a way to get/set the current ringtone so
  * we override onSaveRingtone and onRestoreRingtone to get the same behavior.
  */
-public class AlarmPreference extends RingtonePreference {
-    private Uri mAlert;
+public class AlarmPreference extends ListPreference {
 
-    public AlarmPreference(Context context, AttributeSet attrs) {
-        super(context, attrs);
-    }
+    private String[] entries;
+    private String[] entryValues;
+	
+	public AlarmPreference(Context context, AttributeSet attrs) {
+		super(context, attrs);
+        
+		entries = new String[2];
+		entryValues = new String[2];
+		
+		entries[0] = "1";
+		entries[1] = "2";
+		entryValues[0] = "1";
+		entryValues[1] = "2";
+		
+        setEntries(entries);
+        setEntryValues(entryValues);
+	}
+ 
+	@Override
+	protected void onPrepareDialogBuilder(AlertDialog.Builder builder) {	
+        CharSequence[] entries = getEntries();
+        
+        builder.setItems(
+        		entries,
+                new DialogInterface.OnClickListener() {
+					public void onClick(DialogInterface arg0, int arg1) {
+						// TODO Auto-generated method stub
+						
+					}
+				});
+	}
 
-    @Override
-    protected void onSaveRingtone(Uri ringtoneUri) {
-        setAlert(ringtoneUri);
-    }
-
-    @Override
-    protected Uri onRestoreRingtone() {
-        if (RingtoneManager.isDefault(mAlert)) {
-            return RingtoneManager.getActualDefaultRingtoneUri(getContext(),
-                    RingtoneManager.TYPE_ALARM);
-        }
-        return mAlert;
-    }
-
-    public void setAlert(Uri alert) {
-        mAlert = alert;
-        if (alert != null) {
-            final Ringtone r = RingtoneManager.getRingtone(getContext(), alert);
-            if (r != null) {
-                setSummary(r.getTitle(getContext()));
-            }
-        } else {
-            setSummary(R.string.silent_alarm_summary);
-        }
-    }
-
-    public Uri getAlert() {
-        return mAlert;
-    }
 }
