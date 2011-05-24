@@ -5,7 +5,7 @@
 	android:versionCode="42"
 	android:installLocation="auto">
 
-	<uses-sdk android:targetSdkVersion="12" android:minSdkVersion="8" />
+	<uses-sdk android:targetSdkVersion="11" android:minSdkVersion="8" />
 
 	<application
 		android:icon="@drawable/icon"
@@ -14,6 +14,10 @@
 		android:allowBackup="true"
 		android:backupAgent=".service.BackupAgent"
 		android:killAfterRestore="true">
+
+        <provider android:name=".alarm.AlarmProvider"
+                android:authorities="net.sourceforge.servestream.alarm"
+                android:exported="false" />
 
 		<meta-data android:name="com.google.android.backup.api_key"
     		android:value="AEdPqrEAAAAIWcqt9c_ET5W0EpBB9ZCQGbBhfrOetXL6t6Cdwg" />
@@ -67,12 +71,67 @@
             <meta-data android:name="android.appwidget.provider" android:resource="@xml/appwidget_one" />
         </receiver>
 
+		<!-- Alarm Activities -->
+
+        <activity android:name="AlarmClock"
+                android:label="@string/alarm_list_title"
+                android:taskAffinity=""
+                android:excludeFromRecents="true"
+                android:configChanges="orientation|keyboardHidden|keyboard|navigation"
+                android:exported="true" />
+
+        <activity android:name="SetAlarm" android:label="@string/set_alarm"
+                android:configChanges="orientation|keyboardHidden|keyboard|navigation" />
+                
+        <activity android:name=".alarm.AlarmAlert"
+                android:excludeFromRecents="true"
+                android:launchMode="singleInstance"
+                android:taskAffinity=""
+                android:configChanges="orientation|keyboardHidden|keyboard|navigation"/>
+
+        <!-- This activity is basically the same as AlarmAlert but with a more
+             generic theme. It also shows as full screen (with status bar) but
+             with the wallpaper background. -->
+        <activity android:name=".alarm.AlarmAlertFullScreen"
+                android:excludeFromRecents="true"
+                android:theme="@android:style/Theme.Wallpaper.NoTitleBar"
+                android:launchMode="singleInstance"
+                android:taskAffinity=""
+                android:configChanges="orientation|keyboardHidden|keyboard|navigation"/>
+
+        <receiver android:name=".alarm.AlarmReceiver">
+            <intent-filter>
+                <action android:name="net.sourceforge.servestream.alarm.ALARM_ALERT" />
+                <action android:name="alarm_killed" />
+                <action android:name="cancel_snooze" />
+            </intent-filter>
+        </receiver>
+
+        <!-- This service receives the same intent as AlarmReceiver but it does
+             not respond to the same broadcast. The AlarmReceiver will receive
+             the alert broadcast and will start this service with the same
+             intent. The service plays the alarm alert and vibrates the device.
+             This allows the alert to continue playing even if another activity
+             causes the AlarmAlert activity to pause. -->
+        <service android:name=".alarm.AlarmKlaxon" >
+                <!-- android:description="@string/alarm_klaxon_service_desc" -->
+                
+            <intent-filter>
+                <action android:name="net.sourceforge.servestream.alarm.ALARM_ALERT" />
+            </intent-filter>
+        </service>
+
+		<!-- End Alarm Activities -->
+
 	</application>
 
     <uses-permission android:name="android.permission.WAKE_LOCK" />
 	<uses-permission android:name="android.permission.INTERNET" />
 	<uses-permission android:name="android.permission.READ_PHONE_STATE" />
 	<uses-permission android:name="android.permission.BROADCAST_STICKY" />
+	
+	<uses-permission android:name="android.permission.VIBRATE"/>
+	<uses-permission android:name="android.permission.WRITE_SETTINGS" />
 
 	<supports-screens />
 </manifest>
