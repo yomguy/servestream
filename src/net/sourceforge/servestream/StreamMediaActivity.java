@@ -261,16 +261,13 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
         
         paused = false;
         
-		// connect with manager service to find all bridges
-		// when connected it will insert all views
-		//bindService(new Intent(this, MediaService.class), connection, Context.BIND_AUTO_CREATE);
-        
         IntentFilter f = new IntentFilter();
         f.addAction(MediaService.PLAYSTATE_CHANGED);
         f.addAction(MediaService.META_CHANGED);
         f.addAction(MediaService.START_DIALOG);
         f.addAction(MediaService.STOP_DIALOG);
         f.addAction(MediaService.ERROR_MESSAGE);
+        f.addAction(MediaService.QUEUE_LOADED);
         registerReceiver(mStatusListener, new IntentFilter(f));
         
         f = new IntentFilter();
@@ -307,6 +304,7 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
     
     @Override
     public void onStop() {
+    	super.onStop();
     	
     	Log.v(TAG, "onStop called");
     	
@@ -314,7 +312,6 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
         
         mHandler.removeMessages(REFRESH);
         unregisterReceiver(mStatusListener);
-        super.onStop();
     }
     
 	@Override
@@ -459,11 +456,11 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
     }
     
     public void surfaceChanged(SurfaceHolder surfaceholder, int i, int j, int k) {
-        //Log.d(TAG, "surfaceChanged called");
+
     }
 
     public void surfaceDestroyed(SurfaceHolder surfaceholder) {
-        //Log.d(TAG, "surfaceDestroyed called");
+    
     }
 
     public void surfaceCreated(SurfaceHolder holder) {
@@ -471,7 +468,16 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
         
 		// connect with manager service to find all bridges
 		// when connected it will insert all views
-		bindService(new Intent(this, MediaService.class), connection, Context.BIND_AUTO_CREATE);
+        if (mMediaService == null) {
+        	bindService(new Intent(this, MediaService.class), connection, Context.BIND_AUTO_CREATE);
+        } else {
+        	updateTrackInfo();
+        	setRepeatButtonImage();
+        	setShuffleButtonImage();
+        	setPauseButtonImage();
+        	queueNextRefresh(1);
+        	mMediaControls.setVisibility(View.VISIBLE);
+        }
     }
 
 	@Override
@@ -660,15 +666,7 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
                 	errorOpeningMediaMessage();
                 	return;
                 }
-                
-                if (mMediaService.getPlayListLength() == 0) {
-                	handleInvalidPlaylist();
-                    return;
-                }
-				
-                mMediaService.stop();
-                mMediaService.queueFirstFile();
-                setIntent(new Intent());
+            
             } catch (Exception ex) {
                 Log.v(TAG, "couldn't start playback: " + ex);
             }
@@ -712,11 +710,6 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
         			        holder.setFixedSize(mDisplayWidth, mDisplayHeight);
         			        
         			        startPlayback();
-        			        
-        			        setRepeatButtonImage();
-        			        setShuffleButtonImage();
-        			        setPauseButtonImage();
-        			        showToast(R.string.media_controls_notif);
         			        
         			    } catch (Exception ex) {
         			        Log.e(TAG, "error: " + ex.getMessage());
@@ -897,6 +890,25 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
 						finish();
 					}
 					}).create().show();
+            } else if (action.equals(MediaService.QUEUE_LOADED)) {
+                try {
+					if (mMediaService.getPlayListLength() == 0) {
+						handleInvalidPlaylist();
+					    return;
+					}
+				
+					mMediaService.stop();
+					mMediaService.queueFirstFile();
+					setIntent(new Intent());
+					
+			        setRepeatButtonImage();
+			        setShuffleButtonImage();
+			        setPauseButtonImage();
+			        showToast(R.string.media_controls_notif);
+				} catch (RemoteException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
             }
         }
     };

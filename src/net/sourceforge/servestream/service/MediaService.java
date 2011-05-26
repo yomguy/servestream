@@ -38,6 +38,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.BroadcastReceiver;
+import android.os.AsyncTask;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
@@ -49,7 +50,6 @@ import android.util.Log;
 
 import java.lang.ref.WeakReference;
 import java.net.MalformedURLException;
-import java.net.URL;
 import java.util.Random;
 import java.util.Vector;
 
@@ -96,6 +96,7 @@ public class MediaService extends Service {
     
     public static final String PLAYSTATE_CHANGED = "net.sourceforge.servestream.playstatechanged";
     public static final String META_CHANGED = "net.sourceforge.servestream.metachanged";
+    public static final String QUEUE_LOADED = "net.sourceforge.servestream.queueloaded";
     public static final String SHOUTCAST_META_CHANGED = "net.sourceforge.servestream.shoutcastmetachanged";
     public static final String START_DIALOG = "net.sourceforge.servestream.startdialog";
     public static final String STOP_DIALOG = "net.sourceforge.servestream.stopdialog";
@@ -511,57 +512,8 @@ public class MediaService extends Service {
         Log.v(TAG, "Loading Queue");        
         
         boolean retVal = true;
-    	Stream stream;
-    	Stream foundStream = null;
     	
-    	try {
-			stream = new Stream(filename);
-    	
-			//TODO add null check
-    		
-			if (isM3UPlaylist(stream.getURL().getPath())) {
-				M3UPlaylistParser playlistParser = new M3UPlaylistParser(stream.getURL());
-				playlistParser.retrieveM3UFiles();
-				mPlayListFiles = playlistParser.getPlaylistFiles();
-				mPlayListLen = playlistParser.getNumberOfFiles();
-			} else if (isPLSPlaylist(stream.getURL().getPath())) {
-				PLSPlaylistParser playlistParser = new PLSPlaylistParser(stream.getURL());
-				playlistParser.retrievePLSFiles();
-				mPlayListFiles = playlistParser.getPlaylistFiles();
-				mPlayListLen = playlistParser.getNumberOfFiles();
-			} else if (isASXPlaylist(stream.getURL().getPath())) {
-				ASXPlaylistParser playlistParser = new ASXPlaylistParser(stream.getURL());
-				playlistParser.retrieveASXFiles();
-				mPlayListFiles = playlistParser.getPlaylistFiles();
-				mPlayListLen = playlistParser.getNumberOfFiles();
-			} else {
-				mPlayListFiles = new MediaFile[1];         
-				MediaFile mediaFile = new MediaFile();
-				mediaFile.setURL(stream.getURL().toString());
-				mediaFile.setTrackNumber(1);
-				mPlayListFiles[0] = mediaFile;
-				mPlayListLen = 1;
-			}
-        
-		    mPlayPos = 0;
-		    mPlayListToPlay = filename;
-			mPlayList = new long[mPlayListLen];
-			int len = mPlayListLen;
-			
-			for (int i = 0; i < len; i++) {
-				mPlayList[i] = i;
-			}
-        
-		    foundStream = mStreamdb.findStream(stream);
-		    
-		    if (foundStream != null) {
-			    mStreamdb.touchHost(foundStream);
-		    }
-		    
-		} catch (MalformedURLException ex) {
-			ex.printStackTrace();
-			retVal = false;
-		}
+		new ParsePlaylistAsyncTask().execute(filename);
 		
 		return retVal;
     }
@@ -1373,5 +1325,77 @@ public class MediaService extends Service {
         }
     	
         return true;
+    }
+    
+    public class ParsePlaylistAsyncTask extends AsyncTask<String, Void, String> {
+
+		private Stream mStream;
+		
+	    public ParsePlaylistAsyncTask() {
+	        super();
+	    }
+
+	    @Override
+	    protected void onPreExecute() {
+	    	
+	    }
+	    
+		@Override
+		protected String doInBackground(String... filename) {
+			//TODO add null check
+    		try {
+				mStream = new Stream(filename[0]);
+			
+				if (isM3UPlaylist(mStream.getURL().getPath())) {
+					M3UPlaylistParser playlistParser = new M3UPlaylistParser(mStream.getURL());
+					playlistParser.retrieveM3UFiles();
+					mPlayListFiles = playlistParser.getPlaylistFiles();
+					mPlayListLen = playlistParser.getNumberOfFiles();
+				} else if (isPLSPlaylist(mStream.getURL().getPath())) {
+					PLSPlaylistParser playlistParser = new PLSPlaylistParser(mStream.getURL());
+					playlistParser.retrievePLSFiles();
+					mPlayListFiles = playlistParser.getPlaylistFiles();
+					mPlayListLen = playlistParser.getNumberOfFiles();
+				} else if (isASXPlaylist(mStream.getURL().getPath())) {
+					ASXPlaylistParser playlistParser = new ASXPlaylistParser(mStream.getURL());
+					playlistParser.retrieveASXFiles();
+					mPlayListFiles = playlistParser.getPlaylistFiles();
+					mPlayListLen = playlistParser.getNumberOfFiles();
+				} else {
+					mPlayListFiles = new MediaFile[1];         
+					MediaFile mediaFile = new MediaFile();
+					mediaFile.setURL(mStream.getURL().toString());
+					mediaFile.setTrackNumber(1);
+					mPlayListFiles[0] = mediaFile;
+					mPlayListLen = 1;
+				}
+			} catch (MalformedURLException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			
+			return filename[0];
+		}
+
+		@Override
+		protected void onPostExecute(String filename) {
+		    mPlayPos = 0;
+		    mPlayListToPlay = filename;
+			mPlayList = new long[mPlayListLen];
+			int len = mPlayListLen;
+			
+			for (int i = 0; i < len; i++) {
+				mPlayList[i] = i;
+			}
+        
+		    Stream foundStream = mStreamdb.findStream(mStream);
+		    
+		    if (foundStream != null) {
+			    mStreamdb.touchHost(foundStream);
+		    }
+		    
+            Intent i = new Intent(QUEUE_LOADED);
+            sendBroadcast(i);
+		}
     }
 }
