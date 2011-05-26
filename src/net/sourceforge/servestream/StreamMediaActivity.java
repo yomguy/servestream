@@ -263,7 +263,7 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
         
 		// connect with manager service to find all bridges
 		// when connected it will insert all views
-		bindService(new Intent(this, MediaService.class), connection, Context.BIND_AUTO_CREATE);
+		//bindService(new Intent(this, MediaService.class), connection, Context.BIND_AUTO_CREATE);
         
         IntentFilter f = new IntentFilter();
         f.addAction(MediaService.PLAYSTATE_CHANGED);
@@ -276,6 +276,11 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
         f = new IntentFilter();
         f.addAction(MediaService.CLOSE_PLAYER);
         registerReceiver(mDisconnectListener, new IntentFilter(f));
+        
+    	if (preview == null) {
+	        makeSurface();
+		    Log.v(TAG, "Surface Made");
+	    }
     }
     
     @Override
@@ -298,7 +303,6 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
     	
     	if (mDialog != null)
             dismissDialog();
-
     }
     
     @Override
@@ -465,61 +469,9 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
     public void surfaceCreated(SurfaceHolder holder) {
         Log.d(TAG, "surfaceCreated called");
         
-		// obtain the requested stream
-		if (getIntent().getData() == null) {
-			mRequestedStream = null;
-		} else {
-			try {
-				mRequestedStream = getIntent().getData().toString();
-			} catch (Exception ex) {
-				ex.printStackTrace();
-			}
-		}
-        
-    	// if the requested stream is null the intent used to launch
-    	// StreamMediaActivity did not supply a new URL to stream
-        try {
-			if ((mRequestedStream != null && mMediaService.getPlayListPath() == null) || 
-					(mRequestedStream != null && !mRequestedStream.equals(mMediaService.getPlayListPath()))) {
-				
-				Log.v(TAG, mRequestedStream);
-				if (mMediaService.getPlayListPath() != null)
-				Log.v(TAG, mMediaService.getPlayListPath());
-				
-			    try {
-			    	MultiPlayer mp = mMediaService.getMediaPlayer();
-			    	mp.setDisplay(holder);
-			        holder.setFixedSize(mDisplayWidth, mDisplayHeight);
-			        
-			        startPlayback();
-			        
-			        setRepeatButtonImage();
-			        setShuffleButtonImage();
-			        setPauseButtonImage();
-			        showToast(R.string.media_controls_notif);
-			        
-			    } catch (Exception ex) {
-			        Log.e(TAG, "error: " + ex.getMessage());
-			    }
-			} else {
-				/*if (boundService.isPlayingVideo()) {
-			    	makeSurface();
-			        mediaPlayer.setDisplay(holder);
-			        holder.setFixedSize(displayWidth, displayHeight);
-			        boundService.resetSurfaceView();
-				} */
-				updateTrackInfo();
-                setRepeatButtonImage();
-                setShuffleButtonImage();
-                setPauseButtonImage();
-                queueNextRefresh(1);
-				mMediaControls.setVisibility(View.VISIBLE);
-			}
-		} catch (RemoteException ex) {
-			// TODO Auto-generated catch block
-			ex.printStackTrace();
-		}
-    	
+		// connect with manager service to find all bridges
+		// when connected it will insert all views
+		bindService(new Intent(this, MediaService.class), connection, Context.BIND_AUTO_CREATE);
     }
 
 	@Override
@@ -733,10 +685,62 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
                 
             	Log.v(TAG, "Bind Complete");
             	
-            	if (preview == null) {
-    		        makeSurface();
-    			    Log.v(TAG, "Surface Made");
-    		    }
+            	// obtain the requested stream
+        		if (getIntent().getData() == null) {
+        			mRequestedStream = null;
+        		} else {
+        			try {
+        				mRequestedStream = getIntent().getData().toString();
+        			} catch (Exception ex) {
+        				ex.printStackTrace();
+        			}
+        		}
+                
+            	// if the requested stream is null the intent used to launch
+            	// StreamMediaActivity did not supply a new URL to stream
+                try {
+        			if ((mRequestedStream != null && mMediaService.getPlayListPath() == null) || 
+        					(mRequestedStream != null && !mRequestedStream.equals(mMediaService.getPlayListPath()))) {
+        				
+        				Log.v(TAG, mRequestedStream);
+        				if (mMediaService.getPlayListPath() != null)
+        				Log.v(TAG, mMediaService.getPlayListPath());
+        				
+        			    try {
+        			    	MultiPlayer mp = mMediaService.getMediaPlayer();
+        			    	mp.setDisplay(holder);
+        			        holder.setFixedSize(mDisplayWidth, mDisplayHeight);
+        			        
+        			        startPlayback();
+        			        
+        			        setRepeatButtonImage();
+        			        setShuffleButtonImage();
+        			        setPauseButtonImage();
+        			        showToast(R.string.media_controls_notif);
+        			        
+        			    } catch (Exception ex) {
+        			        Log.e(TAG, "error: " + ex.getMessage());
+        			    }
+        			} else {
+        				/*if (boundService.isPlayingVideo()) {
+        			    	makeSurface();
+        			        mediaPlayer.setDisplay(holder);
+        			        holder.setFixedSize(displayWidth, displayHeight);
+        			        boundService.resetSurfaceView();
+        				} */
+        				updateTrackInfo();
+                        setRepeatButtonImage();
+                        setShuffleButtonImage();
+                        setPauseButtonImage();
+                        queueNextRefresh(1);
+        				mMediaControls.setVisibility(View.VISIBLE);
+        			}
+        		} catch (RemoteException ex) {
+        			// TODO Auto-generated catch block
+        			ex.printStackTrace();
+        		}
+            	
+            	
             }
             public void onServiceDisconnected(ComponentName classname) {
     	        // This is called when the connection with the service has been
