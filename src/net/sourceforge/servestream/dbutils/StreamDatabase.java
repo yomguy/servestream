@@ -248,25 +248,14 @@ public class StreamDatabase extends SQLiteOpenHelper {
 	}
 	
 	public Stream findStream(int id) {
-		StringBuilder selectionBuilder = new StringBuilder();
-
-		ArrayList<String> selectionValuesList = new ArrayList<String>();
-			
-		selectionBuilder.append("_id = ?");
-		selectionValuesList.add(String.valueOf(id));
-
-		String selectionValues[] = new String[selectionValuesList.size()];
-		selectionValuesList.toArray(selectionValues);
-		selectionValuesList = null;
-
 		Stream returnedStream;
-
+		
 		synchronized (dbLock) {
 			SQLiteDatabase db = getReadableDatabase();
 
 			Cursor c = db.query(TABLE_STREAMS, null,
-					selectionBuilder.toString(),
-					selectionValues,
+					"_id = ?",
+					new String[] { String.valueOf(id) },
 					null, null, null);
 
 			returnedStream = getFirstStream(c);
