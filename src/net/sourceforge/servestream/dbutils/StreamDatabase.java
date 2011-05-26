@@ -226,15 +226,34 @@ public class StreamDatabase extends SQLiteOpenHelper {
 
 			selectionValuesList.add(entry.getValue());
 		}
-		
-		/*selectionBuilder.append(FIELD_STREAM_PROTOCOL).append(" = ?");
-		selectionValuesList.add(stream.getProtocol());
-		selectionBuilder.append(" AND ").append(FIELD_STREAM_HOSTNAME).append(" = ?");
-		selectionValuesList.add(stream.getHostname());
-		selectionBuilder.append(" AND ").append(FIELD_STREAM_PORT).append(" = ?");
-		selectionValuesList.add(stream.getPort());
-		selectionBuilder.append(" AND ").append(FIELD_STREAM_PATH).append(" = ?");
-		selectionValuesList.add(stream.getPath());*/
+
+		String selectionValues[] = new String[selectionValuesList.size()];
+		selectionValuesList.toArray(selectionValues);
+		selectionValuesList = null;
+
+		Stream returnedStream;
+
+		synchronized (dbLock) {
+			SQLiteDatabase db = getReadableDatabase();
+
+			Cursor c = db.query(TABLE_STREAMS, null,
+					selectionBuilder.toString(),
+					selectionValues,
+					null, null, null);
+
+			returnedStream = getFirstStream(c);
+		}
+
+		return returnedStream;
+	}
+	
+	public Stream findStream(int id) {
+		StringBuilder selectionBuilder = new StringBuilder();
+
+		ArrayList<String> selectionValuesList = new ArrayList<String>();
+			
+		selectionBuilder.append("_id = ?");
+		selectionValuesList.add(String.valueOf(id));
 
 		String selectionValues[] = new String[selectionValuesList.size()];
 		selectionValuesList.toArray(selectionValues);
