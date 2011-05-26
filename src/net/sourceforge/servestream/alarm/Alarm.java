@@ -197,18 +197,6 @@ public final class Alarm implements Parcelable {
         if (Alarms.ALARM_ALERT_SILENT == alert) {
             Log.v(TAG, "Alarm is marked as silent");
             silent = true;
-        } else {
-        	// William
-            //if (alertString != null && alertString.length() != 0) {
-                //alert = Uri.parse(alertString);
-            //}
-
-            // If the database alert is null or it failed to parse, use the
-            // default alert.
-            //if (alert == null) {
-            //    alert = RingtoneManager.getDefaultUri(
-            //            RingtoneManager.TYPE_ALARM);
-            //}
         }
     }
 
