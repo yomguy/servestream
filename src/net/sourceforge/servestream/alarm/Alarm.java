@@ -34,7 +34,6 @@ package net.sourceforge.servestream.alarm;
 
 import android.content.Context;
 import android.database.Cursor;
-import android.media.RingtoneManager;
 import android.net.Uri;
 import android.os.Parcel;
 import android.os.Parcelable;
@@ -76,7 +75,7 @@ public final class Alarm implements Parcelable {
         p.writeLong(time);
         p.writeInt(vibrate ? 1 : 0);
         p.writeString(label);
-        p.writeParcelable(alert, flags);
+        p.writeInt(alert);
         p.writeInt(silent ? 1 : 0);
     }
     //////////////////////////////
@@ -182,7 +181,7 @@ public final class Alarm implements Parcelable {
     public long       time;
     public boolean    vibrate;
     public String     label;
-    public Uri        alert;
+    public int        alert;
     public boolean    silent;
 
     public Alarm(Cursor c) {
@@ -194,21 +193,22 @@ public final class Alarm implements Parcelable {
         time = c.getLong(Columns.ALARM_TIME_INDEX);
         vibrate = c.getInt(Columns.ALARM_VIBRATE_INDEX) == 1;
         label = c.getString(Columns.ALARM_MESSAGE_INDEX);
-        String alertString = c.getString(Columns.ALARM_ALERT_INDEX);
-        if (Alarms.ALARM_ALERT_SILENT.equals(alertString)) {
+        alert = c.getInt(Columns.ALARM_ALERT_INDEX);
+        if (Alarms.ALARM_ALERT_SILENT == alert) {
             Log.v(TAG, "Alarm is marked as silent");
             silent = true;
         } else {
-            if (alertString != null && alertString.length() != 0) {
-                alert = Uri.parse(alertString);
-            }
+        	// William
+            //if (alertString != null && alertString.length() != 0) {
+                //alert = Uri.parse(alertString);
+            //}
 
             // If the database alert is null or it failed to parse, use the
             // default alert.
-            if (alert == null) {
-                alert = RingtoneManager.getDefaultUri(
-                        RingtoneManager.TYPE_ALARM);
-            }
+            //if (alert == null) {
+            //    alert = RingtoneManager.getDefaultUri(
+            //            RingtoneManager.TYPE_ALARM);
+            //}
         }
     }
 
@@ -221,7 +221,7 @@ public final class Alarm implements Parcelable {
         time = p.readLong();
         vibrate = p.readInt() == 1;
         label = p.readString();
-        alert = (Uri) p.readParcelable(null);
+        alert = p.readInt();
         silent = p.readInt() == 1;
     }
 
@@ -234,7 +234,7 @@ public final class Alarm implements Parcelable {
         minutes = c.get(Calendar.MINUTE);
         vibrate = true;
         daysOfWeek = new DaysOfWeek(0);
-        alert = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM);
+        alert = 0;
     }
 
     public String getLabelOrDefault(Context context) {

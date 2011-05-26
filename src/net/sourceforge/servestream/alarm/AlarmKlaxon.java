@@ -170,7 +170,9 @@ public class AlarmKlaxon extends Service {
         Log.v(TAG, "AlarmKlaxon.play() " + alarm.id + " alert " + alarm.alert);
 
         if (!alarm.silent) {
-            Uri alert = alarm.alert;
+            //William
+        	//Uri alert = alarm.alert;
+        	Uri alert = null;
             // Fall back on the default alarm if the database does not have an
             // alarm stored.
             if (alert == null) {

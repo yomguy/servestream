@@ -85,7 +85,7 @@ public class Alarms {
     public static final String ALARM_KILLED_TIMEOUT = "alarm_killed_timeout";
 
     // This string is used to indicate a silent alarm in the db.
-    public static final String ALARM_ALERT_SILENT = "silent";
+    public static final int ALARM_ALERT_SILENT = 0;//= "silent";
 
     // This intent is sent from the notification when the user cancels the
     // snooze alert.
@@ -182,9 +182,10 @@ public class Alarms {
         values.put(Alarm.Columns.VIBRATE, alarm.vibrate);
         values.put(Alarm.Columns.MESSAGE, alarm.label);
 
-        // A null alert Uri indicates a silent alarm.
-        values.put(Alarm.Columns.ALERT, alarm.alert == null ? ALARM_ALERT_SILENT
-                : alarm.alert.toString());
+        Log.v(TAG, "Writing alarm Id");
+        // An alert with a value of 0 indicates a silent alarm.
+        values.put(Alarm.Columns.ALERT, alarm.alert == 0 ? 0
+                : alarm.alert);
 
         return values;
     }

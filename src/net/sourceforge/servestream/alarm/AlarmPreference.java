@@ -32,6 +32,10 @@
 
 package net.sourceforge.servestream.alarm;
 
+import java.util.ArrayList;
+
+import net.sourceforge.servestream.dbutils.Stream;
+import net.sourceforge.servestream.dbutils.StreamDatabase;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -44,36 +48,82 @@ import android.util.AttributeSet;
  */
 public class AlarmPreference extends ListPreference {
 
-    private String[] entries;
-    private String[] entryValues;
+	private int [] mIds;
+	private String [] mNicknames;
 	
+    // Initial value that can be set with the values saved in the database.
+    private int mId = 0;
+    // New value that will be set if a positive result comes back from the
+    // dialog.
+    private int mNewId = -1;
+	
+	protected StreamDatabase mStreamdb = null;
+    
 	public AlarmPreference(Context context, AttributeSet attrs) {
 		super(context, attrs);
         
-		entries = new String[2];
-		entryValues = new String[2];
+		// connect with streams database and populate list
+		mStreamdb = new StreamDatabase(getContext());
 		
-		entries[0] = "1";
-		entries[1] = "2";
-		entryValues[0] = "1";
-		entryValues[1] = "2";
+		ArrayList<Stream> streams = mStreamdb.getStreams();
+
+		mStreamdb.close();
+		
+		String [] entries = new String[(streams.size() + 1)];
+		String [] entryValues = new String[(streams.size() + 1)];
+		mIds = new int[streams.size() + 1];
+		mNicknames = new String[streams.size() + 1];
+		
+		entries[0] = "Silent";
+		entryValues[0] = String.valueOf("0");
+		mIds[0] = 0;
+		mNicknames[0] = "Silent";
+		
+		for (int i = 0; i < streams.size(); i++) {
+			entries[i + 1] = streams.get(i).getNickname();
+			entryValues[i + 1] = String.valueOf(i + 1);
+			mIds[i + 1] = (int) streams.get(i).getId();
+			mNicknames[i + 1] = streams.get(i).getNickname();
+		}
 		
         setEntries(entries);
         setEntryValues(entryValues);
 	}
  
+    @Override
+    protected void onDialogClosed(boolean positiveResult) {
+        if (positiveResult) {
+            mId = mNewId;
+            setSummary(mNicknames[mId]);
+            callChangeListener(mId);
+        }
+    }
+	
 	@Override
 	protected void onPrepareDialogBuilder(AlertDialog.Builder builder) {	
         CharSequence[] entries = getEntries();
         
-        builder.setItems(
+        builder.setSingleChoiceItems(
         		entries,
+        		mId,
                 new DialogInterface.OnClickListener() {
-					public void onClick(DialogInterface arg0, int arg1) {
-						// TODO Auto-generated method stub
-						
+					public void onClick(DialogInterface dialog, int which) {
+						mNewId = which;
 					}
 				});
 	}
 
+	public void setAlertId(int id) {
+		for (int i = 0; i < mIds.length; i++) {
+			if (mIds[i] == id) {
+				mId = i;
+				mNewId = i;
+	            setSummary(mNicknames[mId]);
+			}
+		}
+	}
+	
+    public int getAlertId() {
+        return mIds[mId];
+    }
 }
