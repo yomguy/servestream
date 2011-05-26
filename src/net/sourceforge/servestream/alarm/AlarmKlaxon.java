@@ -35,7 +35,6 @@ package net.sourceforge.servestream.alarm;
 import net.sourceforge.servestream.R;
 import net.sourceforge.servestream.dbutils.Stream;
 import net.sourceforge.servestream.dbutils.StreamDatabase;
-import net.sourceforge.servestream.player.MultiPlayer;
 import net.sourceforge.servestream.service.IMediaService;
 import net.sourceforge.servestream.service.MediaService;
 import android.app.Service;
@@ -53,12 +52,10 @@ import android.net.Uri;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
-import android.os.RemoteException;
 import android.os.Vibrator;
 import android.telephony.PhoneStateListener;
 import android.telephony.TelephonyManager;
 import android.util.Log;
-import android.view.View;
 
 /**
  * Manages alarms and vibe. Runs as a service so that it can continue to play
