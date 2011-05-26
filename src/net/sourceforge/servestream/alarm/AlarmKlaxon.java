@@ -32,11 +32,14 @@
 
 package net.sourceforge.servestream.alarm;
 
+import net.sourceforge.servestream.R;
 import net.sourceforge.servestream.dbutils.Stream;
 import net.sourceforge.servestream.dbutils.StreamDatabase;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
+import android.content.res.AssetFileDescriptor;
+import android.content.res.Resources;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.media.MediaPlayer.OnErrorListener;
@@ -208,8 +211,8 @@ public class AlarmKlaxon extends Service {
                         != TelephonyManager.CALL_STATE_IDLE) {
                     Log.v(TAG, "Using the in-call alarm");
                     mMediaPlayer.setVolume(IN_CALL_VOLUME, IN_CALL_VOLUME);
-                    //setDataSourceFromResource(getResources(), mMediaPlayer,
-                      //      R.raw.in_call_alarm);
+                    setDataSourceFromResource(getResources(), mMediaPlayer,
+                            R.raw.in_call_alarm);
                 } else {
                     mMediaPlayer.setDataSource(this, alert);
                 }
@@ -221,8 +224,8 @@ public class AlarmKlaxon extends Service {
                 try {
                     // Must reset the media player to clear the error state.
                     mMediaPlayer.reset();
-                    //setDataSourceFromResource(getResources(), mMediaPlayer,
-                    //        R.raw.fallbackring);
+                    setDataSourceFromResource(getResources(), mMediaPlayer,
+                            R.raw.fallbackring);
                     startAlarm(mMediaPlayer);
                 } catch (Exception ex2) {
                     // At this point we just don't play anything.
@@ -258,7 +261,7 @@ public class AlarmKlaxon extends Service {
         }
     }
 
-    /*private void setDataSourceFromResource(Resources resources,
+    private void setDataSourceFromResource(Resources resources,
             MediaPlayer player, int res) throws java.io.IOException {
         AssetFileDescriptor afd = resources.openRawResourceFd(res);
         if (afd != null) {
@@ -266,7 +269,7 @@ public class AlarmKlaxon extends Service {
                     afd.getLength());
             afd.close();
         }
-    }*/
+    }
 
     /**
      * Stops alarm audio and disables alarm if it not snoozed and not
