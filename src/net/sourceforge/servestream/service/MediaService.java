@@ -38,6 +38,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.BroadcastReceiver;
+import android.net.wifi.WifiManager;
+import android.net.wifi.WifiManager.WifiLock;
 import android.os.AsyncTask;
 import android.os.Handler;
 import android.os.IBinder;
@@ -114,9 +116,10 @@ public class MediaService extends Service {
 
     public static final int TRACK_ENDED = 1;
     public static final int RELEASE_WAKELOCK = 2;
-    public static final int SERVER_DIED = 3;
-    public static final int PLAYER_PREPARED = 5;
-    public static final int PLAYER_ERROR = 6;
+    public static final int RELEASE_WIFILOCK = 3;
+    public static final int SERVER_DIED = 4;
+    public static final int PLAYER_PREPARED = 6;
+    public static final int PLAYER_ERROR = 7;
     private static final int MAX_HISTORY_SIZE = 100;
     
     private static final int SHOUTCAST_METADATA_REFRESH = 1;
@@ -137,6 +140,7 @@ public class MediaService extends Service {
     private final Shuffler mRand = new Shuffler();
     private int mOpenFailedCounter = 0;
     private WakeLock mWakeLock;
+    private WifiLock mWifiLock;
     private int mServiceStartId = -1;
     private boolean mServiceInUse = false;
     private boolean mIsSupposedToBePlaying = false;
@@ -174,6 +178,9 @@ public class MediaService extends Service {
                 case RELEASE_WAKELOCK:
                     mWakeLock.release();
                     break;
+                case RELEASE_WIFILOCK:
+                	mWifiLock.release();
+                	break;
                 case PLAYER_PREPARED:
                     Intent i = new Intent(STOP_DIALOG);
                     sendBroadcast(i);
@@ -282,6 +289,9 @@ public class MediaService extends Service {
         mWakeLock = pm.newWakeLock(PowerManager.SCREEN_BRIGHT_WAKE_LOCK, this.getClass().getName());
         mWakeLock.setReferenceCounted(false);
         
+        WifiManager wifimanager = (WifiManager)getSystemService(Context.WIFI_SERVICE);
+        mWifiLock = wifimanager.createWifiLock(null);
+        
         IntentFilter commandFilter = new IntentFilter();
         commandFilter.addAction(SERVICECMD);
         commandFilter.addAction(TOGGLEPAUSE_ACTION);
@@ -326,6 +336,7 @@ public class MediaService extends Service {
 		ConnectionNotifier.getInstance().hideRunningNotification(this);
         
 		mWakeLock.release();
+		mWifiLock.release();
         super.onDestroy();
     }
 
@@ -674,6 +685,7 @@ public class MediaService extends Service {
             }
 
             mWakeLock.acquire();
+            mWifiLock.acquire();
             
             Intent i = new Intent(START_DIALOG);
             sendBroadcast(i);
@@ -702,6 +714,9 @@ public class MediaService extends Service {
 
     		if (!mWakeLock.isHeld())
     			mWakeLock.acquire();
+    		
+    		if (!mWifiLock.isHeld())
+    			mWifiLock.acquire();
     		
             mPlayer.start();
 
@@ -747,6 +762,7 @@ public class MediaService extends Service {
         synchronized(this) {
             if (isPlaying()) {
             	mWakeLock.release();
+            	mWifiLock.release();
                 mPlayer.pause();
                 mIsSupposedToBePlaying = false;
                 notifyChange(PLAYSTATE_CHANGED);
