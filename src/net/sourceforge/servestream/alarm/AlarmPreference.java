@@ -34,6 +34,7 @@ package net.sourceforge.servestream.alarm;
 
 import java.util.ArrayList;
 
+import net.sourceforge.servestream.R;
 import net.sourceforge.servestream.dbutils.Stream;
 import net.sourceforge.servestream.dbutils.StreamDatabase;
 import android.app.AlertDialog;
@@ -49,7 +50,6 @@ import android.util.AttributeSet;
 public class AlarmPreference extends ListPreference {
 
 	private int [] mIds;
-	private String [] mNicknames;
 	
     // Initial value that can be set with the values saved in the database.
     private int mId = 0;
@@ -72,18 +72,15 @@ public class AlarmPreference extends ListPreference {
 		String [] entries = new String[(streams.size() + 1)];
 		String [] entryValues = new String[(streams.size() + 1)];
 		mIds = new int[streams.size() + 1];
-		mNicknames = new String[streams.size() + 1];
 		
-		entries[0] = "Silent";
+		entries[0] = getContext().getString(R.string.silent_alarm_summary);
 		entryValues[0] = String.valueOf("0");
 		mIds[0] = 0;
-		mNicknames[0] = "Silent";
 		
 		for (int i = 0; i < streams.size(); i++) {
 			entries[i + 1] = streams.get(i).getNickname();
 			entryValues[i + 1] = String.valueOf(i + 1);
 			mIds[i + 1] = (int) streams.get(i).getId();
-			mNicknames[i + 1] = streams.get(i).getNickname();
 		}
 		
         setEntries(entries);
@@ -92,9 +89,11 @@ public class AlarmPreference extends ListPreference {
  
     @Override
     protected void onDialogClosed(boolean positiveResult) {
+        CharSequence[] entries = getEntries();
+    	
         if (positiveResult) {
             mId = mNewId;
-            setSummary(mNicknames[mId]);
+            setSummary(entries[mId]);
             callChangeListener(mId);
         }
     }
@@ -114,11 +113,13 @@ public class AlarmPreference extends ListPreference {
 	}
 
 	public void setAlertId(int id) {
+        CharSequence[] entries = getEntries();
+		
 		for (int i = 0; i < mIds.length; i++) {
 			if (mIds[i] == id) {
 				mId = i;
 				mNewId = i;
-	            setSummary(mNicknames[mId]);
+	            setSummary(entries[mId]);
 			}
 		}
 	}
