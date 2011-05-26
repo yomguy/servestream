@@ -331,12 +331,16 @@ public class MediaService extends Service {
 		notifyChange(PLAYER_CLOSED);
         
         unregisterReceiver(mIntentReceiver);
+        unregisterReceiver(mDockReceiver);
         
         // Cancel the persistent notification.
 		ConnectionNotifier.getInstance().hideRunningNotification(this);
         
 		mWakeLock.release();
-		mWifiLock.release();
+		
+		if (mWifiLock.isHeld())
+		    mWifiLock.release();
+		
         super.onDestroy();
     }
 
