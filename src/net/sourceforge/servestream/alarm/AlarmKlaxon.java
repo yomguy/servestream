@@ -35,9 +35,14 @@ package net.sourceforge.servestream.alarm;
 import net.sourceforge.servestream.R;
 import net.sourceforge.servestream.dbutils.Stream;
 import net.sourceforge.servestream.dbutils.StreamDatabase;
+import net.sourceforge.servestream.player.MultiPlayer;
+import net.sourceforge.servestream.service.IMediaService;
+import net.sourceforge.servestream.service.MediaService;
 import android.app.Service;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.ServiceConnection;
 import android.content.res.AssetFileDescriptor;
 import android.content.res.Resources;
 import android.media.AudioManager;
@@ -48,10 +53,12 @@ import android.net.Uri;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
+import android.os.RemoteException;
 import android.os.Vibrator;
 import android.telephony.PhoneStateListener;
 import android.telephony.TelephonyManager;
 import android.util.Log;
+import android.view.View;
 
 /**
  * Manages alarms and vibe. Runs as a service so that it can continue to play
@@ -65,6 +72,7 @@ public class AlarmKlaxon extends Service {
 
     private static final long[] sVibratePattern = new long[] { 500, 500 };
 
+    private IMediaService mMediaService = null;
     private boolean mPlaying = false;
     private Vibrator mVibrator;
     private MediaPlayer mMediaPlayer;
@@ -73,6 +81,26 @@ public class AlarmKlaxon extends Service {
     private TelephonyManager mTelephonyManager;
     private int mInitialCallState;
 
+    private ServiceConnection connection = new ServiceConnection() {
+        public void onServiceConnected(ComponentName classname, IBinder obj) {
+	        // This is called when the connection with the service has been
+	        // established, giving us the service object we can use to
+	        // interact with the service.  Because we have bound to a explicit
+	        // service that we know is running in our own process, we can
+	        // cast its IBinder to a concrete class and directly access it.
+            mMediaService = IMediaService.Stub.asInterface(obj);
+            
+        	Log.v(TAG, "Bind Complete");   	
+        }
+        public void onServiceDisconnected(ComponentName classname) {
+	        // This is called when the connection with the service has been
+	        // unexpectedly disconnected -- that is, its process crashed.
+	        // Because it is running in our same process, we should never
+	        // see this happen.
+            mMediaService = null;
+        }
+    };
+    
     // Internal messages
     private static final int KILLER = 1000;
     private Handler mHandler = new Handler() {
@@ -111,6 +139,8 @@ public class AlarmKlaxon extends Service {
         mTelephonyManager.listen(
                 mPhoneStateListener, PhoneStateListener.LISTEN_CALL_STATE);
         AlarmAlertWakeLock.acquireCpuWakeLock(this);
+        
+    	bindService(new Intent(this, MediaService.class), connection, Context.BIND_AUTO_CREATE);
     }
 
     @Override
@@ -119,6 +149,10 @@ public class AlarmKlaxon extends Service {
         // Stop listening for incoming calls.
         mTelephonyManager.listen(mPhoneStateListener, 0);
         AlarmAlertWakeLock.releaseCpuLock();
+        
+        // Detach our existing connection.
+        unbindService(connection);
+        mMediaService = null;
     }
 
     @Override
