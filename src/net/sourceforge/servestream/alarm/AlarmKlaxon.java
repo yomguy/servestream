@@ -32,6 +32,8 @@
 
 package net.sourceforge.servestream.alarm;
 
+import net.sourceforge.servestream.dbutils.Stream;
+import net.sourceforge.servestream.dbutils.StreamDatabase;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
@@ -170,9 +172,14 @@ public class AlarmKlaxon extends Service {
         Log.v(TAG, "AlarmKlaxon.play() " + alarm.id + " alert " + alarm.alert);
 
         if (!alarm.silent) {
-            //William
-        	//Uri alert = alarm.alert;
+        	StreamDatabase streamdb = new StreamDatabase(this);
+        	Stream stream = streamdb.findStream(alarm.alert);
+        	streamdb.close();
+        	
         	Uri alert = null;
+        	if (stream != null)
+        		alert = stream.getUri();
+
             // Fall back on the default alarm if the database does not have an
             // alarm stored.
             if (alert == null) {

@@ -63,6 +63,7 @@ import net.sourceforge.servestream.R;
 import net.sourceforge.servestream.alarm.Alarm;
 import net.sourceforge.servestream.alarm.Alarms;
 import net.sourceforge.servestream.alarm.DigitalClock;
+import net.sourceforge.servestream.alarm.ToastMaster;
 
 /**
  * AlarmClock application.
@@ -258,7 +259,7 @@ public class AlarmClock extends Activity implements OnItemClickListener {
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        //ToastMaster.cancelToast();
+        ToastMaster.cancelToast();
         mCursor.close();
     }
 

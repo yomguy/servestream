@@ -37,6 +37,7 @@ import net.sourceforge.servestream.alarm.Alarm;
 import net.sourceforge.servestream.alarm.AlarmPreference;
 import net.sourceforge.servestream.alarm.Alarms;
 import net.sourceforge.servestream.alarm.RepeatPreference;
+import net.sourceforge.servestream.alarm.ToastMaster;
 import android.app.AlertDialog;
 import android.app.TimePickerDialog;
 import android.content.Context;
@@ -335,7 +336,7 @@ public class SetAlarm extends PreferenceActivity
     static void popAlarmSetToast(Context context, long timeInMillis) {
         String toastText = formatToast(context, timeInMillis);
         Toast toast = Toast.makeText(context, toastText, Toast.LENGTH_LONG);
-        //ToastMaster.setToast(toast);
+        ToastMaster.setToast(toast);
         toast.show();
     }
 
