@@ -16,7 +16,7 @@
 		android:killAfterRestore="true">
 
         <provider android:name=".alarm.AlarmProvider"
-                android:authorities="net.sourceforge.servestream.alarm"
+                android:authorities="net.sourceforge.servestream"
                 android:exported="false" />
 
 		<meta-data android:name="com.google.android.backup.api_key"
@@ -101,7 +101,7 @@
 
         <receiver android:name=".alarm.AlarmReceiver">
             <intent-filter>
-                <action android:name="net.sourceforge.servestream.alarm.ALARM_ALERT" />
+                <action android:name="net.sourceforge.servestream.ALARM_ALERT" />
                 <action android:name="alarm_killed" />
                 <action android:name="cancel_snooze" />
             </intent-filter>
@@ -117,7 +117,7 @@
                 <!-- android:description="@string/alarm_klaxon_service_desc" -->
                 
             <intent-filter>
-                <action android:name="net.sourceforge.servestream.alarm.ALARM_ALERT" />
+                <action android:name="net.sourceforge.servestream.ALARM_ALERT" />
             </intent-filter>
         </service>
 
@@ -129,7 +129,6 @@
 	<uses-permission android:name="android.permission.INTERNET" />
 	<uses-permission android:name="android.permission.READ_PHONE_STATE" />
 	<uses-permission android:name="android.permission.BROADCAST_STICKY" />
-	
 	<uses-permission android:name="android.permission.VIBRATE"/>
 	<uses-permission android:name="android.permission.WRITE_SETTINGS" />
 
