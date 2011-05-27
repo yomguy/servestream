@@ -32,9 +32,15 @@
 
 package net.sourceforge.servestream.alarm;
 
+import java.net.MalformedURLException;
+
 import net.sourceforge.servestream.R;
 import net.sourceforge.servestream.dbutils.Stream;
 import net.sourceforge.servestream.dbutils.StreamDatabase;
+import net.sourceforge.servestream.utils.ASXPlaylistParser;
+import net.sourceforge.servestream.utils.M3UPlaylistParser;
+import net.sourceforge.servestream.utils.MediaFile;
+import net.sourceforge.servestream.utils.PLSPlaylistParser;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
@@ -46,6 +52,7 @@ import android.media.MediaPlayer.OnErrorListener;
 import android.media.MediaPlayer.OnPreparedListener;
 import android.media.RingtoneManager;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
@@ -220,11 +227,10 @@ public class AlarmKlaxon extends Service {
                     mMediaPlayer.setVolume(IN_CALL_VOLUME, IN_CALL_VOLUME);
                     setDataSourceFromResource(getResources(), mMediaPlayer,
                             R.raw.in_call_alarm);
+                    startAlarm(mMediaPlayer);
                 } else {
-                	//TODO change this
-                    mMediaPlayer.setDataSource(this, alert);
+                	new ParsePlaylistAsyncTask().execute(alert.toString());
                 }
-                startAlarm(mMediaPlayer);
             } catch (Exception ex) {
                 Log.v(TAG, "Using the fallback ringtone");
                 // The alert may be on the sd card which could be busy right
@@ -319,5 +325,119 @@ public class AlarmKlaxon extends Service {
         mHandler.removeMessages(KILLER);
     }
 
+    private boolean isM3UPlaylist(String path) {
+    	int index = 0;
+    	
+    	if (path == null)
+    	    return false;
+    	
+        index = path.lastIndexOf(".");
+    		
+    	if (index == -1)
+    		return false;
+    	
+    	if ((path.length() - index) != 4)
+    		return false;
+    		
+    	if (path.substring(index, path.length()).equalsIgnoreCase(".m3u"))
+    	    return true;		
+
+    	return false;
+    }
+    
+    private boolean isPLSPlaylist(String path) {
+    	int index = 0;
+    	
+    	if (path == null)
+    	    return false;
+    	
+        index = path.lastIndexOf(".");
+    		
+    	if (index == -1)    	
+        	return false;
+    	
+    	if ((path.length() - index) != 4)
+    		return false;
+    		
+    	if (path.substring(index, path.length()).equalsIgnoreCase(".pls"))
+    	    return true;		
+
+    	return false;
+    }
+
+    private boolean isASXPlaylist(String path) {
+    	int index = 0;
+    	
+    	if (path == null)
+    	    return false;
+    	
+        index = path.lastIndexOf(".");
+    		
+    	if (index == -1)    	
+        	return false;
+    	
+    	if ((path.length() - index) != 4)
+    		return false;
+    		
+    	if (path.substring(index, path.length()).equalsIgnoreCase(".asx"))
+    	    return true;		
+
+    	return false;
+    }
+    
+    public class ParsePlaylistAsyncTask extends AsyncTask<String, Void, MediaFile> {
+		
+	    public ParsePlaylistAsyncTask() {
+	        super();
+	    }
+
+	    @Override
+	    protected void onPreExecute() {
+	    	
+	    }
+	    
+		@Override
+		protected MediaFile doInBackground(String... filename) {
+			MediaFile [] mPlayListFiles = null;
+			
+    		try {
+				Stream stream = new Stream(filename[0]);
+			
+				if (isM3UPlaylist(stream.getURL().getPath())) {
+					M3UPlaylistParser playlistParser = new M3UPlaylistParser(stream.getURL());
+					playlistParser.retrieveM3UFiles();
+					mPlayListFiles = playlistParser.getPlaylistFiles();
+				} else if (isPLSPlaylist(stream.getURL().getPath())) {
+					PLSPlaylistParser playlistParser = new PLSPlaylistParser(stream.getURL());
+					playlistParser.retrievePLSFiles();
+					mPlayListFiles = playlistParser.getPlaylistFiles();
+				} else if (isASXPlaylist(stream.getURL().getPath())) {
+					ASXPlaylistParser playlistParser = new ASXPlaylistParser(stream.getURL());
+					playlistParser.retrieveASXFiles();
+					mPlayListFiles = playlistParser.getPlaylistFiles();
+				} else {
+					mPlayListFiles = new MediaFile[1];         
+					MediaFile mediaFile = new MediaFile();
+					mediaFile.setURL(stream.getURL().toString());
+					mediaFile.setTrackNumber(1);
+					mPlayListFiles[0] = mediaFile;
+				}
+			} catch (MalformedURLException ex) {
+				ex.printStackTrace();
+			}
+			
+			return mPlayListFiles[0];
+		}
+
+		@Override
+		protected void onPostExecute(MediaFile mediaFile) {
+		    try {
+				mMediaPlayer.setDataSource(mediaFile.getURL().toString());
+				startAlarm(mMediaPlayer);
+			} catch (Exception ex) {
+				ex.printStackTrace();
+			}
+		}
+    }
 
 }

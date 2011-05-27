@@ -90,7 +90,7 @@ public final class Alarm implements Parcelable {
          * The content:// style URL for this table
          */
         public static final Uri CONTENT_URI =
-                Uri.parse("content://net.sourceforge.servestream.alarm/alarm");
+                Uri.parse("content://net.sourceforge.servestream/alarm");
 
         /**
          * Hour in 24-hour localtime 0 - 23.
