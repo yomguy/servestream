@@ -56,8 +56,8 @@ public class AlarmProvider extends ContentProvider {
             UriMatcher.NO_MATCH);
 
     static {
-        sURLMatcher.addURI("net.sourceforge.servestream.alarm", "alarm", ALARMS);
-        sURLMatcher.addURI("net.sourceforge.servestream.alarm", "alarm/#", ALARMS_ID);
+        sURLMatcher.addURI("net.sourceforge.servestream", "alarm", ALARMS);
+        sURLMatcher.addURI("net.sourceforge.servestream", "alarm/#", ALARMS_ID);
     }
 
     private static class DatabaseHelper extends SQLiteOpenHelper {
