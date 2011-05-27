@@ -43,6 +43,7 @@ import android.content.res.Resources;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.media.MediaPlayer.OnErrorListener;
+import android.media.MediaPlayer.OnPreparedListener;
 import android.media.RingtoneManager;
 import android.net.Uri;
 import android.os.Handler;
@@ -203,6 +204,12 @@ public class AlarmKlaxon extends Service {
                     return true;
                 }
             });
+            
+            mMediaPlayer.setOnPreparedListener(new OnPreparedListener() {
+				public void onPrepared(MediaPlayer mp) {
+					mMediaPlayer.start();	
+				}
+            });
 
             try {
                 // Check if we are in a call. If we are, use the in-call alarm
@@ -214,6 +221,7 @@ public class AlarmKlaxon extends Service {
                     setDataSourceFromResource(getResources(), mMediaPlayer,
                             R.raw.in_call_alarm);
                 } else {
+                	//TODO change this
                     mMediaPlayer.setDataSource(this, alert);
                 }
                 startAlarm(mMediaPlayer);
@@ -256,8 +264,7 @@ public class AlarmKlaxon extends Service {
         if (audioManager.getStreamVolume(AudioManager.STREAM_ALARM) != 0) {
             player.setAudioStreamType(AudioManager.STREAM_ALARM);
             player.setLooping(true);
-            player.prepare();
-            player.start();
+            player.prepareAsync();
         }
     }
 
