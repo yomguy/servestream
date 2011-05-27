@@ -438,7 +438,7 @@ public class Alarms {
             SharedPreferences.Editor ed = prefs.edit();
             ed.putInt(PREF_SNOOZE_ID, id);
             ed.putLong(PREF_SNOOZE_TIME, time);
-            ed.apply();
+            ed.commit();
         }
         // Set the next alert after updating the snooze.
         setNextAlert(context);
@@ -475,7 +475,7 @@ public class Alarms {
         final SharedPreferences.Editor ed = prefs.edit();
         ed.remove(PREF_SNOOZE_ID);
         ed.remove(PREF_SNOOZE_TIME);
-        ed.apply();
+        ed.commit();
     };
 
     /**
