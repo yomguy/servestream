@@ -186,9 +186,9 @@ public class StreamListActivity extends ListActivity {
         	case (R.id.menu_item_help):
         		startActivity(new Intent(StreamListActivity.this, HelpActivity.class));
         		break;
-            /*case (R.id.menu_item_alarms):
+            case (R.id.menu_item_alarms):
                 startActivity(new Intent(this, AlarmClock.class));
-                return true;*/
+                return true;
     	}
     	
 		return false;
