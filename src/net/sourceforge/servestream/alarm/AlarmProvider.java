@@ -60,7 +60,7 @@ public class AlarmProvider extends ContentProvider {
         sURLMatcher.addURI("net.sourceforge.servestream", "alarm/#", ALARMS_ID);
     }
 
-    private static class DatabaseHelper extends SQLiteOpenHelper {
+    public static class DatabaseHelper extends SQLiteOpenHelper {
         public static final String DATABASE_NAME = "alarms.db";
         private static final int DATABASE_VERSION = 5;
 
