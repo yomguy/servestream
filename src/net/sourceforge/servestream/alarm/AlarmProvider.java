@@ -178,6 +178,29 @@ public class AlarmProvider extends ContentProvider {
         return count;
     }
 
+    public int updateAlerts(Uri url, int id) {
+        int count;
+        long rowId = 0;
+        int match = sURLMatcher.match(url);
+        SQLiteDatabase db = mOpenHelper.getWritableDatabase();
+        switch (match) {
+            case ALARMS: {
+        		ContentValues values = new ContentValues();
+        		values.put("alert", 0);
+            	
+                count = db.update("alarms", values, "alert=" + id, null);
+                break;
+            }
+            default: {
+                throw new UnsupportedOperationException(
+                        "Cannot update URL: " + url);
+            }
+        }
+        Log.v(TAG, "*** notifyChange() rowId: " + rowId + " url " + url);
+        getContext().getContentResolver().notifyChange(url, null);
+        return count;
+    }
+    
     @Override
     public Uri insert(Uri url, ContentValues initialValues) {
         if (sURLMatcher.match(url) != ALARMS) {
