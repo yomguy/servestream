@@ -19,6 +19,8 @@ package net.sourceforge.servestream.service;
 
 import java.io.IOException;
 
+import net.sourceforge.servestream.alarm.AlarmProvider;
+import net.sourceforge.servestream.alarm.AlarmProvider.DatabaseHelper;
 import net.sourceforge.servestream.dbutils.StreamDatabase;
 import net.sourceforge.servestream.utils.PreferenceConstants;
 import android.app.backup.BackupAgentHelper;
@@ -42,8 +44,11 @@ public class BackupAgent extends BackupAgentHelper {
         		"_preferences");
         addHelper(PreferenceConstants.BACKUP_PREF_KEY, prefs);
         
-		FileBackupHelper helper = new FileBackupHelper(this, "../databases/" + StreamDatabase.DATABASE_NAME);
-		addHelper(StreamDatabase.DATABASE_NAME, helper);
+		FileBackupHelper streams = new FileBackupHelper(this, "../databases/" + StreamDatabase.DATABASE_NAME);
+		addHelper(StreamDatabase.DATABASE_NAME, streams);
+		
+		FileBackupHelper alarms = new FileBackupHelper(this, "../databases/" + DatabaseHelper.DATABASE_NAME);
+		addHelper(DatabaseHelper.DATABASE_NAME, alarms);
     }
     
     @Override
