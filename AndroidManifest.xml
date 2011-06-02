@@ -54,7 +54,7 @@
 
 		<service android:name=".service.MediaService"
 			android:configChanges="keyboardHidden|orientation"
-			android:description="@string/service_desc" />
+			android:description="@string/media_service_desc" />
 
 		<activity android:name=".StreamMediaActivity" android:configChanges="keyboardHidden|orientation"
 			android:launchMode="singleTop"
@@ -113,8 +113,8 @@
              intent. The service plays the alarm alert and vibrates the device.
              This allows the alert to continue playing even if another activity
              causes the AlarmAlert activity to pause. -->
-        <service android:name=".alarm.AlarmKlaxon" >
-                <!-- android:description="@string/alarm_klaxon_service_desc" -->
+        <service android:name=".alarm.AlarmKlaxon"
+			android:description="@string/alarm_klaxon_service_desc">
                 
             <intent-filter>
                 <action android:name="net.sourceforge.servestream.ALARM_ALERT" />
