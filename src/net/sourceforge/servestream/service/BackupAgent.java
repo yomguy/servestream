@@ -19,7 +19,6 @@ package net.sourceforge.servestream.service;
 
 import java.io.IOException;
 
-import net.sourceforge.servestream.alarm.AlarmProvider;
 import net.sourceforge.servestream.alarm.AlarmProvider.DatabaseHelper;
 import net.sourceforge.servestream.dbutils.StreamDatabase;
 import net.sourceforge.servestream.utils.PreferenceConstants;
