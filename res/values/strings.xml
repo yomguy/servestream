@@ -21,7 +21,7 @@
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
 	
 	<string name="app_desc">An Open-Source HTTP Media Stream Browser and Player.</string>
-	<string name="service_desc">"Allows media to play in the background"</string>
+	<string name="media_service_desc">"Allows media to play in the background"</string>
 	
 	<string name="help_intro">Please select a topic below for more information on a particular subject.</string>
 
@@ -53,9 +53,9 @@
     -->
     <skip/>
     <!-- Do not translate. Duration format for duration < 1 hour -->
-    <string translatable="false" name="durationformatshort"><xliff:g id="format">%2$d:%5$02d</xliff:g></string>
+    <string name="durationformatshort" translatable="false"><xliff:g id="format">%2$d:%5$02d</xliff:g></string>
     <!-- Do not translate. Duration format for duration >= 1 hour -->
-    <string translatable="false" name="durationformatlong"><xliff:g id="format">%1$d:%3$02d:%5$02d</xliff:g></string>
+    <string name="durationformatlong" translatable="false"><xliff:g id="format">%1$d:%3$02d:%5$02d</xliff:g></string>
 
 	<string name="invalid_playlist_title">Cannot play playlist file</string>
 	<string name="invalid_playlist_message">Sorry, the selected playlist file has no valid entries.</string>
