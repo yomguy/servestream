@@ -109,6 +109,11 @@ public class MediaService extends Service {
     
     public static final String SERVICECMD = "net.sourceforge.servestream.mediaservicecommand";
     public static final String CMDNAME = "command";
+    public static final String CMDTOGGLEPAUSE = "togglepause";
+    public static final String CMDSTOP = "stop";
+    public static final String CMDPAUSE = "pause";
+    public static final String CMDPREVIOUS = "previous";
+    public static final String CMDNEXT = "next";
 
     public static final String TOGGLEPAUSE_ACTION = "net.sourceforge.servestream.mediaservicecommand.togglepause";
     public static final String PAUSE_ACTION = "net.sourceforge.servestream.mediaservicecommand.pause";
@@ -230,16 +235,22 @@ public class MediaService extends Service {
             String action = intent.getAction();
             String cmd = intent.getStringExtra("command");
             Log.v(TAG, "mIntentReceiver.onReceive " + action + " / " + cmd);
-            if (NEXT_ACTION.equals(action)) {
+            if (CMDNEXT.equals(cmd) || NEXT_ACTION.equals(action)) {
                 next(true);
-            } else if (TOGGLEPAUSE_ACTION.equals(action)) {
+            } else if (CMDPREVIOUS.equals(cmd)) {
+                prev();
+            } else if (CMDTOGGLEPAUSE.equals(cmd) || TOGGLEPAUSE_ACTION.equals(action)) {
                 if (isPlaying()) {
                     pause();
                 } else {
                     play();
                 }
-            } else if (PAUSE_ACTION.equals(action)) {
+            } else if (CMDPAUSE.equals(cmd) || PAUSE_ACTION.equals(action)) {
                 pause();
+            } else if (CMDSTOP.equals(cmd)) {
+                pause();
+                //mPausedByTransientLossOfFocus = false;
+                seek(0);
             } else if (ServeStreamAppWidgetOneProvider.CMDAPPWIDGETUPDATE.equals(cmd)) {
                 // Someone asked us to refresh a set of specific widgets, probably
                 // because they were just added.
@@ -559,9 +570,16 @@ public class MediaService extends Service {
             String cmd = intent.getStringExtra("command");
             Log.v(TAG, "onStartCommand " + action + " / " + cmd);
 
-            if (NEXT_ACTION.equals(action)) {
+            if (CMDNEXT.equals(cmd) || NEXT_ACTION.equals(action)) {
                 next(true);
-            } else if (TOGGLEPAUSE_ACTION.equals(action)) {
+            } else if (CMDPREVIOUS.equals(cmd)) {
+                if (position() < 2000) {
+                    prev();
+                } else {
+                    seek(0);
+                    play();
+                }
+            } else if (CMDTOGGLEPAUSE.equals(cmd) || TOGGLEPAUSE_ACTION.equals(action)) {
                 if (isPlaying()) {
                     pause();
                 } else {
@@ -569,7 +587,12 @@ public class MediaService extends Service {
                 }
             } else if (PAUSE_ACTION.equals(action)) {
                 pause();
+            } else if (CMDPAUSE.equals(cmd) || CMDSTOP.equals(cmd)) {
+                pause();
+                //mPausedByTransientLossOfFocus = false;
+                seek(0);
             }
+            
         }
         
         return START_STICKY;
