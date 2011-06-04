@@ -15,6 +15,13 @@
 		android:backupAgent=".service.BackupAgent"
 		android:killAfterRestore="true">
 
+        <receiver android:name=".service.MediaButtonIntentReceiver">
+            <intent-filter>
+                <action android:name="android.intent.action.MEDIA_BUTTON" />
+                <action android:name="android.media.AUDIO_BECOMING_NOISY" />
+            </intent-filter>
+        </receiver>
+
         <provider android:name=".alarm.AlarmProvider"
                 android:authorities="net.sourceforge.servestream"
                 android:exported="false" />
