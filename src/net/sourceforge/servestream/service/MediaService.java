@@ -34,10 +34,13 @@ package net.sourceforge.servestream.service;
 
 import android.app.Service;
 import android.appwidget.AppWidgetManager;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.BroadcastReceiver;
+import android.media.AudioManager;
+import android.media.AudioManager.OnAudioFocusChangeListener;
 import android.net.wifi.WifiManager;
 import android.net.wifi.WifiManager.WifiLock;
 import android.os.AsyncTask;
@@ -121,10 +124,13 @@ public class MediaService extends Service {
 
     public static final int TRACK_ENDED = 1;
     public static final int RELEASE_WAKELOCK = 2;
-    public static final int RELEASE_WIFILOCK = 3;
-    public static final int SERVER_DIED = 4;
-    public static final int PLAYER_PREPARED = 6;
-    public static final int PLAYER_ERROR = 7;
+    public static final int SERVER_DIED = 3;
+    private static final int FOCUSCHANGE = 4;
+    private static final int FADEDOWN = 5;
+    private static final int FADEUP = 6;
+    public static final int PLAYER_PREPARED = 7;
+    public static final int PLAYER_ERROR = 8;
+    public static final int RELEASE_WIFILOCK = 9;
     private static final int MAX_HISTORY_SIZE = 100;
     
     private static final int SHOUTCAST_METADATA_REFRESH = 1;
@@ -150,16 +156,38 @@ public class MediaService extends Service {
     private boolean mServiceInUse = false;
     private boolean mIsSupposedToBePlaying = false;
     private boolean mQuietMode = false;
+    private AudioManager mAudioManager;
+    // used to track what type of audio focus loss caused the playback to pause
+    private boolean mPausedByTransientLossOfFocus = false;
     private boolean mPausedDuringPhoneCall = false;
     private SHOUTcastMetadata mSHOUTcastMetadata = null;
     
     private ServeStreamAppWidgetOneProvider mAppWidgetProvider = ServeStreamAppWidgetOneProvider.getInstance();
     
     private Handler mMediaplayerHandler = new Handler() {
+        float mCurrentVolume = 1.0f;
         @Override
         public void handleMessage(Message msg) {
             Log.v(TAG, "mMediaplayerHandler.handleMessage " + msg.what);
             switch (msg.what) {
+            	case FADEDOWN:
+            		mCurrentVolume -= .05f;
+            		if (mCurrentVolume > .2f) {
+            			mMediaplayerHandler.sendEmptyMessageDelayed(FADEDOWN, 10);
+            		} else {
+            			mCurrentVolume = .2f;
+            		}
+            		mPlayer.setVolume(mCurrentVolume);
+            		break;
+            	case FADEUP:
+            		mCurrentVolume += .01f;
+            		if (mCurrentVolume < 1.0f) {
+            			mMediaplayerHandler.sendEmptyMessageDelayed(FADEUP, 10);
+            		} else {
+            			mCurrentVolume = 1.0f;
+            		}
+            		mPlayer.setVolume(mCurrentVolume);
+            		break;
                 case SERVER_DIED:
                 	Log.v(TAG, "server died!");
                     if (mIsSupposedToBePlaying) {
@@ -198,6 +226,44 @@ public class MediaService extends Service {
                 	i = new Intent(ERROR_MESSAGE);
                 	sendBroadcast(i);
                 	break;
+                case FOCUSCHANGE:
+                    // This code is here so we can better synchronize it with the code that
+                    // handles fade-in
+                    switch (msg.arg1) {
+                        case AudioManager.AUDIOFOCUS_LOSS:
+                            Log.v(TAG, "AudioFocus: received AUDIOFOCUS_LOSS");
+                            if(isPlaying()) {
+                                mPausedByTransientLossOfFocus = false;
+                            }
+                            pause();
+                            break;
+                        case AudioManager.AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK:
+                            mMediaplayerHandler.removeMessages(FADEUP);
+                            mMediaplayerHandler.sendEmptyMessage(FADEDOWN);
+                            break;
+                        case AudioManager.AUDIOFOCUS_LOSS_TRANSIENT:
+                            Log.v(TAG, "AudioFocus: received AUDIOFOCUS_LOSS_TRANSIENT");
+                            if(isPlaying()) {
+                                mPausedByTransientLossOfFocus = true;
+                            }
+                            pause();
+                            break;
+                        case AudioManager.AUDIOFOCUS_GAIN:
+                            Log.v(TAG, "AudioFocus: received AUDIOFOCUS_GAIN");
+                            if(!isPlaying() && mPausedByTransientLossOfFocus) {
+                                mPausedByTransientLossOfFocus = false;
+                                mCurrentVolume = 0f;
+                                mPlayer.setVolume(mCurrentVolume);
+                                play(); // also queues a fade-in
+                            } else {
+                                mMediaplayerHandler.removeMessages(FADEDOWN);
+                                mMediaplayerHandler.sendEmptyMessage(FADEUP);
+                            }
+                            break;
+                        default:
+                            Log.e(TAG, "Unknown audio focus change code");
+                    }
+                    break;
                 default:
                     break;
             }
@@ -242,14 +308,16 @@ public class MediaService extends Service {
             } else if (CMDTOGGLEPAUSE.equals(cmd) || TOGGLEPAUSE_ACTION.equals(action)) {
                 if (isPlaying()) {
                     pause();
+                    mPausedByTransientLossOfFocus = false;
                 } else {
                     play();
                 }
             } else if (CMDPAUSE.equals(cmd) || PAUSE_ACTION.equals(action)) {
                 pause();
+                mPausedByTransientLossOfFocus = false;
             } else if (CMDSTOP.equals(cmd)) {
                 pause();
-                //mPausedByTransientLossOfFocus = false;
+                mPausedByTransientLossOfFocus = false;
                 seek(0);
             } else if (ServeStreamAppWidgetOneProvider.CMDAPPWIDGETUPDATE.equals(cmd)) {
                 // Someone asked us to refresh a set of specific widgets, probably
@@ -275,6 +343,12 @@ public class MediaService extends Service {
         }
     };
     
+    private OnAudioFocusChangeListener mAudioFocusListener = new OnAudioFocusChangeListener() {
+        public void onAudioFocusChange(int focusChange) {
+            mMediaplayerHandler.obtainMessage(FOCUSCHANGE, focusChange, 0).sendToTarget();
+        }
+    };
+    
     /**
      * Default constructor
      */
@@ -286,6 +360,10 @@ public class MediaService extends Service {
         super.onCreate();
 
         Log.v(TAG, "onCreate called");
+        
+        mAudioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
+        mAudioManager.registerMediaButtonEventReceiver(new ComponentName(getPackageName(),
+                MediaButtonIntentReceiver.class.getName()));
         
         mStreamdb = new StreamDatabase(this);
         
@@ -333,6 +411,8 @@ public class MediaService extends Service {
         // release all MediaPlayer resources
         mPlayer.release();
         mPlayer = null;
+        
+        mAudioManager.abandonAudioFocus(mAudioFocusListener);
         
         // make sure there aren't any other messages coming
         mSleepTimerHandler.removeCallbacksAndMessages(null);
@@ -582,14 +662,16 @@ public class MediaService extends Service {
             } else if (CMDTOGGLEPAUSE.equals(cmd) || TOGGLEPAUSE_ACTION.equals(action)) {
                 if (isPlaying()) {
                     pause();
+                    mPausedByTransientLossOfFocus = false;
                 } else {
                     play();
                 }
             } else if (PAUSE_ACTION.equals(action)) {
                 pause();
+                mPausedByTransientLossOfFocus = false;
             } else if (CMDPAUSE.equals(cmd) || CMDSTOP.equals(cmd)) {
                 pause();
-                //mPausedByTransientLossOfFocus = false;
+                mPausedByTransientLossOfFocus = false;
                 seek(0);
             }
             
@@ -605,12 +687,18 @@ public class MediaService extends Service {
     	
         mServiceInUse = false;
 		
-		if (!isPlaying() || playingVideo()) {
-			stopSelf(mServiceStartId);
-		}
+        if (isPlaying() || !playingVideo()) { //|| mPausedByTransientLossOfFocus) {
+            // something is currently playing, or will be playing once 
+            // an in-progress action requesting audio focus ends, so don't stop the service now.
+            return true;
+        }
+        
+		//if (!isPlaying() || playingVideo()) {
+	    // No active playlist, OK to stop the service right now
+		stopSelf(mServiceStartId);
+		//}
     	
 		Log.v(TAG, "onUnbind succedded");
-		
         return true;
     }
 
@@ -736,7 +824,11 @@ public class MediaService extends Service {
      * Starts playback of a previously opened file.
      */
     public void play() {
-
+        mAudioManager.requestAudioFocus(mAudioFocusListener, AudioManager.STREAM_MUSIC,
+                AudioManager.AUDIOFOCUS_GAIN);
+        mAudioManager.registerMediaButtonEventReceiver(new ComponentName(this.getPackageName(),
+                MediaButtonIntentReceiver.class.getName()));
+    	
     	if (mPlayer.isInitialized()) {
 
     		if (!mWakeLock.isHeld())
