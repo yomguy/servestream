@@ -60,11 +60,11 @@ import android.widget.Toast;
 /**
  * Manages each alarm
  */
-public class SetAlarm extends PreferenceActivity
+public class SetAlarmActivity extends PreferenceActivity
         implements TimePickerDialog.OnTimeSetListener,
         Preference.OnPreferenceChangeListener {
 
-	private final static String TAG = SetAlarm.class.getName();
+	private final static String TAG = SetAlarmActivity.class.getName();
 	
     private EditTextPreference mLabel;
     private CheckBoxPreference mEnabledPref;
@@ -88,7 +88,7 @@ public class SetAlarm extends PreferenceActivity
         super.onCreate(icicle);
 
         // Override the default content view.
-        setContentView(R.layout.set_alarm);
+        setContentView(R.layout.acc_set_alarm);
 
 		this.setTitle(String.format("%s: %s",
 				getResources().getText(R.string.app_name),
@@ -107,7 +107,7 @@ public class SetAlarm extends PreferenceActivity
                         p.setSummary(val);
                         if (val != null && !val.equals(mLabel.getText())) {
                             // Call through to the generic listener.
-                            return SetAlarm.this.onPreferenceChange(p,
+                            return SetAlarmActivity.this.onPreferenceChange(p,
                                 newValue);
                         }
                         return true;
@@ -120,10 +120,10 @@ public class SetAlarm extends PreferenceActivity
                             Object newValue) {
                         // Pop a toast when enabling alarms.
                         if (!mEnabledPref.isChecked()) {
-                            popAlarmSetToast(SetAlarm.this, mHour, mMinutes,
+                            popAlarmSetToast(SetAlarmActivity.this, mHour, mMinutes,
                                 mRepeatPref.getDaysOfWeek());
                         }
-                        return SetAlarm.this.onPreferenceChange(p, newValue);
+                        return SetAlarmActivity.this.onPreferenceChange(p, newValue);
                     }
                 });
         mTimePref = findPreference("time");
@@ -175,7 +175,7 @@ public class SetAlarm extends PreferenceActivity
                     updatePrefs(mOriginalAlarm);
                     // "Revert" on a newly created alarm should delete it.
                     if (mOriginalAlarm.id == -1) {
-                        Alarms.deleteAlarm(SetAlarm.this, newId);
+                        Alarms.deleteAlarm(SetAlarmActivity.this, newId);
                     } else {
                         saveAlarm();
                     }
@@ -314,7 +314,7 @@ public class SetAlarm extends PreferenceActivity
                 .setPositiveButton(android.R.string.ok,
                         new DialogInterface.OnClickListener() {
                             public void onClick(DialogInterface d, int w) {
-                                Alarms.deleteAlarm(SetAlarm.this, mId);
+                                Alarms.deleteAlarm(SetAlarmActivity.this, mId);
                                 finish();
                             }
                         })
