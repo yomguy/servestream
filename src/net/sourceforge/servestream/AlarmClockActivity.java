@@ -68,7 +68,7 @@ import net.sourceforge.servestream.alarm.ToastMaster;
 /**
  * AlarmClock application.
  */
-public class AlarmClock extends Activity implements OnItemClickListener {
+public class AlarmClockActivity extends Activity implements OnItemClickListener {
 
     public static final String PREFERENCES = "AlarmClock";
 
@@ -87,7 +87,7 @@ public class AlarmClock extends Activity implements OnItemClickListener {
                 : R.drawable.ic_indicator_off);
         Alarms.enableAlarm(this, alarm.id, enabled);
         if (enabled) {
-            SetAlarm.popAlarmSetToast(this, alarm.hour, alarm.minutes,
+        	SetAlarmActivity.popAlarmSetToast(this, alarm.hour, alarm.minutes,
                     alarm.daysOfWeek);
         }
     }
@@ -145,7 +145,7 @@ public class AlarmClock extends Activity implements OnItemClickListener {
             TextView daysOfWeekView =
                     (TextView) digitalClock.findViewById(R.id.daysOfWeek);
             final String daysOfWeekStr =
-                    alarm.daysOfWeek.toString(AlarmClock.this, false);
+                    alarm.daysOfWeek.toString(AlarmClockActivity.this, false);
             if (daysOfWeekStr != null && daysOfWeekStr.length() != 0) {
                 daysOfWeekView.setText(daysOfWeekStr);
                 daysOfWeekView.setVisibility(View.VISIBLE);
@@ -184,7 +184,7 @@ public class AlarmClock extends Activity implements OnItemClickListener {
                                 new DialogInterface.OnClickListener() {
                                     public void onClick(DialogInterface d,
                                             int w) {
-                                        Alarms.deleteAlarm(AlarmClock.this, id);
+                                        Alarms.deleteAlarm(AlarmClockActivity.this, id);
                                     }
                                 })
                         .setNegativeButton(android.R.string.cancel, null)
@@ -197,13 +197,13 @@ public class AlarmClock extends Activity implements OnItemClickListener {
                 final Alarm alarm = new Alarm(c);
                 Alarms.enableAlarm(this, alarm.id, !alarm.enabled);
                 if (!alarm.enabled) {
-                    SetAlarm.popAlarmSetToast(this, alarm.hour, alarm.minutes,
+                	SetAlarmActivity.popAlarmSetToast(this, alarm.hour, alarm.minutes,
                             alarm.daysOfWeek);
                 }
                 return true;
 
             case R.id.edit_alarm:
-                Intent intent = new Intent(this, SetAlarm.class);
+                Intent intent = new Intent(this, SetAlarmActivity.class);
                 intent.putExtra(Alarms.ALARM_ID, id);
                 startActivity(intent);
                 return true;
@@ -230,7 +230,7 @@ public class AlarmClock extends Activity implements OnItemClickListener {
     }
 
     private void updateLayout() {
-        setContentView(R.layout.alarm_clock);
+        setContentView(R.layout.acc_alarm_clock);
         mAlarmsList = (ListView) findViewById(R.id.alarms_list);
         AlarmTimeAdapter adapter = new AlarmTimeAdapter(this, mCursor);
         mAlarmsList.setAdapter(adapter);
@@ -253,7 +253,7 @@ public class AlarmClock extends Activity implements OnItemClickListener {
     }
 
     private void addNewAlarm() {
-        startActivity(new Intent(this, SetAlarm.class));
+        startActivity(new Intent(this, SetAlarmActivity.class));
     }
 
     @Override
@@ -315,7 +315,7 @@ public class AlarmClock extends Activity implements OnItemClickListener {
     }
 
     public void onItemClick(AdapterView<?> parent, View v, int pos, long id) {
-        Intent intent = new Intent(this, SetAlarm.class);
+        Intent intent = new Intent(this, SetAlarmActivity.class);
         intent.putExtra(Alarms.ALARM_ID, (int) id);
         startActivity(intent);
     }
