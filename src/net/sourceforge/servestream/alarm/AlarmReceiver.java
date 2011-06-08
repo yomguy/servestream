@@ -33,7 +33,7 @@
 package net.sourceforge.servestream.alarm;
 
 import net.sourceforge.servestream.R;
-import net.sourceforge.servestream.SetAlarm;
+import net.sourceforge.servestream.SetAlarmActivity;
 import android.app.KeyguardManager;
 import android.app.Notification;
 import android.app.NotificationManager;
@@ -184,7 +184,7 @@ public class AlarmReceiver extends BroadcastReceiver {
         }
 
         // Launch SetAlarm when clicked.
-        Intent viewAlarm = new Intent(context, SetAlarm.class);
+        Intent viewAlarm = new Intent(context, SetAlarmActivity.class);
         viewAlarm.putExtra(Alarms.ALARM_ID, alarm.id);
         PendingIntent intent =
                 PendingIntent.getActivity(context, alarm.id, viewAlarm, 0);

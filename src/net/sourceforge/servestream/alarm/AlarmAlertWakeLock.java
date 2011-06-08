@@ -54,7 +54,7 @@ class AlarmAlertWakeLock {
         sCpuWakeLock = pm.newWakeLock(
                 PowerManager.PARTIAL_WAKE_LOCK |
                 PowerManager.ACQUIRE_CAUSES_WAKEUP |
-                PowerManager.ON_AFTER_RELEASE, "ServeStream.AlarmClock");
+                PowerManager.ON_AFTER_RELEASE, "ServeStream.AlarmClockActivity");
         sCpuWakeLock.acquire();
     }
 

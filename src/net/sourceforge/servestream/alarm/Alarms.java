@@ -50,7 +50,7 @@ import android.util.Log;
 
 import java.util.Calendar;
 
-import net.sourceforge.servestream.AlarmClock;
+import net.sourceforge.servestream.AlarmClockActivity;
 
 /**
  * The Alarms provider supplies info about Alarm Clock settings
@@ -194,7 +194,7 @@ public class Alarms {
         // If this alarm fires before the next snooze, clear the snooze to
         // enable this alarm.
         SharedPreferences prefs =
-                context.getSharedPreferences(AlarmClock.PREFERENCES, 0);
+                context.getSharedPreferences(AlarmClockActivity.PREFERENCES, 0);
         long snoozeTime = prefs.getLong(PREF_SNOOZE_TIME, 0);
         if (alarmTime < snoozeTime) {
             clearSnoozePreference(context, prefs);
@@ -431,7 +431,7 @@ public class Alarms {
     static void saveSnoozeAlert(final Context context, final int id,
             final long time) {
         SharedPreferences prefs = context.getSharedPreferences(
-                AlarmClock.PREFERENCES, 0);
+        		AlarmClockActivity.PREFERENCES, 0);
         if (id == -1) {
             clearSnoozePreference(context, prefs);
         } else {
@@ -449,7 +449,7 @@ public class Alarms {
      */
     static void disableSnoozeAlert(final Context context, final int id) {
         SharedPreferences prefs = context.getSharedPreferences(
-                AlarmClock.PREFERENCES, 0);
+        		AlarmClockActivity.PREFERENCES, 0);
         int snoozeId = prefs.getInt(PREF_SNOOZE_ID, -1);
         if (snoozeId == -1) {
             // No snooze set, do nothing.
@@ -484,7 +484,7 @@ public class Alarms {
      */
     private static boolean enableSnoozeAlert(final Context context) {
         SharedPreferences prefs = context.getSharedPreferences(
-                AlarmClock.PREFERENCES, 0);
+        		AlarmClockActivity.PREFERENCES, 0);
 
         int id = prefs.getInt(PREF_SNOOZE_ID, -1);
         if (id == -1) {
