@@ -39,6 +39,7 @@ import java.net.URLDecoder;
 import java.util.ArrayList;
 
 import net.sourceforge.servestream.R;
+import net.sourceforge.servestream.alarm.Alarm;
 import net.sourceforge.servestream.dbutils.Stream;
 import net.sourceforge.servestream.dbutils.StreamDatabase;
 import net.sourceforge.servestream.utils.PreferenceConstants;
@@ -48,6 +49,7 @@ import net.sourceforge.servestream.utils.UpdateHelper;
 import android.app.AlertDialog;
 import android.app.ListActivity;
 import android.app.ProgressDialog;
+import android.content.ContentResolver;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -187,7 +189,7 @@ public class StreamListActivity extends ListActivity {
         		startActivity(new Intent(StreamListActivity.this, HelpActivity.class));
         		break;
             case (R.id.menu_item_alarms):
-                startActivity(new Intent(this, AlarmClock.class));
+                startActivity(new Intent(this, AlarmClockActivity.class));
                 return true;
     	}
     	
@@ -232,6 +234,10 @@ public class StreamListActivity extends ListActivity {
 					.setPositiveButton(R.string.delete_pos, new DialogInterface.OnClickListener() {
 						public void onClick(DialogInterface dialog, int which) {
 							mStreamdb.deleteStream(stream);
+							ContentResolver resolver = getContentResolver();
+							resolver.update(
+									Alarm.Columns.CONTENT_URI,
+									null, null, new String[] { String.valueOf(stream.getId()) });
 							updateHandler.sendEmptyMessage(-1);
 						}
 						})
