@@ -5,7 +5,7 @@
 	android:versionCode="42"
 	android:installLocation="auto">
 
-	<uses-sdk android:targetSdkVersion="11" android:minSdkVersion="8" />
+	<uses-sdk android:targetSdkVersion="12" android:minSdkVersion="8" />
 
 	<application
 		android:icon="@drawable/icon"
@@ -80,14 +80,14 @@
 
 		<!-- Alarm Activities -->
 
-        <activity android:name="AlarmClock"
+        <activity android:name="AlarmClockActivity"
                 android:label="@string/alarm_list_title"
                 android:taskAffinity=""
                 android:excludeFromRecents="true"
                 android:configChanges="orientation|keyboardHidden|keyboard|navigation"
                 android:exported="true" />
 
-        <activity android:name="SetAlarm" android:label="@string/set_alarm"
+        <activity android:name="SetAlarmActivity" android:label="@string/set_alarm"
                 android:configChanges="orientation|keyboardHidden|keyboard|navigation" />
                 
         <activity android:name=".alarm.AlarmAlert"
