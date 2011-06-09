@@ -275,19 +275,7 @@ public class MediaService extends Service {
         public void handleMessage(Message msg) {
             switch (msg.what) {
                 case SHOUTCAST_METADATA_REFRESH:
-                	mSHOUTcastMetadata.refreshMetadata();
-                	
-					Log.v(TAG, mSHOUTcastMetadata.getTitle());
-					Log.v(TAG, mSHOUTcastMetadata.getArtist());
-
-		    		MediaFile mediaFile = mPlayListFiles[mPlayPos];
-		    		mediaFile.setTitle(mSHOUTcastMetadata.getArtist() + " - " + mSHOUTcastMetadata.getTitle());
-					
-		    		notifyChange(SHOUTCAST_META_CHANGED);
-		    		
-			        msg = mSHOUTcastMetadataHandler.obtainMessage(SHOUTCAST_METADATA_REFRESH);
-			        mSHOUTcastMetadataHandler.removeMessages(SHOUTCAST_METADATA_REFRESH);
-			        mSHOUTcastMetadataHandler.sendMessageDelayed(msg, 4000);
+                	new SHOUTcastMetadataAsyncTask().execute(mSHOUTcastMetadata);
                     break;
                 default:
                     break;
@@ -417,7 +405,6 @@ public class MediaService extends Service {
         // make sure there aren't any other messages coming
         mSleepTimerHandler.removeCallbacksAndMessages(null);
         mMediaplayerHandler.removeCallbacksAndMessages(null);
-        //mSHOUTcastMetadataHandler.removeMessages(SHOUTCAST_METADATA_REFRESH);
 
 		notifyChange(PLAYER_CLOSED);
         
@@ -683,20 +670,19 @@ public class MediaService extends Service {
     @Override
     public boolean onUnbind(Intent intent) {
     	
-		Log.v(TAG, "onUnbind called");
-    	
         mServiceInUse = false;
 		
-        if (isPlaying() || !playingVideo()) { //|| mPausedByTransientLossOfFocus) {
+        /*if (isPlaying() && !playingVideo()) { //|| mPausedByTransientLossOfFocus) {
             // something is currently playing, or will be playing once 
             // an in-progress action requesting audio focus ends, so don't stop the service now.
+        	Log.v(TAG, "RETURNING" + mIsSupposedToBePlaying);
             return true;
-        }
+        }*/
         
-		//if (!isPlaying() || playingVideo()) {
-	    // No active playlist, OK to stop the service right now
-		stopSelf(mServiceStartId);
-		//}
+		if (!isPlaying() || playingVideo()) {
+			// No active playlist, OK to stop the service right now
+			stopSelf(mServiceStartId);
+		}
     	
 		Log.v(TAG, "onUnbind succedded");
         return true;
@@ -809,8 +795,7 @@ public class MediaService extends Service {
             
             /*try {
 				mSHOUTcastMetadata = new SHOUTcastMetadata(new URL(mPlayListFiles[mPlayPos].getURL()));
-	            if (mSHOUTcastMetadata.containsMetadata())
-	                mSHOUTcastMetadataHandler.sendEmptyMessage(SHOUTCAST_METADATA_REFRESH);
+            	new SHOUTcastMetadataAsyncTask().execute(mSHOUTcastMetadata);
 			} catch (MalformedURLException e) {
 				e.printStackTrace();
 			}*/
@@ -1170,7 +1155,6 @@ public class MediaService extends Service {
         synchronized (this) {
         	
         	MediaFile mediaFile = mPlayListFiles[mPlayPos];
-        	
             return mediaFile.getTitle();
         }
     }
@@ -1179,9 +1163,12 @@ public class MediaService extends Service {
         synchronized (this) {
         	
         	MediaFile mediaFile = mPlayListFiles[mPlayPos];
-        	
             return mediaFile.getDecodedURL();
         }
+    }
+    
+    public String getSHOUTcastMetadata() {
+    	return mSHOUTcastMetadata.getArtist() + " - " + mSHOUTcastMetadata.getTitle();
     }
     
     /**
@@ -1271,6 +1258,9 @@ public class MediaService extends Service {
         public String getMediaURL() {
         	return mService.get().getMediaURL();
         }
+        public String getSHOUTcastMetadata() {
+            return mService.get().getSHOUTcastMetadata();
+		}
         public MediaFile [] getQueue() {
             return mService.get().getQueue();
         }
@@ -1531,6 +1521,35 @@ public class MediaService extends Service {
 		    
             Intent i = new Intent(QUEUE_LOADED);
             sendBroadcast(i);
+		}
+    }
+    
+    public class SHOUTcastMetadataAsyncTask extends AsyncTask<SHOUTcastMetadata, Void, Boolean> {
+		
+	    public SHOUTcastMetadataAsyncTask() {
+	        super();
+	    }
+	    
+		@Override
+		protected Boolean doInBackground(SHOUTcastMetadata... stream) {
+        	mSHOUTcastMetadata.refreshMetadata();
+        	
+			Log.v(TAG, mSHOUTcastMetadata.getTitle());
+			Log.v(TAG, mSHOUTcastMetadata.getArtist());
+
+    		return mSHOUTcastMetadata.containsMetadata();
+		}
+
+		@Override
+		protected void onPostExecute(Boolean containsMetadata) {
+			
+			mSHOUTcastMetadataHandler.removeMessages(SHOUTCAST_METADATA_REFRESH);
+			
+			if (containsMetadata) {
+	    		notifyChange(SHOUTCAST_META_CHANGED);
+				Message msg = mSHOUTcastMetadataHandler.obtainMessage(SHOUTCAST_METADATA_REFRESH);
+				mSHOUTcastMetadataHandler.sendMessageDelayed(msg, 4000);
+			}
 		}
     }
 }
