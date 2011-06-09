@@ -103,6 +103,7 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
 
     private TextView mTrackNumber;
     private TextView mTrackName;
+    private TextView mSHOUTcastMetadata;
     
     private SurfaceView preview = null;
     private SurfaceHolder holder;
@@ -158,7 +159,8 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
         
 	    mTrackNumber = (TextView) findViewById(R.id.track_number_text);
 	    mTrackName = (TextView) findViewById(R.id.track_url_text);
-        
+	    mSHOUTcastMetadata = (TextView) findViewById(R.id.shoutcast_metadata_text);
+	    
 		// preload animation for media controller
 		media_controls_fade_in = AnimationUtils.loadAnimation(this, R.anim.media_controls_fade_in);
 		media_controls_fade_out = AnimationUtils.loadAnimation(this, R.anim.media_controls_fade_out);
@@ -864,7 +866,7 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
         		mMediaControls.startAnimation(media_controls_fade_in);
         		mMediaControls.setVisibility(View.VISIBLE);
             } else if (action.equals(MediaService.SHOUTCAST_META_CHANGED)) {
-            	updateTrackInfo();
+            	updateSHOUTcastMetaData();
             } else if (action.equals(MediaService.PLAYSTATE_CHANGED)) {
                 setPauseButtonImage();
             } else if (action.equals(MediaService.START_DIALOG)) {
@@ -946,7 +948,23 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
             mDuration = mMediaService.duration();
             mTotalTime.setText(MusicUtils.makeTimeString(this, mDuration / 1000));
         } catch (RemoteException ex) {
-            //finish();
+
+        }
+    }
+    
+    private void updateSHOUTcastMetaData() {
+        if (mMediaService == null) {
+            return;
+        }
+        try {
+            
+            if (mMediaService.getSHOUTcastMetadata() == null) {
+            	mSHOUTcastMetadata.setText("");
+            } else {
+            	mSHOUTcastMetadata.setText(mMediaService.getSHOUTcastMetadata());
+            }    		
+        } catch (RemoteException ex) {
+        
         }
     }
     
