@@ -44,7 +44,6 @@ import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Parcel;
-import android.provider.Settings;
 import android.text.format.DateFormat;
 import android.util.Log;
 
@@ -409,7 +408,7 @@ public class Alarms {
         Calendar c = Calendar.getInstance();
         c.setTimeInMillis(atTimeInMillis);
         String timeString = formatDayAndTime(context, c);
-        saveNextAlarm(context, timeString);
+        //saveNextAlarm(context, timeString);
     }
 
     /**
@@ -425,7 +424,7 @@ public class Alarms {
                 PendingIntent.FLAG_CANCEL_CURRENT);
         am.cancel(sender);
         setStatusBarIcon(context, false);
-        saveNextAlarm(context, "");
+        //saveNextAlarm(context, "");
     }
 
     static void saveSnoozeAlert(final Context context, final int id,
@@ -569,15 +568,16 @@ public class Alarms {
         return (c == null) ? "" : (String)DateFormat.format(format, c);
     }
 
+    // TODO Remove this code, its not needed
     /**
      * Save time of the next alarm, as a formatted string, into the system
      * settings so those who care can make use of it.
-     */
+     *
     static void saveNextAlarm(final Context context, String timeString) {
         Settings.System.putString(context.getContentResolver(),
                                   Settings.System.NEXT_ALARM_FORMATTED,
                                   timeString);
-    }
+    }*/
 
     /**
      * @return true if clock is set to 24-hour mode
