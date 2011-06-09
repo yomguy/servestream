@@ -35,116 +35,120 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class SHOUTcastMetadata {
-  private static final String TAG = SHOUTcastMetadata.class.getName();
+	private static final String TAG = SHOUTcastMetadata.class.getName();
 
-  private URL mUrl = null;
-  private String mArtist = null;
-  private String mTitle = null;
+	private URL mUrl = null;
+	private String mArtist = null;
+	private String mTitle = null;
+	private boolean mContainsMetadata = false;
   
-  /**
-   * Default constructor
-   * 
-   * @param url The url to extract SHOUTcast metadata from
-   */
-  public SHOUTcastMetadata(URL url) {
-	  mUrl = url;
-  }
+    /**
+     * Default constructor
+     * 
+     * @param url The url to extract SHOUTcast metadata from
+     */
+    public SHOUTcastMetadata(URL url) {
+    	mUrl = url;
+    }
   
-  /**
-   * Refreshes the SHOUTcast metadata
-   */
-  public void refreshMetadata() {
-	  retrieveMetadata();
-  }
+    /**
+     * Refreshes the SHOUTcast metadata
+     */
+    public void refreshMetadata() {
+    	retrieveMetadata();
+    }
 
-  /**
-   * Establishes a connection to the specified Url and, if available, obtains and
-   * parses the SHOUTcast metadata returned
-   */
-  private void retrieveMetadata() {
+    /**
+     * Establishes a connection to the specified Url and, if available, obtains and
+     * parses the SHOUTcast metadata returned
+     */
+    private void retrieveMetadata() {
 	  
-	  int metaDataOffset = 0;
-      HttpURLConnection conn = null;
-      InputStream stream = null;
+    	int metaDataOffset = 0;
+    	HttpURLConnection conn = null;
+    	InputStream stream = null;
 	  
-      try {
+    	try {
+    		conn = (HttpURLConnection) mUrl.openConnection();
       
-    	  conn = (HttpURLConnection) mUrl.openConnection();
-      
-    	  conn.setRequestProperty("Icy-MetaData", "1");
-    	  conn.setRequestProperty("Connection", "close");
-    	  conn.setRequestProperty("Accept", null);
-    	  conn.connect();
+    	    conn.setRequestProperty("Icy-MetaData", "1");
+    	    conn.setRequestProperty("Connection", "close");
+    	    conn.setRequestProperty("Accept", null);
+    	    conn.connect();
 		
-    	  Map<String, List<String>> headers = conn.getHeaderFields();
-    	  stream = conn.getInputStream();
+    	    Map<String, List<String>> headers = conn.getHeaderFields();
+    	    stream = conn.getInputStream();
 
-    	  if (headers.containsKey("icy-metaint")) {
-    		  metaDataOffset = Integer.parseInt(headers.get("icy-metaint").get(0));
-    	  } else {
-    		  StringBuffer strHeaders = new StringBuffer();
-    		  char c;
-    		  while ((c = (char)stream.read()) != -1) {
-    			  strHeaders.append(c);
-				  if (strHeaders.length() > 5 && (strHeaders.substring((strHeaders.length() - 4), strHeaders.length()).equals("\r\n\r\n"))) {
-					  // end of headers
-				 	  break;
-				  }
-    		  }
+    	    if (headers.containsKey("icy-metaint")) {
+    	    	mContainsMetadata = true;
+    	    	metaDataOffset = Integer.parseInt(headers.get("icy-metaint").get(0));
+    	    } else {
+    	    	/*StringBuffer strHeaders = new StringBuffer();
+    	    	char c;
+    	    	while ((c = (char)stream.read()) != -1) {
+    	    		strHeaders.append(c);
+    	    		if (strHeaders.length() > 5 && (strHeaders.substring((strHeaders.length() - 4), strHeaders.length()).equals("\r\n\r\n"))) {
+    	    			// end of headers
+    	    			break;
+    	    		}
+    		    }
 
-    		  // Match headers to get metadata offset within a stream
-    		  Pattern p = Pattern.compile("\\r\\n(icy-metaint):\\s*(.*)\\r\\n");
-    		  Matcher m = p.matcher(strHeaders.toString());
-    		  if (m.find()) {
-    			  metaDataOffset = Integer.parseInt(m.group(2));
-    		  }
-		}
+    		    // Match headers to get metadata offset within a stream
+    		    Pattern p = Pattern.compile("\\r\\n(icy-metaint):\\s*(.*)\\r\\n");
+    		    Matcher m = p.matcher(strHeaders.toString());
+    		    if (m.find()) {
+    		    	metaDataOffset = Integer.parseInt(m.group(2));
+    		    }*/
+    	    }
 
-		// In case no data was sent
-		if (metaDataOffset == 0)
-			return;
+    	    // In case no data was sent
+    	    if (metaDataOffset == 0) {
+    	    	closeInputStream(stream);
+    	    	closeHttpConnection(conn);
+			    return;
+    	    }
 
-		// Read metadata
-		int b;
-		int count = 0;
-		int metaDataLength = 4080; // 4080 is the max length
-		boolean inData = false;
-		StringBuilder metaData = new StringBuilder();
-		// Stream position should be either at the beginning or right after headers
-		// Read the data stream as you normally would, keeping a byte count as you go. 
-		// When the number of bytes equals the metadata interval, you will get a metadata 
-		// block. The first part of the block is a length specifier, which is the next 
-		// byte in the stream. This byte will equal the metadata length / 16. Multiply by 16
-		// to get the actual metadata length. (Max byte size = 255 so metadata max length = 4080.)
-		// Now read that many bytes and you will have a string containing the metadata. Restart your
-		// byte count, and repeat. Success!
-		while ((b = stream.read()) != -1) {
-			count++;
+		    // Read metadata
+		    int b;
+		    int count = 0;
+		    int metaDataLength = 4080; // 4080 is the max length
+		    boolean inData = false;
+		    StringBuilder metaData = new StringBuilder();
+		    // Stream position should be either at the beginning or right after headers
+		    // Read the data stream as you normally would, keeping a byte count as you go. 
+		    // When the number of bytes equals the metadata interval, you will get a metadata 
+		    // block. The first part of the block is a length specifier, which is the next 
+		    // byte in the stream. This byte will equal the metadata length / 16. Multiply by 16
+		    // to get the actual metadata length. (Max byte size = 255 so metadata max length = 4080.)
+		    // Now read that many bytes and you will have a string containing the metadata. Restart your
+		    // byte count, and repeat. Success!
+		    while ((b = stream.read()) != -1) {
+		    	count++;
 
-			// Length of the metadata
-			if (count == metaDataOffset + 1) {
-				metaDataLength = b * 16;
-			}
+			    // Length of the metadata
+			    if (count == metaDataOffset + 1) {
+			    	metaDataLength = b * 16;
+			    }
 
-			if (count > metaDataOffset + 1 && count < (metaDataOffset + metaDataLength)) { 				
-				inData = true;
-			} else { 				
-				inData = false; 			
-			} 	 			
-			if (inData) { 				
-				if (b != 0) { 					
-					metaData.append((char)b); 				
-				} 			
-			} 	 			
-			if (count > (metaDataOffset + metaDataLength)) {
-				break;
-			}
+			    if (count > metaDataOffset + 1 && count < (metaDataOffset + metaDataLength)) { 				
+			    	inData = true;
+			    } else { 				
+			    	inData = false; 			
+			    } 	 			
+			    if (inData) { 				
+			    	if (b != 0) { 					
+			    		metaData.append((char)b); 				
+				    } 			
+			    } 	 			
+			    if (count > (metaDataOffset + metaDataLength)) {
+			    	break;
+			    }
 
-		}
+		    }
 
-		// parse the returned metadata
-		parseMetadata(metaData.toString());
-        Log.v(TAG, metaData.toString());
+		    // parse the returned metadata
+		    parseMetadata(metaData.toString());
+		    Log.v(TAG, metaData.toString());
 		
         } catch (Exception ex) {
         	ex.printStackTrace();
@@ -152,7 +156,7 @@ public class SHOUTcastMetadata {
         	closeInputStream(stream);
         	closeHttpConnection(conn);
         }
-	}
+    }
 
     /**
      * Parses the metadata returned
@@ -217,7 +221,7 @@ public class SHOUTcastMetadata {
 	 * 
 	 * @return
 	 */
-	public boolean containsMetadata() {
+	/*public boolean containsMetadata() {
 		
 		boolean containsMetadata = false;
 		
@@ -244,7 +248,11 @@ public class SHOUTcastMetadata {
 	    }
 	    
 	    return containsMetadata;
-	}
+	}*/
+	
+    public boolean containsMetadata() {
+    	return mContainsMetadata;
+    }
 	
 	/**
 	 * Closes a InputStream
