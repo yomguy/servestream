@@ -15,6 +15,9 @@
 		android:backupAgent=".service.BackupAgent"
 		android:killAfterRestore="true">
 
+		<meta-data android:name="com.google.android.backup.api_key"
+    		android:value="AEdPqrEAAAAIWcqt9c_ET5W0EpBB9ZCQGbBhfrOetXL6t6Cdwg" />
+
         <receiver android:name=".service.MediaButtonIntentReceiver">
             <intent-filter>
                 <action android:name="android.intent.action.MEDIA_BUTTON" />
@@ -25,9 +28,6 @@
         <provider android:name=".alarm.AlarmProvider"
                 android:authorities="net.sourceforge.servestream"
                 android:exported="false" />
-
-		<meta-data android:name="com.google.android.backup.api_key"
-    		android:value="AEdPqrEAAAAIWcqt9c_ET5W0EpBB9ZCQGbBhfrOetXL6t6Cdwg" />
 
 		<activity android:name=".StreamListActivity"
 			android:configChanges="keyboardHidden|orientation"
