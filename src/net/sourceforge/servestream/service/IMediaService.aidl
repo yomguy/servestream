@@ -50,6 +50,7 @@ interface IMediaService
     String getTrackNumber();
     String getTrackName();
     String getMediaURL();
+    String getSHOUTcastMetadata();
     long duration();
     long position();
     long seek(long pos);
