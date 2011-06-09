@@ -99,6 +99,16 @@
 		          android:layout_below="@+id/media_info"
 		          android:background="@drawable/semi_transparent_background"
             	  />
+            	  
+        <TextView android:id="@+id/shoutcast_metadata_text"
+                  android:layout_width="fill_parent" 
+                  android:layout_height="wrap_content"
+                  android:textAppearance="?android:attr/textAppearanceSmall"
+                  android:gravity="center"
+		          android:layout_centerHorizontal="true"
+		          android:layout_below="@+id/track_url_text"
+		          android:background="@drawable/semi_transparent_background"
+            	  />
 
 		<RelativeLayout
 			android:layout_width="fill_parent"
