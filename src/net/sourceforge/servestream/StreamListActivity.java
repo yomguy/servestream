@@ -47,13 +47,16 @@ import net.sourceforge.servestream.utils.URLUtils;
 import net.sourceforge.servestream.utils.UpdateHelper;
 
 import android.app.AlertDialog;
+import android.app.Dialog;
 import android.app.ListActivity;
 import android.app.ProgressDialog;
+import android.content.ActivityNotFoundException;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
@@ -83,6 +86,8 @@ public class StreamListActivity extends ListActivity {
 	public final static String TAG = StreamListActivity.class.getName();	
 	
 	public final static int REQUEST_EDIT = 1;
+	
+	private final static int MISSING_BARCODE_SCANNER = 2;
 	
 	private TextView mQuickconnect = null;
 	private Button mGoButton = null;
@@ -191,11 +196,48 @@ public class StreamListActivity extends ListActivity {
             case (R.id.menu_item_alarms):
                 startActivity(new Intent(this, AlarmClockActivity.class));
                 return true;
+            case (R.id.menu_item_scan):
+            	try {
+            		Intent intent = new Intent("com.google.zxing.client.android.SCAN");
+            		intent.setPackage("com.google.zxing.client.android");
+            		intent.putExtra("SCAN_MODE", "QR_CODE_MODE");
+            		startActivityForResult(intent, 0);
+            	} catch (ActivityNotFoundException ex) {
+            		showDialog(MISSING_BARCODE_SCANNER);
+            	}
+            	return true;
     	}
     	
 		return false;
     }
 
+	protected Dialog onCreateDialog(int id) {
+	    Dialog dialog;
+	    switch(id) {
+	    case MISSING_BARCODE_SCANNER:
+	    	AlertDialog.Builder builder = new AlertDialog.Builder(this);
+	    	builder.setMessage("This feature requires the ZXing barcode scanner, install?")
+	    	       .setCancelable(false)
+	    	       .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+	    	           public void onClick(DialogInterface dialog, int id) {
+	    	        	   Intent intent = new Intent(Intent.ACTION_VIEW);
+	    	        	   intent.setData(Uri.parse("market://details?id=com.google.zxing.client.android"));
+	    	        	   startActivity(intent);
+	    	           }
+	    	       })
+	    	       .setNegativeButton("No", new DialogInterface.OnClickListener() {
+	    	           public void onClick(DialogInterface dialog, int id) {
+	    	                dialog.cancel();
+	    	           }
+	    	       });
+	    	AlertDialog alertDialog = builder.create();
+	    	return alertDialog;
+	    default:
+	        dialog = null;
+	    }
+	    return dialog;
+	}
+	
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         MenuInflater inflater = getMenuInflater();
@@ -246,6 +288,21 @@ public class StreamListActivity extends ListActivity {
 				return true;
 			}
 		});
+	}
+
+	public void onActivityResult(int requestCode, int resultCode, Intent intent) {
+	    if (requestCode == 0) {
+	        if (resultCode == RESULT_OK) {
+	            String contents = intent.getStringExtra("SCAN_RESULT");
+	            String format = intent.getStringExtra("SCAN_RESULT_FORMAT");
+	            // Handle successful scan
+	            Log.v(TAG, contents.toString());
+	            Log.v(TAG, format.toString());
+	           // mQuickconnect.setText(URLDecoder.decode(getIntent().getData().toString(), "UTF-8"));
+	        } else if (resultCode == RESULT_CANCELED) {
+	            // Handle cancel
+	        }
+	    }
 	}
 	
 	protected void updateList() {
