@@ -28,6 +28,9 @@
     <item android:id="@+id/menu_item_alarms"
         android:title="@string/alarm_list_title"
         android:icon="@drawable/ic_menu_alarms"/>
+    <item android:id="@+id/menu_item_scan"
+        android:title="@string/list_menu_scan"
+        android:icon="@android:drawable/ic_menu_camera"/>
 </menu>
 
 
