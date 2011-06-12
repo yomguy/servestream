@@ -57,6 +57,11 @@
     <!-- Do not translate. Duration format for duration >= 1 hour -->
     <string name="durationformatlong" translatable="false"><xliff:g id="format">%1$d:%3$02d:%5$02d</xliff:g></string>
 
+	<!-- Displayed when a user tries to use the scan menu option without having ZXing barcode scanner installed. -->
+	<string name="find_barcode_scanner_message">This feature requires the ZXing barcode scanner. Find this application?</string>
+	<string name="find_pos">Yes</string>
+	<string name="find_neg">No</string>
+
 	<string name="invalid_playlist_title">Cannot play playlist file</string>
 	<string name="invalid_playlist_message">Sorry, the selected playlist file has no valid entries.</string>
 	<string name="invalid_playlist_pos">OK</string>
@@ -217,6 +222,10 @@
 
 	<!-- Window title for Browsing Streams List -->
 	<string name="title_stream_browse">Browse Streams</string>
+
+	<!-- Message to display when a user attempts to scan a URL that is unsupported -->
+	<string name="unsupported_scanned_intent_message">The scanned QR code did not return a supported URL</string>
+	<string name="unsupported_pos">OK</string>
 	
 	<!-- Dialog title when a new version of ServeStream is detected. -->
 	<string name="upgrade">"New version"</string>
