@@ -35,6 +35,7 @@ package net.sourceforge.servestream;
 
 import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
 import java.net.URLDecoder;
 import java.util.ArrayList;
 
@@ -88,6 +89,7 @@ public class StreamListActivity extends ListActivity {
 	public final static int REQUEST_EDIT = 1;
 	
 	private final static int MISSING_BARCODE_SCANNER = 2;
+	private final static int UNSUPPORTED_SCANNED_INTENT = 3;
 	
 	private TextView mQuickconnect = null;
 	private Button mGoButton = null;
@@ -213,24 +215,45 @@ public class StreamListActivity extends ListActivity {
 
 	protected Dialog onCreateDialog(int id) {
 	    Dialog dialog;
+    	AlertDialog.Builder builder;
+    	AlertDialog alertDialog;
 	    switch(id) {
 	    case MISSING_BARCODE_SCANNER:
-	    	AlertDialog.Builder builder = new AlertDialog.Builder(this);
-	    	builder.setMessage("This feature requires the ZXing barcode scanner, install?")
-	    	       .setCancelable(false)
-	    	       .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+	    	builder = new AlertDialog.Builder(this);
+	    	builder.setMessage(R.string.find_barcode_scanner_message)
+	    	       .setCancelable(true)
+	    	       .setPositiveButton(R.string.find_pos, new DialogInterface.OnClickListener() {
 	    	           public void onClick(DialogInterface dialog, int id) {
-	    	        	   Intent intent = new Intent(Intent.ACTION_VIEW);
-	    	        	   intent.setData(Uri.parse("market://details?id=com.google.zxing.client.android"));
-	    	        	   startActivity(intent);
+	    	        	   try {
+	    	        		   Intent intent = new Intent(Intent.ACTION_VIEW);
+	    	        		   intent.setData(Uri.parse("market://details?id=com.google.zxing.client.android"));
+	    	        		   startActivity(intent);
+	    	        	   } catch (ActivityNotFoundException ex ) {
+	    	        		   // the market couldn't be opening or the application couldn't be found
+	    	        		   // lets take the user to the project's webpage instead.
+	    	        		   Intent intent = new Intent(Intent.ACTION_VIEW);
+	    	        		   intent.setData(Uri.parse("http://code.google.com/p/zxing/downloads/list"));
+	    	        		   startActivity(intent);
+	    	        	   }
 	    	           }
 	    	       })
-	    	       .setNegativeButton("No", new DialogInterface.OnClickListener() {
+	    	       .setNegativeButton(R.string.find_neg, new DialogInterface.OnClickListener() {
 	    	           public void onClick(DialogInterface dialog, int id) {
 	    	                dialog.cancel();
 	    	           }
 	    	       });
-	    	AlertDialog alertDialog = builder.create();
+	    	alertDialog = builder.create();
+	    	return alertDialog;
+	    case UNSUPPORTED_SCANNED_INTENT:
+	    	builder = new AlertDialog.Builder(this);
+	    	builder.setMessage(R.string.unsupported_scanned_intent_message)
+	    	       .setCancelable(true)
+	    	       .setPositiveButton(R.string.unsupported_pos, new DialogInterface.OnClickListener() {
+	    	           public void onClick(DialogInterface dialog, int id) {
+	    	                dialog.cancel();
+	    	           }
+	    	       });
+	    	alertDialog = builder.create();
 	    	return alertDialog;
 	    default:
 	        dialog = null;
@@ -298,7 +321,15 @@ public class StreamListActivity extends ListActivity {
 	            // Handle successful scan
 	            Log.v(TAG, contents.toString());
 	            Log.v(TAG, format.toString());
-	           // mQuickconnect.setText(URLDecoder.decode(getIntent().getData().toString(), "UTF-8"));
+	            
+	            try {
+					Stream stream = new Stream(contents);
+			        mQuickconnect.setText(URLDecoder.decode(stream.getURL().toString(), "UTF-8"));
+				} catch (MalformedURLException ex) {
+					showDialog(UNSUPPORTED_SCANNED_INTENT);
+				} catch (UnsupportedEncodingException ex) {
+					showDialog(UNSUPPORTED_SCANNED_INTENT);
+				}
 	        } else if (resultCode == RESULT_CANCELED) {
 	            // Handle cancel
 	        }
