@@ -212,7 +212,8 @@ public class MediaService extends Service {
                     mWakeLock.release();
                     break;
                 case RELEASE_WIFILOCK:
-                	mWifiLock.release();
+            		if (mWifiLock.isHeld())
+            			mWifiLock.release();
                 	break;
                 case PLAYER_PREPARED:
                     Intent i = new Intent(STOP_DIALOG);
@@ -866,7 +867,8 @@ public class MediaService extends Service {
         synchronized(this) {
             if (isPlaying()) {
             	mWakeLock.release();
-            	mWifiLock.release();
+        		if (mWifiLock.isHeld())
+        			mWifiLock.release();
                 mPlayer.pause();
                 mIsSupposedToBePlaying = false;
                 notifyChange(PLAYSTATE_CHANGED);
