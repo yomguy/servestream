@@ -126,8 +126,8 @@ public class MediaService extends Service {
     public static final int RELEASE_WAKELOCK = 2;
     public static final int SERVER_DIED = 3;
     private static final int FOCUSCHANGE = 4;
-    private static final int FADEDOWN = 5;
-    private static final int FADEUP = 6;
+    //private static final int FADEDOWN = 5;
+    //private static final int FADEUP = 6;
     public static final int PLAYER_PREPARED = 7;
     public static final int PLAYER_ERROR = 8;
     public static final int RELEASE_WIFILOCK = 9;
@@ -170,7 +170,7 @@ public class MediaService extends Service {
         public void handleMessage(Message msg) {
             Log.v(TAG, "mMediaplayerHandler.handleMessage " + msg.what);
             switch (msg.what) {
-            	case FADEDOWN:
+            	/*case FADEDOWN:
             		mCurrentVolume -= .05f;
             		if (mCurrentVolume > .2f) {
             			mMediaplayerHandler.sendEmptyMessageDelayed(FADEDOWN, 10);
@@ -187,7 +187,7 @@ public class MediaService extends Service {
             			mCurrentVolume = 1.0f;
             		}
             		mPlayer.setVolume(mCurrentVolume);
-            		break;
+            		break;*/
                 case SERVER_DIED:
                 	Log.v(TAG, "server died!");
                     if (mIsSupposedToBePlaying) {
@@ -239,8 +239,8 @@ public class MediaService extends Service {
                             pause();
                             break;
                         case AudioManager.AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK:
-                            mMediaplayerHandler.removeMessages(FADEUP);
-                            mMediaplayerHandler.sendEmptyMessage(FADEDOWN);
+                            //mMediaplayerHandler.removeMessages(FADEUP);
+                            //mMediaplayerHandler.sendEmptyMessage(FADEDOWN);
                             break;
                         case AudioManager.AUDIOFOCUS_LOSS_TRANSIENT:
                             Log.v(TAG, "AudioFocus: received AUDIOFOCUS_LOSS_TRANSIENT");
@@ -257,8 +257,8 @@ public class MediaService extends Service {
                                 mPlayer.setVolume(mCurrentVolume);
                                 play(); // also queues a fade-in
                             } else {
-                                mMediaplayerHandler.removeMessages(FADEDOWN);
-                                mMediaplayerHandler.sendEmptyMessage(FADEUP);
+                                //mMediaplayerHandler.removeMessages(FADEDOWN);
+                                //mMediaplayerHandler.sendEmptyMessage(FADEUP);
                             }
                             break;
                         default:
@@ -654,10 +654,10 @@ public class MediaService extends Service {
                 } else {
                     play();
                 }
-            } else if (PAUSE_ACTION.equals(action)) {
+            } else if (CMDPAUSE.equals(cmd) || PAUSE_ACTION.equals(action)) {
                 pause();
                 mPausedByTransientLossOfFocus = false;
-            } else if (CMDPAUSE.equals(cmd) || CMDSTOP.equals(cmd)) {
+            } else if (CMDSTOP.equals(cmd)) {
                 pause();
                 mPausedByTransientLossOfFocus = false;
                 seek(0);
