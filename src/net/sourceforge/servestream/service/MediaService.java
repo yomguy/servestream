@@ -39,6 +39,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.BroadcastReceiver;
+import android.content.SharedPreferences;
+import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
 import android.media.AudioManager;
 import android.media.AudioManager.OnAudioFocusChangeListener;
 import android.net.wifi.WifiManager;
@@ -49,6 +51,7 @@ import android.os.IBinder;
 import android.os.Message;
 import android.os.PowerManager;
 import android.os.PowerManager.WakeLock;
+import android.preference.PreferenceManager;
 import android.telephony.PhoneStateListener;
 import android.telephony.TelephonyManager;
 import android.util.Log;
@@ -66,6 +69,7 @@ import net.sourceforge.servestream.utils.ASXPlaylistParser;
 import net.sourceforge.servestream.utils.M3UPlaylistParser;
 import net.sourceforge.servestream.utils.MediaFile;
 import net.sourceforge.servestream.utils.PLSPlaylistParser;
+import net.sourceforge.servestream.utils.PreferenceConstants;
 import net.sourceforge.servestream.widget.ServeStreamAppWidgetOneProvider;
 
 /**
@@ -162,6 +166,8 @@ public class MediaService extends Service {
     private boolean mPausedDuringPhoneCall = false;
     private SHOUTcastMetadata mSHOUTcastMetadata = null;
     
+    private SharedPreferences mPreferences;
+    
     private ServeStreamAppWidgetOneProvider mAppWidgetProvider = ServeStreamAppWidgetOneProvider.getInstance();
     
     private Handler mMediaplayerHandler = new Handler() {
@@ -209,7 +215,8 @@ public class MediaService extends Service {
                     }
                     break;
                 case RELEASE_WAKELOCK:
-                    mWakeLock.release();
+                	if (mWakeLock.isHeld())
+                		mWakeLock.release();
                     break;
                 case RELEASE_WIFILOCK:
             		if (mWifiLock.isHeld())
@@ -337,6 +344,20 @@ public class MediaService extends Service {
             mMediaplayerHandler.obtainMessage(FOCUSCHANGE, focusChange, 0).sendToTarget();
         }
     };
+
+    OnSharedPreferenceChangeListener listener = new SharedPreferences.OnSharedPreferenceChangeListener() {
+  	    public void onSharedPreferenceChanged(SharedPreferences prefs, String key) {
+  	        if (key.equals(PreferenceConstants.WAKELOCK)) {
+				if (prefs.getBoolean(PreferenceConstants.WAKELOCK, true)) {
+		    		if (!mWakeLock.isHeld() && mIsSupposedToBePlaying)
+		    			mWakeLock.acquire();
+  	            } else {
+  	            	if (mWakeLock.isHeld())
+  	            		mWakeLock.release();
+  	            }
+  	        }
+  	    }
+    };
     
     /**
      * Default constructor
@@ -353,6 +374,9 @@ public class MediaService extends Service {
         mAudioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
         mAudioManager.registerMediaButtonEventReceiver(new ComponentName(getPackageName(),
                 MediaButtonIntentReceiver.class.getName()));
+        
+        mPreferences = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
+        mPreferences.registerOnSharedPreferenceChangeListener(listener);
         
         mStreamdb = new StreamDatabase(this);
         
@@ -415,7 +439,8 @@ public class MediaService extends Service {
         // Cancel the persistent notification.
 		ConnectionNotifier.getInstance().hideRunningNotification(this);
         
-		mWakeLock.release();
+    	if (mWakeLock.isHeld())
+    		mWakeLock.release();
 		
 		if (mWifiLock.isHeld())
 		    mWifiLock.release();
@@ -786,7 +811,11 @@ public class MediaService extends Service {
                 return;
             }
 
-            mWakeLock.acquire();
+    		if (mPreferences.getBoolean(PreferenceConstants.WAKELOCK, true)) {
+    			if (!mWakeLock.isHeld())
+    				mWakeLock.acquire();
+    		}
+            
             mWifiLock.acquire();
             
             Intent i = new Intent(START_DIALOG);
@@ -817,8 +846,10 @@ public class MediaService extends Service {
     	
     	if (mPlayer.isInitialized()) {
 
-    		if (!mWakeLock.isHeld())
-    			mWakeLock.acquire();
+    		if (mPreferences.getBoolean(PreferenceConstants.WAKELOCK, true)) {
+    			if (!mWakeLock.isHeld())
+    				mWakeLock.acquire();
+    		}
     		
     		if (!mWifiLock.isHeld())
     			mWifiLock.acquire();
@@ -866,9 +897,12 @@ public class MediaService extends Service {
     public void pause() {
         synchronized(this) {
             if (isPlaying()) {
-            	mWakeLock.release();
+            	if (mWakeLock.isHeld())
+            		mWakeLock.release();
+            	
         		if (mWifiLock.isHeld())
         			mWifiLock.release();
+        		
                 mPlayer.pause();
                 mIsSupposedToBePlaying = false;
                 notifyChange(PLAYSTATE_CHANGED);
