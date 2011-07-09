@@ -52,6 +52,8 @@ public class PreferenceConstants {
 
 	public static final String AUTOSAVE = "autosave";
 	
+	public static final String WAKELOCK = "wakelock";
+	
 	public static final String LAST_CHECKED = "lastchecked";
 
 	public static final String ROTATION = "rotation";
