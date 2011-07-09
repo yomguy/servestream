@@ -41,4 +41,16 @@
 
 	</PreferenceCategory>
 
+	<PreferenceCategory
+		android:title="@string/pref_playback_category">
+
+		<CheckBoxPreference
+			android:key="wakelock"
+			android:title="@string/pref_wakelock_title"
+			android:summary="@string/pref_wakelock_summary"
+			android:defaultValue="true"
+			/>
+
+	</PreferenceCategory>
+
 </PreferenceScreen>
