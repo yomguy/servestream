@@ -144,9 +144,9 @@ public class StreamEditorActivity extends PreferenceActivity implements OnShared
 				return this;
 			}
 
+			// Gingerbread compatibility
 			public void apply() {
-				// TODO Auto-generated method stub
-				
+				commit();
 			}
 
 			public android.content.SharedPreferences.Editor putStringSet(
