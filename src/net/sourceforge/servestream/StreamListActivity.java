@@ -124,12 +124,10 @@ public class StreamListActivity extends ListActivity {
 		mQuickconnect = (TextView) this.findViewById(R.id.front_quickconnect);
 		mQuickconnect.setVisibility(m_makingShortcut ? View.GONE : View.VISIBLE);
 		
-		try {
-			if (getIntent().getData() != null)
-				mQuickconnect.setText(URLDecoder.decode(getIntent().getData().toString(), "UTF-8"));
-		} catch (UnsupportedEncodingException ex) {
-			mQuickconnect.setText(getIntent().getData().toString());
-		}
+		String intentUrl = handleIntentData();
+		
+		if (intentUrl != null)
+			mQuickconnect.setText(intentUrl);
 		
 		// start thread to check for new version
 		new UpdateHelper(this);
@@ -164,6 +162,24 @@ public class StreamListActivity extends ListActivity {
 		});
 		
 		this.mInflater = LayoutInflater.from(this);
+	}
+
+	private String handleIntentData() {
+		String intentUrl = null;
+		
+		try {
+			// check to see if the application was opened from a browser intent
+			if (getIntent().getData() != null)
+				intentUrl = URLDecoder.decode(getIntent().getData().toString(), "UTF-8");
+		
+			// check to see if the application was opened from a share intent
+			if (getIntent().getExtras() != null)
+				intentUrl = URLDecoder.decode(getIntent().getExtras().getCharSequence(Intent.EXTRA_TEXT).toString(), "UTF-8");
+		} catch (UnsupportedEncodingException ex) {
+		} catch (NullPointerException ex) {
+		}
+		
+		return intentUrl;
 	}
 	
 	@Override
