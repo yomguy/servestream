@@ -215,8 +215,7 @@ public class MediaService extends Service {
                     }
                     break;
                 case RELEASE_WAKELOCK:
-                	if (mWakeLock.isHeld())
-                		mWakeLock.release();
+                	mWakeLock.release();
                     break;
                 case RELEASE_WIFILOCK:
             		if (mWifiLock.isHeld())
@@ -352,8 +351,8 @@ public class MediaService extends Service {
 		    		if (!mWakeLock.isHeld() && mIsSupposedToBePlaying)
 		    			mWakeLock.acquire();
   	            } else {
-  	            	if (mWakeLock.isHeld())
-  	            		mWakeLock.release();
+  	            	mWakeLock.release();
+  	            	Log.v(TAG, "Released wake lock");
   	            }
   	        }
   	    }
@@ -438,9 +437,8 @@ public class MediaService extends Service {
         
         // Cancel the persistent notification.
 		ConnectionNotifier.getInstance().hideRunningNotification(this);
-        
-    	if (mWakeLock.isHeld())
-    		mWakeLock.release();
+        	
+    	mWakeLock.release();
 		
 		if (mWifiLock.isHeld())
 		    mWifiLock.release();
@@ -811,10 +809,8 @@ public class MediaService extends Service {
                 return;
             }
 
-    		if (mPreferences.getBoolean(PreferenceConstants.WAKELOCK, true)) {
-    			if (!mWakeLock.isHeld())
-    				mWakeLock.acquire();
-    		}
+    		if (mPreferences.getBoolean(PreferenceConstants.WAKELOCK, true))
+    			mWakeLock.acquire();
             
             mWifiLock.acquire();
             
@@ -846,10 +842,8 @@ public class MediaService extends Service {
     	
     	if (mPlayer.isInitialized()) {
 
-    		if (mPreferences.getBoolean(PreferenceConstants.WAKELOCK, true)) {
-    			if (!mWakeLock.isHeld())
-    				mWakeLock.acquire();
-    		}
+    		if (mPreferences.getBoolean(PreferenceConstants.WAKELOCK, true))
+    			mWakeLock.acquire();
     		
     		if (!mWifiLock.isHeld())
     			mWifiLock.acquire();
@@ -897,8 +891,7 @@ public class MediaService extends Service {
     public void pause() {
         synchronized(this) {
             if (isPlaying()) {
-            	if (mWakeLock.isHeld())
-            		mWakeLock.release();
+            	mWakeLock.release();
             	
         		if (mWifiLock.isHeld())
         			mWifiLock.release();
