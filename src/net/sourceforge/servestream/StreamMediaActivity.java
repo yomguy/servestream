@@ -289,7 +289,6 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
         Log.v(TAG, "onResume called");
         
         mParentActivityState = VISIBLE;
-        
     }
     
     @Override
@@ -299,6 +298,12 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
     	Log.v(TAG, "onPause called");
     	
     	mParentActivityState = GONE;
+    	
+    	try {
+			mMediaService.releaseWakeLock();
+		} catch (RemoteException e) {
+			e.printStackTrace();
+		}
     	
     	if (mDialog != null)
             dismissDialog();
@@ -479,6 +484,11 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
         	setPauseButtonImage();
         	queueNextRefresh(1);
         	mMediaControls.setVisibility(View.VISIBLE);
+        	try {
+    			mMediaService.acquireWakeLock();
+    		} catch (RemoteException e) {
+    			e.printStackTrace();
+    		}
         }
     }
 
@@ -717,21 +727,15 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
         			        Log.e(TAG, "error: " + ex.getMessage());
         			    }
         			} else {
-        				/*if (boundService.isPlayingVideo()) {
-        			    	makeSurface();
-        			        mediaPlayer.setDisplay(holder);
-        			        holder.setFixedSize(displayWidth, displayHeight);
-        			        boundService.resetSurfaceView();
-        				} */
         				updateTrackInfo();
                         setRepeatButtonImage();
                         setShuffleButtonImage();
                         setPauseButtonImage();
                         queueNextRefresh(1);
         				mMediaControls.setVisibility(View.VISIBLE);
+        	    		mMediaService.acquireWakeLock();
         			}
         		} catch (RemoteException ex) {
-        			// TODO Auto-generated catch block
         			ex.printStackTrace();
         		}
             	
@@ -872,9 +876,11 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
             } else if (action.equals(MediaService.START_DIALOG)) {
 	        	try {
 	        		if (mParentActivityState == VISIBLE) {
-	                	Log.v(TAG, "STARTING DIALOG!");
-	        			mDialog = ProgressDialog.show(StreamMediaActivity.this, "", 
-	        					"Opening file...", true);
+	        	    	mDialog = new ProgressDialog(StreamMediaActivity.this);
+	        	        mDialog.setMessage("Opening file...");
+	        	        mDialog.setIndeterminate(true);
+	        	        mDialog.setCancelable(true);
+	        	        mDialog.show();
 	        		}
 	        	} catch (Exception ex) {
 	        	    ex.printStackTrace();	
@@ -908,7 +914,6 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
 			        setPauseButtonImage();
 			        showToast(R.string.media_controls_notif);
 				} catch (RemoteException e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
             }
