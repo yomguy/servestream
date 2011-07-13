@@ -352,7 +352,6 @@ public class MediaService extends Service {
 		    			mWakeLock.acquire();
   	            } else {
   	            	mWakeLock.release();
-  	            	Log.v(TAG, "Released wake lock");
   	            }
   	        }
   	    }
@@ -723,6 +722,15 @@ public class MediaService extends Service {
     
     public MultiPlayer getMediaPlayer() {
     	return mPlayer;
+    }
+    
+    public void acquireWakeLock() {
+		if (mPreferences.getBoolean(PreferenceConstants.WAKELOCK, true))
+			mWakeLock.acquire();
+    }
+    
+    public void releaseWakeLock() {
+    	mWakeLock.release();
     }
     
     /**
@@ -1337,6 +1345,12 @@ public class MediaService extends Service {
         }
         public MultiPlayer getMediaPlayer() {
         	return mService.get().getMediaPlayer();
+        }
+        public void acquireWakeLock() {
+        	mService.get().acquireWakeLock();
+        }
+        public void releaseWakeLock() {
+        	mService.get().releaseWakeLock();
         }
     }
 
