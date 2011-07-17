@@ -429,14 +429,12 @@ public class StreamListActivity extends ListActivity {
 	}
 	
 	private boolean isValidStream() {
-
 		String inputStream = mQuickconnect.getText().toString();	
 		
 		try {
 			mRequestedStream = new Stream(inputStream);
 		} catch (Exception ex) {
-			ex.printStackTrace();
-			showInvalidURLMessage();
+			mQuickconnect.setError(getString(R.string.invalid_url_message));
             return false;
 		}
 		
@@ -464,15 +462,6 @@ public class StreamListActivity extends ListActivity {
 		InputMethodManager inputManager = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
 		View textView = mQuickconnect;
 		inputManager.hideSoftInputFromWindow(textView.getWindowToken(), 0);
-	}
-	
-	private void showInvalidURLMessage() {
-	    new AlertDialog.Builder(StreamListActivity.this)
-		.setMessage(R.string.invalid_url_message)
-		.setPositiveButton(R.string.invalid_url_pos, new DialogInterface.OnClickListener() {
-			public void onClick(DialogInterface dialog, int which) {
-			}
-			}).create().show();
 	}
 	
 	private void showURLNotFoundMessage() {
