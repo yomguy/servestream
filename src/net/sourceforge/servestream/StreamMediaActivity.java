@@ -37,6 +37,7 @@ import net.sourceforge.servestream.player.MultiPlayer;
 import net.sourceforge.servestream.service.IMediaService;
 import net.sourceforge.servestream.service.MediaService;
 import net.sourceforge.servestream.utils.MusicUtils;
+import net.sourceforge.servestream.utils.PreferenceConstants;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
@@ -47,13 +48,18 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
+import android.content.SharedPreferences;
+import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
 import android.content.res.Configuration;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
+import android.os.PowerManager;
 import android.os.RemoteException;
 import android.os.SystemClock;
+import android.os.PowerManager.WakeLock;
+import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.Display;
 import android.view.KeyEvent;
@@ -77,12 +83,15 @@ import android.widget.Toast;
 import android.widget.SeekBar.OnSeekBarChangeListener;
 
 
-public class StreamMediaActivity extends Activity implements SurfaceHolder.Callback {
+public class StreamMediaActivity extends Activity implements SurfaceHolder.Callback, OnSharedPreferenceChangeListener {
     private static final String TAG = StreamMediaActivity.class.getName();
     
     private int mParentActivityState = StreamMediaActivity.VISIBLE;
     public static int VISIBLE = 1;
     public static int GONE = 2;
+    
+    private SharedPreferences mPreferences;
+    private WakeLock mWakeLock;
     
     private ProgressDialog mDialog = null;
     
@@ -111,7 +120,6 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
 	private int mDisplayWidth = 0;
 	private int mDisplayHeight = 0;
     
-	//private Stream mRequestedStream = null;
     private String mRequestedStream = null;
 	
     /** Called when the activity is first created. */
@@ -121,6 +129,13 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
         super.onCreate(icicle);
 
         Log.v(TAG, "onCreate called");
+
+        mPreferences = PreferenceManager.getDefaultSharedPreferences(this);
+        mPreferences.registerOnSharedPreferenceChangeListener(this);
+        
+        PowerManager pm = (PowerManager)getSystemService(Context.POWER_SERVICE);
+        mWakeLock = pm.newWakeLock(PowerManager.SCREEN_BRIGHT_WAKE_LOCK, this.getClass().getName());
+        mWakeLock.setReferenceCounted(false);
         
 		// get the phone's display width and height
 		getDisplayMeasurements();
@@ -170,6 +185,20 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
 		
     }
 
+	/* (non-Javadoc)
+	 * @see android.content.SharedPreferences.OnSharedPreferenceChangeListener#onSharedPreferenceChanged(android.content.SharedPreferences, java.lang.String)
+	 */
+	public void onSharedPreferenceChanged(SharedPreferences sharedPreferences,
+			String key) {
+  	    if (key.equals(PreferenceConstants.WAKELOCK)) {
+			if (sharedPreferences.getBoolean(PreferenceConstants.WAKELOCK, true)) {
+		    	mWakeLock.acquire();
+  	        } else {
+  	            mWakeLock.release();
+  	        }
+  	    }
+  	}
+    
     private OnSeekBarChangeListener mSeekListener = new OnSeekBarChangeListener() {
         public void onStartTrackingTouch(SeekBar bar) {
             mLastSeekEventTime = 0;
@@ -261,6 +290,9 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
         
 		Log.v(TAG, "onStart called");
         
+		if (mPreferences.getBoolean(PreferenceConstants.WAKELOCK, true))
+			mWakeLock.acquire();
+		
         paused = false;
         
         IntentFilter f = new IntentFilter();
@@ -297,13 +329,9 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
     	
     	Log.v(TAG, "onPause called");
     	
-    	mParentActivityState = GONE;
+		mWakeLock.release();
     	
-    	try {
-			mMediaService.releaseWakeLock();
-		} catch (RemoteException e) {
-			e.printStackTrace();
-		}
+    	mParentActivityState = GONE;
     	
     	if (mDialog != null)
             dismissDialog();
@@ -484,11 +512,6 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
         	setPauseButtonImage();
         	queueNextRefresh(1);
         	mMediaControls.setVisibility(View.VISIBLE);
-        	try {
-    			mMediaService.acquireWakeLock();
-    		} catch (RemoteException e) {
-    			e.printStackTrace();
-    		}
         }
     }
 
@@ -733,7 +756,6 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
                         setPauseButtonImage();
                         queueNextRefresh(1);
         				mMediaControls.setVisibility(View.VISIBLE);
-        	    		mMediaService.acquireWakeLock();
         			}
         		} catch (RemoteException ex) {
         			ex.printStackTrace();
