@@ -68,6 +68,4 @@ interface IMediaService
     int getSleepTimerMode();
     boolean loadQueue(String filename);
     MultiPlayer getMediaPlayer();
-    void acquireWakeLock();
-    void releaseWakeLock();
 }
