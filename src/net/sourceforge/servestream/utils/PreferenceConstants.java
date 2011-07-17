@@ -54,23 +54,10 @@ public class PreferenceConstants {
 	
 	public static final String WAKELOCK = "wakelock";
 	
+	public static final String WIFI_LOCK = "wifilock";
+	
 	public static final String LAST_CHECKED = "lastchecked";
-
-	public static final String ROTATION = "rotation";
-
-	public static final String ROTATION_DEFAULT = "Default";
-	public static final String ROTATION_LANDSCAPE = "Force landscape";
-	public static final String ROTATION_PORTRAIT = "Force portrait";
-	public static final String ROTATION_AUTOMATIC = "Automatic";
-
-	public static final String FULLSCREEN = "fullscreen";
 
 	/* Backup identifiers */
 	public static final String BACKUP_PREF_KEY = "prefs";
-	
-	public static final String REPEAT = "repeat";
-	
-	public static final String REPEAT_OFF = "Off";
-	public static final String REPEAT_ONE = "One";
-	public static final String REPEAT_ALL = "All";
 }
