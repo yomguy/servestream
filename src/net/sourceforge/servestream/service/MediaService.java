@@ -43,14 +43,10 @@ import android.content.SharedPreferences;
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
 import android.media.AudioManager;
 import android.media.AudioManager.OnAudioFocusChangeListener;
-import android.net.wifi.WifiManager;
-import android.net.wifi.WifiManager.WifiLock;
 import android.os.AsyncTask;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
-import android.os.PowerManager;
-import android.os.PowerManager.WakeLock;
 import android.preference.PreferenceManager;
 import android.telephony.PhoneStateListener;
 import android.telephony.TelephonyManager;
@@ -76,7 +72,7 @@ import net.sourceforge.servestream.widget.ServeStreamAppWidgetOneProvider;
  * Provides "background" audio playback capabilities, allowing the
  * user to switch between activities without stopping playback.
  */
-public class MediaService extends Service {
+public class MediaService extends Service implements OnSharedPreferenceChangeListener {
 	private static final String TAG = MediaService.class.getName();
 	
     /** used to specify whether enqueue() should start playing
@@ -127,14 +123,12 @@ public class MediaService extends Service {
     public static final String NEXT_ACTION = "net.sourceforge.servestream.mediaservicecommand.next";
 
     public static final int TRACK_ENDED = 1;
-    public static final int RELEASE_WAKELOCK = 2;
-    public static final int SERVER_DIED = 3;
-    private static final int FOCUSCHANGE = 4;
-    //private static final int FADEDOWN = 5;
-    //private static final int FADEUP = 6;
-    public static final int PLAYER_PREPARED = 7;
-    public static final int PLAYER_ERROR = 8;
-    public static final int RELEASE_WIFILOCK = 9;
+    public static final int SERVER_DIED = 2;
+    private static final int FOCUSCHANGE = 3;
+    //private static final int FADEDOWN = 4;
+    //private static final int FADEUP = 5;
+    public static final int PLAYER_PREPARED = 6;
+    public static final int PLAYER_ERROR = 7;
     private static final int MAX_HISTORY_SIZE = 100;
     
     private static final int SHOUTCAST_METADATA_REFRESH = 1;
@@ -154,8 +148,6 @@ public class MediaService extends Service {
     private int mPlayPos = -1;
     private final Shuffler mRand = new Shuffler();
     private int mOpenFailedCounter = 0;
-    private WakeLock mWakeLock;
-    private WifiLock mWifiLock;
     private int mServiceStartId = -1;
     private boolean mServiceInUse = false;
     private boolean mIsSupposedToBePlaying = false;
@@ -167,6 +159,7 @@ public class MediaService extends Service {
     private SHOUTcastMetadata mSHOUTcastMetadata = null;
     
     private SharedPreferences mPreferences;
+    private ConnectivityReceiver connectivityManager;
     
     private ServeStreamAppWidgetOneProvider mAppWidgetProvider = ServeStreamAppWidgetOneProvider.getInstance();
     
@@ -214,13 +207,6 @@ public class MediaService extends Service {
                         next(false);
                     }
                     break;
-                case RELEASE_WAKELOCK:
-                	mWakeLock.release();
-                    break;
-                case RELEASE_WIFILOCK:
-            		if (mWifiLock.isHeld())
-            			mWifiLock.release();
-                	break;
                 case PLAYER_PREPARED:
                     Intent i = new Intent(STOP_DIALOG);
                     sendBroadcast(i);
@@ -277,6 +263,19 @@ public class MediaService extends Service {
         }
     };
 
+	/* (non-Javadoc)
+	 * @see android.content.SharedPreferences.OnSharedPreferenceChangeListener#onSharedPreferenceChanged(android.content.SharedPreferences, java.lang.String)
+	 */
+	public void onSharedPreferenceChanged(SharedPreferences sharedPreferences,
+			String key) {
+  	    if (key.equals(PreferenceConstants.WIFI_LOCK)) {
+			if (sharedPreferences.getBoolean(PreferenceConstants.WIFI_LOCK, true)) {
+				final boolean lockingWifi = mPreferences.getBoolean(PreferenceConstants.WIFI_LOCK, true);
+				connectivityManager.setWantWifiLock(lockingWifi);
+  	        }
+  	    }
+  	}
+    
     private final Handler mSHOUTcastMetadataHandler = new Handler() {
         @Override
         public void handleMessage(Message msg) {
@@ -343,19 +342,6 @@ public class MediaService extends Service {
             mMediaplayerHandler.obtainMessage(FOCUSCHANGE, focusChange, 0).sendToTarget();
         }
     };
-
-    OnSharedPreferenceChangeListener listener = new SharedPreferences.OnSharedPreferenceChangeListener() {
-  	    public void onSharedPreferenceChanged(SharedPreferences prefs, String key) {
-  	        if (key.equals(PreferenceConstants.WAKELOCK)) {
-				if (prefs.getBoolean(PreferenceConstants.WAKELOCK, true)) {
-		    		if (!mWakeLock.isHeld() && mIsSupposedToBePlaying)
-		    			mWakeLock.acquire();
-  	            } else {
-  	            	mWakeLock.release();
-  	            }
-  	        }
-  	    }
-    };
     
     /**
      * Default constructor
@@ -369,12 +355,15 @@ public class MediaService extends Service {
 
         Log.v(TAG, "onCreate called");
         
+        mPreferences = PreferenceManager.getDefaultSharedPreferences(this);
+        mPreferences.registerOnSharedPreferenceChangeListener(this);
+        
+		final boolean lockingWifi = mPreferences.getBoolean(PreferenceConstants.WIFI_LOCK, true);
+		connectivityManager = new ConnectivityReceiver(this, lockingWifi);
+        
         mAudioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
         mAudioManager.registerMediaButtonEventReceiver(new ComponentName(getPackageName(),
                 MediaButtonIntentReceiver.class.getName()));
-        
-        mPreferences = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
-        mPreferences.registerOnSharedPreferenceChangeListener(listener);
         
         mStreamdb = new StreamDatabase(this);
         
@@ -384,13 +373,6 @@ public class MediaService extends Service {
         // Needs to be done in this thread, since otherwise ApplicationContext.getPowerManager() crashes.
         mPlayer = new MultiPlayer();
         mPlayer.setHandler(mMediaplayerHandler);
-        
-        PowerManager pm = (PowerManager)getSystemService(Context.POWER_SERVICE);
-        mWakeLock = pm.newWakeLock(PowerManager.SCREEN_BRIGHT_WAKE_LOCK, this.getClass().getName());
-        mWakeLock.setReferenceCounted(false);
-        
-        WifiManager wifimanager = (WifiManager)getSystemService(Context.WIFI_SERVICE);
-        mWifiLock = wifimanager.createWifiLock(null);
         
         IntentFilter commandFilter = new IntentFilter();
         commandFilter.addAction(SERVICECMD);
@@ -434,195 +416,12 @@ public class MediaService extends Service {
         unregisterReceiver(mIntentReceiver);
         unregisterReceiver(mDockReceiver);
         
-        // Cancel the persistent notification.
+        connectivityManager.cleanup();
+        
 		ConnectionNotifier.getInstance().hideRunningNotification(this);
-        	
-    	mWakeLock.release();
-		
-		if (mWifiLock.isHeld())
-		    mWifiLock.release();
 		
         super.onDestroy();
     }
-
-//    private void saveQueue(boolean full) {
-//
-//        Editor ed = mPreferences.edit();
-//        if (full) {
-//            StringBuilder q = new StringBuilder();
-//            
-//            // The current playlist is save
-//            int len = mPlayListLen;
-//            for (int i = 0; i < len; i++) {
-//            	MediaFile mediaFile = mPlayListFiles[i];
-//            	q.append(MusicUtils.mediaFileToXML(mediaFile));
-//            	//q.append("\n");
-//            }
-//            //Log.i("@@@@ service", "created queue string in " + (System.currentTimeMillis() - start) + " ms");
-//            ed.putString("queue", q.toString());
-//            Log.v(TAG, "Saved: " + q.toString());
-//            ed.putInt("cardid", mCardId);
-//            if (mShuffleMode != SHUFFLE_NONE) {
-//                // In shuffle mode we need to save the history too
-//                len = mHistory.size();
-//                q.setLength(0);
-//                for (int i = 0; i < len; i++) {
-//                    int n = mHistory.get(i);
-//                    if (n == 0) {
-//                        q.append("0;");
-//                    } else {
-//                        while (n != 0) {
-//                            int digit = (n & 0xf);
-//                            n >>>= 4;
-//                            q.append(digit);
-//                        }
-//                        q.append(";");
-//                    }
-//                }
-//                ed.putString("history", q.toString());
-//            }
-//        }
-//        ed.putInt("curpos", mPlayPos);
-//        if (mPlayer.isInitialized()) {
-//            ed.putLong("seekpos", mPlayer.position());
-//        }
-//        ed.putInt("repeatmode", mRepeatMode);
-//        ed.putInt("shufflemode", mShuffleMode);
-//        ed.commit();
-//        //SharedPreferencesCompat.apply(ed);
-//
-//        //Log.i("@@@@ service", "saved state in " + (System.currentTimeMillis() - start) + " ms");
-//    }
-    
-//    private void reloadQueue() {
-//    	ArrayList<MediaFile> mediaFiles = new ArrayList<MediaFile>();
-//    	
-//        String q = null;
-//        
-//        int id = mCardId;
-//        if (mPreferences.contains("cardid")) {
-//            id = mPreferences.getInt("cardid", ~mCardId);
-//        }
-//        if (id == mCardId) {
-//            // Only restore the saved playlist if the card is still
-//            // the same one as when the playlist was saved
-//            q = mPreferences.getString("queue", "");
-//        }
-//        int qlen = q != null ? q.length() : 0;
-//        if (qlen > 1) {
-//            //Log.i("@@@@ service", "loaded queue: " + q);
-//            int plen = 0;
-//            String file = "";
-//            for (int i = 0; i < qlen; i++) {
-//                char c = q.charAt(i);
-//                if (c == '\n') {
-//                	MediaFile mediaFile = MusicUtils.XMLToMediaFile(file);
-//                	mediaFiles.add(mediaFile);
-//                    plen++;
-//                    file = "";
-//                } else {
-//                	file = file + c;
-//                }
-//            }
-//            mPlayListLen = plen;
-//
-//            int pos = mPreferences.getInt("curpos", 0);
-//            //if (pos < 0 || pos >= mPlayListLen) {
-//                // The saved playlist is bogus, discard it
-//                //mPlayListLen = 0;
-//                //return;
-//            //}
-//            mPlayPos = pos;
-//
-//            // Make sure we don't auto-skip to the next song, since that
-//            // also starts playback. What could happen in that case is:
-//            // - music is paused
-//            // - go to UMS and delete some files, including the currently playing one
-//            // - come back from UMS
-//            // (time passes)
-//            // - music app is killed for some reason (out of memory)
-//            // - music service is restarted, service restores state, doesn't find
-//            //   the "current" file, goes to the next and: playback starts on its
-//            //   own, potentially at some random inconvenient time.
-//            //mOpenFailedCounter = 20;
-//            //mQuietMode = true;
-//            //openCurrent();
-//            //mQuietMode = false;
-//            //if (!mPlayer.isInitialized()) {
-//                // couldn't restore the saved state
-//            //    mPlayListLen = 0;
-//            //    return;
-//            //}
-//            
-//            long seekpos = mPreferences.getLong("seekpos", 0);
-//            seek(seekpos >= 0 && seekpos < duration() ? seekpos : 0);
-//            Log.d(TAG, "restored queue, currently at position "
-//                    + position() + "/" + duration()
-//                    + " (requested " + seekpos + ")");
-//            
-//            int repmode = mPreferences.getInt("repeatmode", REPEAT_NONE);
-//            if (repmode != REPEAT_ALL && repmode != REPEAT_CURRENT) {
-//                repmode = REPEAT_NONE;
-//            }
-//            mRepeatMode = repmode;
-//
-//            mPlayList = new long[mPlayListLen];
-//            mPlayListFiles = new MediaFile[mPlayListLen];
-//            
-//            for (int i = 0; i < mPlayListLen; i++) {
-//            	mPlayList[i] = i;
-//			    mPlayListFiles[i] = mediaFiles.get(i);
-//            }
-//            
-//            mFileToPlay = mPlayListFiles[mPlayPos].getURL();
-//            
-//            //int shufmode = mPreferences.getInt("shufflemode", SHUFFLE_NONE);
-//            //if (shufmode != SHUFFLE_AUTO && shufmode != SHUFFLE_NORMAL) {
-//            //    shufmode = SHUFFLE_NONE;
-//            //}
-//            //if (shufmode != SHUFFLE_NONE) {
-//                // in shuffle mode we need to restore the history too
-//            //    q = mPreferences.getString("history", "");
-//            //    qlen = q != null ? q.length() : 0;
-//            //    if (qlen > 1) {
-//            //        plen = 0;
-//            //        n = 0;
-//            //        shift = 0;
-//            //        mHistory.clear();
-//            //        for (int i = 0; i < qlen; i++) {
-//            //            char c = q.charAt(i);
-//            //            if (c == ';') {
-//            //                if (n >= mPlayListLen) {
-//            //                    // bogus history data
-//            //                    mHistory.clear();
-//            //                    break;
-//            //                }
-//            //                mHistory.add(n);
-//            //                n = 0;
-//            //                shift = 0;
-//            //            } else {
-//            //                if (c >= '0' && c <= '9') {
-//            //                    n += ((c - '0') << shift);
-//            //                } else if (c >= 'a' && c <= 'f') {
-//            //                    n += ((10 + c - 'a') << shift);
-//            //                } else {
-//            //                    // bogus history data
-//            //                    mHistory.clear();
-//            //                    break;
-//            //                }
-//            //                shift += 4;
-//            //            }
-//            //        }
-//            //    }
-//            //}
-//            //if (shufmode == SHUFFLE_AUTO) {
-//            //    if (! makeAutoShuffleList()) {
-//            //        shufmode = SHUFFLE_NONE;
-//            //    }
-//            //}
-//            //mShuffleMode = shufmode;
-//        }
-//    }
     
     private boolean loadQueue(String filename) {
         Log.v(TAG, "Loading Queue");        
@@ -639,7 +438,7 @@ public class MediaService extends Service {
     	
 		Log.v(TAG, "onBind called");
     	
-		// Make sure we stay running to maintain the bridges
+		// Make sure we stay running
 		startService(new Intent(this, MediaService.class));
     	
         mServiceInUse = true;
@@ -722,15 +521,6 @@ public class MediaService extends Service {
     
     public MultiPlayer getMediaPlayer() {
     	return mPlayer;
-    }
-    
-    public void acquireWakeLock() {
-		if (mPreferences.getBoolean(PreferenceConstants.WAKELOCK, true))
-			mWakeLock.acquire();
-    }
-    
-    public void releaseWakeLock() {
-    	mWakeLock.release();
     }
     
     /**
@@ -816,11 +606,6 @@ public class MediaService extends Service {
             if (path == null) {
                 return;
             }
-
-    		if (mPreferences.getBoolean(PreferenceConstants.WAKELOCK, true))
-    			mWakeLock.acquire();
-            
-            mWifiLock.acquire();
             
             Intent i = new Intent(START_DIALOG);
             sendBroadcast(i);
@@ -849,12 +634,6 @@ public class MediaService extends Service {
                 MediaButtonIntentReceiver.class.getName()));
     	
     	if (mPlayer.isInitialized()) {
-
-    		if (mPreferences.getBoolean(PreferenceConstants.WAKELOCK, true))
-    			mWakeLock.acquire();
-    		
-    		if (!mWifiLock.isHeld())
-    			mWifiLock.acquire();
     		
             mPlayer.start();
 
@@ -898,12 +677,7 @@ public class MediaService extends Service {
      */
     public void pause() {
         synchronized(this) {
-            if (isPlaying()) {
-            	mWakeLock.release();
-            	
-        		if (mWifiLock.isHeld())
-        			mWifiLock.release();
-        		
+            if (isPlaying()) {        		
                 mPlayer.pause();
                 mIsSupposedToBePlaying = false;
                 notifyChange(PLAYSTATE_CHANGED);
@@ -1345,12 +1119,6 @@ public class MediaService extends Service {
         }
         public MultiPlayer getMediaPlayer() {
         	return mService.get().getMediaPlayer();
-        }
-        public void acquireWakeLock() {
-        	mService.get().acquireWakeLock();
-        }
-        public void releaseWakeLock() {
-        	mService.get().releaseWakeLock();
         }
     }
 
