@@ -50,6 +50,13 @@
 			android:summary="@string/pref_wakelock_summary"
 			android:defaultValue="true"
 			/>
+			
+		<CheckBoxPreference
+			android:key="wifilock"
+			android:title="@string/pref_wifilock_title"
+			android:summary="@string/pref_wifilock_summary"
+			android:defaultValue="true"
+			/>
 
 	</PreferenceCategory>
 
