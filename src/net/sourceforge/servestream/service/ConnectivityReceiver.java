@@ -68,7 +68,7 @@ public class ConnectivityReceiver extends BroadcastReceiver {
 
 		Log.d(TAG, "onReceived() called; noConnectivity? " + noConnectivity + "; isFailover? " + isFailover);
 
-		/*if (noConnectivity && !isFailover && mIsConnected) {
+		if (noConnectivity && !isFailover && mIsConnected) {
 			mIsConnected = false;
 			mMediaService.onConnectivityLost();
 		} else if (!mIsConnected) {
@@ -78,7 +78,7 @@ public class ConnectivityReceiver extends BroadcastReceiver {
 			if (mIsConnected = (info.getState() == State.CONNECTED)) {
 				mMediaService.onConnectivityRestored();
 			}
-		}*/
+		}
 	}
 
 	/**

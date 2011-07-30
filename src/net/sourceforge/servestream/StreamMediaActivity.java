@@ -302,6 +302,8 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
         f.addAction(MediaService.STOP_DIALOG);
         f.addAction(MediaService.ERROR_MESSAGE);
         f.addAction(MediaService.QUEUE_LOADED);
+        f.addAction(MediaService.CONNECTIVITY_LOST);
+        f.addAction(MediaService.CONNECTIVITY_RESTORED);
         registerReceiver(mStatusListener, new IntentFilter(f));
         
         f = new IntentFilter();
@@ -938,6 +940,14 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
 				} catch (RemoteException e) {
 					e.printStackTrace();
 				}
+            } else if (action.equals(MediaService.CONNECTIVITY_LOST)) {
+    	    	mDialog = new ProgressDialog(StreamMediaActivity.this);
+    	        mDialog.setMessage("Reconnecting");
+    	        mDialog.setIndeterminate(true);
+    	        mDialog.setCancelable(true);
+    	        mDialog.show();
+            } else if (action.equals(MediaService.CONNECTIVITY_RESTORED)) {
+            	mDialog.dismiss();
             }
         }
     };
