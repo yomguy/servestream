@@ -109,6 +109,8 @@ public class MediaService extends Service implements OnSharedPreferenceChangeLis
     public static final String PLAYER_CLOSED = "net.sourceforge.servestream.playerclosed";
     public static final String ERROR_MESSAGE = "net.sourceforge.servestream.errormessage";
     public static final String CLOSE_PLAYER = "net.sourceforge.servestream.closeplayer";
+    public static final String CONNECTIVITY_LOST = "net.sourceforge.servestream.connectivitylost";
+    public static final String CONNECTIVITY_RESTORED = "net.sourceforge.servestream.connectivityrestored";
     
     public static final String SERVICECMD = "net.sourceforge.servestream.mediaservicecommand";
     public static final String CMDNAME = "command";
@@ -552,6 +554,16 @@ public class MediaService extends Service implements OnSharedPreferenceChangeLis
         mAppWidgetProvider.notifyChange(this, what);
     }
 
+    private void notifyStickyChange(String what) {
+        
+    	// send notification to StreamMediaActivity
+        Intent i = new Intent(what);
+        sendStickyBroadcast(i);
+        
+        // Share this notification directly with our widgets
+        //mAppWidgetProvider.notifyChange(this, what);
+    }
+    
     /**
      * Returns the current play list
      * 
@@ -1155,6 +1167,23 @@ public class MediaService extends Service implements OnSharedPreferenceChangeLis
     		}
     	}
     };
+    
+	/**
+	 * Called when connectivity to the network is lost and it doesn't appear
+	 * we'll be getting a different connection any time soon.
+	 */
+	public void onConnectivityLost() {
+		notifyStickyChange(CONNECTIVITY_LOST);
+		pause();
+	}
+
+	/**
+	 * Called when connectivity to the network is restored.
+	 */
+	public void onConnectivityRestored() {
+		notifyStickyChange(CONNECTIVITY_RESTORED);
+		play();
+	}
     
     /**
      * Checks if the currently playing media file is a video file
