@@ -56,6 +56,7 @@ import android.content.ContentResolver;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.Intent.ShortcutIconResource;
 import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.AsyncTask;
@@ -101,7 +102,7 @@ public class StreamListActivity extends ListActivity {
 	
 	private SharedPreferences mPreferences = null;
 	
-	protected boolean m_makingShortcut = false;
+	protected boolean mMakingShortcut = false;
 	
 	protected Handler updateHandler = new Handler() {
 		@Override
@@ -120,14 +121,12 @@ public class StreamListActivity extends ListActivity {
 				getResources().getText(R.string.title_stream_list)));
 		
 		mPreferences = PreferenceManager.getDefaultSharedPreferences(this);
+
+		// If the intent is a request to create a shortcut, we'll do that and exit
+		mMakingShortcut = Intent.ACTION_CREATE_SHORTCUT.equals(getIntent().getAction());
 		
 		mQuickconnect = (TextView) this.findViewById(R.id.front_quickconnect);
-		mQuickconnect.setVisibility(m_makingShortcut ? View.GONE : View.VISIBLE);
-		
-		String intentUrl = handleIntentData();
-		
-		if (intentUrl != null)
-			mQuickconnect.setText(intentUrl);
+		mQuickconnect.setVisibility(mMakingShortcut ? View.GONE : View.VISIBLE);
 		
 		// start thread to check for new version
 		new UpdateHelper(this);
@@ -142,13 +141,32 @@ public class StreamListActivity extends ListActivity {
 				hideKeyboard();
 				
 				mRequestedStream = (Stream) parent.getAdapter().getItem(position);
-				new DetermineIntentAsyncTask().execute(mRequestedStream);
+				
+				if (mMakingShortcut) {
+					Intent contents = new Intent(Intent.ACTION_VIEW);
+					contents.setType("net.sourceforge.servestream/" + mRequestedStream.getUri());
+					contents.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+					
+					// create shortcut if requested
+					ShortcutIconResource icon = Intent.ShortcutIconResource.fromContext(StreamListActivity.this, R.drawable.icon);
+
+					Intent intent = new Intent();
+					intent.putExtra(Intent.EXTRA_SHORTCUT_INTENT, contents);
+					intent.putExtra(Intent.EXTRA_SHORTCUT_NAME, mRequestedStream.getNickname());
+					intent.putExtra(Intent.EXTRA_SHORTCUT_ICON_RESOURCE, icon);
+
+					setResult(RESULT_OK, intent);
+					finish();
+				} else {
+					new DetermineIntentAsyncTask().execute(mRequestedStream);
+				}
 			}
 		});
 
 		this.registerForContextMenu(list);
 
 		mGoButton = (Button) this.findViewById(R.id.go_button);
+		mGoButton.setVisibility(mMakingShortcut ? View.GONE : View.VISIBLE);
 		mGoButton.setOnClickListener(new OnClickListener() {
 
 			public void onClick(View arg0) {
@@ -162,24 +180,30 @@ public class StreamListActivity extends ListActivity {
 		});
 		
 		this.mInflater = LayoutInflater.from(this);
+		
+		handleIntentData();
 	}
 
-	private String handleIntentData() {
-		String intentUrl = null;
+	private void handleIntentData() {
+		String intentUri = null;
 		
-		try {
-			// check to see if the application was opened from a browser intent
-			if (getIntent().getData() != null)
-				intentUrl = URLDecoder.decode(getIntent().getData().toString(), "UTF-8");
+        // check to see if we were called from a shortcut
+		if (getIntent().getType() != null)
+			intentUri = getIntent().getType().toString().replace("net.sourceforge.servestream/", "");
+			
+		// check to see if the application was opened from a share intent
+		if (getIntent().getExtras() != null)
+			intentUri = getIntent().getExtras().getCharSequence(Intent.EXTRA_TEXT).toString();
+
+		if (intentUri != null)
+			try {
+				mRequestedStream = new Stream(intentUri);
+			} catch (MalformedURLException e) {
+				e.printStackTrace();
+			}
 		
-			// check to see if the application was opened from a share intent
-			if (getIntent().getExtras() != null)
-				intentUrl = URLDecoder.decode(getIntent().getExtras().getCharSequence(Intent.EXTRA_TEXT).toString(), "UTF-8");
-		} catch (UnsupportedEncodingException ex) {
-		} catch (NullPointerException ex) {
-		}
-		
-		return intentUrl;
+		if (mRequestedStream != null)
+			new DetermineIntentAsyncTask().execute(mRequestedStream);
 	}
 	
 	@Override
@@ -279,6 +303,10 @@ public class StreamListActivity extends ListActivity {
 	
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
+		// don't offer menus when creating shortcut
+		if (mMakingShortcut)
+			return true;
+    	
         MenuInflater inflater = getMenuInflater();
         inflater.inflate(R.menu.stream_list_menu, menu);
         return true;
