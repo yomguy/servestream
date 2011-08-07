@@ -24,55 +24,40 @@ import java.io.Reader;
 import java.io.StringReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.util.ArrayList;
 import java.util.List;
-
-import javax.net.ssl.HttpsURLConnection;
 
 import org.jdom.Document;
 import org.jdom.Element;
 import org.jdom.JDOMException;
 import org.jdom.input.SAXBuilder;
 
-public class ASXPlaylistParser {
+public class ASXPlaylistParser extends PlaylistParser {
 	public final static String TAG = ASXPlaylistParser.class.getName();
 
-	private URL playlistURL = null;
-    private ArrayList<MediaFile> playlistFiles = null;
-    private MediaFile [] mPlayListFiles = null;
-    private int numberOfFiles = 0;
+	public final static String EXTENSION = "asx";
     
 	/**
 	 * Default constructor
 	 */
-	public ASXPlaylistParser(URL playlistURL) {
-		this.playlistURL = playlistURL;
-		this.playlistFiles = new ArrayList<MediaFile>();
+	public ASXPlaylistParser(URL playlistUrl) {
+		super(playlistUrl);
 	}
 	
 	/**
 	 * Retrieves the files listed in a .asx file
 	 */
-    public void retrieveASXFiles() {
+    public void retrieveAndParsePlaylist() {
     	
-    	if (playlistURL == null)
+    	if (mPlaylistUrl == null)
     		return;
     	
 		HttpURLConnection conn = null;
 		String xml = "";
         String line = null;
-        BufferedReader reader = null;;
+        BufferedReader reader = null;
         
-        try {
-        	
-        	if (playlistURL.getProtocol().equalsIgnoreCase("http")) {
-        		conn = (HttpURLConnection) playlistURL.openConnection();
-        	} else if (playlistURL.getProtocol().equalsIgnoreCase("https")) {
-        		conn = (HttpsURLConnection) playlistURL.openConnection();        		
-        	}
-       
-        	conn.setRequestProperty("User-Agent", URLUtils.USER_AGENT);
-		    conn.setRequestMethod("GET");
+        try { 	
+        	conn = getConnection(mPlaylistUrl);
 		    
 		    // Start the query
 		    reader = new BufferedReader(new InputStreamReader(conn.getInputStream()));
@@ -83,13 +68,6 @@ public class ASXPlaylistParser {
             }
 		    
 		    parseXML(xml);
-
-		    mPlayListFiles = new MediaFile[playlistFiles.size()];
-		    
-		    for (int i = 0; i < playlistFiles.size(); i++) {
-		    	mPlayListFiles[i] = playlistFiles.get(i);
-		    }
-		    
         } catch (Exception ex) {
         	ex.printStackTrace();
         } finally {
@@ -117,7 +95,6 @@ public class ASXPlaylistParser {
 	    			buildPlaylistEntry(children.get(i).getChildren());
 	    		}
 	    	}
-
 	    } catch (JDOMException e) {
 	    } catch (IOException e) {
 	    } catch (Exception e) {
@@ -161,50 +138,9 @@ public class ASXPlaylistParser {
     	    }
     	}
     	
-    	numberOfFiles = numberOfFiles + 1;
-    	mediaFile.setTrackNumber(numberOfFiles);
-    	playlistFiles.add(mediaFile);
-    }
-	
-    public MediaFile [] getPlaylistFiles() {
-    	return mPlayListFiles;
-    }
-    
-	/**
-	 * @return the numberOfFiles
-	 */
-	public int getNumberOfFiles() {
-		return numberOfFiles;
-	}
-	
-	/**
-	 * Closes a BufferedReader
-	 * 
-	 * @param reader The reader to close
-	 */
-    private void closeReader(BufferedReader reader) {
-    	
-    	if (reader == null)
-    		return;
-
-    	try {
-    	    reader.close();
-    	} catch (IOException ex) {
-    		
-    	}
-    }
-    
-	/**
-	 * Closes a HttpURLConnection
-	 * 
-	 * @param conn The connection to close
-	 */
-    private void closeHttpConnection(HttpURLConnection conn) {
-    	
-    	if (conn == null)
-    		return;
-    	
-    	conn.disconnect();
+    	mNumberOfFiles = mNumberOfFiles + 1;
+    	mediaFile.setTrackNumber(mNumberOfFiles);
+    	mPlaylistFiles.add(mediaFile);
     }
 }
 

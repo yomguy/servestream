@@ -61,10 +61,8 @@ import net.sourceforge.servestream.dbutils.Stream;
 import net.sourceforge.servestream.dbutils.StreamDatabase;
 import net.sourceforge.servestream.metadata.SHOUTcastMetadata;
 import net.sourceforge.servestream.player.MultiPlayer;
-import net.sourceforge.servestream.utils.ASXPlaylistParser;
-import net.sourceforge.servestream.utils.M3UPlaylistParser;
 import net.sourceforge.servestream.utils.MediaFile;
-import net.sourceforge.servestream.utils.PLSPlaylistParser;
+import net.sourceforge.servestream.utils.PlaylistParser;
 import net.sourceforge.servestream.utils.PreferenceConstants;
 import net.sourceforge.servestream.widget.ServeStreamAppWidgetOneProvider;
 
@@ -1208,66 +1206,6 @@ public class MediaService extends Service implements OnSharedPreferenceChangeLis
     	return false;
     }
     
-    private boolean isM3UPlaylist(String path) {
-    	int index = 0;
-    	
-    	if (path == null)
-    	    return false;
-    	
-        index = path.lastIndexOf(".");
-    		
-    	if (index == -1)
-    		return false;
-    	
-    	if ((path.length() - index) != 4)
-    		return false;
-    		
-    	if (path.substring(index, path.length()).equalsIgnoreCase(".m3u"))
-    	    return true;		
-
-    	return false;
-    }
-    
-    private boolean isPLSPlaylist(String path) {
-    	int index = 0;
-    	
-    	if (path == null)
-    	    return false;
-    	
-        index = path.lastIndexOf(".");
-    		
-    	if (index == -1)    	
-        	return false;
-    	
-    	if ((path.length() - index) != 4)
-    		return false;
-    		
-    	if (path.substring(index, path.length()).equalsIgnoreCase(".pls"))
-    	    return true;		
-
-    	return false;
-    }
-
-    private boolean isASXPlaylist(String path) {
-    	int index = 0;
-    	
-    	if (path == null)
-    	    return false;
-    	
-        index = path.lastIndexOf(".");
-    		
-    	if (index == -1)    	
-        	return false;
-    	
-    	if ((path.length() - index) != 4)
-    		return false;
-    		
-    	if (path.substring(index, path.length()).equalsIgnoreCase(".asx"))
-    	    return true;		
-
-    	return false;
-    }
-    
     private boolean handleError() {
     	if (!mPlayer.isInitialized()) {
     		stop(true);
@@ -1311,21 +1249,12 @@ public class MediaService extends Service implements OnSharedPreferenceChangeLis
     		try {
 				mStream = new Stream(filename[0]);
 			
-				if (isM3UPlaylist(mStream.getURL().getPath())) {
-					M3UPlaylistParser playlistParser = new M3UPlaylistParser(mStream.getURL());
-					playlistParser.retrieveM3UFiles();
-					mPlayListFiles = playlistParser.getPlaylistFiles();
-					mPlayListLen = playlistParser.getNumberOfFiles();
-				} else if (isPLSPlaylist(mStream.getURL().getPath())) {
-					PLSPlaylistParser playlistParser = new PLSPlaylistParser(mStream.getURL());
-					playlistParser.retrievePLSFiles();
-					mPlayListFiles = playlistParser.getPlaylistFiles();
-					mPlayListLen = playlistParser.getNumberOfFiles();
-				} else if (isASXPlaylist(mStream.getURL().getPath())) {
-					ASXPlaylistParser playlistParser = new ASXPlaylistParser(mStream.getURL());
-					playlistParser.retrieveASXFiles();
-					mPlayListFiles = playlistParser.getPlaylistFiles();
-					mPlayListLen = playlistParser.getNumberOfFiles();
+				PlaylistParser playlist = PlaylistParser.getPlaylistParser(mStream.getURL());
+				
+				if (playlist != null) {
+					playlist.retrieveAndParsePlaylist();
+					mPlayListFiles = playlist.getPlaylistFiles();
+					mPlayListLen = mPlayListFiles.length;
 				} else {
 					mPlayListFiles = new MediaFile[1];         
 					MediaFile mediaFile = new MediaFile();
@@ -1335,7 +1264,6 @@ public class MediaService extends Service implements OnSharedPreferenceChangeLis
 					mPlayListLen = 1;
 				}
 			} catch (MalformedURLException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 			
