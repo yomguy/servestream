@@ -18,21 +18,14 @@
 package net.sourceforge.servestream.utils;
 
 import java.io.BufferedReader;
-import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.util.ArrayList;
 
-import javax.net.ssl.HttpsURLConnection;
-
-public class M3UPlaylistParser {
+public class M3UPlaylistParser extends PlaylistParser {
 	public final static String TAG = M3UPlaylistParser.class.getName();
 
-	private URL playlistURL = null;
-    private ArrayList<MediaFile> playlistFiles = null;
-    private MediaFile [] mPlayListFiles = null;
-    private int numberOfFiles = 0;
+	public final static String EXTENSION = "m3u";
     
     private MediaFile mediaFile = null;
     private boolean processingEntry = false;
@@ -40,17 +33,16 @@ public class M3UPlaylistParser {
 	/**
 	 * Default constructor
 	 */
-	public M3UPlaylistParser(URL playlistURL) {
-		this.playlistURL = playlistURL;
-		this.playlistFiles = new ArrayList<MediaFile>();
+	public M3UPlaylistParser(URL playlistUrl) {
+		super(playlistUrl);
 	}
 	
 	/**
 	 * Retrieves the files listed in a .m3u file
 	 */
-    public void retrieveM3UFiles() {
+    public void retrieveAndParsePlaylist() {
     	
-    	if (playlistURL == null)
+    	if (mPlaylistUrl == null)
     		return;
     	
 		HttpURLConnection conn = null;
@@ -58,15 +50,7 @@ public class M3UPlaylistParser {
         BufferedReader reader = null;;
         
         try {
-        	
-        	if (playlistURL.getProtocol().equalsIgnoreCase("http")) {
-        		conn = (HttpURLConnection) playlistURL.openConnection();
-        	} else if (playlistURL.getProtocol().equalsIgnoreCase("https")) {
-        		conn = (HttpsURLConnection) playlistURL.openConnection();        		
-        	}
-     
-        	conn.setRequestProperty("User-Agent", URLUtils.USER_AGENT);
-		    conn.setRequestMethod("GET");
+        	conn = getConnection(mPlaylistUrl);
 		    
 		    // Start the query
 		    reader = new BufferedReader(new InputStreamReader(conn.getInputStream()));
@@ -93,14 +77,7 @@ public class M3UPlaylistParser {
 		    			savePlaylistFile();
 		    		}
 		    	}           
-            }
-
-		    mPlayListFiles = new MediaFile[playlistFiles.size()];
-		    
-		    for (int i = 0; i < playlistFiles.size(); i++) {
-		    	mPlayListFiles[i] = playlistFiles.get(i);
-		    }
-		    
+            }	    
         } catch (Exception ex) {
         	ex.printStackTrace();
         } finally {
@@ -110,57 +87,10 @@ public class M3UPlaylistParser {
     }
 
     public void savePlaylistFile() {
-    	numberOfFiles = numberOfFiles + 1;
-    	mediaFile.setTrackNumber(numberOfFiles);
-    	playlistFiles.add(mediaFile);
+    	mNumberOfFiles = mNumberOfFiles + 1;
+    	mediaFile.setTrackNumber(mNumberOfFiles);
+    	mPlaylistFiles.add(mediaFile);
     	processingEntry = false;
-    }
-    
-	/**
-	 * @return the playlistFiles
-	 */
-	/*public ArrayList<MediaFile> getPlaylistFiles() {
-		return playlistFiles;
-	}*/
-    public MediaFile [] getPlaylistFiles() {
-    	return mPlayListFiles;
-    }
-
-	/**
-	 * @return the numberOfFiles
-	 */
-	public int getNumberOfFiles() {
-		return numberOfFiles;
-	}
-	
-	/**
-	 * Closes a BufferedReader
-	 * 
-	 * @param reader The reader to close
-	 */
-    private void closeReader(BufferedReader reader) {
-    	
-    	if (reader == null)
-    		return;
-
-    	try {
-    	    reader.close();
-    	} catch (IOException ex) {
-    		
-    	}
-    }
-    
-	/**
-	 * Closes a HttpURLConnection
-	 * 
-	 * @param conn The connection to close
-	 */
-    private void closeHttpConnection(HttpURLConnection conn) {
-    	
-    	if (conn == null)
-    		return;
-    	
-    	conn.disconnect();
     }
 }
 

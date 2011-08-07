@@ -37,10 +37,8 @@ import java.net.MalformedURLException;
 import net.sourceforge.servestream.R;
 import net.sourceforge.servestream.dbutils.Stream;
 import net.sourceforge.servestream.dbutils.StreamDatabase;
-import net.sourceforge.servestream.utils.ASXPlaylistParser;
-import net.sourceforge.servestream.utils.M3UPlaylistParser;
 import net.sourceforge.servestream.utils.MediaFile;
-import net.sourceforge.servestream.utils.PLSPlaylistParser;
+import net.sourceforge.servestream.utils.PlaylistParser;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
@@ -324,66 +322,6 @@ public class AlarmKlaxon extends Service {
     private void disableKiller() {
         mHandler.removeMessages(KILLER);
     }
-
-    private boolean isM3UPlaylist(String path) {
-    	int index = 0;
-    	
-    	if (path == null)
-    	    return false;
-    	
-        index = path.lastIndexOf(".");
-    		
-    	if (index == -1)
-    		return false;
-    	
-    	if ((path.length() - index) != 4)
-    		return false;
-    		
-    	if (path.substring(index, path.length()).equalsIgnoreCase(".m3u"))
-    	    return true;		
-
-    	return false;
-    }
-    
-    private boolean isPLSPlaylist(String path) {
-    	int index = 0;
-    	
-    	if (path == null)
-    	    return false;
-    	
-        index = path.lastIndexOf(".");
-    		
-    	if (index == -1)    	
-        	return false;
-    	
-    	if ((path.length() - index) != 4)
-    		return false;
-    		
-    	if (path.substring(index, path.length()).equalsIgnoreCase(".pls"))
-    	    return true;		
-
-    	return false;
-    }
-
-    private boolean isASXPlaylist(String path) {
-    	int index = 0;
-    	
-    	if (path == null)
-    	    return false;
-    	
-        index = path.lastIndexOf(".");
-    		
-    	if (index == -1)    	
-        	return false;
-    	
-    	if ((path.length() - index) != 4)
-    		return false;
-    		
-    	if (path.substring(index, path.length()).equalsIgnoreCase(".asx"))
-    	    return true;		
-
-    	return false;
-    }
     
     public class ParsePlaylistAsyncTask extends AsyncTask<String, Void, MediaFile> {
 		
@@ -403,18 +341,11 @@ public class AlarmKlaxon extends Service {
     		try {
 				Stream stream = new Stream(filename[0]);
 			
-				if (isM3UPlaylist(stream.getURL().getPath())) {
-					M3UPlaylistParser playlistParser = new M3UPlaylistParser(stream.getURL());
-					playlistParser.retrieveM3UFiles();
-					mPlayListFiles = playlistParser.getPlaylistFiles();
-				} else if (isPLSPlaylist(stream.getURL().getPath())) {
-					PLSPlaylistParser playlistParser = new PLSPlaylistParser(stream.getURL());
-					playlistParser.retrievePLSFiles();
-					mPlayListFiles = playlistParser.getPlaylistFiles();
-				} else if (isASXPlaylist(stream.getURL().getPath())) {
-					ASXPlaylistParser playlistParser = new ASXPlaylistParser(stream.getURL());
-					playlistParser.retrieveASXFiles();
-					mPlayListFiles = playlistParser.getPlaylistFiles();
+				PlaylistParser playlist = PlaylistParser.getPlaylistParser(stream.getURL());
+				
+				if (playlist != null) {
+					playlist.retrieveAndParsePlaylist();
+					mPlayListFiles = playlist.getPlaylistFiles();
 				} else {
 					mPlayListFiles = new MediaFile[1];         
 					MediaFile mediaFile = new MediaFile();
