@@ -68,7 +68,7 @@
 
 	<string name="invalid_url_message">Enter a valid Url</string>
 
-	<string name="url_not_opened_message">The url could not be opened.</string>
+	<string name="url_not_opened_message">The Url could not be opened.</string>
 
 	<string name="save_message">Are you sure you want to save \'%1$s\'?</string>
 	<string name="save_pos">Yes, save</string>
