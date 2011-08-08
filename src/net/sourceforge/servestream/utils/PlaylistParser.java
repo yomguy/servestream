@@ -63,6 +63,9 @@ public abstract class PlaylistParser {
 		
 		extension = getExtension(url.getPath());
 		
+		if (extension == null)
+			return null;
+		
 		if (extension.equalsIgnoreCase(ASXPlaylistParser.EXTENSION)) {
 			return new ASXPlaylistParser(url);
 		} else if (extension.equalsIgnoreCase(M3UPlaylistParser.EXTENSION)) {
