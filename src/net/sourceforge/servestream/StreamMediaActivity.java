@@ -148,7 +148,6 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
         mCurrentTime = (TextView) findViewById(R.id.position_text);
         mTotalTime = (TextView) findViewById(R.id.duration_text);
         mProgress = (ProgressBar) findViewById(android.R.id.progress);
-        mTrackName = (TextView) findViewById(R.id.track_url_text);
         mPrevButton = (Button) findViewById(R.id.previous_button);
         mPrevButton.setOnClickListener(mPrevListener); 
         mSeekBackwardButton = (RepeatingImageButton) findViewById(R.id.seek_backward_button);
@@ -182,7 +181,6 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
 
 		mMediaControls = (RelativeLayout) findViewById(R.id.media_controls);
 		mMediaControls.setVisibility(View.GONE);
-		
     }
 
 	/* (non-Javadoc)
@@ -409,9 +407,6 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
 				}
         		case (R.id.menu_item_settings):
         			startActivity(new Intent(StreamMediaActivity.this, SettingsActivity.class));
-        			break;
-        		case (R.id.menu_item_help):
-        			startActivity(new Intent(StreamMediaActivity.this, HelpActivity.class));
         			break;
          	}
          	
