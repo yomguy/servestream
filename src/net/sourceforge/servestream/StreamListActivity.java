@@ -67,11 +67,13 @@ import android.preference.PreferenceManager;
 import android.util.Log;
 
 import android.view.ContextMenu;
+import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.View.OnKeyListener;
 import android.view.ViewGroup;
 import android.view.MenuItem.OnMenuItemClickListener;
 import android.view.View.OnClickListener;
@@ -82,10 +84,13 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.Toast;
 import android.widget.AdapterView.OnItemClickListener;
 
 public class StreamListActivity extends ListActivity {
 	public final static String TAG = StreamListActivity.class.getName();	
+	
+	private boolean mActivityVisible = true;
 	
 	public final static int REQUEST_EDIT = 1;
 	
@@ -206,6 +211,14 @@ public class StreamListActivity extends ListActivity {
 			new DetermineIntentAsyncTask().execute(mRequestedStream);
 	}
 	
+    @Override
+    public void onNewIntent(Intent intent) {
+    	super.onNewIntent(intent);
+		
+        setIntent(intent);        
+        handleIntentData();
+    }
+	
 	@Override
 	public void onStart() {
 		super.onStart();
@@ -214,6 +227,20 @@ public class StreamListActivity extends ListActivity {
 		
 		if(this.mStreamdb == null)
 			this.mStreamdb = new StreamDatabase(this);
+	}
+	
+	@Override
+	public void onResume() {
+		super.onResume();
+		
+		mActivityVisible = true;
+	}
+	
+	@Override
+	public void onPause() {
+		super.onResume();
+		
+		mActivityVisible = false;
 	}
 	
 	@Override
@@ -492,13 +519,10 @@ public class StreamListActivity extends ListActivity {
 		inputManager.hideSoftInputFromWindow(textView.getWindowToken(), 0);
 	}
 	
-	private void showURLNotFoundMessage() {
-		new AlertDialog.Builder(StreamListActivity.this)
-		.setMessage(R.string.url_not_found_message)
-		.setPositiveButton(R.string.url_not_found_pos, new DialogInterface.OnClickListener() {
-			public void onClick(DialogInterface dialog, int which) {
-			}
-			}).create().show();	
+	private void showUrlNotOpenedToast() {
+		if (mActivityVisible) {
+			Toast.makeText(this, R.string.url_not_opened_message, Toast.LENGTH_SHORT).show();
+		}
 	}
 
 	public class DetermineIntentAsyncTask extends AsyncTask<Stream, Void, Intent> {
@@ -533,7 +557,7 @@ public class StreamListActivity extends ListActivity {
 				if (mPreferences.getBoolean(PreferenceConstants.AUTOSAVE, true))
 				    saveStream();
 			} else {
-				StreamListActivity.this.showURLNotFoundMessage();
+				StreamListActivity.this.showUrlNotOpenedToast();
 			}
 		}
 
