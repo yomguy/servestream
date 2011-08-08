@@ -67,6 +67,8 @@ public abstract class PlaylistParser {
 			return new ASXPlaylistParser(url);
 		} else if (extension.equalsIgnoreCase(M3UPlaylistParser.EXTENSION)) {
 			return new M3UPlaylistParser(url);
+		} else if (extension.equalsIgnoreCase(M3U8PlaylistParser.EXTENSION)) {
+			return new M3U8PlaylistParser(url);
 		} else if (extension.equalsIgnoreCase(PLSPlaylistParser.EXTENSION)) {
 			return new PLSPlaylistParser(url);
 		} else {
@@ -85,7 +87,7 @@ public abstract class PlaylistParser {
 	
 		index = path.lastIndexOf(".");
 	
-		if (index == -1 || (path.length() - (index + 1)) != 3)
+		if (index == -1 || (path.length() - (index + 1)) < 3)
 			return null;
 		
 		return path.substring(index + 1, path.length());		
