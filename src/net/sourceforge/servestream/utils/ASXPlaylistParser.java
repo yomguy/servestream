@@ -36,6 +36,24 @@ public class ASXPlaylistParser extends PlaylistParser {
 
 	public final static String EXTENSION = "asx";
     
+	private final String ABSTRACT_ELEMENT = "ABSTRACT";
+	private final String ASX_ELEMENT = "ASX";
+	private final String AUTHOR_ELEMENT = "AUTHOR";
+	private final String BASE_ELEMENT = "BASE";
+	private final String COPYRIGHT_ELEMENT = "COPYRIGHT";
+	private final String DURATION_ELEMENT = "DURATION";
+	private final String ENDMARKER_ELEMENT = "ENDMARKER";
+	private final String ENTRY_ELEMENT = "ENTRY";
+	private final String ENTRYREF_ELEMENT = "ENTRYREF";
+	private final String EVENT_ELEMENT = "EVENT";
+	private final String MOREINFO_ELEMENT = "MOREINFO";
+	private final String PARAM_ELEMENT = "PARAM";
+	private final String REF_ELEMENT = "REF";
+	private final String REPEAT_ELEMENT = "REPEAT";
+	private final String STARTMARKER_ELEMENT = "STARTMARKER";
+	private final String STARTTIME_ELEMENT = "STARTTIME";
+	private final String TITLE_ELEMENT = "TITLE";
+	
 	/**
 	 * Default constructor
 	 */
@@ -109,15 +127,19 @@ public class ASXPlaylistParser extends PlaylistParser {
     	for(int i = 0; i < children.size(); i++) {
     	    String attributeName = children.get(i).getName();
     		
-    	    if (attributeName.equalsIgnoreCase("ABSTRACT")) {
-    	    } else if (attributeName.equalsIgnoreCase("AUTHOR")) {
-    	    } else if (attributeName.equalsIgnoreCase("BASE")) {
-    	    } else if (attributeName.equalsIgnoreCase("COPYRIGHT")) {
-    	    } else if (attributeName.equalsIgnoreCase("DURATION")) {
-    	    } else if (attributeName.equalsIgnoreCase("ENDMARKER")) {
-    	    } else if (attributeName.equalsIgnoreCase("MOREINFO")) {
-    	    } else if (attributeName.equalsIgnoreCase("PARAM")) {
-    	    } else if (attributeName.equalsIgnoreCase("REF")) {
+    	    if (attributeName.equalsIgnoreCase(ABSTRACT_ELEMENT)) {
+    	    } else if (attributeName.equalsIgnoreCase(ASX_ELEMENT)) {
+    	    } else if (attributeName.equalsIgnoreCase(AUTHOR_ELEMENT)) {
+    	    } else if (attributeName.equalsIgnoreCase(BASE_ELEMENT)) {
+    	    } else if (attributeName.equalsIgnoreCase(COPYRIGHT_ELEMENT)) {
+    	    } else if (attributeName.equalsIgnoreCase(DURATION_ELEMENT)) {
+    	    } else if (attributeName.equalsIgnoreCase(ENDMARKER_ELEMENT)) {
+    	    } else if (attributeName.equalsIgnoreCase(ENTRY_ELEMENT)) {
+    	    } else if (attributeName.equalsIgnoreCase(ENTRYREF_ELEMENT)) {
+    	    } else if (attributeName.equalsIgnoreCase(EVENT_ELEMENT)) {
+    	    } else if (attributeName.equalsIgnoreCase(MOREINFO_ELEMENT)) {
+    	    } else if (attributeName.equalsIgnoreCase(PARAM_ELEMENT)) {
+    	    } else if (attributeName.equalsIgnoreCase(REF_ELEMENT)) {
     	    	String href = children.get(i).getAttributeValue("href");
     	    	
     	    	if (href == null) {
@@ -126,9 +148,10 @@ public class ASXPlaylistParser extends PlaylistParser {
     	    	
     	    	System.out.println(href);
     	    	mediaFile.setURL(href);
-    	    } else if (attributeName.equalsIgnoreCase("STARTMARKER")) {
-    	    } else if (attributeName.equalsIgnoreCase("STARTTIME")) {
-    	    } else if (attributeName.equalsIgnoreCase("TITLE")) {
+    	    } else if (attributeName.equalsIgnoreCase(REPEAT_ELEMENT)) {
+    	    } else if (attributeName.equalsIgnoreCase(STARTMARKER_ELEMENT)) {
+    	    } else if (attributeName.equalsIgnoreCase(STARTTIME_ELEMENT)) {
+    	    } else if (attributeName.equalsIgnoreCase(TITLE_ELEMENT)) {
     	    	String title = children.get(i).getValue();
     	    	
     	    	if (title != null) {
