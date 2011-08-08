@@ -104,16 +104,15 @@ public class NowPlayingActivity extends ListActivity {
 		
 		ListView list = this.getListView();
 		list.setFastScrollEnabled(true);
-
 		list.setOnItemClickListener(new OnItemClickListener() {
 			public synchronized void onItemClick(AdapterView<?> parent, View view, int position, long id) {
 				try {
-					
 					if (mMediaService.getQueuePosition() == position) {
 					    doPauseResume();
 					} else {
 					    mMediaService.setQueuePosition(position);
 					}
+					updateList();
 				} catch (RemoteException e) {
 					e.printStackTrace();
 				}
