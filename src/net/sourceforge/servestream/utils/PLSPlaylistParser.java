@@ -70,8 +70,9 @@ public class PLSPlaylistParser extends PlaylistParser {
         		    		mediaFile = new MediaFile();
                             mediaFile.setURL(parsedLine[1].trim());
                         } else if (parsedLine[0].trim().contains("Title")) {
-                            mediaFile.setTitle(parsedLine[1].trim());
+                            mediaFile.setPlaylistMetadata(parsedLine[1].trim());
                         } else if (parsedLine[0].trim().contains("Length")) {
+                        	retrieveMetadata(mediaFile);
                             savePlaylistFile();
                         }			
 			    	}

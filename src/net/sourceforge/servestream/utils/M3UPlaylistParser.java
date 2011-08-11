@@ -66,7 +66,7 @@ public class M3UPlaylistParser extends PlaylistParser {
 		    			int index = line.lastIndexOf(',');
 		    			
 		    			if (index != -1)
-		    				mediaFile.setTitle(line.substring(index + 1));
+		    				mediaFile.setPlaylistMetadata(line.substring(index + 1));
 		    			
 		    			processingEntry = true;
 		    		} else {
@@ -74,6 +74,7 @@ public class M3UPlaylistParser extends PlaylistParser {
 		    				mediaFile = new MediaFile();
 		    			
 		    			mediaFile.setURL(line.trim());
+		    			retrieveMetadata(mediaFile);
 		    			savePlaylistFile();
 		    		}
 		    	}           

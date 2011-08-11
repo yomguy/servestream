@@ -156,11 +156,12 @@ public class ASXPlaylistParser extends PlaylistParser {
     	    	
     	    	if (title != null) {
     	    		System.out.println(title);
-    	    		mediaFile.setTitle(title);
+    	    		mediaFile.setPlaylistMetadata(title);
     	    	}
     	    }
     	}
     	
+    	retrieveMetadata(mediaFile);
     	mNumberOfFiles = mNumberOfFiles + 1;
     	mediaFile.setTrackNumber(mNumberOfFiles);
     	mPlaylistFiles.add(mediaFile);
