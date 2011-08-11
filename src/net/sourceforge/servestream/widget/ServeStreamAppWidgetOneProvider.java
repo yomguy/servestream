@@ -87,7 +87,7 @@ public class ServeStreamAppWidgetOneProvider extends AppWidgetProvider {
         final RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.appwidget_one);
         
         views.setViewVisibility(R.id.title, View.GONE);
-        views.setTextViewText(R.id.url, res.getText(R.string.widget_one_initial_text));
+        views.setTextViewText(R.id.artist, res.getText(R.string.widget_one_initial_text));
 
         linkButtons(context, views, false /* not playing */);
         pushUpdate(context, appWidgetIds, views);
@@ -135,21 +135,27 @@ public class ServeStreamAppWidgetOneProvider extends AppWidgetProvider {
         
         if (what.equals(MediaService.PLAYER_CLOSED)) {
         	views.setViewVisibility(R.id.title, View.GONE);
-            views.setTextViewText(R.id.url, res.getText(R.string.widget_one_initial_text));
+            views.setTextViewText(R.id.artist, res.getText(R.string.widget_one_initial_text));
             
             linkButtons(service, views, false /* not playing */);
         } else {
-        	CharSequence titleName = service.getTrackName();
-        	CharSequence mediaURL = service.getMediaURL();
+        	CharSequence trackName = service.getTrackName();
+        	CharSequence artistName = service.getArtistName();
         	//CharSequence errorState = null;
         
-        	if (titleName == null)
-        		titleName = res.getText(R.string.widget_one_track_info_unavailable);
-        
+        	if (trackName == null) {
+        		trackName = service.getPlaylistMetadata();
+        		if (trackName == null)
+        			trackName = res.getText(R.string.widget_one_track_info_unavailable);
+        	}
+        		
+        	if (artistName == null)
+        		artistName = service.getMediaURL();
+        	
         	// Show media info
         	views.setViewVisibility(R.id.title, View.VISIBLE);
-        	views.setTextViewText(R.id.title, titleName);
-        	views.setTextViewText(R.id.url, mediaURL);
+        	views.setTextViewText(R.id.title, trackName);
+        	views.setTextViewText(R.id.artist, artistName);
         	
             // Set correct drawable for pause state
             final boolean playing = service.isPlaying();

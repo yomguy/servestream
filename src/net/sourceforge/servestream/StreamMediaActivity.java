@@ -112,6 +112,8 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
 
     private TextView mTrackNumber;
     private TextView mTrackName;
+    private TextView mArtistName;
+    private TextView mAlbumName;
     private TextView mSHOUTcastMetadata;
     
     private SurfaceView preview = null;
@@ -172,8 +174,10 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
         mProgress.setMax(1000);
         
 	    mTrackNumber = (TextView) findViewById(R.id.track_number_text);
-	    mTrackName = (TextView) findViewById(R.id.track_url_text);
-	    mSHOUTcastMetadata = (TextView) findViewById(R.id.shoutcast_metadata_text);
+	    mTrackName = (TextView) findViewById(R.id.trackname);
+	    mArtistName = (TextView) findViewById(R.id.artistname);
+	    mAlbumName = (TextView) findViewById(R.id.albumname);
+	    //mSHOUTcastMetadata = (TextView) findViewById(R.id.shoutcast_metadata_text);
 	    
 		// preload animation for media controller
 		media_controls_fade_in = AnimationUtils.loadAnimation(this, R.anim.media_controls_fade_in);
@@ -694,6 +698,14 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
             
         	try {
 				
+        		if (mParentActivityState == VISIBLE) {
+        	    	mDialog = new ProgressDialog(StreamMediaActivity.this);
+        	        mDialog.setMessage("Opening file...");
+        	        mDialog.setIndeterminate(true);
+        	        mDialog.setCancelable(true);
+        	        mDialog.show();
+        		}
+        		
                 if (!mMediaService.loadQueue(filename)) {
                 	errorOpeningMediaMessage();
                 	return;
@@ -894,7 +906,7 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
                 setPauseButtonImage();
             } else if (action.equals(MediaService.START_DIALOG)) {
 	        	try {
-	        		if (mParentActivityState == VISIBLE) {
+	        		if (mParentActivityState == VISIBLE && mDialog != null && !mDialog.isShowing()) {
 	        	    	mDialog = new ProgressDialog(StreamMediaActivity.this);
 	        	        mDialog.setMessage("Opening file...");
 	        	        mDialog.setIndeterminate(true);
@@ -962,21 +974,34 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
             return;
         }
         try {
-        	//TODO ?
             String path = mMediaService.getPath();
             if (path == null) {
-                //finish();
+                finish();
                 return;
             }
             
             mTrackNumber.setText(mMediaService.getTrackNumber());
             
-            if (mMediaService.getTrackName() == null) {
-            	mTrackName.setText(mMediaService.getMediaURL());
-            } else {
-                mTrackName.setText(mMediaService.getTrackName());
+            String trackName = mMediaService.getTrackName();            
+            if (trackName == null) {
+            	trackName = mMediaService.getPlaylistMetadata();
+            	if (trackName == null)
+            		trackName = mMediaService.getMediaURL();
             }
-    		
+            mTrackName.setText(trackName);
+
+            String artistName = mMediaService.getArtistName();
+            if (artistName == null) {
+            	artistName = "";
+            }
+            mArtistName.setText(artistName);
+            
+            String albumName = mMediaService.getAlbumName();
+            if (albumName == null) {
+            	albumName = "" ;
+            }
+            mAlbumName.setText(albumName);
+            
             mDuration = mMediaService.duration();
             mTotalTime.setText(MusicUtils.makeTimeString(this, mDuration / 1000));
         } catch (RemoteException ex) {

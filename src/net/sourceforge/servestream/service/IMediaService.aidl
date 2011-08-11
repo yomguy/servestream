@@ -49,7 +49,10 @@ interface IMediaService
     void next();
     String getTrackNumber();
     String getTrackName();
+    String getArtistName();
+    String getAlbumName();
     String getMediaURL();
+    String getPlaylistMetadata();
     String getSHOUTcastMetadata();
     long duration();
     long position();

@@ -197,8 +197,8 @@ public class NowPlayingActivity extends ListActivity {
 		class ViewHolder {
 			public TextView trackNumber;
 			public ImageView icon;
-			public TextView trackTitle;
-			public TextView trackURL;
+			public TextView trackName;
+			public TextView artistName;
 		}
 
 		public NowPlayingAdapter(Context context, MediaFile [] streams) {
@@ -217,8 +217,8 @@ public class NowPlayingActivity extends ListActivity {
 				holder = new ViewHolder();
 
 				holder.trackNumber = (TextView)convertView.findViewById(R.id.number);
-				holder.trackTitle = (TextView)convertView.findViewById(R.id.title);
-				holder.trackURL = (TextView)convertView.findViewById(R.id.url);
+				holder.trackName = (TextView)convertView.findViewById(R.id.trackname);
+				holder.artistName = (TextView)convertView.findViewById(R.id.artistname);
 				holder.icon = (ImageView) convertView.findViewById(R.id.icon);
 				
 				convertView.setTag(holder);
@@ -229,15 +229,19 @@ public class NowPlayingActivity extends ListActivity {
 			
 			holder.trackNumber.setText(String.valueOf(stream.getTrackNumber()));
 			
-			String titleName = stream.getTitle();
-			
-        	if (titleName == null) {
-        		holder.trackTitle.setText(R.string.widget_one_track_info_unavailable);
-        	} else {
-			    holder.trackTitle.setText(String.valueOf(stream.getTitle()));
-        	}
-        	
-			holder.trackURL.setText(String.valueOf(stream.getURL()));
+            String trackName = stream.getTrack();            
+            if (trackName == null) {
+            	trackName = stream.getPlaylistMetadata();
+            	if (trackName == null)
+            		trackName = stream.getDecodedURL();
+            }
+            holder.trackName.setText(trackName);
+
+            String artistName = stream.getArtist();
+            if (artistName == null) {
+            	artistName = "";
+            }
+            holder.artistName.setText(artistName);
 
 			try {
 				if (mMediaService.getQueuePosition() == position) {

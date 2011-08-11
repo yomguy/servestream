@@ -26,10 +26,13 @@ import android.util.Log;
 
 public class MediaFile implements Parcelable {
 
-	private String url = null;
+	private String mUrl = null;
 	private int trackNumber = -1;
-	private String title = null;
 	private long length = -1;
+	private String mPlaylistMetadata = null;
+	private String mTrack = null;
+	private String mArtist = null;
+	private String mAlbum = null;
 	
 	/**
 	 * Default constructor
@@ -42,14 +45,14 @@ public class MediaFile implements Parcelable {
 	 * @param url the url to set
 	 */
 	public void setURL(String url) {
-		this.url = url;
+		this.mUrl = url;
 	}
 
 	/**
 	 * @return the url
 	 */
 	public String getURL() {
-		return url;
+		return mUrl;
 	}
 
 	/**
@@ -64,20 +67,6 @@ public class MediaFile implements Parcelable {
 	 */
 	public int getTrackNumber() {
 		return trackNumber;
-	}
-
-	/**
-	 * @param title the title to set
-	 */
-	public void setTitle(String title) {
-		this.title = title;
-	}
-
-	/**
-	 * @return the title
-	 */
-	public String getTitle() {
-		return title;
 	}
 	
 	/**
@@ -94,6 +83,38 @@ public class MediaFile implements Parcelable {
 		return length;
 	}
 	
+	public void setPlaylistMetadata(String mPlaylistMetadata) {
+		this.mPlaylistMetadata = mPlaylistMetadata;
+	}
+
+	public String getPlaylistMetadata() {
+		return mPlaylistMetadata;
+	}
+	
+	public void setTrack(String mTrack) {
+		this.mTrack = mTrack;
+	}
+
+	public String getTrack() {
+		return mTrack;
+	}
+	
+	public void setArtist(String mArtist) {
+		this.mArtist = mArtist;
+	}
+
+	public String getArtist() {
+		return mArtist;
+	}
+
+	public void setAlbum(String mAlbum) {
+		this.mAlbum = mAlbum;
+	}
+
+	public String getAlbum() {
+		return mAlbum;
+	}
+	
 	/**
 	 * 
 	 * @return
@@ -102,7 +123,7 @@ public class MediaFile implements Parcelable {
 		String decodedURL = null;
     	
     	try {
-			decodedURL = URLDecoder.decode(url, "UTF-8");
+			decodedURL = URLDecoder.decode(mUrl, "UTF-8");
 		} catch (UnsupportedEncodingException ex) {
 			ex.printStackTrace();
 			decodedURL = "";
@@ -118,7 +139,7 @@ public class MediaFile implements Parcelable {
 	public void writeToParcel(Parcel dest, int flags) {
 		
 	}
-	
+
 	public static final Parcelable.Creator<MediaFile> CREATOR = new
 	Parcelable.Creator<MediaFile>() {
 	    public MediaFile createFromParcel(Parcel in) {

@@ -543,9 +543,15 @@ public class MediaService extends Service implements OnSharedPreferenceChangeLis
      * or that the play-state changed (paused/resumed).
      */
     private void notifyChange(String what) {
-        
+        MediaFile mediaFile = mPlayListFiles[mPlayPos];
+    	
     	// send notification to StreamMediaActivity
         Intent i = new Intent(what);
+        i.putExtra("artist", mediaFile.getArtist());
+        i.putExtra("album", mediaFile.getAlbum());
+        i.putExtra("track", mediaFile.getTrack());
+        i.putExtra("url", mediaFile.getDecodedURL());
+        i.putExtra("playlistMetadata", mediaFile.getPlaylistMetadata());
         sendBroadcast(i);
         
         // Share this notification directly with our widgets
@@ -965,26 +971,43 @@ public class MediaService extends Service implements OnSharedPreferenceChangeLis
     
     public String getTrackNumber() {
     	synchronized (this) {
-    		
     		MediaFile mediaFile = mPlayListFiles[mPlayPos];
-    		
     		return (mediaFile.getTrackNumber() + " / " + mPlayListLen);
     	}
     }
     
     public String getTrackName() {
         synchronized (this) {
-        	
         	MediaFile mediaFile = mPlayListFiles[mPlayPos];
-            return mediaFile.getTitle();
+            return mediaFile.getTrack();
+        }
+    }
+
+    public String getArtistName() {
+        synchronized (this) {
+        	MediaFile mediaFile = mPlayListFiles[mPlayPos];
+            return mediaFile.getArtist();
+        }
+    }
+
+    public String getAlbumName() {
+        synchronized (this) {
+        	MediaFile mediaFile = mPlayListFiles[mPlayPos];
+            return mediaFile.getAlbum();
         }
     }
     
     public String getMediaURL() {
-        synchronized (this) {
-        	
+        synchronized (this) {    	
         	MediaFile mediaFile = mPlayListFiles[mPlayPos];
             return mediaFile.getDecodedURL();
+        }
+    }
+
+    public String getPlaylistMetadata() {
+        synchronized (this) {    	
+        	MediaFile mediaFile = mPlayListFiles[mPlayPos];
+            return mediaFile.getPlaylistMetadata();
         }
     }
     
@@ -1076,8 +1099,17 @@ public class MediaService extends Service implements OnSharedPreferenceChangeLis
         public String getTrackName() {
         	return mService.get().getTrackName();
         }
+        public String getArtistName() {
+        	return mService.get().getArtistName();
+        }
+        public String getAlbumName() {
+        	return mService.get().getAlbumName();
+        }
         public String getMediaURL() {
         	return mService.get().getMediaURL();
+        }
+        public String getPlaylistMetadata() {
+        	return mService.get().getPlaylistMetadata();
         }
         public String getSHOUTcastMetadata() {
             return mService.get().getSHOUTcastMetadata();
