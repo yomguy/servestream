@@ -106,7 +106,7 @@ public abstract class PlaylistParser {
 		return path.substring(index + 1, path.length());		
 	}
 
-	protected MediaFile retrieveMetadata(MediaFile mediaFile) {
+	/*protected MediaFile retrieveMetadata(MediaFile mediaFile) {
 		HttpURLConnection conn = null;
 		InputStream inputStream = null;
 		Mp3Parser mp3Parser = new Mp3Parser();
@@ -147,7 +147,7 @@ public abstract class PlaylistParser {
 		}
 		
 		return mediaFile;
-	}
+	}*/
 	
     /**
      * This method should be implemented in each new playlist
