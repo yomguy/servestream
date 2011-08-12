@@ -50,13 +50,15 @@ public class PreferenceConstants {
 	public static final String UPDATE_WEEKLY = "Weekly";
 	public static final String UPDATE_NEVER = "Never";
 
+	public static final String LAST_CHECKED = "lastchecked";
+	
 	public static final String AUTOSAVE = "autosave";
 	
 	public static final String WAKELOCK = "wakelock";
 	
 	public static final String WIFI_LOCK = "wifilock";
 	
-	public static final String LAST_CHECKED = "lastchecked";
+	public static final String READ_ID3_TAGS = "readid3tags";
 
 	/* Backup identifiers */
 	public static final String BACKUP_PREF_KEY = "prefs";
