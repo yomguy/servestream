@@ -948,13 +948,13 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
 					e.printStackTrace();
 				}
             } else if (action.equals(MediaService.CONNECTIVITY_LOST)) {
-    	    	mDialog = new ProgressDialog(StreamMediaActivity.this);
+    	    	/*mDialog = new ProgressDialog(StreamMediaActivity.this);
     	        mDialog.setMessage("Reconnecting");
     	        mDialog.setIndeterminate(true);
     	        mDialog.setCancelable(true);
-    	        mDialog.show();
+    	        mDialog.show();*/
             } else if (action.equals(MediaService.CONNECTIVITY_RESTORED)) {
-            	mDialog.dismiss();
+            	//mDialog.dismiss();
             }
         }
     };
