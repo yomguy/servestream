@@ -58,6 +58,13 @@
 			android:defaultValue="true"
 			/>
 
+		<CheckBoxPreference
+			android:key="readid3tags"
+			android:title="@string/pref_readid3tags_title"
+			android:summary="@string/pref_readid3tags_summary"
+			android:defaultValue="false"
+			/>
+
 	</PreferenceCategory>
 
 </PreferenceScreen>
