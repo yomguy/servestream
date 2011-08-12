@@ -155,6 +155,7 @@ public class MediaService extends Service implements OnSharedPreferenceChangeLis
     private AudioManager mAudioManager;
     // used to track what type of audio focus loss caused the playback to pause
     private boolean mPausedByTransientLossOfFocus = false;
+    private boolean mPausedByConnectivityReceiver = false;
     private boolean mPausedDuringPhoneCall = false;
     private SHOUTcastMetadata mSHOUTcastMetadata = null;
     
@@ -227,6 +228,7 @@ public class MediaService extends Service implements OnSharedPreferenceChangeLis
                             Log.v(TAG, "AudioFocus: received AUDIOFOCUS_LOSS");
                             if(isPlaying()) {
                                 mPausedByTransientLossOfFocus = false;
+                                mPausedByConnectivityReceiver = false;
                             }
                             pause();
                             break;
@@ -238,6 +240,7 @@ public class MediaService extends Service implements OnSharedPreferenceChangeLis
                             Log.v(TAG, "AudioFocus: received AUDIOFOCUS_LOSS_TRANSIENT");
                             if(isPlaying()) {
                                 mPausedByTransientLossOfFocus = true;
+                                mPausedByConnectivityReceiver = false;
                             }
                             pause();
                             break;
@@ -245,6 +248,7 @@ public class MediaService extends Service implements OnSharedPreferenceChangeLis
                             Log.v(TAG, "AudioFocus: received AUDIOFOCUS_GAIN");
                             if(!isPlaying() && mPausedByTransientLossOfFocus) {
                                 mPausedByTransientLossOfFocus = false;
+                                mPausedByConnectivityReceiver = false;
                                 mCurrentVolume = 0f;
                                 mPlayer.setVolume(mCurrentVolume);
                                 play(); // also queues a fade-in
@@ -303,15 +307,18 @@ public class MediaService extends Service implements OnSharedPreferenceChangeLis
                 if (isPlaying()) {
                     pause();
                     mPausedByTransientLossOfFocus = false;
+                    mPausedByConnectivityReceiver = false;
                 } else {
                     play();
                 }
             } else if (CMDPAUSE.equals(cmd) || PAUSE_ACTION.equals(action)) {
                 pause();
                 mPausedByTransientLossOfFocus = false;
+                mPausedByConnectivityReceiver = false;
             } else if (CMDSTOP.equals(cmd)) {
                 pause();
                 mPausedByTransientLossOfFocus = false;
+                mPausedByConnectivityReceiver = false;
                 seek(0);
             } else if (ServeStreamAppWidgetOneProvider.CMDAPPWIDGETUPDATE.equals(cmd)) {
                 // Someone asked us to refresh a set of specific widgets, probably
@@ -472,15 +479,18 @@ public class MediaService extends Service implements OnSharedPreferenceChangeLis
                 if (isPlaying()) {
                     pause();
                     mPausedByTransientLossOfFocus = false;
+                    mPausedByConnectivityReceiver = false;
                 } else {
                     play();
                 }
             } else if (CMDPAUSE.equals(cmd) || PAUSE_ACTION.equals(action)) {
                 pause();
                 mPausedByTransientLossOfFocus = false;
+                mPausedByConnectivityReceiver = false;
             } else if (CMDSTOP.equals(cmd)) {
                 pause();
                 mPausedByTransientLossOfFocus = false;
+                mPausedByConnectivityReceiver = false;
                 seek(0);
             }
             
@@ -1203,16 +1213,22 @@ public class MediaService extends Service implements OnSharedPreferenceChangeLis
 	 * we'll be getting a different connection any time soon.
 	 */
 	public void onConnectivityLost() {
-		notifyStickyChange(CONNECTIVITY_LOST);
-		pause();
+		if (isPlaying()) {
+			notifyStickyChange(CONNECTIVITY_LOST);
+			mPausedByConnectivityReceiver = true;
+			pause();
+        }
 	}
 
 	/**
 	 * Called when connectivity to the network is restored.
 	 */
 	public void onConnectivityRestored() {
-		notifyStickyChange(CONNECTIVITY_RESTORED);
-		play();
+		if (mPausedByConnectivityReceiver) {
+			notifyStickyChange(CONNECTIVITY_RESTORED);
+			mPausedByConnectivityReceiver = false;
+			play();
+		}
 	}
     
     /**
