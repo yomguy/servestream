@@ -40,6 +40,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.BroadcastReceiver;
 import android.content.SharedPreferences;
+import android.content.SharedPreferences.Editor;
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
 import android.media.AudioManager;
 import android.media.AudioManager.OnAudioFocusChangeListener;
@@ -381,6 +382,8 @@ public class MediaService extends Service implements OnSharedPreferenceChangeLis
         mPlayer = new MultiPlayer();
         mPlayer.setHandler(mMediaplayerHandler);
         
+        reloadSettings();
+        
         IntentFilter commandFilter = new IntentFilter();
         commandFilter.addAction(SERVICECMD);
         commandFilter.addAction(TOGGLEPAUSE_ACTION);
@@ -428,6 +431,27 @@ public class MediaService extends Service implements OnSharedPreferenceChangeLis
 		ConnectionNotifier.getInstance().hideRunningNotification(this);
 		
         super.onDestroy();
+    }
+
+    private void saveSettings() {
+        Editor ed = mPreferences.edit();
+        ed.putInt("repeatmode", mRepeatMode);
+        ed.putInt("shufflemode", mShuffleMode);
+        ed.commit();
+    }
+    
+    private void reloadSettings() {
+    	int repmode = mPreferences.getInt("repeatmode", REPEAT_NONE);
+        if (repmode != REPEAT_ALL && repmode != REPEAT_CURRENT) {
+        	repmode = REPEAT_NONE;
+        }
+        mRepeatMode = repmode;
+
+        int shufmode = mPreferences.getInt("shufflemode", SHUFFLE_NONE);
+        if (shufmode != SHUFFLE_ON) {
+        	shufmode = SHUFFLE_NONE;
+        }
+        mShuffleMode = shufmode;
     }
     
     private boolean loadQueue(String filename) {
@@ -501,9 +525,11 @@ public class MediaService extends Service implements OnSharedPreferenceChangeLis
     
     @Override
     public boolean onUnbind(Intent intent) {
-    	
         mServiceInUse = false;
 		
+        // Take a snapshot of the current settings
+        saveSettings();
+        
         /*if (isPlaying() && !playingVideo()) { //|| mPausedByTransientLossOfFocus) {
             // something is currently playing, or will be playing once 
             // an in-progress action requesting audio focus ends, so don't stop the service now.
@@ -875,6 +901,7 @@ public class MediaService extends Service implements OnSharedPreferenceChangeLis
                 return;
             }
             mShuffleMode = shufflemode;
+            saveSettings();
         }
     }
     public int getShuffleMode() {
@@ -884,6 +911,7 @@ public class MediaService extends Service implements OnSharedPreferenceChangeLis
     public void setRepeatMode(int repeatmode) {
         synchronized(this) {
             mRepeatMode = repeatmode;
+            saveSettings();
         }
     }
     public int getRepeatMode() {
