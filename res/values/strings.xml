@@ -118,6 +118,9 @@
     <!-- Title of sleep timer menu entry -->
     <string name="menu_sleep_timer">Sleep Timer</string>
 
+	<!-- Used to display the album and artist in the notification bar -->
+	<string name="notification_artist_album" msgid="2128095771677061443">"<xliff:g id="ALBUM">%2$s</xliff:g>" - "<xliff:g id="ARTIST">%1$s</xliff:g>"</string>
+
 	<!-- Title of the media player -->
 	<string name="nowplaying_title">Now playing</string>
 
@@ -232,6 +235,12 @@
 	<!-- Window title for Browsing Streams List -->
 	<string name="title_stream_browse">Browse Streams</string>
 
+    <!-- Default name of artist that doesn't have a name in the metadata -->
+    <string name="unknown_artist_name">Unknown artist</string>
+    
+    <!-- Default name of album that doesn't have a name in the metadata -->
+    <string name="unknown_album_name">Unknown album</string>
+
 	<!-- Message to display when a user attempts to scan a URL that is unsupported -->
 	<string name="unsupported_scanned_intent_message">The scanned QR code did not return a supported URL</string>
 	<string name="unsupported_pos">OK</string>
@@ -248,12 +257,6 @@
 	
 	<!-- Text shown on widget one when first loaded -->
 	<string name="widget_one_track_info_unavailable">"No track info available"</string>
-	
-	<!-- Displayed in the notification bar that music service is running -->
-	<string name="app_is_running">"ServeStream is running"</string>
-	
-	<!-- Displayed in the notification bar that music is playing -->
-	<string name="app_is_playing">"ServeStream is playing media"</string>
 
 	<!-- Window title for Alarm Clock -->
 	<string name="title_alarm_clock">Alarm Clock</string>
