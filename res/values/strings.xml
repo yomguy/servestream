@@ -161,10 +161,10 @@
 	<!-- Summary for the Wi-Fi lock preference -->
 	<string name="pref_wifilock_summary">"Prevent Wi-Fi from turning off when a session is active"</string>
 
-	<!-- Name for the Read ID3 tag preference -->
-	<string name="pref_readid3tags_title">"Read ID3 tags"</string>
+	<!-- Name for the Retrieve metadata preference -->
+	<string name="pref_retrievemetadata_title">"Retrieve metadata"</string>
 	<!-- Summary for the Read ID3 tag preference -->
-	<string name="pref_readid3tags_summary">"Read and display MP3 ID3 tags (increases playlist loading time)"</string>
+	<string name="pref_retrievemetadata_summary">"Read and display metadata (for supported file types)"</string>
 
     <!-- Toast after turning repeat off -->
     <string name="repeat_off_notif">Repeat is off</string>
