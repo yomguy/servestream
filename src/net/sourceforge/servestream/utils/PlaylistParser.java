@@ -19,23 +19,11 @@ package net.sourceforge.servestream.utils;
 
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStream;
-import java.net.Authenticator;
 import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.PasswordAuthentication;
 import java.net.URL;
 import java.util.ArrayList;
 
 import javax.net.ssl.HttpsURLConnection;
-
-import org.apache.tika.exception.TikaException;
-import org.apache.tika.metadata.Metadata;
-import org.apache.tika.metadata.XMPDM;
-import org.apache.tika.parser.ParseContext;
-import org.apache.tika.parser.mp3.Mp3Parser;
-import org.apache.tika.sax.BodyContentHandler;
-import org.xml.sax.SAXException;
 
 public abstract class PlaylistParser {
 	public final static String TAG = PlaylistParser.class.getName();
@@ -105,49 +93,6 @@ public abstract class PlaylistParser {
 		
 		return path.substring(index + 1, path.length());		
 	}
-
-	/*protected MediaFile retrieveMetadata(MediaFile mediaFile) {
-		HttpURLConnection conn = null;
-		InputStream inputStream = null;
-		Mp3Parser mp3Parser = new Mp3Parser();
-		BodyContentHandler handler = new BodyContentHandler();
-        Metadata metadata = new Metadata();
-		
-		String extension = getExtension(mediaFile.getURL());
-		
-		if (extension == null)
-			return mediaFile;
-		
-		try {
-			if (extension.equalsIgnoreCase("mp3")) {
-				conn = getConnection(new URL(mediaFile.getURL()));
-				conn.setConnectTimeout(6000);
-				conn.setReadTimeout(6000);
-    		
-				inputStream = conn.getInputStream();
-			
-				try {
-					mp3Parser.parse(inputStream, handler, metadata, new ParseContext());
-				} finally {
-					inputStream.close();
-				}
-		    
-				mediaFile.setTrack(metadata.get(Metadata.TITLE));
-				mediaFile.setArtist(metadata.get(XMPDM.ARTIST));
-				mediaFile.setAlbum(metadata.get(XMPDM.ALBUM));					
-			}
-		} catch (MalformedURLException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
-			e.printStackTrace();
-		} catch (SAXException e) {
-			e.printStackTrace();
-		} catch (TikaException e) {
-			e.printStackTrace();
-		}
-		
-		return mediaFile;
-	}*/
 	
     /**
      * This method should be implemented in each new playlist
@@ -170,12 +115,6 @@ public abstract class PlaylistParser {
         		};
         	});
     	}*/
-    	
-    	Authenticator.setDefault(new Authenticator() {
-    		protected PasswordAuthentication getPasswordAuthentication() {
-    			return new PasswordAuthentication(new String(), new String().toCharArray()); 
-    		};
-    	});
     	
     	if (playlistUrl.getProtocol().equalsIgnoreCase(HTTP)) {
     		conn = (HttpURLConnection) playlistUrl.openConnection();
