@@ -63,6 +63,7 @@ import net.sourceforge.servestream.dbutils.StreamDatabase;
 import net.sourceforge.servestream.metadata.SHOUTcastMetadata;
 import net.sourceforge.servestream.player.MultiPlayer;
 import net.sourceforge.servestream.utils.MediaFile;
+import net.sourceforge.servestream.utils.MetadataRetriever;
 import net.sourceforge.servestream.utils.PlaylistParser;
 import net.sourceforge.servestream.utils.PreferenceConstants;
 import net.sourceforge.servestream.widget.ServeStreamAppWidgetOneProvider;
@@ -1339,6 +1340,7 @@ public class MediaService extends Service implements OnSharedPreferenceChangeLis
 					mPlayListFiles[0] = mediaFile;
 					mPlayListLen = 1;
 				}
+				new RetrieveMetadataAsyncTask().execute(mPlayListFiles);
 			} catch (MalformedURLException e) {
 				e.printStackTrace();
 			}
@@ -1394,6 +1396,23 @@ public class MediaService extends Service implements OnSharedPreferenceChangeLis
 				Message msg = mSHOUTcastMetadataHandler.obtainMessage(SHOUTCAST_METADATA_REFRESH);
 				mSHOUTcastMetadataHandler.sendMessageDelayed(msg, 4000);
 			}
+		}
+    }
+    
+    public class RetrieveMetadataAsyncTask extends AsyncTask<MediaFile [], Void, Boolean> {
+	    public RetrieveMetadataAsyncTask() {
+	        super();
+	    }
+	    
+		@Override
+		protected Boolean doInBackground(MediaFile []... mediaFiles) {
+			for (int i = 0; i < mediaFiles[0].length; i++)
+				MetadataRetriever.retrieveMetadata(mediaFiles[0][i]);
+    		return true;
+		}
+
+		@Override
+		protected void onPostExecute(Boolean success) {
 		}
     }
 }
