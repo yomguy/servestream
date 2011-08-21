@@ -32,6 +32,8 @@
 
 package net.sourceforge.servestream.service;
 
+import android.app.Notification;
+import android.app.PendingIntent;
 import android.app.Service;
 import android.appwidget.AppWidgetManager;
 import android.content.ComponentName;
@@ -58,6 +60,8 @@ import java.net.MalformedURLException;
 import java.util.Random;
 import java.util.Vector;
 
+import net.sourceforge.servestream.R;
+import net.sourceforge.servestream.StreamMediaActivity;
 import net.sourceforge.servestream.dbutils.Stream;
 import net.sourceforge.servestream.dbutils.StreamDatabase;
 import net.sourceforge.servestream.metadata.SHOUTcastMetadata;
@@ -429,7 +433,7 @@ public class MediaService extends Service implements OnSharedPreferenceChangeLis
         
         connectivityManager.cleanup();
         
-		ConnectionNotifier.getInstance().hideRunningNotification(this);
+		stopForeground(true);
 		
         super.onDestroy();
     }
@@ -690,12 +694,35 @@ public class MediaService extends Service implements OnSharedPreferenceChangeLis
     		
             mPlayer.start();
 
+            String trackName = getTrackName();
+        	if (trackName == null) {
+        		trackName = getPlaylistMetadata();
+        		if (trackName == null)
+        			trackName = getMediaURL();
+        	}
+        	
+            String artist = getArtistName();
+        	if (artist == null)
+        		artist = getString(R.string.unknown_artist_name);
+                
+        	String album = getAlbumName();
+            if (album == null)
+                album = getString(R.string.unknown_album_name);
+            
+    		Notification status = new Notification(
+    				R.drawable.notification_icon, null,
+    				System.currentTimeMillis());
+            status.flags |= Notification.FLAG_ONGOING_EVENT;
+            PendingIntent contentIntent = PendingIntent.getActivity(this, 1,
+                    new Intent(this, StreamMediaActivity.class), 0);
+    		status.setLatestEventInfo(getApplicationContext(), trackName,
+    				getString(R.string.notification_artist_album, artist, album), contentIntent);
+            startForeground(PLAYBACKSERVICE_STATUS, status);
+            
             if (!mIsSupposedToBePlaying) {
                 mIsSupposedToBePlaying = true;
                 notifyChange(PLAYSTATE_CHANGED);
             }
-            
-            ConnectionNotifier.getInstance().showRunningNotification(this);
         }
     }
     
@@ -706,16 +733,13 @@ public class MediaService extends Service implements OnSharedPreferenceChangeLis
         mFileToPlay = null;
 
         if (remove_status_icon) {
-
+        	stopForeground(true);
         } else {
             stopForeground(false);
         }
         if (remove_status_icon) {
             mIsSupposedToBePlaying = false;
         }
-        
-        if (remove_status_icon)
-            ConnectionNotifier.getInstance().hideRunningNotification(this);
     }
 
     /**
@@ -734,7 +758,7 @@ public class MediaService extends Service implements OnSharedPreferenceChangeLis
                 mPlayer.pause();
                 mIsSupposedToBePlaying = false;
                 notifyChange(PLAYSTATE_CHANGED);
-                ConnectionNotifier.getInstance().hideRunningNotification(this);
+                stopForeground(true);
             }
         }
     }
