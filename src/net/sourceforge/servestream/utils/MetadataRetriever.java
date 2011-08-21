@@ -94,7 +94,7 @@ public class MetadataRetriever {
 			closeInputStream(inputStream);
 		}
 				
-		Log.v(TAG, "found shit for" + mediaFile.getURL());
+		//Log.v(TAG, "retrieved metadata for" + mediaFile.getURL());
 		
 		return mediaFile;
 	}
