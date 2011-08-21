@@ -1340,7 +1340,9 @@ public class MediaService extends Service implements OnSharedPreferenceChangeLis
 					mPlayListFiles[0] = mediaFile;
 					mPlayListLen = 1;
 				}
-				new RetrieveMetadataAsyncTask().execute(mPlayListFiles);
+				
+				if (mPreferences.getBoolean(PreferenceConstants.RETRIEVE_METADATA, false))
+					new RetrieveMetadataAsyncTask().execute(mPlayListFiles);
 			} catch (MalformedURLException e) {
 				e.printStackTrace();
 			}
