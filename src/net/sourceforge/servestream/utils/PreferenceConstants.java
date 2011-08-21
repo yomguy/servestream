@@ -58,7 +58,7 @@ public class PreferenceConstants {
 	
 	public static final String WIFI_LOCK = "wifilock";
 	
-	public static final String READ_ID3_TAGS = "readid3tags";
+	public static final String RETRIEVE_METADATA = "retrievemetadata";
 
 	/* Backup identifiers */
 	public static final String BACKUP_PREF_KEY = "prefs";
