@@ -30,6 +30,7 @@ import android.content.ServiceConnection;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.os.RemoteException;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -78,11 +79,7 @@ public class NowPlayingActivity extends ListActivity {
 	        // cast its IBinder to a concrete class and directly access it.
             mMediaService = IMediaService.Stub.asInterface(obj);
             
-            if (mAdapter == null) {
-            	createList();
-            } else {
-            	updateList();
-            }
+            createList();
         }
         public void onServiceDisconnected(ComponentName classname) {
 	        // This is called when the connection with the service has been
