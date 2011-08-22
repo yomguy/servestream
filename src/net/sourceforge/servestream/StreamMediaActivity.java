@@ -300,6 +300,7 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
         IntentFilter f = new IntentFilter();
         f.addAction(MediaService.PLAYSTATE_CHANGED);
         f.addAction(MediaService.META_CHANGED);
+        f.addAction(MediaService.META_UPDATED);
         f.addAction(MediaService.START_DIALOG);
         f.addAction(MediaService.STOP_DIALOG);
         f.addAction(MediaService.ERROR_MESSAGE);
@@ -900,6 +901,8 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
                 queueNextRefresh(1);
         		mMediaControls.startAnimation(media_controls_fade_in);
         		mMediaControls.setVisibility(View.VISIBLE);
+            } else if (action.equals(MediaService.META_UPDATED)) {
+            	updateTrackInfo();
             } else if (action.equals(MediaService.SHOUTCAST_META_CHANGED)) {
             	updateSHOUTcastMetaData();
             } else if (action.equals(MediaService.PLAYSTATE_CHANGED)) {

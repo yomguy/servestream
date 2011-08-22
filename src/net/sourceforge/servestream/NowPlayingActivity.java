@@ -51,9 +51,9 @@ public class NowPlayingActivity extends ListActivity {
         @Override
         public void onReceive(Context context, Intent intent) {
             String action = intent.getAction();
-            if (action.equals(MediaService.META_CHANGED)) {
-                updateList();
-            } else if (action.equals(MediaService.PLAYSTATE_CHANGED)) {
+            if (action.equals(MediaService.META_CHANGED) ||
+            		action.equals(MediaService.META_UPDATED) ||
+            			action.equals(MediaService.PLAYSTATE_CHANGED)) {
             	updateList();
             }
         }
@@ -133,6 +133,7 @@ public class NowPlayingActivity extends ListActivity {
         IntentFilter f = new IntentFilter();
         f.addAction(MediaService.PLAYSTATE_CHANGED);
         f.addAction(MediaService.META_CHANGED);
+        f.addAction(MediaService.META_UPDATED);
         registerReceiver(mStatusListener, new IntentFilter(f));
         
         f = new IntentFilter();
@@ -233,13 +234,13 @@ public class NowPlayingActivity extends ListActivity {
             if (trackName == null) {
             	trackName = stream.getPlaylistMetadata();
             	if (trackName == null)
-            		trackName = stream.getDecodedURL();
+            		trackName = getString(R.string.widget_one_track_info_unavailable);
             }
             holder.trackName.setText(trackName);
 
             String artistName = stream.getArtist();
             if (artistName == null) {
-            	artistName = "";
+            	artistName = stream.getURL();
             }
             holder.artistName.setText(artistName);
 

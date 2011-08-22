@@ -105,6 +105,7 @@ public class MediaService extends Service implements OnSharedPreferenceChangeLis
     
     public static final String PLAYSTATE_CHANGED = "net.sourceforge.servestream.playstatechanged";
     public static final String META_CHANGED = "net.sourceforge.servestream.metachanged";
+    public static final String META_UPDATED = "net.sourceforge,servestream.metaupdated";
     public static final String QUEUE_LOADED = "net.sourceforge.servestream.queueloaded";
     public static final String SHOUTCAST_META_CHANGED = "net.sourceforge.servestream.shoutcastmetachanged";
     public static final String START_DIALOG = "net.sourceforge.servestream.startdialog";
@@ -1432,8 +1433,10 @@ public class MediaService extends Service implements OnSharedPreferenceChangeLis
 	    
 		@Override
 		protected Boolean doInBackground(MediaFile []... mediaFiles) {
-			for (int i = 0; i < mediaFiles[0].length; i++)
+			for (int i = 0; i < mediaFiles[0].length; i++) {
 				MetadataRetriever.retrieveMetadata(mediaFiles[0][i]);
+				notifyChange(META_UPDATED);
+			}
     		return true;
 		}
 

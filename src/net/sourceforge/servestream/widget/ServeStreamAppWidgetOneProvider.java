@@ -119,8 +119,9 @@ public class ServeStreamAppWidgetOneProvider extends AppWidgetProvider {
     public void notifyChange(MediaService service, String what) {
         if (hasInstances(service)) {
             if (MediaService.META_CHANGED.equals(what) ||
-            		MediaService.PLAYSTATE_CHANGED.equals(what) ||
-            			MediaService.PLAYER_CLOSED.equals(what)) {
+            		MediaService.META_UPDATED.equals(what) ||
+            			MediaService.PLAYSTATE_CHANGED.equals(what) ||
+            				MediaService.PLAYER_CLOSED.equals(what)) {
                 performUpdate(service, null, what);
             }
         }
