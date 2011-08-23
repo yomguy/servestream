@@ -198,15 +198,18 @@ public class StreamListActivity extends ListActivity {
 		if (getIntent().getExtras() != null)
 			intentUri = getIntent().getExtras().getCharSequence(Intent.EXTRA_TEXT).toString();
 
-		if (intentUri != null)
+		if (intentUri != null) {
 			try {
 				mRequestedStream = new Stream(intentUri);
+				
+				if (mRequestedStream != null)
+					new DetermineIntentAsyncTask().execute(mRequestedStream);
 			} catch (MalformedURLException e) {
 				e.printStackTrace();
 			}
+		}
 		
-		if (mRequestedStream != null)
-			new DetermineIntentAsyncTask().execute(mRequestedStream);
+		setIntent(new Intent());
 	}
 	
     @Override
