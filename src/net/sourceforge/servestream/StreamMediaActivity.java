@@ -51,6 +51,7 @@ import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
 import android.content.res.Configuration;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
@@ -70,6 +71,7 @@ import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
+import android.view.Window;
 import android.view.WindowManager;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
@@ -131,6 +133,9 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
         super.onCreate(icicle);
 
         Log.v(TAG, "onCreate called");
+        
+        if (Build.VERSION.SDK_INT < 11)
+        	this.requestWindowFeature(Window.FEATURE_NO_TITLE);
 
         mPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         mPreferences.registerOnSharedPreferenceChangeListener(this);
