@@ -28,6 +28,9 @@ import javax.net.ssl.HttpsURLConnection;
 
 public class URLUtils {
 	
+	public static final String HTTP = "http";
+	public static final String HTTPS = "https";
+	
 	public final static String USER_AGENT = "ServeStream";
 	
 	public final static int NOT_FOUND = -1;
@@ -183,6 +186,45 @@ public class URLUtils {
     	}
     	
     	return mimeTypes.get(path.substring(index + 1, path.length()));
+	}
+	
+	/**
+	 * Creates a HttpURLConnection using the specific URL
+	 * 
+	 * @param url The URL to create a HttpURLConnection to
+	 * @return A HttpURLConnection if successful, null otherwise
+	 */
+	public static HttpURLConnection getConnection(URL url) {
+		HttpURLConnection conn = null;
+		
+		if (url == null)
+			return null;
+    	
+    	String userInfo = url.getUserInfo();
+    	
+    	if (userInfo != null && (userInfo.split("\\:").length == 2)) {
+        	final String username = (userInfo.split("\\:")) [0] ;
+        	final String password = (userInfo.split("\\:")) [1] ;
+        	Authenticator.setDefault(new Authenticator() {
+        		protected PasswordAuthentication getPasswordAuthentication() {
+        			return new PasswordAuthentication(username, password.toCharArray()); 
+        		};
+        	});
+    	}
+    	
+    	try {
+    		if (url.getProtocol().equalsIgnoreCase(HTTP)) {
+    			conn = (HttpURLConnection) url.openConnection();
+    		} else if (url.getProtocol().equalsIgnoreCase(HTTPS)) {
+    			conn = (HttpsURLConnection) url.openConnection();        		
+    		}
+    	
+    		conn.setRequestProperty("User-Agent", URLUtils.USER_AGENT);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+    	
+    	return conn;
 	}
 	
 	/**
