@@ -33,8 +33,8 @@
 package net.sourceforge.servestream.widget;
 
 import net.sourceforge.servestream.R;
-import net.sourceforge.servestream.StreamListActivity;
-import net.sourceforge.servestream.StreamMediaActivity;
+import net.sourceforge.servestream.activity.StreamListActivity;
+import net.sourceforge.servestream.activity.StreamMediaActivity;
 import net.sourceforge.servestream.service.MediaService;
 import android.app.PendingIntent;
 import android.appwidget.AppWidgetManager;
