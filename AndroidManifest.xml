@@ -32,6 +32,7 @@
 	<uses-permission android:name="android.permission.READ_PHONE_STATE" />
 	<uses-permission android:name="android.permission.VIBRATE"/>
 	<uses-permission android:name="android.permission.WAKE_LOCK" />
+	<uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
 
 	<application
 		android:icon="@drawable/icon"
@@ -55,7 +56,7 @@
                 android:authorities="net.sourceforge.servestream"
                 android:exported="false" />
 
-		<activity android:name=".StreamListActivity"
+		<activity android:name=".activity.StreamListActivity"
 			android:configChanges="keyboardHidden|orientation"
 		    android:launchMode="singleTop" >
 		    
@@ -80,13 +81,13 @@
 			</intent-filter>
 		</activity>
 
-		<activity android:name=".HelpActivity" android:configChanges="keyboardHidden|orientation" />
-		<activity android:name=".HelpTopicActivity" android:configChanges="keyboardHidden|orientation" />
-		<activity android:name=".SettingsActivity" android:configChanges="keyboardHidden|orientation" />
-		<activity android:name=".StreamBrowseActivity" android:configChanges="keyboardHidden|orientation" />
-		<activity android:name=".StreamEditorActivity" android:configChanges="keyboardHidden|orientation" />
+		<activity android:name=".activity.HelpActivity" android:configChanges="keyboardHidden|orientation" />
+		<activity android:name=".activity.HelpTopicActivity" android:configChanges="keyboardHidden|orientation" />
+		<activity android:name=".activity.SettingsActivity" android:configChanges="keyboardHidden|orientation" />
+		<activity android:name=".activity.StreamBrowseActivity" android:configChanges="keyboardHidden|orientation" />
+		<activity android:name=".activity.StreamEditorActivity" android:configChanges="keyboardHidden|orientation" />
 		
-		<activity android:name=".NowPlayingActivity" 
+		<activity android:name=".activity.NowPlayingActivity" 
 			android:configChanges="keyboardHidden|orientation" 
 			android:launchMode="singleInstance" />
 
@@ -94,7 +95,7 @@
 			android:configChanges="keyboardHidden|orientation"
 			android:description="@string/media_service_desc" />
 
-		<activity android:name=".StreamMediaActivity" android:configChanges="keyboardHidden|orientation"
+		<activity android:name=".activity.StreamMediaActivity" android:configChanges="keyboardHidden|orientation"
 			android:launchMode="singleTop">
 			<intent-filter>
 				<action android:name="android.intent.action.DOCK_EVENT" />
@@ -119,14 +120,14 @@
 
 		<!-- Alarm Activities -->
 
-        <activity android:name="AlarmClockActivity"
+        <activity android:name=".activity.AlarmClockActivity"
                 android:label="@string/alarm_list_title"
                 android:taskAffinity=""
                 android:excludeFromRecents="true"
                 android:configChanges="orientation|keyboardHidden|keyboard|navigation"
                 android:exported="true" />
 
-        <activity android:name="SetAlarmActivity" android:label="@string/set_alarm"
+        <activity android:name=".activity.SetAlarmActivity" android:label="@string/set_alarm"
                 android:configChanges="orientation|keyboardHidden|keyboard|navigation" />
                 
         <activity android:name=".alarm.AlarmAlert"
