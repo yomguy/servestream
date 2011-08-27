@@ -20,14 +20,11 @@ package net.sourceforge.servestream.utils;
 import java.util.ArrayList;
 
 import java.io.BufferedReader;
-import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLDecoder;
-
-import javax.net.ssl.HttpsURLConnection;
 
 import net.sourceforge.servestream.dbutils.Stream;
 
@@ -60,12 +57,7 @@ public class StreamParser {
         BufferedReader reader = null;
         
         try {
-        	
-        	if (mBaseURL.getProtocol().equals("http")) {
-        		conn = (HttpURLConnection) mBaseURL.openConnection();
-        	} else if (mBaseURL.getProtocol().equals("https")) {
-        		conn = (HttpsURLConnection) mBaseURL.openConnection();        		
-        	}
+        	conn = URLUtils.getConnection(mBaseURL);
         	
         	conn.setRequestProperty("User-Agent", URLUtils.USER_AGENT);
     		conn.setConnectTimeout(6000);
@@ -106,8 +98,8 @@ public class StreamParser {
         } catch (Exception ex) {
         	ex.printStackTrace();
         } finally {
-        	closeReader(reader);
-        	closeHttpConnection(conn);
+        	Utils.closeBufferedReader(reader);
+        	Utils.closeHttpConnection(conn);
         }
     }
     
@@ -128,36 +120,6 @@ public class StreamParser {
      */
     public ArrayList<Stream> getParsedLinks() {
     	return mParsedLinks;
-    }
-    
-	/**
-	 * Closes a BufferedReader
-	 * 
-	 * @param reader The reader to close
-	 */
-    private void closeReader(BufferedReader reader) {
-    	
-    	if (reader == null)
-    		return;
-
-    	try {
-    	    reader.close();
-    	} catch (IOException ex) {
-    		
-    	}
-    }
-    
-	/**
-	 * Closes a HttpURLConnection
-	 * 
-	 * @param conn The connection to close
-	 */
-    private void closeHttpConnection(HttpURLConnection conn) {
-    	
-    	if (conn == null)
-    		return;
-    	
-    	conn.disconnect();
     }
 	
 }

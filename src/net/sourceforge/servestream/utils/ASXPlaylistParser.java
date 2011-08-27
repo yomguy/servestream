@@ -75,7 +75,7 @@ public class ASXPlaylistParser extends PlaylistParser {
         BufferedReader reader = null;
         
         try { 	
-        	conn = getConnection(mPlaylistUrl);
+        	conn = URLUtils.getConnection(mPlaylistUrl);
 		    
 		    // Start the query
 		    reader = new BufferedReader(new InputStreamReader(conn.getInputStream()));
@@ -89,8 +89,8 @@ public class ASXPlaylistParser extends PlaylistParser {
         } catch (Exception ex) {
         	ex.printStackTrace();
         } finally {
-        	closeReader(reader);
-        	closeHttpConnection(conn);
+        	Utils.closeBufferedReader(reader);
+        	Utils.closeHttpConnection(conn);
         }
     }
 

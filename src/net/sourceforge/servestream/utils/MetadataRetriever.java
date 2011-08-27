@@ -23,8 +23,6 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 
-import javax.net.ssl.HttpsURLConnection;
-
 import org.apache.tika.exception.TikaException;
 import org.apache.tika.metadata.Metadata;
 import org.apache.tika.metadata.XMPDM;
@@ -32,8 +30,6 @@ import org.apache.tika.parser.ParseContext;
 import org.apache.tika.parser.mp3.Mp3Parser;
 import org.apache.tika.sax.BodyContentHandler;
 import org.xml.sax.SAXException;
-
-import android.util.Log;
 
 public class MetadataRetriever {
 	private static final String TAG = MetadataRetriever.class.getName();
@@ -59,11 +55,7 @@ public class MetadataRetriever {
 		try {
 			url = new URL(mediaFile.getURL());
 	    		
-			if (url.getProtocol().equalsIgnoreCase("http")) {
-				conn = (HttpURLConnection) url.openConnection();
-			} else if (url.getProtocol().equalsIgnoreCase("https")) {
-				conn = (HttpsURLConnection) url.openConnection();        		
-			}
+			conn = URLUtils.getConnection(url);
 	    	
 			conn.setRequestProperty("User-Agent", URLUtils.USER_AGENT);
 			conn.setConnectTimeout(6000);
