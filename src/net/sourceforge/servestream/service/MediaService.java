@@ -61,7 +61,7 @@ import java.util.Random;
 import java.util.Vector;
 
 import net.sourceforge.servestream.R;
-import net.sourceforge.servestream.StreamMediaActivity;
+import net.sourceforge.servestream.activity.StreamMediaActivity;
 import net.sourceforge.servestream.dbutils.Stream;
 import net.sourceforge.servestream.dbutils.StreamDatabase;
 import net.sourceforge.servestream.metadata.SHOUTcastMetadata;
