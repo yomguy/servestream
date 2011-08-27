@@ -34,6 +34,9 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import net.sourceforge.servestream.utils.URLUtils;
+import net.sourceforge.servestream.utils.Utils;
+
 public class SHOUTcastMetadata {
 	private static final String TAG = SHOUTcastMetadata.class.getName();
 
@@ -69,7 +72,7 @@ public class SHOUTcastMetadata {
     	InputStream stream = null;
 	  
     	try {
-    		conn = (HttpURLConnection) mUrl.openConnection();
+    		conn = URLUtils.getConnection(mUrl);
       
     	    conn.setRequestProperty("Icy-MetaData", "1");
     	    conn.setRequestProperty("Connection", "close");
@@ -103,8 +106,8 @@ public class SHOUTcastMetadata {
 
     	    // In case no data was sent
     	    if (metaDataOffset == 0) {
-    	    	closeInputStream(stream);
-    	    	closeHttpConnection(conn);
+    	    	Utils.closeInputStream(stream);
+    	    	Utils.closeHttpConnection(conn);
 			    return;
     	    }
 
@@ -153,8 +156,8 @@ public class SHOUTcastMetadata {
         } catch (Exception ex) {
         	ex.printStackTrace();
         } finally {
-        	closeInputStream(stream);
-        	closeHttpConnection(conn);
+        	Utils.closeInputStream(stream);
+        	Utils.closeHttpConnection(conn);
         }
     }
 
@@ -252,36 +255,6 @@ public class SHOUTcastMetadata {
 	
     public boolean containsMetadata() {
     	return mContainsMetadata;
-    }
-	
-	/**
-	 * Closes a InputStream
-	 * 
-	 * @param reader The reader to close
-	 */
-  	private void closeInputStream(InputStream stream) {
-  	
-  		if (stream == null)
-  			return;
-
-  		try {
-  			stream.close();
-  		} catch (IOException ex) {
-  		
-  		}
-  	}
-  
-	/**
-	 * Closes a HttpURLConnection
-	 * 
-	 * @param conn The connection to close
-	 */
-    private void closeHttpConnection(HttpURLConnection conn) {
-    	
-    	if (conn == null)
-    		return;
-    	
-    	conn.disconnect();
     }
   	
 }
