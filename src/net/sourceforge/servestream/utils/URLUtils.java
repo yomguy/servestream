@@ -96,7 +96,7 @@ public class URLUtils {
 		} catch (IllegalArgumentException ex) {
 		    ex.printStackTrace();
 		} finally {
-			closeHttpConnection(conn);
+			Utils.closeHttpConnection(conn);
 		}
 		
 	}
@@ -226,19 +226,6 @@ public class URLUtils {
     	
     	return conn;
 	}
-	
-	/**
-	 * Closes a HttpURLConnection
-	 * 
-	 * @param conn The connection to close
-	 */
-    private static void closeHttpConnection(HttpURLConnection conn) {
-    	
-    	if (conn == null)
-    		return;
-    	
-    	conn.disconnect();
-    }
     
     /**
      * Returns the response code from the URL

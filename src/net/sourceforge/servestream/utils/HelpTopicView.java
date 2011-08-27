@@ -33,7 +33,7 @@
 
 package net.sourceforge.servestream.utils;
 
-import net.sourceforge.servestream.HelpActivity;
+import net.sourceforge.servestream.activity.HelpActivity;
 
 import android.content.Context;
 import android.util.AttributeSet;

@@ -17,19 +17,11 @@
 
 package net.sourceforge.servestream.utils;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
 
-import javax.net.ssl.HttpsURLConnection;
-
 public abstract class PlaylistParser {
 	public final static String TAG = PlaylistParser.class.getName();
-	
-	private final String HTTP = "http";
-	private final String HTTPS = "https";
 	
 	URL mPlaylistUrl = null;
     ArrayList<MediaFile> mPlaylistFiles = null;
@@ -101,33 +93,6 @@ public abstract class PlaylistParser {
      */
     public abstract void retrieveAndParsePlaylist();
     
-    protected HttpURLConnection getConnection(URL playlistUrl) throws IOException {
-    	HttpURLConnection conn = null;
-    	
-    	/*String userInfo = playlistUrl.getUserInfo();
-    	
-    	if (userInfo != null && (userInfo.split("\\:").length == 2)) {
-        	final String username = (userInfo.split("\\:")) [0] ;
-        	final String password = (userInfo.split("\\:")) [1] ;
-        	Authenticator.setDefault(new Authenticator() {
-        		protected PasswordAuthentication getPasswordAuthentication() {
-        			return new PasswordAuthentication(username, password.toCharArray()); 
-        		};
-        	});
-    	}*/
-    	
-    	if (playlistUrl.getProtocol().equalsIgnoreCase(HTTP)) {
-    		conn = (HttpURLConnection) playlistUrl.openConnection();
-    	} else if (playlistUrl.getProtocol().equalsIgnoreCase(HTTPS)) {
-    		conn = (HttpsURLConnection) playlistUrl.openConnection();        		
-    	}
-    	
-    	conn.setRequestProperty("User-Agent", URLUtils.USER_AGENT);
-	    conn.setRequestMethod("GET");
-    	
-    	return conn;
-    }
-    
     /**
      * Returns the parsed playlist files
      * 
@@ -136,35 +101,5 @@ public abstract class PlaylistParser {
     public MediaFile [] getPlaylistFiles() {
 	    MediaFile [] playlistFiles = new MediaFile[mPlaylistFiles.size()];
 	    return mPlaylistFiles.toArray(playlistFiles);
-    }
-	
-	/**
-	 * Closes a BufferedReader
-	 * 
-	 * @param reader A BufferedReader
-	 */
-    protected void closeReader(BufferedReader reader) {
-    	
-    	if (reader == null)
-    		return;
-
-    	try {
-    	    reader.close();
-    	} catch (IOException ex) {
-    		
-    	}
-    }
-    
-	/**
-	 * Closes a HttpURLConnection
-	 * 
-	 * @param conn A HttpURLConnection to close
-	 */
-    protected void closeHttpConnection(HttpURLConnection conn) {
-    	
-    	if (conn == null)
-    		return;
-    	
-    	conn.disconnect();
     }
 }
