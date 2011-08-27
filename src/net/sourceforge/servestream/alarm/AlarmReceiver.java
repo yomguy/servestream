@@ -33,7 +33,7 @@
 package net.sourceforge.servestream.alarm;
 
 import net.sourceforge.servestream.R;
-import net.sourceforge.servestream.SetAlarmActivity;
+import net.sourceforge.servestream.activity.SetAlarmActivity;
 import android.app.KeyguardManager;
 import android.app.Notification;
 import android.app.NotificationManager;

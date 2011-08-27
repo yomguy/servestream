@@ -49,7 +49,7 @@ import android.util.Log;
 
 import java.util.Calendar;
 
-import net.sourceforge.servestream.AlarmClockActivity;
+import net.sourceforge.servestream.activity.AlarmClockActivity;
 
 /**
  * The Alarms provider supplies info about Alarm Clock settings
