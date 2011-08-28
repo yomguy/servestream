@@ -17,7 +17,13 @@
 
 package net.sourceforge.servestream.utils;
 
+import java.io.BufferedInputStream;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.net.URLDecoder;
 
 import android.os.Parcel;
@@ -34,13 +40,46 @@ public class MediaFile implements Parcelable {
 	private String mArtist = null;
 	private String mAlbum = null;
 	
+	private File mPartialFile = null;
+	private File mCompleteFile = null;
+	private DownloadTask mDownloadTask;
+	
 	/**
 	 * Default constructor
 	 */
 	public MediaFile() {
-		
+        mPartialFile = new File(FileUtils.getDownloadDirectory(), "mediaFile.partial.dat");
+        mCompleteFile = new File(FileUtils.getDownloadDirectory(), "mediaFile.complete.dat");
 	}
 
+	public void startDownload() {
+        delete();
+        mDownloadTask = new DownloadTask();
+        mDownloadTask.start();
+	}
+	
+	public void cancelDownload() {
+		if (mDownloadTask != null) {
+			mDownloadTask.cancel();
+		}
+	}
+	
+	public File getPartialFile() {
+		return mPartialFile;
+	}
+	
+	public File getCompleteFile() {
+		if (mCompleteFile.exists())
+			return mCompleteFile;
+		
+		return null;
+	}
+	
+	public void delete() {
+		FileUtils.deleteFile(mPartialFile);
+		FileUtils.deleteFile(mCompleteFile);
+	}
+	
 	/**
 	 * @param url the url to set
 	 */
@@ -151,5 +190,74 @@ public class MediaFile implements Parcelable {
 	    	return new MediaFile[size];
 	    }
 	};
+	
+	private class DownloadTask extends Thread {
 
+		private boolean mCancelled = false;
+		
+        public void run() {
+        	HttpURLConnection conn = null;
+        	BufferedInputStream in = null;
+            FileOutputStream out = null;
+            boolean appendToFile = false;
+            
+            byte[] buffer = new byte[1024 * 16];
+            long count = 0;
+            
+            try {
+                if (mCompleteFile.exists())
+                    return;
+            	
+            	conn = determineRange(new URL(mUrl), mPartialFile.length());
+            
+            	if (conn.getResponseCode() == HttpURLConnection.HTTP_PARTIAL)
+            		appendToFile = true;            		
+            
+				in = new BufferedInputStream(conn.getInputStream());
+	            out = new FileOutputStream(mPartialFile, appendToFile);
+
+				int i;
+				while (!mCancelled && (i = in.read(buffer)) != -1) {
+	                out.write(buffer, 0, i);
+	                count += i;
+	            }
+                out.flush();
+                out.close();
+                
+                FileUtils.copyFile(mPartialFile, mCompleteFile);
+			} catch (IOException e) {
+				e.printStackTrace();
+			} finally {
+				Utils.closeHttpConnection(conn);
+				Utils.closeInputStream(in);
+				Utils.closeOutputStream(out);
+			}
+        }
+	
+        private HttpURLConnection determineRange(URL url, long bytesProcessed) {
+        	HttpURLConnection conn = null;
+		
+        	conn = URLUtils.getConnection(url);
+		
+        	if (conn == null)
+        		return null;
+		
+        	conn.setConnectTimeout(6000);
+        	conn.setReadTimeout(6000);
+        	conn.setRequestProperty("Range", "bytes=" + bytesProcessed + "-");
+		
+        	try {
+        		conn.setRequestMethod("GET");
+        		conn.connect();
+        	} catch (IOException e) {
+        		e.printStackTrace();
+        	}
+		
+        	return conn;
+        }
+	
+        private void cancel() {
+        	mCancelled = true;
+        }
+	}
 }
