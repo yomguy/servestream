@@ -20,6 +20,7 @@ package net.sourceforge.servestream.utils;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.util.Formatter;
 import java.util.Locale;
@@ -85,6 +86,22 @@ public class Utils {
     		return;
     	
     	conn.disconnect();
+    }
+
+	/**
+	 * Closes a OutputStream
+	 * 
+	 * @param conn A OutputStream to close
+	 */
+    public static void closeOutputStream(OutputStream outputStream) {
+    	if (outputStream == null)
+    		return;
+    	
+    	try {
+			outputStream.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
     }
     
 	/**
