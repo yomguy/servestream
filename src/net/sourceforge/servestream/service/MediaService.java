@@ -670,15 +670,13 @@ public class MediaService extends Service implements OnSharedPreferenceChangeLis
             
             mFileToPlay = path;
             
-            /*try {
-				mSHOUTcastMetadata = new SHOUTcastMetadata(new URL(mPlayListFiles[mPlayPos].getURL()));
-            	new SHOUTcastMetadataAsyncTask().execute(mSHOUTcastMetadata);
-			} catch (MalformedURLException e) {
-				e.printStackTrace();
-			}*/
-            
-            Log.v(TAG, "opening" + mPlayListFiles[mPlayPos].getURL().toString());
-            mPlayer.setDataSource(mPlayListFiles[mPlayPos].getURL());
+            Log.v(TAG, "opening: " + mPlayListFiles[mPlayPos].getURL().toString());
+            if (mPreferences.getBoolean(PreferenceConstants.PROGRESSIVE_DOWNLOAD, false)) {
+                mPlayListFiles[mPlayPos].startDownload();
+                new BufferMediaTask(mPlayListFiles[mPlayPos]).start();
+            } else {
+            	mPlayer.setDataSource(mPlayListFiles[mPlayPos].getURL(), false);
+            }
         }
     }
 
@@ -1443,5 +1441,31 @@ public class MediaService extends Service implements OnSharedPreferenceChangeLis
 		@Override
 		protected void onPostExecute(Boolean success) {
 		}
+    }
+    
+    private class BufferMediaTask extends Thread {
+    	
+    	private static final int INITIAL_BUFFER = 81920;
+    	
+    	private MediaFile mMediaFile = null;
+    	
+    	public BufferMediaTask(MediaFile mediaFile) {
+    		mMediaFile = mediaFile;
+    	}
+    	
+    	public void run() {
+            while (!bufferingComplete()) {
+            	try {
+					Thread.sleep(1000);
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
+            }
+            mPlayer.setDataSource(mPlayListFiles[mPlayPos].getPartialFile().getPath(), true);
+    	}
+    	
+    	private boolean bufferingComplete() {
+    		return mMediaFile.getPartialFile().length() >= INITIAL_BUFFER;
+    	}
     }
 }
