@@ -20,6 +20,8 @@ package net.sourceforge.servestream.utils;
 import java.net.URL;
 import java.util.ArrayList;
 
+import android.webkit.MimeTypeMap;
+
 public abstract class PlaylistParser {
 	public final static String TAG = PlaylistParser.class.getName();
 	
@@ -51,7 +53,7 @@ public abstract class PlaylistParser {
 		if (url == null)
 			return null;
 		
-		extension = getExtension(url.getPath());
+		extension = MimeTypeMap.getFileExtensionFromUrl(url.toString());
 		
 		if (extension == null)
 			return null;
@@ -67,23 +69,6 @@ public abstract class PlaylistParser {
 		} else {
 			return null;
 		}
-	}
-
-	/**
-	 * Extracts the extension from a file path
-	 * 
-	 * @param path A file path
-	 * @return A String containing the extracted file extension
-	 */
-	private static final String getExtension(String path) {	
-		int index = 0;
-	
-		index = path.lastIndexOf(".");
-	
-		if (index == -1 || (path.length() - (index + 1)) < 3)
-			return null;
-		
-		return path.substring(index + 1, path.length());		
 	}
 	
     /**
