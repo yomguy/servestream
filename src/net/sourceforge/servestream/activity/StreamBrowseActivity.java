@@ -309,11 +309,11 @@ public class StreamBrowseActivity extends ListActivity {
 			//holder.icon.setImageState(new int[] { android.R.attr.state_pressed }, true);
 			String contentType = null;
 			if ((contentType = stream.getContentType()) != null) {
-			    if (contentType.equals("text"))
+			    if (contentType.contains("text/"))
 			    	holder.icon.setBackgroundResource(R.drawable.folder);
-			    else if (contentType.equals("audio"))
+			    else if (contentType.contains("audio/"))
 			    	holder.icon.setBackgroundResource(R.drawable.audio);
-			    else if (contentType.equals("video"))
+			    else if (contentType.contains("video/"))
 			    	holder.icon.setBackgroundResource(R.drawable.video);
 			    else
 			    	holder.icon.setBackgroundResource(R.drawable.none);
