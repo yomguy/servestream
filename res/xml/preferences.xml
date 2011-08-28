@@ -45,6 +45,13 @@
 		android:title="@string/pref_playback_category">
 
 		<CheckBoxPreference
+			android:key="progressivedownload"
+			android:title="@string/pref_progressivedownload_title"
+			android:summary="@string/pref_progressivedownload_summary"
+			android:defaultValue="false"
+			/>
+
+		<CheckBoxPreference
 			android:key="wakelock"
 			android:title="@string/pref_wakelock_title"
 			android:summary="@string/pref_wakelock_summary"
