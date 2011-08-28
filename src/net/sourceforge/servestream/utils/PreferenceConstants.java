@@ -60,6 +60,8 @@ public class PreferenceConstants {
 	
 	public static final String RETRIEVE_METADATA = "retrievemetadata";
 
+	public static final String PROGRESSIVE_DOWNLOAD = "progressivedownload";
+	
 	/* Backup identifiers */
 	public static final String BACKUP_PREF_KEY = "prefs";
 }
