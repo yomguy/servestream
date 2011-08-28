@@ -44,14 +44,18 @@ public class MultiPlayer implements Parcelable {
         
     }
 
-    public void setDataSource(String path) {
+    public void setDataSource(String path, boolean isLocalFile) {
         try {
             mMediaPlayer.reset();
             mMediaPlayer.setOnPreparedListener(onPreparedListener);
             mMediaPlayer.setOnCompletionListener(completionListener);
             mMediaPlayer.setOnErrorListener(errorListener);
-            mMediaPlayer.setDataSource(path);
-            mMediaPlayer.prepareAsync();
+            mMediaPlayer.setDataSource(path);            
+            if (isLocalFile) {
+            	mMediaPlayer.prepare();
+            } else {
+            	mMediaPlayer.prepareAsync();
+            }
             Log.v(TAG, "Preparing media plyer");
         } catch (IOException ex) {
             // TODO: notify the user why the file couldn't be opened
