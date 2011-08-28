@@ -85,7 +85,7 @@ public class StreamParser {
 
 		    		stream = new Stream(URLDecoder.decode(link, "UTF-8"));
 		    		stream.setNickname(links.get(i).text());
-			    	stream.setContentType(URLUtils.getContentType(stream.getPath()));
+			    	stream.setContentType(URLUtils.getContentType(link));
 		    	
 			    	mParsedLinks.add(linkCount, stream);
 			        linkCount++;
