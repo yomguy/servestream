@@ -25,7 +25,6 @@ import java.io.InputStream;
 import java.io.OutputStream;
 
 import android.os.Environment;
-import android.util.Log;
 
 public class FileUtils {
 
