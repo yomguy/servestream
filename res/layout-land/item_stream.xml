@@ -26,21 +26,24 @@
 	>
 
 	<TextView
-		android:id="@android:id/text1"  
+		android:id="@android:id/text2"
 		android:layout_width="wrap_content"
 		android:layout_height="wrap_content"
-		android:paddingRight="20dip"
-		android:singleLine="true"
-		android:ellipsize="end"
-		android:textAppearance="?android:attr/textAppearanceLarge"
+		android:layout_alignParentRight="true"
+		android:layout_centerVertical="true"
+		android:paddingLeft="10dip"
+		android:textAppearance="?android:attr/textAppearanceSmall"
 		/>
 
 	<TextView
-		android:id="@android:id/text2"  
+		android:id="@android:id/text1"
 		android:layout_width="wrap_content"
 		android:layout_height="wrap_content"
-        android:textAppearance="?android:attr/textAppearanceSmall"
-		android:layout_below="@android:id/text1"
+		android:layout_alignParentLeft="true"
+		android:layout_toLeftOf="@android:id/text2"
+    	android:singleLine="true"
+		android:ellipsize="end"
+		android:textAppearance="?android:attr/textAppearanceLarge"
 		/>
 
 </RelativeLayout>
