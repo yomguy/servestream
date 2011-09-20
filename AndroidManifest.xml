@@ -57,7 +57,6 @@
                 android:exported="false" />
 
 		<activity android:name=".activity.StreamListActivity"
-			android:configChanges="keyboardHidden|orientation"
 		    android:launchMode="singleTop" >
 		    
 			<intent-filter>
