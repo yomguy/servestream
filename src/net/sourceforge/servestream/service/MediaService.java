@@ -584,16 +584,9 @@ public class MediaService extends Service implements OnSharedPreferenceChangeLis
      * the last file in the list has been played,
      * or that the play-state changed (paused/resumed).
      */
-    private void notifyChange(String what) {
-        MediaFile mediaFile = mPlayListFiles[mPlayPos];
-    	
+    private void notifyChange(String what) {    	
     	// send notification to StreamMediaActivity
         Intent i = new Intent(what);
-        i.putExtra("artist", mediaFile.getArtist());
-        i.putExtra("album", mediaFile.getAlbum());
-        i.putExtra("track", mediaFile.getTrack());
-        i.putExtra("url", mediaFile.getDecodedURL());
-        i.putExtra("playlistMetadata", mediaFile.getPlaylistMetadata());
         sendBroadcast(i);
         
         // Share this notification directly with our widgets
@@ -601,7 +594,6 @@ public class MediaService extends Service implements OnSharedPreferenceChangeLis
     }
 
     private void notifyStickyChange(String what) {
-        
     	// send notification to StreamMediaActivity
         Intent i = new Intent(what);
         sendStickyBroadcast(i);
