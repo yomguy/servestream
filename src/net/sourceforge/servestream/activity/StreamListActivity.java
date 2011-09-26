@@ -580,7 +580,7 @@ public class StreamListActivity extends ListActivity {
 				contentTypeCode = urlUtils.getContentType();
 				
 				if (contentTypeCode != null) {
-				    if (contentTypeCode.equalsIgnoreCase("text/html")) {
+				    if (contentTypeCode.contains("text/html")) {
 					    intent = new Intent(StreamListActivity.this, StreamBrowseActivity.class);
 				    } else {
 					    intent = new Intent(StreamListActivity.this, StreamMediaActivity.class);			

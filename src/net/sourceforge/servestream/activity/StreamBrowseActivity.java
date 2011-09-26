@@ -451,7 +451,7 @@ public class StreamBrowseActivity extends ListActivity {
 			if (urlUtils.getResponseCode() == HttpURLConnection.HTTP_OK) {			
 				contentTypeCode = urlUtils.getContentType();
 				
-				if (contentTypeCode.equalsIgnoreCase("text/html")) {
+				if (contentTypeCode.contains("text/html")) {
 					StreamParser streamParser = null;
 				    
 					try {
