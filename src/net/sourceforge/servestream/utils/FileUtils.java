@@ -28,7 +28,7 @@ import android.os.Environment;
 
 public class FileUtils {
 
-	private static final String DOWNLOAD_DIRECTORY_NAME = "servestream";
+	private static final String DOWNLOAD_DIRECTORY_NAME = "ServeStream";
 	
     public static File getDownloadDirectory() {
         File file = new File(Environment.getExternalStorageDirectory(), DOWNLOAD_DIRECTORY_NAME);
@@ -37,6 +37,20 @@ public class FileUtils {
         	return null;
         	
     	return file;
+    }
+
+    public static boolean deleteAllFiles() {
+    	boolean success = true;
+    	
+    	File file = getDownloadDirectory();
+    	File [] files = file.listFiles();
+    	
+        for (int i = 0; i < files.length; i++) {
+        	if (!deleteFile(files[i]));
+        		success = false;
+        }
+        
+        return success;
     }
     
     public static boolean deleteFile(File file) {
