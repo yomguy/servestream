@@ -66,6 +66,7 @@ import net.sourceforge.servestream.dbutils.Stream;
 import net.sourceforge.servestream.dbutils.StreamDatabase;
 import net.sourceforge.servestream.metadata.SHOUTcastMetadata;
 import net.sourceforge.servestream.player.MultiPlayer;
+import net.sourceforge.servestream.utils.FileUtils;
 import net.sourceforge.servestream.utils.MediaFile;
 import net.sourceforge.servestream.utils.MetadataRetriever;
 import net.sourceforge.servestream.utils.PlaylistParser;
@@ -407,6 +408,8 @@ public class MediaService extends Service implements OnSharedPreferenceChangeLis
     	
     	Log.v(TAG, "onDestroy called");
     	
+    	cancelAllDownloads();
+    	
 		if(mStreamdb != null) {
 			mStreamdb.close();
 			mStreamdb = null;
@@ -420,9 +423,9 @@ public class MediaService extends Service implements OnSharedPreferenceChangeLis
         // release all MediaPlayer resources
         mPlayer.release();
         mPlayer = null;
-        
+
         mAudioManager.abandonAudioFocus(mAudioFocusListener);
-        
+
         // make sure there aren't any other messages coming
         mSleepTimerHandler.removeCallbacksAndMessages(null);
         mMediaplayerHandler.removeCallbacksAndMessages(null);
@@ -465,6 +468,7 @@ public class MediaService extends Service implements OnSharedPreferenceChangeLis
         
         boolean retVal = true;
     	
+        deleteAllDownloadedFiles();
 		new ParsePlaylistAsyncTask().execute(filename);
 		
 		return retVal;
@@ -664,7 +668,7 @@ public class MediaService extends Service implements OnSharedPreferenceChangeLis
             
             Log.v(TAG, "opening: " + mPlayListFiles[mPlayPos].getURL().toString());
             if (mPreferences.getBoolean(PreferenceConstants.PROGRESSIVE_DOWNLOAD, false)) {
-                mPlayListFiles[mPlayPos].startDownload();
+                mPlayListFiles[mPlayPos].download();
                 new BufferMediaTask(mPlayListFiles[mPlayPos]).start();
             } else {
             	mPlayer.setDataSource(mPlayListFiles[mPlayPos].getURL(), false);
@@ -789,6 +793,9 @@ public class MediaService extends Service implements OnSharedPreferenceChangeLis
 
     public void prev() {
         synchronized (this) {
+        	
+        	deleteDownloadedFile();
+        	
             if (mShuffleMode == SHUFFLE_ON) {
                 // go to previously-played track and remove it from the history
                 int histsize = mHistory.size();
@@ -817,6 +824,8 @@ public class MediaService extends Service implements OnSharedPreferenceChangeLis
                 return;
             }
 
+            deleteDownloadedFile();
+            
             if (mShuffleMode == SHUFFLE_ON) {
                 // Pick random next track from the not-yet-played ones
                 // TODO: make it work right after adding/removing items in the queue.
@@ -895,6 +904,33 @@ public class MediaService extends Service implements OnSharedPreferenceChangeLis
         }
     }
 
+    private synchronized void deleteDownloadedFile() {
+        MediaFile mediaFile = mPlayListFiles[mPlayPos];
+
+        if (!mediaFile.isStreaming())
+        	mediaFile.delete();
+    }
+    
+    private synchronized void deleteAllDownloadedFiles() {
+    	FileUtils.deleteAllFiles();
+    }
+    
+    private synchronized void cancelAllDownloads() {
+    	if (mPlayListFiles == null)
+    		return;
+    	
+    	try {
+            for (int i = 0; i < mPlayListFiles.length; i ++) {
+            	if (!mPlayListFiles[i].isStreaming()) {
+            		Log.v(TAG, "Cancelling download: " + mPlayListFiles[i].getDecodedURL());
+            		mPlayListFiles[i].delete();
+            	}
+            }
+    	} catch(Exception ex) {
+    		ex.printStackTrace();
+    	}
+    }
+    
     // A simple variation of Random that makes sure that the
     // value it returns is not equal to the value it returned
     // previously, unless the interval is 1.
@@ -1016,8 +1052,9 @@ public class MediaService extends Service implements OnSharedPreferenceChangeLis
      */
     public void setQueuePosition(int pos) {
         synchronized(this) {
+        	deleteDownloadedFile();
+        	mPlayPos = pos;
             stop(false);
-            mPlayPos = pos;
             openCurrent();
             notifyChange(META_CHANGED);
         }
@@ -1459,5 +1496,5 @@ public class MediaService extends Service implements OnSharedPreferenceChangeLis
     	private boolean bufferingComplete() {
     		return mMediaFile.getPartialFile().length() >= INITIAL_BUFFER;
     	}
-    }
+    }    
 }
