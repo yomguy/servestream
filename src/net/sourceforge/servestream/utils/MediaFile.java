@@ -26,6 +26,7 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLDecoder;
 
+import android.os.AsyncTask;
 import android.os.Parcel;
 import android.os.Parcelable;
 import android.util.Log;
@@ -39,7 +40,8 @@ public class MediaFile implements Parcelable {
 	private String mTrack = null;
 	private String mArtist = null;
 	private String mAlbum = null;
-	
+
+	private boolean isStreaming = true;
 	private File mPartialFile = null;
 	private File mCompleteFile = null;
 	private DownloadTask mDownloadTask;
@@ -48,24 +50,21 @@ public class MediaFile implements Parcelable {
 	 * Default constructor
 	 */
 	public MediaFile() {
-        mPartialFile = new File(FileUtils.getDownloadDirectory(), "mediaFile.partial.dat");
-        mCompleteFile = new File(FileUtils.getDownloadDirectory(), "mediaFile.complete.dat");
+
 	}
 
-	public void startDownload() {
-        delete();
-        mDownloadTask = new DownloadTask();
-        mDownloadTask.start();
+	public void download() {
+		isStreaming = false;
+		mPartialFile = new File(FileUtils.getDownloadDirectory(), "mediafile" + trackNumber + ".partial.dat");
+        mCompleteFile = new File(FileUtils.getDownloadDirectory(), "mediafile" + trackNumber + ".complete.dat");
+		mDownloadTask = new DownloadTask();
+        mDownloadTask.execute();
 	}
 	
 	public void cancelDownload() {
 		if (mDownloadTask != null) {
-			mDownloadTask.cancel();
+			mDownloadTask.cancel(true);
 		}
-	}
-	
-	public File getPartialFile() {
-		return mPartialFile;
 	}
 	
 	public File getCompleteFile() {
@@ -75,7 +74,24 @@ public class MediaFile implements Parcelable {
 		return null;
 	}
 	
+	public File getPartialFile() {
+		return mPartialFile;
+	}
+	
+	public boolean isStreaming() {
+		return isStreaming;
+	}
+	
+	public synchronized boolean isCompleteFileAvailable() {
+		return mCompleteFile.exists();
+	}
+	
+	public synchronized boolean isDownloadCancelled() {
+		return mDownloadTask != null && mDownloadTask.isCancelled();
+	}
+	
 	public void delete() {
+		cancelDownload(); 
 		FileUtils.deleteFile(mPartialFile);
 		FileUtils.deleteFile(mCompleteFile);
 	}
@@ -191,11 +207,10 @@ public class MediaFile implements Parcelable {
 	    }
 	};
 	
-	private class DownloadTask extends Thread {
-
-		private boolean mCancelled = false;
+	private class DownloadTask extends AsyncTask<Void, Void, Void> {
 		
-        public void run() {
+		@Override
+		protected Void doInBackground(Void... params) {
         	HttpURLConnection conn = null;
         	BufferedInputStream in = null;
             FileOutputStream out = null;
@@ -204,34 +219,36 @@ public class MediaFile implements Parcelable {
             byte[] buffer = new byte[1024 * 16];
             long count = 0;
             
-            try {
-                if (mCompleteFile.exists())
-                    return;
+            while (!mCompleteFile.exists()) {
+            	try {
             	
-            	conn = determineRange(new URL(mUrl), mPartialFile.length());
+                	conn = determineRange(new URL(mUrl), mPartialFile.length());
             
-            	if (conn.getResponseCode() == HttpURLConnection.HTTP_PARTIAL)
-            		appendToFile = true;            		
+                	if (conn.getResponseCode() == HttpURLConnection.HTTP_PARTIAL)
+                		appendToFile = true;            		
             
-				in = new BufferedInputStream(conn.getInputStream());
-	            out = new FileOutputStream(mPartialFile, appendToFile);
+                	in = new BufferedInputStream(conn.getInputStream());
+                	out = new FileOutputStream(mPartialFile, appendToFile);
 
-				int i;
-				while (!mCancelled && (i = in.read(buffer)) != -1) {
-	                out.write(buffer, 0, i);
-	                count += i;
-	            }
-                out.flush();
-                out.close();
+                	int i;
+                	while ((i = in.read(buffer)) != -1) {
+                		out.write(buffer, 0, i);
+                		count += i;
+                	}
+                	out.flush();
+                	out.close();
                 
-                FileUtils.copyFile(mPartialFile, mCompleteFile);
-			} catch (IOException e) {
-				e.printStackTrace();
-			} finally {
-				Utils.closeHttpConnection(conn);
-				Utils.closeInputStream(in);
-				Utils.closeOutputStream(out);
-			}
+                	FileUtils.copyFile(mPartialFile, mCompleteFile);
+            	} catch (IOException e) {
+            		e.printStackTrace();
+            	} finally {
+            		Utils.closeHttpConnection(conn);
+            		Utils.closeInputStream(in);
+            		Utils.closeOutputStream(out);
+            	}
+            }
+            
+            return null;
         }
 	
         private HttpURLConnection determineRange(URL url, long bytesProcessed) {
@@ -254,10 +271,6 @@ public class MediaFile implements Parcelable {
         	}
 		
         	return conn;
-        }
-	
-        private void cancel() {
-        	mCancelled = true;
         }
 	}
 }
