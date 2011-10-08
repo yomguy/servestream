@@ -26,6 +26,7 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLDecoder;
 
+import android.media.MediaPlayer;
 import android.os.AsyncTask;
 import android.os.Parcel;
 import android.os.Parcelable;
@@ -34,14 +35,14 @@ import android.util.Log;
 public class MediaFile implements Parcelable {
 
 	private String mUrl = null;
-	private int trackNumber = -1;
-	private long length = -1;
+	private int mTrackNumber = -1;
+	private long mLength = -1;
 	private String mPlaylistMetadata = null;
 	private String mTrack = null;
 	private String mArtist = null;
 	private String mAlbum = null;
 
-	private boolean isStreaming = true;
+	private boolean mIsStreaming = true;
 	private File mPartialFile = null;
 	private File mCompleteFile = null;
 	private DownloadTask mDownloadTask;
@@ -54,9 +55,9 @@ public class MediaFile implements Parcelable {
 	}
 
 	public void download() {
-		isStreaming = false;
-		mPartialFile = new File(FileUtils.getDownloadDirectory(), "mediafile" + trackNumber + ".partial.dat");
-        mCompleteFile = new File(FileUtils.getDownloadDirectory(), "mediafile" + trackNumber + ".complete.dat");
+		mIsStreaming = false;
+		mPartialFile = new File(FileUtils.getDownloadDirectory(), "mediafile" + mTrackNumber + ".partial.dat");
+        mCompleteFile = new File(FileUtils.getDownloadDirectory(), "mediafile" + mTrackNumber + ".complete.dat");
 		mDownloadTask = new DownloadTask();
         mDownloadTask.execute();
 	}
@@ -73,13 +74,28 @@ public class MediaFile implements Parcelable {
 		
 		return null;
 	}
+
+	public long getCompleteFileDuration() {
+        long duration = 0;
+        
+    	MediaPlayer mediaPlayer = new MediaPlayer();
+        try {
+			mediaPlayer.setDataSource(getCompleteFile().toString());
+			mediaPlayer.prepare();
+			duration = mediaPlayer.getDuration();
+		} catch (Exception e) {
+			return duration;
+		}
+		
+		return duration;
+	}
 	
 	public File getPartialFile() {
 		return mPartialFile;
 	}
 	
 	public boolean isStreaming() {
-		return isStreaming;
+		return mIsStreaming;
 	}
 	
 	public synchronized boolean isCompleteFileAvailable() {
@@ -114,28 +130,36 @@ public class MediaFile implements Parcelable {
 	 * @param trackNumber the trackNumber to set
 	 */
 	public void setTrackNumber(int trackNumber) {
-		this.trackNumber = trackNumber;
+		this.mTrackNumber = trackNumber;
 	}
 
 	/**
 	 * @return the trackNumber
 	 */
 	public int getTrackNumber() {
-		return trackNumber;
+		return mTrackNumber;
 	}
 	
 	/**
 	 * @param length the length to set
 	 */
 	public void setLength(long length) {
-		this.length = length;
+		this.mLength = length;
 	}
 
 	/**
 	 * @return the length
 	 */
 	public long getLength() {
-		return length;
+		if (isStreaming())
+			return mLength;
+			
+		if (isCompleteFileAvailable()) {
+			if (mLength == -1)
+				mLength = getCompleteFileDuration();
+		}
+		
+		return mLength;
 	}
 	
 	public void setPlaylistMetadata(String mPlaylistMetadata) {

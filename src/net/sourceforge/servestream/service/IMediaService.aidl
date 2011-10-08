@@ -55,6 +55,7 @@ interface IMediaService
     String getPlaylistMetadata();
     boolean isStreaming();
     boolean isCompleteFileAvailable();
+    long getCompleteFileDuration();
     String getSHOUTcastMetadata();
     long duration();
     long position();

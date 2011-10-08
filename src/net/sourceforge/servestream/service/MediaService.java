@@ -172,6 +172,9 @@ public class MediaService extends Service implements OnSharedPreferenceChangeLis
     
     private ServeStreamAppWidgetOneProvider mAppWidgetProvider = ServeStreamAppWidgetOneProvider.getInstance();
     
+    // interval after which we stop the service when idle
+    private static final int IDLE_DELAY = 60000;
+    
     private Handler mMediaplayerHandler = new Handler() {
         float mCurrentVolume = 1.0f;
         @Override
@@ -556,6 +559,19 @@ public class MediaService extends Service implements OnSharedPreferenceChangeLis
         return true;
     }
 
+    private Handler mDelayedStopHandler = new Handler() {
+        @Override
+        public void handleMessage(Message msg) {
+            // Check again to make sure nothing is playing right now
+            //if (isPlaying() || mPausedByTransientLossOfFocus || mServiceInUse
+            //        || mMediaplayerHandler.hasMessages(TRACK_ENDED)) {
+            //    return;
+            //}
+            
+            cancelAllDownloads1();
+        }
+    };
+    
     private Handler mSleepTimerHandler = new Handler() {
     	@Override
     	public void handleMessage(Message msg) {
@@ -687,6 +703,8 @@ public class MediaService extends Service implements OnSharedPreferenceChangeLis
     	
     	if (mPlayer.isInitialized()) {
     		
+    		resumeDownloading();
+    		
             mPlayer.start();
 
             String trackName = getTrackName();
@@ -751,6 +769,7 @@ public class MediaService extends Service implements OnSharedPreferenceChangeLis
         synchronized(this) {
             if (isPlaying()) {        		
                 mPlayer.pause();
+                gotoIdleState();
                 mIsSupposedToBePlaying = false;
                 notifyChange(PLAYSTATE_CHANGED);
                 stopForeground(true);
@@ -904,6 +923,12 @@ public class MediaService extends Service implements OnSharedPreferenceChangeLis
         }
     }
 
+    private void gotoIdleState() {
+        mDelayedStopHandler.removeCallbacksAndMessages(null);
+        Message msg = mDelayedStopHandler.obtainMessage();
+        mDelayedStopHandler.sendMessageDelayed(msg, IDLE_DELAY);
+    }
+    
     private synchronized void deleteDownloadedFile() {
         MediaFile mediaFile = mPlayListFiles[mPlayPos];
 
@@ -926,6 +951,39 @@ public class MediaService extends Service implements OnSharedPreferenceChangeLis
             		mPlayListFiles[i].delete();
             	}
             }
+    	} catch(Exception ex) {
+    		ex.printStackTrace();
+    	}
+    }
+
+    private synchronized void cancelAllDownloads1() {
+    	if (mPlayListFiles == null)
+    		return;
+    	
+    	try {
+            for (int i = 0; i < mPlayListFiles.length; i ++) {
+            	if (!mPlayListFiles[i].isStreaming()) {
+            		Log.v(TAG, "==================> Cancelling download: " + mPlayListFiles[i].getDecodedURL());
+            		mPlayListFiles[i].cancelDownload();
+            	}
+            }
+    	} catch(Exception ex) {
+    		ex.printStackTrace();
+    	}
+    }
+    
+    private synchronized void resumeDownloading() {
+    	if (mPlayListFiles == null)
+    		return;
+    	
+    	try {
+    		MediaFile mediaFile = mPlayListFiles[mPlayPos];
+    		if (!mediaFile.isStreaming() && 
+    				mediaFile.isDownloadCancelled() && 
+    				!mediaFile.isCompleteFileAvailable()) {
+        		Log.v(TAG, "==================> Resuming download: " + mediaFile.getDecodedURL());
+    			mediaFile.download();
+    		}
     	} catch(Exception ex) {
     		ex.printStackTrace();
     	}
@@ -1116,6 +1174,13 @@ public class MediaService extends Service implements OnSharedPreferenceChangeLis
         }
     }
     
+    public long getCompleteFileDuration() {
+        synchronized (this) {    	
+        	MediaFile mediaFile = mPlayListFiles[mPlayPos];
+            return mediaFile.getLength();
+        }
+    }
+    
     public String getSHOUTcastMetadata() {
     	return mSHOUTcastMetadata.getArtist() + " - " + mSHOUTcastMetadata.getTitle();
     }
@@ -1149,7 +1214,13 @@ public class MediaService extends Service implements OnSharedPreferenceChangeLis
     public long seek(long pos) {
         if (mPlayer.isInitialized()) {
             if (pos < 0) pos = 0;
-            if (pos > mPlayer.duration()) pos = mPlayer.duration();
+            
+            if (!mPlayListFiles[mPlayPos].isStreaming()) {
+        		if (pos > mPlayListFiles[mPlayPos].getLength()) pos = mPlayListFiles[mPlayPos].getLength();
+        	} else {
+            	if (pos > mPlayer.duration()) pos = mPlayer.duration();
+        	}
+            
             return mPlayer.seek(pos);
         }
         return -1;
@@ -1221,6 +1292,9 @@ public class MediaService extends Service implements OnSharedPreferenceChangeLis
         }
         public boolean isCompleteFileAvailable() {
         	return mService.get().isCompleteFileAvailable();
+        }
+        public long getCompleteFileDuration() {
+        	return mService.get().getCompleteFileDuration();
         }
         public String getSHOUTcastMetadata() {
             return mService.get().getSHOUTcastMetadata();

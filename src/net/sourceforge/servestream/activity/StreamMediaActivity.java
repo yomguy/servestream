@@ -53,15 +53,14 @@ import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
-import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
+import android.view.View.OnLongClickListener;
 import android.view.Window;
 import android.view.WindowManager;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
-import android.view.View.OnTouchListener;
 import android.widget.Button;
 import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
@@ -463,9 +462,9 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
     
     private void makeSurface() {
         preview = (SurfaceView) findViewById(R.id.surface_view);
-        preview.setOnTouchListener(new OnTouchListener() {
+        preview.setOnLongClickListener(new OnLongClickListener() {
 
-			public boolean onTouch(View arg0, MotionEvent arg1) {
+			public boolean onLongClick(View arg0) {
 				if (mMediaControls.isShown()) {
 					mMediaControls.startAnimation(media_controls_fade_out);
 					mMediaControls.setVisibility(View.GONE);
@@ -844,7 +843,7 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
         			mSeekForwardButton.setEnabled(false);
         			mProgress.setEnabled(false);
         		} else {
-        			mDuration = mMediaService.duration();
+        			mDuration = mMediaService.getCompleteFileDuration();
                 	mTotalTime.setText(Utils.makeTimeString(this, mDuration / 1000));
                 	mSeekBackwardButton.setEnabled(true);
                 	mSeekForwardButton.setEnabled(true);
@@ -913,7 +912,7 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
                 setPauseButtonImage();
             } else if (action.equals(MediaService.START_DIALOG)) {
 	        	try {
-	        		if (mParentActivityState == VISIBLE && mDialog != null && !mDialog.isShowing()) {
+	        		if (mParentActivityState == VISIBLE && (mDialog == null || mDialog != null && !mDialog.isShowing())) {
 	        	    	mDialog = new ProgressDialog(StreamMediaActivity.this);
 	        	        mDialog.setMessage("Opening file...");
 	        	        mDialog.setIndeterminate(true);
@@ -1013,7 +1012,7 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
             	mDuration = mMediaService.duration();
             } else {
             	if (mMediaService.isCompleteFileAvailable())
-            		mDuration = mMediaService.duration();
+            		mDuration = mMediaService.getCompleteFileDuration();
             	else
             		mDuration = 0;
             }
