@@ -26,7 +26,9 @@ public class M3UPlaylistParser extends PlaylistParser {
 	public final static String TAG = M3UPlaylistParser.class.getName();
 
 	public final static String EXTENSION = "m3u";
-    
+    private final static String EXTENDED_INFO_TAG = "#EXTM3U";
+    private final static String RECORD_TAG = "#EXTINF";
+	
     private MediaFile mediaFile = null;
     private boolean processingEntry = false;
     
@@ -57,17 +59,11 @@ public class M3UPlaylistParser extends PlaylistParser {
 		    conn.connect();
         
 		    while ((line = reader.readLine()) != null) {
-		    	if (!(line.equals("#EXTM3U") || line.trim().equals(""))) {
+		    	if (!(line.equals(EXTENDED_INFO_TAG) || line.trim().equals(""))) {
 		    		
-		    		if (line.contains("#EXTINF")) {
-		    			
+		    		if (line.contains(RECORD_TAG)) {
 		    			mediaFile = new MediaFile();
-		    			
-		    			int index = line.lastIndexOf(',');
-		    			
-		    			if (index != -1)
-		    				mediaFile.setPlaylistMetadata(line.substring(index + 1));
-		    			
+		    			mediaFile.setPlaylistMetadata(line.replaceAll("^(.*?),", ""));
 		    			processingEntry = true;
 		    		} else {
 		    			if (!processingEntry)
