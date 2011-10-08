@@ -53,6 +53,8 @@ interface IMediaService
     String getAlbumName();
     String getMediaURL();
     String getPlaylistMetadata();
+    boolean isStreaming();
+    boolean isCompleteFileAvailable();
     String getSHOUTcastMetadata();
     long duration();
     long position();

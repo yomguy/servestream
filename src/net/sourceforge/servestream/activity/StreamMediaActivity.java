@@ -168,7 +168,6 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
 	    mTrackName = (TextView) findViewById(R.id.trackname);
 	    mArtistName = (TextView) findViewById(R.id.artistname);
 	    mAlbumName = (TextView) findViewById(R.id.albumname);
-	    //mSHOUTcastMetadata = (TextView) findViewById(R.id.shoutcast_metadata_text);
 	    
 		// preload animation for media controller
 		media_controls_fade_in = AnimationUtils.loadAnimation(this, R.anim.media_controls_fade_in);
@@ -839,6 +838,20 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
         if(mMediaService == null)
             return 500;
         try {
+        	if (!mMediaService.isStreaming()) {
+        		if (!mMediaService.isCompleteFileAvailable()) {
+        			mSeekBackwardButton.setEnabled(false);
+        			mSeekForwardButton.setEnabled(false);
+        			mProgress.setEnabled(false);
+        		} else {
+        			mDuration = mMediaService.duration();
+                	mTotalTime.setText(Utils.makeTimeString(this, mDuration / 1000));
+                	mSeekBackwardButton.setEnabled(true);
+                	mSeekForwardButton.setEnabled(true);
+                	mProgress.setEnabled(true);
+        		}
+        	}
+        	
             long pos = mPosOverride < 0 ? mMediaService.position() : mPosOverride;
             long remaining = 1000 - (pos % 1000);
             if ((pos >= 0) && (mDuration > 0)) {
@@ -996,8 +1009,15 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
             }
             mAlbumName.setText(albumName);
             
-            mDuration = mMediaService.duration();
-            mTotalTime.setText(Utils.makeTimeString(this, mDuration / 1000));
+            if (mMediaService.isStreaming()) {
+            	mDuration = mMediaService.duration();
+            } else {
+            	if (mMediaService.isCompleteFileAvailable())
+            		mDuration = mMediaService.duration();
+            	else
+            		mDuration = 0;
+            }
+        	mTotalTime.setText(Utils.makeTimeString(this, mDuration / 1000));
         } catch (RemoteException ex) {
 
         }
