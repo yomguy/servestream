@@ -1102,6 +1102,20 @@ public class MediaService extends Service implements OnSharedPreferenceChangeLis
         }
     }
     
+    public boolean isStreaming() {
+        synchronized (this) {    	
+        	MediaFile mediaFile = mPlayListFiles[mPlayPos];
+            return mediaFile.isStreaming();
+        }
+    }
+    
+    public boolean isCompleteFileAvailable() {
+        synchronized (this) {    	
+        	MediaFile mediaFile = mPlayListFiles[mPlayPos];
+            return mediaFile.isCompleteFileAvailable();
+        }
+    }
+    
     public String getSHOUTcastMetadata() {
     	return mSHOUTcastMetadata.getArtist() + " - " + mSHOUTcastMetadata.getTitle();
     }
@@ -1201,6 +1215,12 @@ public class MediaService extends Service implements OnSharedPreferenceChangeLis
         }
         public String getPlaylistMetadata() {
         	return mService.get().getPlaylistMetadata();
+        }
+        public boolean isStreaming() {
+        	return mService.get().isStreaming();
+        }
+        public boolean isCompleteFileAvailable() {
+        	return mService.get().isCompleteFileAvailable();
         }
         public String getSHOUTcastMetadata() {
             return mService.get().getSHOUTcastMetadata();
