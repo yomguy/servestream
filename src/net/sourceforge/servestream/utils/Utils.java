@@ -115,7 +115,7 @@ public class Utils {
     	
     	try {
 			inputStream.close();
-		} catch (IOException e) {
+		} catch (Exception e) {
 			e.printStackTrace();
 		}
     }
