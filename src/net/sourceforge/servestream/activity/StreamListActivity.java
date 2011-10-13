@@ -550,7 +550,10 @@ public class StreamListActivity extends ListActivity {
 
 		@Override
 		protected void onPostExecute(Intent result) {
-			mDialog.dismiss();
+			try {
+				mDialog.dismiss();
+			} catch (Exception ex) {
+			}
 			
 			if (result != null) {
 				StreamListActivity.this.startActivity(result);
