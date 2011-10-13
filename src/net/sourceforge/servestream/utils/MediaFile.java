@@ -266,8 +266,8 @@ public class MediaFile implements Parcelable {
             	} catch (IOException e) {
             		e.printStackTrace();
             	} finally {
-            		Utils.closeHttpConnection(conn);
             		Utils.closeInputStream(in);
+            		Utils.closeHttpConnection(conn);
             		Utils.closeOutputStream(out);
             	}
             }
