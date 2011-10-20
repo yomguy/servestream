@@ -88,10 +88,10 @@ import android.widget.AdapterView.OnItemClickListener;
 public class StreamListActivity extends ListActivity {
 	public final static String TAG = StreamListActivity.class.getName();	
 	
-	private boolean mActivityVisible = true;
+    private static final String STATE_DETERMINE_INTENT_IN_PROGRESS = "net.sourceforge.servestream.inprogress";
+    private static final String STATE_DETERMINE_INTENT_STREAM = "net.sourceforge.servestream.stream";
 	
-	public final static int REQUEST_EDIT = 1;
-	
+    private final static int DETERMINE_INTENT_TASK = 1;
 	private final static int MISSING_BARCODE_SCANNER = 2;
 	private final static int UNSUPPORTED_SCANNED_INTENT = 3;
 	
@@ -106,6 +106,10 @@ public class StreamListActivity extends ListActivity {
 	private SharedPreferences mPreferences = null;
 	
 	protected boolean mMakingShortcut = false;
+	
+	private boolean mActivityVisible = true;
+	
+	private DetermineIntentAsyncTask mDetermineIntentTask = null;
 	
 	protected Handler updateHandler = new Handler() {
 		@Override
@@ -161,7 +165,8 @@ public class StreamListActivity extends ListActivity {
 					setResult(RESULT_OK, intent);
 					finish();
 				} else {
-					new DetermineIntentAsyncTask().execute(mRequestedStream);
+					mDetermineIntentTask = new DetermineIntentAsyncTask();
+					mDetermineIntentTask.execute(mRequestedStream);
 				}
 			}
 		});
@@ -177,7 +182,8 @@ public class StreamListActivity extends ListActivity {
 				hideKeyboard();
 				
 			    if (isValidStream()) {
-			    	new DetermineIntentAsyncTask().execute(mRequestedStream);
+			    	mDetermineIntentTask = new DetermineIntentAsyncTask();
+			    	mDetermineIntentTask.execute(mRequestedStream);
 			    }
 			}
 		});
@@ -254,6 +260,47 @@ public class StreamListActivity extends ListActivity {
 		}
 	}
 	
+    @Override
+    protected void onRestoreInstanceState(Bundle savedInstanceState) {
+        super.onRestoreInstanceState(savedInstanceState);
+        
+        restoreDetermineIntentTask(savedInstanceState);
+    }
+	
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        
+        saveDetermineIntentTask(outState);
+    }
+	
+    private void saveDetermineIntentTask(Bundle outState) {
+        final DetermineIntentAsyncTask task = mDetermineIntentTask;
+        if (task != null && task.getStatus() != AsyncTask.Status.FINISHED) {
+            final String uri = mRequestedStream.getUri().toString();
+            task.cancel(true);
+
+            if (uri != null) {
+                outState.putBoolean(STATE_DETERMINE_INTENT_IN_PROGRESS, true);
+                outState.putString(STATE_DETERMINE_INTENT_STREAM, uri);
+            }
+
+            mDetermineIntentTask = null;
+        }
+    }
+    
+    private void restoreDetermineIntentTask(Bundle savedInstanceState) {
+        if (savedInstanceState.getBoolean(STATE_DETERMINE_INTENT_IN_PROGRESS)) {
+            final String uri = savedInstanceState.getString(STATE_DETERMINE_INTENT_STREAM);
+            try {
+				mRequestedStream = new Stream(uri);
+				mDetermineIntentTask = new DetermineIntentAsyncTask();
+				mDetermineIntentTask.execute(mRequestedStream);
+			} catch (MalformedURLException e) {
+			}
+        }
+    }
+    
 	@Override
     public boolean onOptionsItemSelected(MenuItem item) {
     	switch(item.getItemId()) {
@@ -283,9 +330,15 @@ public class StreamListActivity extends ListActivity {
 
 	protected Dialog onCreateDialog(int id) {
 	    Dialog dialog;
+	    ProgressDialog progressDialog = null;
     	AlertDialog.Builder builder;
     	AlertDialog alertDialog;
 	    switch(id) {
+	    case DETERMINE_INTENT_TASK:
+	    	progressDialog = new ProgressDialog(StreamListActivity.this);
+	    	progressDialog.setMessage(getString(R.string.opening_url_message));
+	    	progressDialog.setCancelable(true);
+	    	return progressDialog;
 	    case MISSING_BARCODE_SCANNER:
 	    	builder = new AlertDialog.Builder(this);
 	    	builder.setMessage(R.string.find_barcode_scanner_message)
@@ -356,7 +409,7 @@ public class StreamListActivity extends ListActivity {
 			public boolean onMenuItemClick(MenuItem arg0) {
 				Intent intent = new Intent(StreamListActivity.this, StreamEditorActivity.class);
 				intent.putExtra(Intent.EXTRA_TITLE, stream.getId());
-				StreamListActivity.this.startActivityForResult(intent, REQUEST_EDIT);
+				StreamListActivity.this.startActivity(intent);
 				return true;
 			}
 		});
@@ -527,8 +580,6 @@ public class StreamListActivity extends ListActivity {
 	}
 
 	public class DetermineIntentAsyncTask extends AsyncTask<Stream, Void, Intent> {
-
-		private ProgressDialog mDialog;
 		
 	    public DetermineIntentAsyncTask() {
 	        super();
@@ -536,11 +587,7 @@ public class StreamListActivity extends ListActivity {
 
 	    @Override
 	    protected void onPreExecute() {
-	    	mDialog = new ProgressDialog(StreamListActivity.this);
-	        mDialog.setMessage(getString(R.string.opening_url_message));
-	        mDialog.setIndeterminate(true);
-	        mDialog.setCancelable(true);
-	        mDialog.show();
+	    	showDialog(DETERMINE_INTENT_TASK);
 	    }
 	    
 		@Override
@@ -551,7 +598,7 @@ public class StreamListActivity extends ListActivity {
 		@Override
 		protected void onPostExecute(Intent result) {
 			try {
-				mDialog.dismiss();
+				dismissDialog(DETERMINE_INTENT_TASK);
 			} catch (Exception ex) {
 			}
 			

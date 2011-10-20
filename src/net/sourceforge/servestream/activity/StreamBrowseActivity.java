@@ -46,6 +46,7 @@ import net.sourceforge.servestream.utils.StreamParser;
 import net.sourceforge.servestream.utils.URLUtils;
 
 import android.app.AlertDialog;
+import android.app.Dialog;
 import android.app.ListActivity;
 import android.app.ProgressDialog;
 import android.content.Context;
@@ -75,6 +76,8 @@ import android.widget.AdapterView.OnItemClickListener;
 public class StreamBrowseActivity extends ListActivity {
 	public final static String TAG = StreamBrowseActivity.class.getName();
     
+    private final static int PARSE_HTML_TASK = 1;
+	
     private Stream mBaseURL = null;
 	private Stream mCurrentURL = null;
 	private ArrayList <Stream> mCurrentListing = new ArrayList<Stream>();	
@@ -176,6 +179,21 @@ public class StreamBrowseActivity extends ListActivity {
 		return false;
     }
 
+	protected Dialog onCreateDialog(int id) {
+	    Dialog dialog;
+	    ProgressDialog progressDialog = null;
+	    switch(id) {
+	    case PARSE_HTML_TASK:
+	    	progressDialog = new ProgressDialog(StreamBrowseActivity.this);
+	    	progressDialog.setMessage(getString(R.string.opening_url_message));
+	    	progressDialog.setCancelable(true);
+	    	return progressDialog;
+	    default:
+	        dialog = null;
+	    }
+	    return dialog;
+	}
+	
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         MenuInflater inflater = getMenuInflater();
@@ -237,8 +255,7 @@ public class StreamBrowseActivity extends ListActivity {
 	}
 	
 	@Override
-	public boolean onKeyDown(int keyCode, KeyEvent event) {
-	    
+	public boolean onKeyDown(int keyCode, KeyEvent event) { 
 	    if (keyCode == KeyEvent.KEYCODE_BACK) {
 	    	String parent = new File(mCurrentURL.getPath().toString()).getParent();
 	    	
@@ -395,7 +412,6 @@ public class StreamBrowseActivity extends ListActivity {
     
     public class DetermineIntentAsyncTask extends AsyncTask<Stream, Void, Intent> {
 
-		private ProgressDialog mDialog;
 		private ArrayList<Stream> streams;
 		private Stream mPreviousURL;
 		
@@ -405,11 +421,7 @@ public class StreamBrowseActivity extends ListActivity {
 
 	    @Override
 	    protected void onPreExecute() {
-	    	mDialog = new ProgressDialog(StreamBrowseActivity.this);
-	        mDialog.setMessage(getString(R.string.loading_message));
-	        mDialog.setIndeterminate(true);
-	        mDialog.setCancelable(true);
-	        mDialog.show();
+	    	showDialog(PARSE_HTML_TASK);
 	    }
 	    
 		@Override
@@ -420,7 +432,7 @@ public class StreamBrowseActivity extends ListActivity {
 
 		@Override
 		protected void onPostExecute(Intent result) {
-			mDialog.dismiss();
+			dismissDialog(PARSE_HTML_TASK);
 			
 			if (result != null) {
 				StreamBrowseActivity.this.startActivity(result);
