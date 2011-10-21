@@ -64,6 +64,8 @@ import net.sourceforge.servestream.R;
 public class AlarmAlertFullScreen extends Activity {
 	private static final String TAG = AlarmAlertFullScreen.class.getName();
 	
+	private static final int FLAG_ALLOW_LOCK_WHILE_SCREEN_ON = 1;
+	
     // These defaults must match the values in res/xml/settings.xml
     private static final String DEFAULT_SNOOZE = "10";
     private static final String DEFAULT_VOLUME_BEHAVIOR = "2";
@@ -118,7 +120,7 @@ public class AlarmAlertFullScreen extends Activity {
         if (!getIntent().getBooleanExtra(SCREEN_OFF, false)) {
             win.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON
                     | WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON
-                    | WindowManager.LayoutParams.FLAG_ALLOW_LOCK_WHILE_SCREEN_ON);
+                    | FLAG_ALLOW_LOCK_WHILE_SCREEN_ON);
         }
 
         updateLayout();
