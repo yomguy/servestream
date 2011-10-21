@@ -47,6 +47,7 @@ import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
 import android.media.AudioManager;
 import android.media.AudioManager.OnAudioFocusChangeListener;
 import android.os.AsyncTask;
+import android.os.Build;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
@@ -56,6 +57,8 @@ import android.telephony.TelephonyManager;
 import android.util.Log;
 
 import java.lang.ref.WeakReference;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.net.MalformedURLException;
 import java.util.Random;
 import java.util.Vector;
@@ -79,6 +82,11 @@ import net.sourceforge.servestream.widget.ServeStreamAppWidgetOneProvider;
  */
 public class MediaService extends Service implements OnSharedPreferenceChangeListener {
 	private static final String TAG = MediaService.class.getName();
+	
+	private static final int AUDIOFOCUS_GAIN = 1;
+	private static final int AUDIOFOCUS_LOSS = -1;
+	private static final int AUDIOFOCUS_LOSS_TRANSIENT = -2;
+	private static final int AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK = -3;
 	
     /** used to specify whether enqueue() should start playing
      * the new list of files right away, next or once all the currently
@@ -175,6 +183,15 @@ public class MediaService extends Service implements OnSharedPreferenceChangeLis
     // interval after which we stop the service when idle
     private static final int IDLE_DELAY = 60000;
     
+    private static Method mRegisterMediaButtonEventReceiver;
+    private static Method mUnregisterMediaButtonEventReceiver;
+    private OnAudioFocusChangeListener mAudioFocusListener;
+    private static final int SDK_INT = Build.VERSION.SDK_INT;
+    
+    static {
+        initializeRemoteControlRegistrationMethods();
+    }
+    
     private Handler mMediaplayerHandler = new Handler() {
         float mCurrentVolume = 1.0f;
         @Override
@@ -235,7 +252,7 @@ public class MediaService extends Service implements OnSharedPreferenceChangeLis
                     // This code is here so we can better synchronize it with the code that
                     // handles fade-in
                     switch (msg.arg1) {
-                        case AudioManager.AUDIOFOCUS_LOSS:
+                        case AUDIOFOCUS_LOSS:
                             Log.v(TAG, "AudioFocus: received AUDIOFOCUS_LOSS");
                             if(isPlaying()) {
                                 mPausedByTransientLossOfFocus = false;
@@ -243,11 +260,11 @@ public class MediaService extends Service implements OnSharedPreferenceChangeLis
                             }
                             pause();
                             break;
-                        case AudioManager.AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK:
+                        case AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK:
                             //mMediaplayerHandler.removeMessages(FADEUP);
                             //mMediaplayerHandler.sendEmptyMessage(FADEDOWN);
                             break;
-                        case AudioManager.AUDIOFOCUS_LOSS_TRANSIENT:
+                        case AUDIOFOCUS_LOSS_TRANSIENT:
                             Log.v(TAG, "AudioFocus: received AUDIOFOCUS_LOSS_TRANSIENT");
                             if(isPlaying()) {
                                 mPausedByTransientLossOfFocus = true;
@@ -255,7 +272,7 @@ public class MediaService extends Service implements OnSharedPreferenceChangeLis
                             }
                             pause();
                             break;
-                        case AudioManager.AUDIOFOCUS_GAIN:
+                        case AUDIOFOCUS_GAIN:
                             Log.v(TAG, "AudioFocus: received AUDIOFOCUS_GAIN");
                             if(!isPlaying() && mPausedByTransientLossOfFocus) {
                                 mPausedByTransientLossOfFocus = false;
@@ -355,12 +372,6 @@ public class MediaService extends Service implements OnSharedPreferenceChangeLis
         }
     };
     
-    private OnAudioFocusChangeListener mAudioFocusListener = new OnAudioFocusChangeListener() {
-        public void onAudioFocusChange(int focusChange) {
-            mMediaplayerHandler.obtainMessage(FOCUSCHANGE, focusChange, 0).sendToTarget();
-        }
-    };
-    
     /**
      * Default constructor
      */
@@ -380,8 +391,13 @@ public class MediaService extends Service implements OnSharedPreferenceChangeLis
 		connectivityManager = new ConnectivityReceiver(this, lockingWifi);
         
         mAudioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
-        mAudioManager.registerMediaButtonEventReceiver(new ComponentName(getPackageName(),
-                MediaButtonIntentReceiver.class.getName()));
+        if (SDK_INT < 8) {
+        	registerRemoteControl();
+        } else {
+            mAudioFocusListener = registerOnAudioFocusChangeListener();
+        	mAudioManager.registerMediaButtonEventReceiver(new ComponentName(this.getPackageName(),
+        			MediaButtonIntentReceiver.class.getName()));
+        }
         
         mStreamdb = new StreamDatabase(this);
         
@@ -427,7 +443,8 @@ public class MediaService extends Service implements OnSharedPreferenceChangeLis
         mPlayer.release();
         mPlayer = null;
 
-        mAudioManager.abandonAudioFocus(mAudioFocusListener);
+        if (SDK_INT >= 8)
+        	mAudioManager.abandonAudioFocus(mAudioFocusListener);
 
         // make sure there aren't any other messages coming
         mSleepTimerHandler.removeCallbacksAndMessages(null);
@@ -696,10 +713,14 @@ public class MediaService extends Service implements OnSharedPreferenceChangeLis
      * Starts playback of a previously opened file.
      */
     public void play() {
-        mAudioManager.requestAudioFocus(mAudioFocusListener, AudioManager.STREAM_MUSIC,
-                AudioManager.AUDIOFOCUS_GAIN);
-        mAudioManager.registerMediaButtonEventReceiver(new ComponentName(this.getPackageName(),
-                MediaButtonIntentReceiver.class.getName()));
+        if (SDK_INT < 8) {
+        	registerRemoteControl();
+        } else {
+            mAudioManager.requestAudioFocus(mAudioFocusListener, AudioManager.STREAM_MUSIC,
+                    AUDIOFOCUS_GAIN);
+        	mAudioManager.registerMediaButtonEventReceiver(new ComponentName(this.getPackageName(),
+        			MediaButtonIntentReceiver.class.getName()));
+        }
     	
     	if (mPlayer.isInitialized()) {
     		
@@ -1590,5 +1611,56 @@ public class MediaService extends Service implements OnSharedPreferenceChangeLis
     	private boolean bufferingComplete() {
     		return mMediaFile.getPartialFile().length() >= INITIAL_BUFFER;
     	}
-    }    
+    }
+    
+    private static void initializeRemoteControlRegistrationMethods() {
+    	   try {
+    	      if (mRegisterMediaButtonEventReceiver == null) {
+    	         mRegisterMediaButtonEventReceiver = AudioManager.class.getMethod(
+    	               "registerMediaButtonEventReceiver",
+    	               new Class[] { ComponentName.class } );
+    	      }
+    	      if (mUnregisterMediaButtonEventReceiver == null) {
+    	         mUnregisterMediaButtonEventReceiver = AudioManager.class.getMethod(
+    	               "unregisterMediaButtonEventReceiver",
+    	               new Class[] { ComponentName.class } );
+    	      }
+    	      /* success, this device will take advantage of better remote */
+    	      /* control event handling                                    */
+    	   } catch (NoSuchMethodException nsme) {
+    	      /* failure, still using the legacy behavior, but this app    */
+    	      /* is future-proof!                                          */
+    	   }
+    }
+    
+    private void registerRemoteControl() {
+        try {
+            if (mRegisterMediaButtonEventReceiver == null) {
+                return;
+            }
+            mRegisterMediaButtonEventReceiver.invoke(mAudioManager,
+            		new ComponentName(this.getPackageName(), MediaButtonIntentReceiver.class.getName()));
+        } catch (InvocationTargetException ite) {
+            /* unpack original exception when possible */
+            Throwable cause = ite.getCause();
+            if (cause instanceof RuntimeException) {
+                throw (RuntimeException) cause;
+            } else if (cause instanceof Error) {
+                throw (Error) cause;
+            } else {
+                /* unexpected checked exception; wrap and re-throw */
+                throw new RuntimeException(ite);
+            }
+        } catch (IllegalAccessException ie) {
+            Log.e(TAG, "unexpected " + ie);
+        }
+    }
+
+    private OnAudioFocusChangeListener registerOnAudioFocusChangeListener() {
+    	return new OnAudioFocusChangeListener() {
+            public void onAudioFocusChange(int focusChange) {
+                mMediaplayerHandler.obtainMessage(FOCUSCHANGE, focusChange, 0).sendToTarget();
+            }
+        };
+    }
 }
