@@ -67,11 +67,13 @@ import android.preference.PreferenceManager;
 import android.util.Log;
 
 import android.view.ContextMenu;
+import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.View.OnKeyListener;
 import android.view.ViewGroup;
 import android.view.MenuItem.OnMenuItemClickListener;
 import android.view.View.OnClickListener;
@@ -134,6 +136,19 @@ public class StreamListActivity extends ListActivity {
 		
 		mQuickconnect = (TextView) this.findViewById(R.id.front_quickconnect);
 		mQuickconnect.setVisibility(mMakingShortcut ? View.GONE : View.VISIBLE);
+		mQuickconnect.setOnKeyListener(new OnKeyListener() {
+
+			public boolean onKey(View v, int keyCode, KeyEvent event) {
+
+				if(event.getAction() == KeyEvent.ACTION_UP)
+					return false;
+				
+				if(keyCode != KeyEvent.KEYCODE_ENTER)
+					return false;
+			    
+			    return handleUrl(true);
+			}
+		});
 		
 		// start thread to check for new version
 		new UpdateHelper(this);
@@ -145,7 +160,7 @@ public class StreamListActivity extends ListActivity {
 		list.setOnItemClickListener(new OnItemClickListener() {
 			public synchronized void onItemClick(AdapterView<?> parent, View view, int position, long id) {
 
-				hideKeyboard();
+				//hideKeyboard();
 				
 				mRequestedStream = (Stream) parent.getAdapter().getItem(position);
 				
@@ -165,8 +180,9 @@ public class StreamListActivity extends ListActivity {
 					setResult(RESULT_OK, intent);
 					finish();
 				} else {
-					mDetermineIntentTask = new DetermineIntentAsyncTask();
-					mDetermineIntentTask.execute(mRequestedStream);
+					handleUrl(false);
+					//mDetermineIntentTask = new DetermineIntentAsyncTask();
+					//mDetermineIntentTask.execute(mRequestedStream);
 				}
 			}
 		});
@@ -178,13 +194,7 @@ public class StreamListActivity extends ListActivity {
 		mGoButton.setOnClickListener(new OnClickListener() {
 
 			public void onClick(View arg0) {
-				
-				hideKeyboard();
-				
-			    if (isValidStream()) {
-			    	mDetermineIntentTask = new DetermineIntentAsyncTask();
-			    	mDetermineIntentTask.execute(mRequestedStream);
-			    }
+				handleUrl(true);
 			}
 		});
 		
@@ -461,8 +471,21 @@ public class StreamListActivity extends ListActivity {
 	    }
 	}
 	
-	protected void updateList() {
+	private boolean handleUrl(boolean validateUrl) {		
+		hideKeyboard();
 		
+		if (validateUrl) {
+			if (!isValidStream())
+				return false;
+		}
+		
+	    mDetermineIntentTask = new DetermineIntentAsyncTask();
+	    mDetermineIntentTask.execute(mRequestedStream);
+		
+		return true;
+	}
+	
+	protected void updateList() {		
 		ArrayList<Stream> streams = new ArrayList<Stream>();
 
 		if (mStreamdb == null)
