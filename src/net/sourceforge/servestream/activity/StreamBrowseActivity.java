@@ -76,7 +76,8 @@ import android.widget.AdapterView.OnItemClickListener;
 public class StreamBrowseActivity extends ListActivity {
 	public final static String TAG = StreamBrowseActivity.class.getName();
     
-    private final static int PARSE_HTML_TASK = 1;
+    private final static int DETERMINE_INTENT_TASK = 1;
+    private final static int PARSE_HTML_TASK = 2;
 	
     private Stream mBaseURL = null;
 	private Stream mCurrentURL = null;
@@ -183,9 +184,14 @@ public class StreamBrowseActivity extends ListActivity {
 	    Dialog dialog;
 	    ProgressDialog progressDialog = null;
 	    switch(id) {
-	    case PARSE_HTML_TASK:
+	    case DETERMINE_INTENT_TASK:
 	    	progressDialog = new ProgressDialog(StreamBrowseActivity.this);
 	    	progressDialog.setMessage(getString(R.string.opening_url_message));
+	    	progressDialog.setCancelable(true);
+	    	return progressDialog;
+	    case PARSE_HTML_TASK:
+	    	progressDialog = new ProgressDialog(StreamBrowseActivity.this);
+	    	progressDialog.setMessage(getString(R.string.loading_message));
 	    	progressDialog.setCancelable(true);
 	    	return progressDialog;
 	    default:
@@ -371,8 +377,6 @@ public class StreamBrowseActivity extends ListActivity {
     }
     
     public class HTMLParseAsyncTask extends AsyncTask<Stream, Void, StreamAdapter> {
-
-		private ProgressDialog mDialog;
 		
 	    public HTMLParseAsyncTask() {
 	        super();
@@ -380,11 +384,7 @@ public class StreamBrowseActivity extends ListActivity {
 
 	    @Override
 	    protected void onPreExecute() {
-	    	mDialog = new ProgressDialog(StreamBrowseActivity.this);
-	    	mDialog.setMessage(getString(R.string.loading_message));
-	        mDialog.setIndeterminate(true);
-	        mDialog.setCancelable(true);
-	        mDialog.show();
+	    	showDialog(PARSE_HTML_TASK);
 	    }
 	    
 		@Override
@@ -405,7 +405,10 @@ public class StreamBrowseActivity extends ListActivity {
 		@Override
 		protected void onPostExecute(StreamAdapter adapter) {
 			setListAdapter(adapter);
-			mDialog.dismiss();
+			try {
+				removeDialog(PARSE_HTML_TASK);
+			} catch (Exception ex) {
+			}
 		}
 		
 	}
@@ -421,7 +424,7 @@ public class StreamBrowseActivity extends ListActivity {
 
 	    @Override
 	    protected void onPreExecute() {
-	    	showDialog(PARSE_HTML_TASK);
+	    	showDialog(DETERMINE_INTENT_TASK);
 	    }
 	    
 		@Override
@@ -432,7 +435,10 @@ public class StreamBrowseActivity extends ListActivity {
 
 		@Override
 		protected void onPostExecute(Intent result) {
-			dismissDialog(PARSE_HTML_TASK);
+			try {
+				removeDialog(DETERMINE_INTENT_TASK);
+			} catch (Exception ex) {
+			}
 			
 			if (result != null) {
 				StreamBrowseActivity.this.startActivity(result);
@@ -454,7 +460,7 @@ public class StreamBrowseActivity extends ListActivity {
 			
 			try {
 				urlUtils = new URLUtils(stream.getURL());
-				Log.v(TAG, "STREAM is: " + stream.getURL());
+				Log.v(TAG, "URI is: " + stream.getURL());
 			} catch (Exception ex) {
 				ex.printStackTrace();
 				return null;
