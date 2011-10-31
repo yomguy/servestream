@@ -181,8 +181,6 @@ public class StreamListActivity extends ListActivity {
 					finish();
 				} else {
 					handleUrl(false);
-					//mDetermineIntentTask = new DetermineIntentAsyncTask();
-					//mDetermineIntentTask.execute(mRequestedStream);
 				}
 			}
 		});
@@ -621,7 +619,7 @@ public class StreamListActivity extends ListActivity {
 		@Override
 		protected void onPostExecute(Intent result) {
 			try {
-				dismissDialog(DETERMINE_INTENT_TASK);
+				removeDialog(DETERMINE_INTENT_TASK);
 			} catch (Exception ex) {
 			}
 			
@@ -636,14 +634,13 @@ public class StreamListActivity extends ListActivity {
 		}
 
 		public Intent handleStream(Stream stream) {
-			
 			Intent intent = null;
 			String contentTypeCode = null;
 			URLUtils urlUtils = null;
 			
 			try {
 				urlUtils = new URLUtils(stream.getURL());
-				Log.v(TAG, "STREAM is: " + stream.getURL());
+				Log.v(TAG, "URI is: " + stream.getURL());
 			} catch (Exception ex) {
 				ex.printStackTrace();
 				return null;
@@ -668,5 +665,4 @@ public class StreamListActivity extends ListActivity {
 			return intent;
 		}		
 	}
-
 }
