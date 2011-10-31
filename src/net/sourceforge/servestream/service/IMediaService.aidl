@@ -61,13 +61,15 @@ interface IMediaService
     long position();
     long seek(long pos);
     MediaFile [] getQueue();
-    int getPlayListLength();
+    void moveQueueItem(int from, int to);
     void setQueuePosition(int index);
+    int getPlayListLength();
     String getPath();
     String getPlayListPath();
     long getMediaId();
     void setShuffleMode(int shufflemode);
     int getShuffleMode();
+    int removeTracks(int first, int last);
     void setRepeatMode(int repeatmode);
     int getRepeatMode();
     void setSleepTimerMode(int sleepmode);
