@@ -22,43 +22,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
-import java.util.Formatter;
-import java.util.Locale;
-
-import net.sourceforge.servestream.R;
-
-import android.content.Context;
 
 public class Utils {
-
-    /*  Try to use String.format() as little as possible, because it creates a
-     *  new Formatter every time you call it, which is very inefficient.
-     *  Reusing an existing Formatter more than tripled the speed of
-     *  makeTimeString().
-     *  This Formatter/StringBuilder are also used by makeAlbumSongsLabel()
-     */
-    public static String makeTimeString(Context context, long secs) {
-        StringBuilder sFormatBuilder = new StringBuilder();
-        Formatter sFormatter = new Formatter(sFormatBuilder, Locale.getDefault());
-        final Object[] sTimeArgs = new Object[5];
-        
-        String durationformat = context.getString(
-                secs < 3600 ? R.string.durationformatshort : R.string.durationformatlong);
-        
-        /* Provide multiple arguments so the format can be changed easily
-         * by modifying the xml.
-         */
-        sFormatBuilder.setLength(0);
-
-        final Object[] timeArgs = sTimeArgs;
-        timeArgs[0] = secs / 3600;
-        timeArgs[1] = secs / 60;
-        timeArgs[2] = (secs / 60) % 60;
-        timeArgs[3] = secs;
-        timeArgs[4] = secs % 60;
-
-        return sFormatter.format(durationformat, timeArgs).toString();
-    }
     
     /**
 	 * Closes a BufferedReader
