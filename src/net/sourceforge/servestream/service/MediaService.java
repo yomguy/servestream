@@ -640,6 +640,46 @@ public class MediaService extends Service implements OnSharedPreferenceChangeLis
     }
     
     /**
+     * Moves the item at index1 to index2.
+     * @param index1
+     * @param index2
+     */
+    public void moveQueueItem(int index1, int index2) {
+        synchronized (this) {
+            if (index1 >= mPlayListLen) {
+                index1 = mPlayListLen - 1;
+            }
+            if (index2 >= mPlayListLen) {
+                index2 = mPlayListLen - 1;
+            }
+            if (index1 < index2) {
+                long tmp = mPlayList[index1];
+                for (int i = index1; i < index2; i++) {
+                    mPlayList[i] = mPlayList[i+1];
+                }
+                mPlayList[index2] = tmp;
+                if (mPlayPos == index1) {
+                    mPlayPos = index2;
+                } else if (mPlayPos >= index1 && mPlayPos <= index2) {
+                        mPlayPos--;
+                }
+            } else if (index2 < index1) {
+                long tmp = mPlayList[index1];
+                for (int i = index1; i > index2; i--) {
+                    mPlayList[i] = mPlayList[i-1];
+                }
+                mPlayList[index2] = tmp;
+                if (mPlayPos == index1) {
+                    mPlayPos = index2;
+                } else if (mPlayPos >= index2 && mPlayPos <= index1) {
+                        mPlayPos++;
+                }
+            }
+            notifyChange(QUEUE_CHANGED);
+        }
+    }
+    
+    /**
      * Returns the current play list
      * 
      * @return An array of MediaFile objects containing the tracks in the play list
@@ -1026,6 +1066,84 @@ public class MediaService extends Service implements OnSharedPreferenceChangeLis
         }
     };
     
+    /**
+     * Removes the range of tracks specified from the play list. If a file within the range is
+     * the file currently being played, playback will move to the next file after the
+     * range. 
+     * @param first The first file to be removed
+     * @param last The last file to be removed
+     * @return the number of tracks deleted
+     */
+    public int removeTracks(int first, int last) {
+        int numremoved = removeTracksInternal(first, last);
+        if (numremoved > 0) {
+            notifyChange(QUEUE_CHANGED);
+        }
+        return numremoved;
+    }
+    
+    private int removeTracksInternal(int first, int last) {
+        synchronized (this) {
+            if (last < first) return 0;
+            if (first < 0) first = 0;
+            if (last >= mPlayListLen) last = mPlayListLen - 1;
+
+            boolean gotonext = false;
+            if (first <= mPlayPos && mPlayPos <= last) {
+                mPlayPos = first;
+                gotonext = true;
+            } else if (mPlayPos > last) {
+                mPlayPos -= (last - first + 1);
+            }
+            int num = mPlayListLen - last - 1;
+            for (int i = 0; i < num; i++) {
+                mPlayList[first + i] = mPlayList[last + 1 + i];
+            }
+            mPlayListLen -= last - first + 1;
+            
+            if (gotonext) {
+                if (mPlayListLen == 0) {
+                    stop(true);
+                    mPlayPos = -1;
+                } else {
+                    if (mPlayPos >= mPlayListLen) {
+                        mPlayPos = 0;
+                    }
+                    boolean wasPlaying = isPlaying();
+                    stop(false);
+                    openCurrent();
+                    if (wasPlaying) {
+                        play();
+                    }
+                }
+                notifyChange(META_CHANGED);
+            }
+            return last - first + 1;
+        }
+    }
+    
+    /**
+     * Removes all instances of the track with the given id
+     * from the playlist.
+     * @param id The id to be removed
+     * @return how many instances of the track were removed
+     */
+    public int removeTrack(long id) {
+        int numremoved = 0;
+        synchronized (this) {
+            for (int i = 0; i < mPlayListLen; i++) {
+                if (mPlayList[i] == id) {
+                    numremoved += removeTracksInternal(i, i);
+                    i--;
+                }
+            }
+        }
+        if (numremoved > 0) {
+            notifyChange(QUEUE_CHANGED);
+        }
+        return numremoved;
+    }
+    
     public void setShuffleMode(int shufflemode) {
         synchronized(this) {
             if (mShuffleMode == shufflemode && mPlayListLen > 0) {
@@ -1323,6 +1441,9 @@ public class MediaService extends Service implements OnSharedPreferenceChangeLis
         public MediaFile [] getQueue() {
             return mService.get().getQueue();
         }
+        public void moveQueueItem(int from, int to) {
+            mService.get().moveQueueItem(from, to);
+        }
         public int getPlayListLength() {
         	return mService.get().getPlayListLength();
         }
@@ -1349,6 +1470,9 @@ public class MediaService extends Service implements OnSharedPreferenceChangeLis
         }
         public int getShuffleMode() {
             return mService.get().getShuffleMode();
+        }
+        public int removeTracks(int first, int last) {
+        	return mService.get().removeTracks(first, last);
         }
         public void setRepeatMode(int repeatmode) {
             mService.get().setRepeatMode(repeatmode);
