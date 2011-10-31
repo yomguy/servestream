@@ -22,7 +22,7 @@ import net.sourceforge.servestream.button.RepeatingImageButton;
 import net.sourceforge.servestream.player.MultiPlayer;
 import net.sourceforge.servestream.service.IMediaService;
 import net.sourceforge.servestream.service.MediaService;
-import net.sourceforge.servestream.utils.Utils;
+import net.sourceforge.servestream.utils.MusicUtils;
 import net.sourceforge.servestream.utils.PreferenceConstants;
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -68,7 +68,6 @@ import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.SeekBar.OnSeekBarChangeListener;
-
 
 public class StreamMediaActivity extends Activity implements SurfaceHolder.Callback, OnSharedPreferenceChangeListener {
     private static final String TAG = StreamMediaActivity.class.getName();
@@ -844,7 +843,7 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
         			mProgress.setEnabled(false);
         		} else {
         			mDuration = mMediaService.getCompleteFileDuration();
-                	mTotalTime.setText(Utils.makeTimeString(this, mDuration / 1000));
+                	mTotalTime.setText(MusicUtils.makeTimeString(this, mDuration / 1000));
                 	mSeekBackwardButton.setEnabled(true);
                 	mSeekForwardButton.setEnabled(true);
                 	mProgress.setEnabled(true);
@@ -854,7 +853,7 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
             long pos = mPosOverride < 0 ? mMediaService.position() : mPosOverride;
             long remaining = 1000 - (pos % 1000);
             if ((pos >= 0) && (mDuration > 0)) {
-                mCurrentTime.setText(Utils.makeTimeString(this, pos / 1000));
+                mCurrentTime.setText(MusicUtils.makeTimeString(this, pos / 1000));
                 
                 if (mMediaService.isPlaying()) {
                     mCurrentTime.setVisibility(View.VISIBLE);
@@ -1016,7 +1015,7 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
             	else
             		mDuration = 0;
             }
-        	mTotalTime.setText(Utils.makeTimeString(this, mDuration / 1000));
+        	mTotalTime.setText(MusicUtils.makeTimeString(this, mDuration / 1000));
         } catch (RemoteException ex) {
 
         }
