@@ -86,7 +86,6 @@ public class MediaService extends Service implements OnSharedPreferenceChangeLis
 	private static final int AUDIOFOCUS_GAIN = 1;
 	private static final int AUDIOFOCUS_LOSS = -1;
 	private static final int AUDIOFOCUS_LOSS_TRANSIENT = -2;
-	private static final int AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK = -3;
 	
     /** used to specify whether enqueue() should start playing
      * the new list of files right away, next or once all the currently
@@ -141,8 +140,6 @@ public class MediaService extends Service implements OnSharedPreferenceChangeLis
     public static final int TRACK_ENDED = 1;
     public static final int SERVER_DIED = 2;
     private static final int FOCUSCHANGE = 3;
-    //private static final int FADEDOWN = 4;
-    //private static final int FADEUP = 5;
     public static final int PLAYER_PREPARED = 6;
     public static final int PLAYER_ERROR = 7;
     private static final int MAX_HISTORY_SIZE = 100;
@@ -198,24 +195,6 @@ public class MediaService extends Service implements OnSharedPreferenceChangeLis
         public void handleMessage(Message msg) {
             Log.v(TAG, "mMediaplayerHandler.handleMessage " + msg.what);
             switch (msg.what) {
-            	/*case FADEDOWN:
-            		mCurrentVolume -= .05f;
-            		if (mCurrentVolume > .2f) {
-            			mMediaplayerHandler.sendEmptyMessageDelayed(FADEDOWN, 10);
-            		} else {
-            			mCurrentVolume = .2f;
-            		}
-            		mPlayer.setVolume(mCurrentVolume);
-            		break;
-            	case FADEUP:
-            		mCurrentVolume += .01f;
-            		if (mCurrentVolume < 1.0f) {
-            			mMediaplayerHandler.sendEmptyMessageDelayed(FADEUP, 10);
-            		} else {
-            			mCurrentVolume = 1.0f;
-            		}
-            		mPlayer.setVolume(mCurrentVolume);
-            		break;*/
                 case SERVER_DIED:
                 	Log.v(TAG, "server died!");
                     if (mIsSupposedToBePlaying) {
@@ -260,10 +239,6 @@ public class MediaService extends Service implements OnSharedPreferenceChangeLis
                             }
                             pause();
                             break;
-                        case AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK:
-                            //mMediaplayerHandler.removeMessages(FADEUP);
-                            //mMediaplayerHandler.sendEmptyMessage(FADEDOWN);
-                            break;
                         case AUDIOFOCUS_LOSS_TRANSIENT:
                             Log.v(TAG, "AudioFocus: received AUDIOFOCUS_LOSS_TRANSIENT");
                             if(isPlaying()) {
@@ -280,9 +255,6 @@ public class MediaService extends Service implements OnSharedPreferenceChangeLis
                                 mCurrentVolume = 0f;
                                 mPlayer.setVolume(mCurrentVolume);
                                 play(); // also queues a fade-in
-                            } else {
-                                //mMediaplayerHandler.removeMessages(FADEDOWN);
-                                //mMediaplayerHandler.sendEmptyMessage(FADEUP);
                             }
                             break;
                         default:
