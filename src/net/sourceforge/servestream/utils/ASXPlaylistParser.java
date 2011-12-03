@@ -24,6 +24,7 @@ import java.io.Reader;
 import java.io.StringReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.jdom.Document;
@@ -104,13 +105,24 @@ public class ASXPlaylistParser extends PlaylistParser {
 	    try {
 	    	doc = builder.build(in);
 	    	root = doc.getRootElement();
-	    	List<Element> children = root.getChildren();
+	    	List<Element> children = new ArrayList<Element>(root.getChildren().size());
+	    	
+	        for (Object o: root.getChildren()) {
+	            children.add((Element) o);
+	        }
 	    	
 	    	for (int i = 0; i < children.size(); i++) {
 	    		String tag = children.get(i).getName();
 	    		
 	    		if (tag != null && tag.equalsIgnoreCase("entry")) {
-	    			buildPlaylistEntry(children.get(i).getChildren());
+	    			Element element = children.get(i);
+	    			List<Element> children2 = new ArrayList<Element>(element.getChildren().size());
+	    			
+	    	        for (Object o: element.getChildren()) {
+	    	            children2.add((Element) o);
+	    	        }
+	    			
+	    			buildPlaylistEntry(children2);
 	    		}
 	    	}
 	    } catch (JDOMException e) {
