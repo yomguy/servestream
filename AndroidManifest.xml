@@ -147,8 +147,8 @@
         <receiver android:name=".alarm.AlarmReceiver">
             <intent-filter>
                 <action android:name="net.sourceforge.servestream.ALARM_ALERT" />
-                <action android:name="alarm_killed" />
-                <action android:name="cancel_snooze" />
+                <action android:name="net.sourceforge.servestream.ALARM_KILLED" />
+                <action android:name="net.sourceforge.servestream.CANCEL_SNOOZE" />
             </intent-filter>
         </receiver>
 

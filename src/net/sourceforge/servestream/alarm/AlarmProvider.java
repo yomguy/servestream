@@ -207,14 +207,13 @@ public class AlarmProvider extends ContentProvider {
     public int delete(Uri url, String where, String[] whereArgs) {
         SQLiteDatabase db = mOpenHelper.getWritableDatabase();
         int count;
-        long rowId = 0;
         switch (sURLMatcher.match(url)) {
             case ALARMS:
                 count = db.delete("alarms", where, whereArgs);
                 break;
             case ALARMS_ID:
                 String segment = url.getPathSegments().get(1);
-                rowId = Long.parseLong(segment);
+                Long.parseLong(segment);
                 if (TextUtils.isEmpty(where)) {
                     where = "_id=" + segment;
                 } else {

@@ -77,18 +77,18 @@ public class Alarms {
 
     // This is a private action used by the AlarmKlaxon to update the UI to
     // show the alarm has been killed.
-    public static final String ALARM_KILLED = "alarm_killed";
+    public static final String ALARM_KILLED = "net.sourceforge.servestream.ALARM_KILLED";
 
     // Extra in the ALARM_KILLED intent to indicate to the user how long the
     // alarm played before being killed.
-    public static final String ALARM_KILLED_TIMEOUT = "alarm_killed_timeout";
+    public static final String ALARM_KILLED_TIMEOUT = "net.sourceforge.servestream.ALARM_KILLED_TIMEOUT";
 
     // This string is used to indicate a silent alarm in the db.
     public static final int ALARM_ALERT_SILENT = 0;//= "silent";
 
     // This intent is sent from the notification when the user cancels the
     // snooze alert.
-    public static final String CANCEL_SNOOZE = "cancel_snooze";
+    public static final String CANCEL_SNOOZE = "net.sourceforge.servestream.CANCEL_SNOOZE";
 
     // This string is used when passing an Alarm object through an intent.
     public static final String ALARM_INTENT_EXTRA = "intent.extra.alarm";
@@ -168,9 +168,8 @@ public class Alarms {
         ContentValues values = new ContentValues(8);
         // Set the alarm_time value if this alarm does not repeat. This will be
         // used later to disable expire alarms.
-        long time = 0;
         if (!alarm.daysOfWeek.isRepeatSet()) {
-            time = calculateAlarm(alarm);
+            calculateAlarm(alarm);
         }
 
         values.put(Alarm.Columns.ENABLED, alarm.enabled ? 1 : 0);
@@ -407,7 +406,7 @@ public class Alarms {
 
         Calendar c = Calendar.getInstance();
         c.setTimeInMillis(atTimeInMillis);
-        String timeString = formatDayAndTime(context, c);
+        formatDayAndTime(context, c);
         //saveNextAlarm(context, timeString);
     }
 
