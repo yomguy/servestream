@@ -32,7 +32,6 @@ import org.apache.tika.sax.BodyContentHandler;
 import org.xml.sax.SAXException;
 
 public class MetadataRetriever {
-	private static final String TAG = MetadataRetriever.class.getName();
 	
 	private static final String MP3_CONTENT_TYPE = "audio/mpeg";
 	
