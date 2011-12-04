@@ -220,6 +220,9 @@
 	<!-- Query field title for stream editor preference -->
 	<string name="streampref_query_title">Query</string>
 
+	<!-- Reference field title for stream editor preference -->
+	<string name="streampref_reference_title">Reference</string>
+
     <!-- Window title for the Stream List -->
     <string name="text_go_button">Go</string>
 

@@ -66,12 +66,13 @@ public class StreamDatabase extends SQLiteOpenHelper {
 	public static final String FIELD_STREAM_PORT = "port";
 	public static final String FIELD_STREAM_PATH = "path";
 	public static final String FIELD_STREAM_QUERY = "query";
+	public static final String FIELD_STREAM_REFERENCE = "reference";
 	public final static String FIELD_STREAM_LASTCONNECT = "lastconnect";
 	public final static String FIELD_STREAM_COLOR = "color";
 	public final static String FIELD_STREAM_FONTSIZE = "fontsize";
 	
 	public static final String	DATABASE_NAME = "servestream.db";
-    private static final int DATABASE_VERSION = 3;
+    private static final int DATABASE_VERSION = 4;
     
     private static final String STREAM_TABLE_CREATE =
                 "CREATE TABLE " + TABLE_STREAMS + " (" +
@@ -84,6 +85,7 @@ public class StreamDatabase extends SQLiteOpenHelper {
 				FIELD_STREAM_PORT + " TEXT, " +
 				FIELD_STREAM_PATH + " TEXT, " +
 				FIELD_STREAM_QUERY + " TEXT, " +
+				FIELD_STREAM_REFERENCE + " TEXT, " +
 				FIELD_STREAM_LASTCONNECT + " INTEGER, " +
                 FIELD_STREAM_COLOR + " TEXT, " +
 	            FIELD_STREAM_FONTSIZE + " INTEGER);";
@@ -120,6 +122,13 @@ public class StreamDatabase extends SQLiteOpenHelper {
 			db.execSQL("DROP TABLE IF EXISTS " + TABLE_STREAMS);
 			onCreate(db);
 		}
+		
+		switch (oldVersion) {
+			case 3:
+				db.execSQL("ALTER TABLE " + TABLE_STREAMS
+						+ " ADD COLUMN " + FIELD_STREAM_REFERENCE + " TEXT DEFAULT ''");
+				break;
+		}
 	}
 	
 	/**
@@ -152,6 +161,7 @@ public class StreamDatabase extends SQLiteOpenHelper {
 			COL_PORT = c.getColumnIndexOrThrow(FIELD_STREAM_PORT),
 			COL_PATH = c.getColumnIndexOrThrow(FIELD_STREAM_PATH),
 			COL_QUERY = c.getColumnIndexOrThrow(FIELD_STREAM_QUERY),
+			COL_REFERENCE = c.getColumnIndexOrThrow(FIELD_STREAM_REFERENCE),
 			COL_LASTCONNECT = c.getColumnIndexOrThrow(FIELD_STREAM_LASTCONNECT),
 		    COL_COLOR = c.getColumnIndexOrThrow(FIELD_STREAM_COLOR),
 		    COL_FONTSIZE = c.getColumnIndexOrThrow(FIELD_STREAM_FONTSIZE);
@@ -168,6 +178,7 @@ public class StreamDatabase extends SQLiteOpenHelper {
 			stream.setPort(c.getString(COL_PORT));
 			stream.setPath(c.getString(COL_PATH));
 			stream.setQuery(c.getString(COL_QUERY));
+			stream.setReference(c.getString(COL_REFERENCE));
 			stream.setLastConnect(c.getLong(COL_LASTCONNECT));
 			stream.setColor(c.getString(COL_COLOR));
 			stream.setFontSize(c.getLong(COL_FONTSIZE));
@@ -288,6 +299,7 @@ public class StreamDatabase extends SQLiteOpenHelper {
 			COL_PORT = c.getColumnIndexOrThrow(FIELD_STREAM_PORT),
 			COL_PATH = c.getColumnIndexOrThrow(FIELD_STREAM_PATH),
 			COL_QUERY = c.getColumnIndexOrThrow(FIELD_STREAM_QUERY),
+			COL_REFERENCE = c.getColumnIndexOrThrow(FIELD_STREAM_REFERENCE),
 			COL_LASTCONNECT = c.getColumnIndexOrThrow(FIELD_STREAM_LASTCONNECT),
 		    COL_COLOR = c.getColumnIndexOrThrow(FIELD_STREAM_COLOR),
 		    COL_FONTSIZE = c.getColumnIndexOrThrow(FIELD_STREAM_FONTSIZE);
@@ -304,6 +316,7 @@ public class StreamDatabase extends SQLiteOpenHelper {
 			stream.setPort(c.getString(COL_PORT));
 			stream.setPath(c.getString(COL_PATH));
 			stream.setQuery(c.getString(COL_QUERY));
+			stream.setReference(c.getString(COL_REFERENCE));
 			stream.setLastConnect(c.getLong(COL_LASTCONNECT));
 			stream.setColor(c.getString(COL_COLOR));
 			stream.setFontSize(c.getLong(COL_FONTSIZE));
@@ -332,6 +345,7 @@ public class StreamDatabase extends SQLiteOpenHelper {
 			contentValues.put(FIELD_STREAM_PORT, stream.getPort());
 			contentValues.put(FIELD_STREAM_PATH, stream.getPath());
 			contentValues.put(FIELD_STREAM_QUERY, stream.getQuery());
+			contentValues.put(FIELD_STREAM_REFERENCE, stream.getReference());
 			contentValues.put(FIELD_STREAM_LASTCONNECT, stream.getLastConnect());
 			contentValues.put(FIELD_STREAM_COLOR, stream.getColor());
 			contentValues.put(FIELD_STREAM_FONTSIZE, stream.getFontSize());
@@ -358,6 +372,11 @@ public class StreamDatabase extends SQLiteOpenHelper {
 			    if (stream.getQuery().equals(""))
 				    contentValues.put(FIELD_STREAM_QUERY, "");
 			}
+
+			if (stream.getReference() != null) {
+			    if (stream.getReference().equals(""))
+				    contentValues.put(FIELD_STREAM_REFERENCE, "");
+			}
 			
 			if (contentValues.size() > 0) {
 				Log.v(TAG, "Replacing null values");
@@ -381,6 +400,7 @@ public class StreamDatabase extends SQLiteOpenHelper {
 		selection.put(FIELD_STREAM_PORT, stream.getPort());
 		selection.put(FIELD_STREAM_PATH, stream.getPath());
 		selection.put(FIELD_STREAM_QUERY, stream.getQuery());
+		selection.put(FIELD_STREAM_REFERENCE, stream.getReference());
 		
 		return selection;
 	}
