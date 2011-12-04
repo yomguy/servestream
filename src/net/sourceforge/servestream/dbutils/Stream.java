@@ -36,6 +36,7 @@ public class Stream {
 	private String port = null;
 	private String path = null;
 	private String query = null;
+	private String reference = null;
 	private long lastconnect = -1;
 	private String contentType = null;
 	private String color = null;
@@ -98,6 +99,12 @@ public class Stream {
 			this.query = url.getQuery();
 		} else {
 			this.query = "";
+		}
+		
+		if (url.getRef() != null) {
+			this.reference = url.getRef();
+		} else {
+			this.reference = "";
 		}
 	}
 	
@@ -171,6 +178,14 @@ public class Stream {
 
 	public String getQuery() {
 		return query;
+	}
+	
+	public void setReference(String reference) {
+		this.reference = reference;
+	}
+	
+	public String getReference() {
+		return reference;
 	}
 	
 	public void setLastConnect(long lastconnect) {
@@ -263,6 +278,12 @@ public class Stream {
 		} else if (!query.equals(stream.getQuery()))
 			return false;
 
+		if (reference == null) {
+			if (stream.getReference() != null)
+				return false;
+		} else if (!reference.equals(stream.getReference()))
+			return false;
+		
 		return true;
 	}
 	
@@ -281,6 +302,7 @@ public class Stream {
 		hash = 31 * hash + (null == port ? 0 : port.hashCode());
 		hash = 31 * hash + (null == path ? 0 : path.hashCode());
 		hash = 31 * hash + (null == query ? 0 : query.hashCode());
+		hash = 31 * hash + (null == reference ? 0 : reference.hashCode());
 
 		return hash;
 	}
@@ -313,6 +335,11 @@ public class Stream {
 			.append(query);
 		}
 		
+		if (!reference.equals("")) {
+		    sb.append('#')
+			.append(reference);
+		}
+		
 		return Uri.parse(sb.toString());
 	}
 	
@@ -343,6 +370,11 @@ public class Stream {
 		if (!query.equals("")) {
 		    sb.append('?')
 			.append(query);
+		}
+		
+		if (!reference.equals("")) {
+		    sb.append('#')
+			.append(reference);
 		}
 		
 		return new URL(sb.toString());

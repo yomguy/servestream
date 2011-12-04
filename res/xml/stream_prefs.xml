@@ -69,6 +69,11 @@
 			android:title="@string/streampref_query_title"
 			/>
 
+		<EditTextPreference
+			android:key="reference"
+			android:title="@string/streampref_reference_title"
+			/>
+
 	</PreferenceCategory>
 
 </PreferenceScreen>
