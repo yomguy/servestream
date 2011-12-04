@@ -55,6 +55,7 @@ import android.content.ActivityNotFoundException;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.DialogInterface.OnCancelListener;
 import android.content.Intent;
 import android.content.Intent.ShortcutIconResource;
 import android.content.SharedPreferences;
@@ -90,6 +91,9 @@ import android.widget.AdapterView.OnItemClickListener;
 public class StreamListActivity extends ListActivity {
 	public final static String TAG = StreamListActivity.class.getName();	
 	
+ 	private static final int MESSAGE_UPDATE_LIST = 1;
+    public static final int MESSAGE_HANDLE_INTENT = 2;
+	
     private static final String STATE_DETERMINE_INTENT_IN_PROGRESS = "net.sourceforge.servestream.inprogress";
     private static final String STATE_DETERMINE_INTENT_STREAM = "net.sourceforge.servestream.stream";
 	
@@ -113,10 +117,10 @@ public class StreamListActivity extends ListActivity {
 	
 	private DetermineIntentAsyncTask mDetermineIntentTask = null;
 	
-	protected Handler updateHandler = new Handler() {
+	protected Handler mHandler = new Handler() {
 		@Override
 		public void handleMessage(Message msg) {
-			StreamListActivity.this.updateList();
+			StreamListActivity.this.handleMessage(msg);
 		}
 	};
 	
@@ -217,7 +221,7 @@ public class StreamListActivity extends ListActivity {
 				mRequestedStream = new Stream(intentUri);
 				
 				if (mRequestedStream != null)
-					new DetermineIntentAsyncTask().execute(mRequestedStream);
+					determineIntent();
 			} catch (MalformedURLException e) {
 				e.printStackTrace();
 			}
@@ -287,6 +291,10 @@ public class StreamListActivity extends ListActivity {
         if (task != null && task.getStatus() != AsyncTask.Status.FINISHED) {
             final String uri = mRequestedStream.getUri().toString();
             task.cancel(true);
+			try {
+				removeDialog(DETERMINE_INTENT_TASK);
+			} catch (Exception ex) {
+			}
 
             if (uri != null) {
                 outState.putBoolean(STATE_DETERMINE_INTENT_IN_PROGRESS, true);
@@ -302,8 +310,7 @@ public class StreamListActivity extends ListActivity {
             final String uri = savedInstanceState.getString(STATE_DETERMINE_INTENT_STREAM);
             try {
 				mRequestedStream = new Stream(uri);
-				mDetermineIntentTask = new DetermineIntentAsyncTask();
-				mDetermineIntentTask.execute(mRequestedStream);
+				determineIntent();
 			} catch (MalformedURLException e) {
 			}
         }
@@ -345,7 +352,20 @@ public class StreamListActivity extends ListActivity {
 	    case DETERMINE_INTENT_TASK:
 	    	progressDialog = new ProgressDialog(StreamListActivity.this);
 	    	progressDialog.setMessage(getString(R.string.opening_url_message));
-	    	progressDialog.setCancelable(true);
+	    	progressDialog.setOnCancelListener(new OnCancelListener() {
+
+				@Override
+				public void onCancel(DialogInterface dialog) {
+					if (mDetermineIntentTask != null) {
+						mDetermineIntentTask.cancel(true);
+						mDetermineIntentTask = null;
+						try {
+							removeDialog(DETERMINE_INTENT_TASK);
+						} catch (Exception ex) {
+						}
+					}
+				}	
+			});
 	    	return progressDialog;
 	    case MISSING_BARCODE_SCANNER:
 	    	builder = new AlertDialog.Builder(this);
@@ -436,7 +456,7 @@ public class StreamListActivity extends ListActivity {
 							resolver.update(
 									Alarm.Columns.CONTENT_URI,
 									null, null, new String[] { String.valueOf(stream.getId()) });
-							updateHandler.sendEmptyMessage(-1);
+							mHandler.sendEmptyMessage(MESSAGE_UPDATE_LIST);
 						}
 						})
 					.setNegativeButton(R.string.delete_neg, null).create().show();
@@ -469,6 +489,17 @@ public class StreamListActivity extends ListActivity {
 	    }
 	}
 	
+	private void handleMessage(Message message) {
+		switch (message.what) {
+			case MESSAGE_UPDATE_LIST:
+				updateList();
+				break;
+			case MESSAGE_HANDLE_INTENT:
+				handleIntent((Intent) message.obj);
+				break;
+		}
+	}
+	
 	private boolean handleUrl(boolean validateUrl) {		
 		hideKeyboard();
 		
@@ -477,13 +508,18 @@ public class StreamListActivity extends ListActivity {
 				return false;
 		}
 		
-	    mDetermineIntentTask = new DetermineIntentAsyncTask();
-	    mDetermineIntentTask.execute(mRequestedStream);
+		determineIntent();
 		
 		return true;
 	}
 	
-	protected void updateList() {		
+	private void determineIntent() {
+	    showDialog(DETERMINE_INTENT_TASK);
+	    mDetermineIntentTask = new DetermineIntentAsyncTask();
+	    mDetermineIntentTask.execute(mRequestedStream);
+	}
+	
+	private void updateList() {		
 		ArrayList<Stream> streams = new ArrayList<Stream>();
 
 		if (mStreamdb == null)
@@ -585,6 +621,22 @@ public class StreamListActivity extends ListActivity {
 		}
 	}
 	
+	private void handleIntent(Intent intent) {
+		try {
+			removeDialog(DETERMINE_INTENT_TASK);
+		} catch (Exception ex) {
+		}
+		
+		if (intent != null) {
+			StreamListActivity.this.startActivity(intent);
+			
+			if (mPreferences.getBoolean(PreferenceConstants.AUTOSAVE, true))
+			    saveStream();
+		} else {
+			StreamListActivity.this.showUrlNotOpenedToast();
+		}
+	}
+	
 	/**
 	 * Hides the keyboard
 	 */
@@ -605,35 +657,20 @@ public class StreamListActivity extends ListActivity {
 	    public DetermineIntentAsyncTask() {
 	        super();
 	    }
-
-	    @Override
-	    protected void onPreExecute() {
-	    	showDialog(DETERMINE_INTENT_TASK);
-	    }
 	    
 		@Override
 		protected Intent doInBackground(Stream... stream) {
-		    return handleStream(stream[0]);
+		    return handleURL(stream[0]);
 		}
-
+		
 		@Override
 		protected void onPostExecute(Intent result) {
-			try {
-				removeDialog(DETERMINE_INTENT_TASK);
-			} catch (Exception ex) {
-			}
-			
-			if (result != null) {
-				StreamListActivity.this.startActivity(result);
-				
-				if (mPreferences.getBoolean(PreferenceConstants.AUTOSAVE, true))
-				    saveStream();
-			} else {
-				StreamListActivity.this.showUrlNotOpenedToast();
-			}
+			Message msg = mHandler.obtainMessage(StreamListActivity.MESSAGE_HANDLE_INTENT);
+			msg.obj = result;
+			msg.sendToTarget();
 		}
 
-		public Intent handleStream(Stream stream) {
+		private Intent handleURL(Stream stream) {
 			Intent intent = null;
 			String contentTypeCode = null;
 			URLUtils urlUtils = null;
@@ -653,7 +690,8 @@ public class StreamListActivity extends ListActivity {
 				    if (contentTypeCode.contains("text/html")) {
 					    intent = new Intent(StreamListActivity.this, StreamBrowseActivity.class);
 				    } else {
-					    intent = new Intent(StreamListActivity.this, StreamMediaActivity.class);			
+					    intent = new Intent(StreamListActivity.this, StreamMediaActivity.class);
+					    intent.setType(urlUtils.getContentType());
 				    }
 				}
 		    }
