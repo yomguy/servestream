@@ -1,0 +1,477 @@
+/*
+ * ServeStream: A HTTP stream browser/player for Android
+ * Copyright 2010 William Seemann
+ * 
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package net.sourceforge.servestream.activity;
+
+import java.net.HttpURLConnection;
+import java.util.ArrayList;
+import java.util.List;
+
+import net.sourceforge.servestream.R;
+import net.sourceforge.servestream.activity.SettingsActivity;
+import net.sourceforge.servestream.activity.StreamListActivity;
+import net.sourceforge.servestream.activity.StreamMediaActivity;
+import net.sourceforge.servestream.dbutils.Stream;
+import net.sourceforge.servestream.dbutils.StreamDatabase;
+import net.sourceforge.servestream.filemanager.*;
+import net.sourceforge.servestream.utils.URLUtils;
+
+import android.app.AlertDialog;
+import android.app.Dialog;
+import android.app.ListActivity;
+import android.app.ProgressDialog;
+import android.content.Context;
+import android.content.DialogInterface;
+import android.content.Intent;
+import android.os.AsyncTask;
+import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
+import android.util.Log;
+import android.view.ContextMenu;
+import android.view.MenuItem.OnMenuItemClickListener;
+import android.view.View.OnClickListener;
+import android.view.KeyEvent;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
+import android.view.View;
+import android.view.inputmethod.InputMethodManager;
+import android.widget.AdapterView;
+import android.widget.Button;
+import android.widget.ListView;
+import android.widget.TextView;
+
+public class WebpageBrowserActivity extends ListActivity { 
+	private final static String TAG = WebpageBrowserActivity.class.getName();
+
+ 	public static final int MESSAGE_SHOW_DIRECTORY_CONTENTS = 1;
+    public static final int MESSAGE_HANDLE_INTENT = 2;
+    public static final int MESSAGE_PARSE_WEBPAGE = 3;
+	
+    private final static int DETERMINE_INTENT_TASK = 1;
+    
+	/** Contains directories and files together */
+    private ArrayList<IconifiedText> directoryEntries = new ArrayList<IconifiedText>();
+
+    /** Dir separate for sorting */
+    private List<IconifiedText> mListFiles = new ArrayList<IconifiedText>();
+
+    private int mStepsBack;
+    private Stream [] mDirectory = null;
+
+    private TextView mEmptyText;
+     
+    private DirectoryScanner mDirectoryScanner;
+
+	private InputMethodManager mInputManager = null;
+	private StreamDatabase mStreamdb = null;
+	private Button mHomeButton = null;
+
+	protected Handler mHandler = new Handler() {
+		@Override
+		public void handleMessage(Message msg) {
+			WebpageBrowserActivity.this.handleMessage(msg);
+		}
+	};
+	
+    /** Called when the activity is first created. */ 
+    @Override 
+    public void onCreate(Bundle icicle) { 
+    	super.onCreate(icicle); 
+
+        setContentView(R.layout.act_webpagebrowser);
+    	
+		this.setTitle(String.format("%s: %s",
+				getResources().getText(R.string.app_name),
+				getResources().getText(R.string.title_stream_browse)));  
+    	
+		try {
+			Log.v(TAG, getIntent().getData().toString());
+			mStepsBack = 0;
+			mDirectory = new Stream[1000];
+			mDirectory[mStepsBack] = new Stream(getIntent().getData().toString());
+		} catch (Exception ex) {
+			ex.printStackTrace();
+		}
+		
+		// connect with streams database
+		this.mStreamdb = new StreamDatabase(this);
+        
+		ListView list = this.getListView();
+		list.setOnCreateContextMenuListener(this);
+		list.setEmptyView(findViewById(R.id.empty));
+		list.setFastScrollEnabled(true);
+	    list.setTextFilterEnabled(true);
+        
+        mEmptyText = (TextView) findViewById(R.id.empty_text);
+        mEmptyText.setVisibility(View.GONE);
+	    
+		mInputManager = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+	    
+		mHomeButton = (Button) this.findViewById(R.id.home_button);
+		mHomeButton.setOnClickListener(new OnClickListener() {
+
+			public void onClick(View arg0) {
+				WebpageBrowserActivity.this.startActivity(new Intent(WebpageBrowserActivity.this, StreamListActivity.class));
+			}
+		});
+	    
+		refreshList();
+    }
+  
+	@Override
+	public void onStart() {
+		super.onStart();
+		
+		// connect to the stream database if we don't
+		// already have a connection
+		if(this.mStreamdb == null)
+			this.mStreamdb = new StreamDatabase(this);
+		
+		// if the current URL exists in the stream database
+		// update its timestamp
+		try {
+		    Stream stream = mStreamdb.findStream(mDirectory[mStepsBack]);
+		
+		    if (stream != null) {
+			    mStreamdb.touchHost(stream);
+		    }
+		}
+		catch (Exception ex) {
+		    ex.printStackTrace();
+		}
+	}
+    
+	@Override
+	public void onStop() {
+		super.onStop();
+		
+		// close the connection to the database
+		if(this.mStreamdb != null) {
+			this.mStreamdb.close();
+			this.mStreamdb = null;
+		}
+	}
+	
+	@Override
+    public void onDestroy() {
+    	super.onDestroy();
+    	 
+    	// stop the scanner
+    	if (mDirectoryScanner != null) {
+    		mDirectoryScanner.cancel = true;
+    	}
+    	 
+    	mDirectoryScanner = null;
+    }
+	
+	@Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+    	switch(item.getItemId()) {
+        	case (R.id.menu_item_refresh):
+        		refreshList();
+        		break;
+        	case (R.id.menu_item_settings):
+        		startActivity(new Intent(WebpageBrowserActivity.this, SettingsActivity.class));
+    			break;
+    	}
+    	
+		return false;
+    }
+	
+	protected Dialog onCreateDialog(int id) {
+	    Dialog dialog;
+	    ProgressDialog progressDialog = null;
+	    switch(id) {
+	    case DETERMINE_INTENT_TASK:
+	    	progressDialog = new ProgressDialog(WebpageBrowserActivity.this);
+	    	progressDialog.setMessage(getString(R.string.loading_message));
+	    	progressDialog.setCancelable(true);
+	    	return progressDialog;
+	    default:
+	        dialog = null;
+	    }
+	    return dialog;
+	}
+	
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.stream_browse_menu, menu);
+        return true;
+    }
+    
+    @Override
+	public void onCreateContextMenu(ContextMenu menu, View v, ContextMenu.ContextMenuInfo menuInfo) {
+
+		// create menu to handle stream URLs
+		
+		// create menu to handle deleting and sharing lists		
+		final AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo) menuInfo;
+		final IconifiedTextListAdapter adapter = (IconifiedTextListAdapter) getListAdapter();
+        IconifiedText it = (IconifiedText) adapter.getItem(info.position);
+		final Stream stream = it.getStream();
+		
+		try {
+			final String streamURL = stream.getURL().toString();
+		
+		// set the menu title to the name attribute of the URL link
+		menu.setHeaderTitle(stream.getNickname());
+
+		// save the URL
+		MenuItem save = menu.add(R.string.list_stream_save);
+		save.setOnMenuItemClickListener(new OnMenuItemClickListener() {
+			public boolean onMenuItemClick(MenuItem arg0) {
+				// prompt user to make sure they really want this
+				new AlertDialog.Builder(WebpageBrowserActivity.this)
+					.setMessage(getString(R.string.save_message, streamURL))
+					.setPositiveButton(R.string.save_pos, new DialogInterface.OnClickListener() {
+						public void onClick(DialogInterface dialog, int which) {
+                            saveStream(stream);
+						}
+						})
+					.setNegativeButton(R.string.save_neg, null).create().show();
+				return true;
+			}
+		});
+	
+		// view the URL
+		MenuItem view = menu.add(R.string.list_stream_view);
+		view.setOnMenuItemClickListener(new OnMenuItemClickListener() {
+			public boolean onMenuItemClick(MenuItem arg0) {
+				// display the URL
+				new AlertDialog.Builder(WebpageBrowserActivity.this)
+					.setMessage(streamURL)
+					.setPositiveButton(R.string.view_pos, new DialogInterface.OnClickListener() {
+						public void onClick(DialogInterface dialog, int which) {
+                            return;
+						}
+						}).create().show();
+				return true;
+			}
+		});
+		
+		} catch(Exception ex) {
+			ex.printStackTrace();
+		}
+	}
+    
+    private void handleMessage(Message message) {    	 
+    	switch (message.what) {
+    		case MESSAGE_SHOW_DIRECTORY_CONTENTS:
+    			showDirectoryContents((DirectoryContents) message.obj);
+    			break;
+			case MESSAGE_HANDLE_INTENT:
+				handleIntent((Intent) message.obj);
+				break;
+			case MESSAGE_PARSE_WEBPAGE:
+				mStepsBack++;
+				mDirectory[mStepsBack] = (Stream) message.obj;
+				refreshList();
+				break;
+    	}
+    }
+     
+    private void showDirectoryContents(DirectoryContents contents) {
+    	mDirectoryScanner = null;
+    	 
+    	mListFiles = contents.getListFiles();
+    	 
+        addAllElements(directoryEntries, mListFiles);
+
+        IconifiedTextListAdapter itla = new IconifiedTextListAdapter(this); 
+        itla.setListItems(directoryEntries, getListView().hasTextFilter());          
+        setListAdapter(itla);
+	    getListView().requestFocus();
+
+    	mEmptyText.setVisibility(View.VISIBLE);
+    	
+		try {
+			removeDialog(DETERMINE_INTENT_TASK);
+		} catch (Exception ex) {
+		}
+    }
+      
+    /** 
+     * This function browses up one level 
+     * according to the field: currentDirectory 
+     */ 
+    private void upOneLevel(){
+    	if (mStepsBack > 0) {
+    		mStepsBack--;
+    		refreshList();
+    		//browseTo(mDirectory[mStepsBack]);
+    	}
+    }
+     
+    private void browseTo(Stream url) {
+	    showDialog(DETERMINE_INTENT_TASK);
+        new DetermineIntentAsyncTask().execute(url);
+    }
+
+    private void refreshList() {
+    	showDialog(DETERMINE_INTENT_TASK);
+    	
+    	// Cancel an existing scanner, if applicable.
+    	DirectoryScanner scanner = mDirectoryScanner;
+    	  
+    	if (scanner != null) {
+    	    scanner.cancel = true;
+    	}
+    	  
+    	directoryEntries.clear(); 
+        mListFiles.clear();
+          
+        //setProgressBarIndeterminateVisibility(true);
+          
+        // Don't show the "folder empty" text since we're scanning.
+        mEmptyText.setVisibility(View.GONE);
+          
+        setListAdapter(null); 
+          
+        mDirectoryScanner = new DirectoryScanner(mDirectory[mStepsBack], this, mHandler);
+	    mDirectoryScanner.start();
+    } 
+     
+    /*private void selectInList(Stream selectFile)
+     */
+     
+    private void addAllElements(List<IconifiedText> addTo, List<IconifiedText> addFrom) {
+        int size = addFrom.size();
+    	for (int i = 0; i < size; i++) {
+            addTo.add(addFrom.get(i));
+    	}
+    }
+     
+    @Override 
+    protected void onListItemClick(ListView l, View v, int position, long id) { 
+        super.onListItemClick(l, v, position, id); 
+          
+        IconifiedTextListAdapter adapter = (IconifiedTextListAdapter) getListAdapter();
+          
+        if (adapter == null) {
+        	return;
+        }
+        
+        IconifiedText text = (IconifiedText) adapter.getItem(position);
+        browseTo(text.getStream());
+    }
+	
+	@Override
+	public boolean onKeyDown(int keyCode, KeyEvent event) {
+		if (keyCode == KeyEvent.KEYCODE_BACK) {
+			if (mStepsBack > 0) {
+				upOneLevel();
+				return true;
+			}
+		} else if (keyCode == KeyEvent.KEYCODE_SEARCH) {
+			mInputManager.toggleSoftInput(InputMethodManager.SHOW_FORCED, 0);
+            return true;
+		}
+		
+		return super.onKeyDown(keyCode, event);
+	}
+	
+	/**
+	 * Adds a stream URL to the stream database if it doesn't exist
+	 * 
+	 * @param targetStream The stream URL to add to the database
+	 */
+	private void saveStream(Stream targetStream) {
+		Stream stream = mStreamdb.findStream(targetStream);
+		
+		if (stream == null) {
+			mStreamdb.saveStream(targetStream);
+		}
+	}
+	
+	private void handleIntent(Intent intent) {
+		try {
+			removeDialog(DETERMINE_INTENT_TASK);
+		} catch (Exception ex) {
+		}
+		
+		if (intent != null) {
+			WebpageBrowserActivity.this.startActivity(intent);
+		}
+	}
+	
+	/*private void showUrlNotOpenedToast() {
+		Toast.makeText(this, R.string.url_not_opened_message, Toast.LENGTH_SHORT).show();
+	}*/
+    
+	public class DetermineIntentAsyncTask extends AsyncTask<Stream, Void, Intent> {
+		
+		private Stream mStream;
+		
+	    public DetermineIntentAsyncTask() {
+	        super();
+	    }
+	    
+		@Override
+		protected Intent doInBackground(Stream... stream) {
+			mStream = stream[0];
+		    return handleURL(stream[0]);
+		}
+		
+		@Override
+		protected void onPostExecute(Intent result) {
+			Message msg = null;
+			
+			if (result != null) {
+				msg = mHandler.obtainMessage(WebpageBrowserActivity.MESSAGE_HANDLE_INTENT);
+				msg.obj = result;
+				msg.sendToTarget();
+			} else {
+				msg = mHandler.obtainMessage(WebpageBrowserActivity.MESSAGE_PARSE_WEBPAGE);
+				msg.obj = mStream;
+				msg.sendToTarget();
+			}
+		}
+
+		private Intent handleURL(Stream stream) {
+			Intent intent = null;
+			String contentTypeCode = null;
+			URLUtils urlUtils = null;
+			
+			try {
+				urlUtils = new URLUtils(stream.getURL());
+				Log.v(TAG, "URI is: " + stream.getURL());
+			} catch (Exception ex) {
+				ex.printStackTrace();
+				return null;
+			}
+			
+			if (urlUtils.getResponseCode() == HttpURLConnection.HTTP_OK) {			
+				contentTypeCode = urlUtils.getContentType();
+				
+				if (contentTypeCode != null) {
+				    if (!contentTypeCode.contains("text/html")) {
+					    intent = new Intent(WebpageBrowserActivity.this, StreamMediaActivity.class);
+				    }
+				}
+		    }
+			
+			if (intent != null) {
+				intent.setDataAndType(stream.getUri(), urlUtils.getContentType());
+			}
+			
+			return intent;
+		}		
+	}
+}
