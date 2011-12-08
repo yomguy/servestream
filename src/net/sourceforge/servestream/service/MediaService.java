@@ -443,13 +443,13 @@ public class MediaService extends Service implements OnSharedPreferenceChangeLis
         mShuffleMode = shufmode;
     }
     
-    private boolean loadQueue(String filename) {
+    private boolean loadQueue(String filename, String type) {
         Log.v(TAG, "Loading Queue");        
         
         boolean retVal = true;
     	
         deleteAllDownloadedFiles();
-		new ParsePlaylistAsyncTask().execute(filename);
+		new ParsePlaylistAsyncTask(filename, type).execute(filename);
 		
 		return retVal;
     }
@@ -1442,8 +1442,8 @@ public class MediaService extends Service implements OnSharedPreferenceChangeLis
         public int getSleepTimerMode() {
         	return mService.get().getSleepTimerMode();
         }
-        public boolean loadQueue(String filename) {
-        	return mService.get().loadQueue(filename);
+        public boolean loadQueue(String filename, String type) {
+        	return mService.get().loadQueue(filename, type);
         }
         public MultiPlayer getMediaPlayer() {
         	return mService.get().getMediaPlayer();
@@ -1556,10 +1556,14 @@ public class MediaService extends Service implements OnSharedPreferenceChangeLis
     
     public class ParsePlaylistAsyncTask extends AsyncTask<String, Void, String> {
 
+    	private String mFilename = null;
+    	private String mType = null;    	
 		private Stream mStream;
 		
-	    public ParsePlaylistAsyncTask() {
+	    public ParsePlaylistAsyncTask(String filename, String type) {
 	        super();
+	        mFilename = filename;
+	        mType = type;
 	    }
 
 	    @Override
@@ -1572,8 +1576,8 @@ public class MediaService extends Service implements OnSharedPreferenceChangeLis
 			//TODO add null check
     		try {
 				mStream = new Stream(filename[0]);
-			
-				PlaylistParser playlist = PlaylistParser.getPlaylistParser(mStream.getURL());
+				
+				PlaylistParser playlist = PlaylistParser.getPlaylistParser(mStream.getURL(), mType);
 				
 				if (playlist != null) {
 					playlist.retrieveAndParsePlaylist();

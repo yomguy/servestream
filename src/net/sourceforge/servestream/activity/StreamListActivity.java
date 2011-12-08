@@ -691,13 +691,12 @@ public class StreamListActivity extends ListActivity {
 					    intent = new Intent(StreamListActivity.this, StreamBrowseActivity.class);
 				    } else {
 					    intent = new Intent(StreamListActivity.this, StreamMediaActivity.class);
-					    intent.setType(urlUtils.getContentType());
 				    }
 				}
 		    }
 			
 			if (intent != null) {
-				intent.setData(stream.getUri());
+				intent.setDataAndType(stream.getUri(), urlUtils.getContentType());
 			}
 			
 			return intent;

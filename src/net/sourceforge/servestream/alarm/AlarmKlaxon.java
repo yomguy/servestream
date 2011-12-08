@@ -341,7 +341,7 @@ public class AlarmKlaxon extends Service {
     		try {
 				Stream stream = new Stream(filename[0]);
 			
-				PlaylistParser playlist = PlaylistParser.getPlaylistParser(stream.getURL());
+				PlaylistParser playlist = PlaylistParser.getPlaylistParser(stream.getURL(), "");
 				
 				if (playlist != null) {
 					playlist.retrieveAndParsePlaylist();

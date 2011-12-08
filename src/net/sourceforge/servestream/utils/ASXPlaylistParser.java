@@ -36,6 +36,7 @@ public class ASXPlaylistParser extends PlaylistParser {
 	public final static String TAG = ASXPlaylistParser.class.getName();
 
 	public final static String EXTENSION = "asx";
+	public final static String MIME_TYPE = "video/x-ms-asf";
     
 	private final String ABSTRACT_ELEMENT = "ABSTRACT";
 	private final String ASX_ELEMENT = "ASX";

@@ -26,6 +26,8 @@ public class M3UPlaylistParser extends PlaylistParser {
 	public final static String TAG = M3UPlaylistParser.class.getName();
 
 	public final static String EXTENSION = "m3u";
+	public final static String MIME_TYPE = "audio/x-mpegurl";
+	
     private final static String EXTENDED_INFO_TAG = "#EXTM3U";
     private final static String RECORD_TAG = "#EXTINF";
 	
@@ -70,6 +72,7 @@ public class M3UPlaylistParser extends PlaylistParser {
 		    				mediaFile = new MediaFile();
 		    			
 		    			mediaFile.setURL(line.trim());
+		    			System.out.println("=========>" + line.trim());
 		    			savePlaylistFile();
 		    		}
 		    	}           
