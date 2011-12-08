@@ -72,7 +72,6 @@ public class M3UPlaylistParser extends PlaylistParser {
 		    				mediaFile = new MediaFile();
 		    			
 		    			mediaFile.setURL(line.trim());
-		    			System.out.println("=========>" + line.trim());
 		    			savePlaylistFile();
 		    		}
 		    	}           
