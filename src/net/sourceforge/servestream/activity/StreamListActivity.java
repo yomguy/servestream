@@ -127,6 +127,7 @@ public class StreamListActivity extends ListActivity {
 	@Override
 	public void onCreate(Bundle icicle) {
 		super.onCreate(icicle);
+		
 		setContentView(R.layout.act_streamlist);
 
 		this.setTitle(String.format("%s: %s",
@@ -688,7 +689,7 @@ public class StreamListActivity extends ListActivity {
 				
 				if (contentTypeCode != null) {
 				    if (contentTypeCode.contains("text/html")) {
-					    intent = new Intent(StreamListActivity.this, StreamBrowseActivity.class);
+					    intent = new Intent(StreamListActivity.this, WebpageBrowserActivity.class);
 				    } else {
 					    intent = new Intent(StreamListActivity.this, StreamMediaActivity.class);
 				    }
