@@ -26,6 +26,7 @@ public class PLSPlaylistParser extends PlaylistParser {
 	public final static String TAG = PLSPlaylistParser.class.getName();
 
 	public final static String EXTENSION = "pls";
+	public final static String MIME_TYPE = "audio/x-scpls";
     
     private MediaFile mediaFile = null;
     private boolean processingEntry = false;

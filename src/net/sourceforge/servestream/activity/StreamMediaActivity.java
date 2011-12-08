@@ -109,6 +109,7 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
 	private int mDisplayHeight = 0;
     
     private String mRequestedStream = null;
+    private String mRequestedStreamType = null;
 	
     /** Called when the activity is first created. */
     @Override
@@ -679,11 +680,13 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
     private void startPlayback() {
 
         String filename = "";
-    	
+    	String type = "";
+        
         if(mMediaService == null)
             return;
         
         filename = mRequestedStream;
+        type = mRequestedStreamType;
             
         	try {
 				
@@ -695,7 +698,7 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
         	        mDialog.show();
         		}
         		
-                if (!mMediaService.loadQueue(filename)) {
+                if (!mMediaService.loadQueue(filename, type)) {
                 	errorOpeningMediaMessage();
                 	return;
                 }
@@ -719,9 +722,16 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
             	// obtain the requested stream
         		if (getIntent().getData() == null) {
         			mRequestedStream = null;
+        			mRequestedStreamType = null;
         		} else {
         			try {
         				mRequestedStream = getIntent().getData().toString();
+        				
+        				if (getIntent().getType() != null) {
+        					mRequestedStreamType = getIntent().getType().toString();
+        				} else {
+        					mRequestedStreamType = "";
+        				}
         			} catch (Exception ex) {
         				ex.printStackTrace();
         			}

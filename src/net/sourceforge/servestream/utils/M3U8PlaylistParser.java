@@ -23,6 +23,7 @@ public class M3U8PlaylistParser extends M3UPlaylistParser {
 	public final static String TAG = M3U8PlaylistParser.class.getName();
 
 	public final static String EXTENSION = "m3u8";
+	public final static String MIME_TYPE = "audio/x-mpegurl";
     
 	/**
 	 * Default constructor

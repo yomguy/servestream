@@ -47,7 +47,7 @@ public abstract class PlaylistParser {
 	 * @return The appropriate PlaylistParser instance for the specified Url or
 	 * NULL if the playlist type could not be determined
 	 */
-	public static PlaylistParser getPlaylistParser(URL url) {
+	public static PlaylistParser getPlaylistParser(URL url, String mimeType) {
 		String extension = null;
 		
 		if (url == null)
@@ -58,13 +58,17 @@ public abstract class PlaylistParser {
 		if (extension == null)
 			return null;
 		
-		if (extension.equalsIgnoreCase(ASXPlaylistParser.EXTENSION)) {
+		if (extension.equalsIgnoreCase(ASXPlaylistParser.EXTENSION)
+				|| mimeType.equalsIgnoreCase(ASXPlaylistParser.MIME_TYPE)) {
 			return new ASXPlaylistParser(url);
-		} else if (extension.equalsIgnoreCase(M3UPlaylistParser.EXTENSION)) {
+		} else if (extension.equalsIgnoreCase(M3UPlaylistParser.EXTENSION)
+				|| mimeType.equalsIgnoreCase(M3UPlaylistParser.MIME_TYPE)) {
 			return new M3UPlaylistParser(url);
-		} else if (extension.equalsIgnoreCase(M3U8PlaylistParser.EXTENSION)) {
+		} else if (extension.equalsIgnoreCase(M3U8PlaylistParser.EXTENSION)
+				|| mimeType.equalsIgnoreCase(M3U8PlaylistParser.MIME_TYPE)) {
 			return new M3U8PlaylistParser(url);
-		} else if (extension.equalsIgnoreCase(PLSPlaylistParser.EXTENSION)) {
+		} else if (extension.equalsIgnoreCase(PLSPlaylistParser.EXTENSION)
+				|| mimeType.equalsIgnoreCase(PLSPlaylistParser.MIME_TYPE)) {
 			return new PLSPlaylistParser(url);
 		} else {
 			return null;
