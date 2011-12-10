@@ -96,6 +96,7 @@ public class StreamListActivity extends ListActivity {
 	
     private static final String STATE_DETERMINE_INTENT_IN_PROGRESS = "net.sourceforge.servestream.inprogress";
     private static final String STATE_DETERMINE_INTENT_STREAM = "net.sourceforge.servestream.stream";
+    private static final String STATE_MAKING_SHORTCUT = "net.sourceforge.servestream.makingshortcut";
 	
     private final static int DETERMINE_INTENT_TASK = 1;
 	private final static int MISSING_BARCODE_SCANNER = 2;
@@ -135,9 +136,15 @@ public class StreamListActivity extends ListActivity {
 				getResources().getText(R.string.title_stream_list)));
 		
 		mPreferences = PreferenceManager.getDefaultSharedPreferences(this);
-
+		
 		// If the intent is a request to create a shortcut, we'll do that and exit
 		mMakingShortcut = Intent.ACTION_CREATE_SHORTCUT.equals(getIntent().getAction());
+		
+		// If the orientation is changed while making a shortcut make sure to recreate
+		// the activity accordingly
+		if (icicle != null) {
+			mMakingShortcut = icicle.getBoolean(STATE_MAKING_SHORTCUT);
+		}
 		
 		mQuickconnect = (TextView) this.findViewById(R.id.front_quickconnect);
 		mQuickconnect.setVisibility(mMakingShortcut ? View.GONE : View.VISIBLE);
@@ -288,6 +295,8 @@ public class StreamListActivity extends ListActivity {
     }
 	
     private void saveDetermineIntentTask(Bundle outState) {
+    	outState.putBoolean(STATE_MAKING_SHORTCUT, mMakingShortcut);
+    	
         final DetermineIntentAsyncTask task = mDetermineIntentTask;
         if (task != null && task.getStatus() != AsyncTask.Status.FINISHED) {
             final String uri = mRequestedStream.getUri().toString();
