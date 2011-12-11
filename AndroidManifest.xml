@@ -90,7 +90,7 @@
 			android:configChanges="keyboardHidden|orientation" 
 			android:launchMode="singleInstance" />
 
-		<service android:name=".service.MediaService"
+		<service android:name=".service.MediaPlaybackService"
 			android:configChanges="keyboardHidden|orientation"
 			android:description="@string/media_service_desc" />
 

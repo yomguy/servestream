@@ -22,8 +22,8 @@ import java.util.HashMap;
 import java.util.Locale;
 
 import net.sourceforge.servestream.R;
-import net.sourceforge.servestream.service.IMediaService;
-import net.sourceforge.servestream.service.MediaService;
+import net.sourceforge.servestream.service.IMediaPlaybackService;
+import net.sourceforge.servestream.service.MediaPlaybackService;
 import android.app.Activity;
 import android.content.ComponentName;
 import android.content.Context;
@@ -34,7 +34,7 @@ import android.util.Log;
 
 public class MusicUtils {
 	
-    public static IMediaService sService = null;
+    public static IMediaPlaybackService sService = null;
     private static HashMap<Context, ServiceBinder> sConnectionMap = new HashMap<Context, ServiceBinder>();
 	
     public static class ServiceToken {
@@ -54,9 +54,9 @@ public class MusicUtils {
             realActivity = context;
         }
         ContextWrapper cw = new ContextWrapper(realActivity);
-        cw.startService(new Intent(cw, MediaService.class));
+        cw.startService(new Intent(cw, MediaPlaybackService.class));
         ServiceBinder sb = new ServiceBinder(callback);
-        if (cw.bindService((new Intent()).setClass(cw, MediaService.class), sb, 0)) {
+        if (cw.bindService((new Intent()).setClass(cw, MediaPlaybackService.class), sb, 0)) {
             sConnectionMap.put(cw, sb);
             return new ServiceToken(cw);
         }
@@ -90,7 +90,7 @@ public class MusicUtils {
         }
         
         public void onServiceConnected(ComponentName className, android.os.IBinder service) {
-            sService = IMediaService.Stub.asInterface(service);
+            sService = IMediaPlaybackService.Stub.asInterface(service);
             if (mCallback != null) {
                 mCallback.onServiceConnected(className, service);
             }

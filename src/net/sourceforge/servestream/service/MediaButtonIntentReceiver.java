@@ -50,9 +50,9 @@ public class MediaButtonIntentReceiver extends BroadcastReceiver {
     public void onReceive(Context context, Intent intent) {
         String intentAction = intent.getAction();
         if (AudioManager.ACTION_AUDIO_BECOMING_NOISY.equals(intentAction)) {
-            Intent i = new Intent(context, MediaService.class);
-            i.setAction(MediaService.SERVICECMD);
-            i.putExtra(MediaService.CMDNAME, MediaService.CMDPAUSE);
+            Intent i = new Intent(context, MediaPlaybackService.class);
+            i.setAction(MediaPlaybackService.SERVICECMD);
+            i.putExtra(MediaPlaybackService.CMDNAME, MediaPlaybackService.CMDPAUSE);
             context.startService(i);
         } else if (Intent.ACTION_MEDIA_BUTTON.equals(intentAction)) {
             KeyEvent event = (KeyEvent)
@@ -72,17 +72,17 @@ public class MediaButtonIntentReceiver extends BroadcastReceiver {
             String command = null;
             switch (keycode) {
                 case KeyEvent.KEYCODE_MEDIA_STOP:
-                    command = MediaService.CMDSTOP;
+                    command = MediaPlaybackService.CMDSTOP;
                     break;
                 case KeyEvent.KEYCODE_HEADSETHOOK:
                 case KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE:
-                    command = MediaService.CMDTOGGLEPAUSE;
+                    command = MediaPlaybackService.CMDTOGGLEPAUSE;
                     break;
                 case KeyEvent.KEYCODE_MEDIA_NEXT:
-                    command = MediaService.CMDNEXT;
+                    command = MediaPlaybackService.CMDNEXT;
                     break;
                 case KeyEvent.KEYCODE_MEDIA_PREVIOUS:
-                    command = MediaService.CMDPREVIOUS;
+                    command = MediaPlaybackService.CMDPREVIOUS;
                     break;
             }
 
@@ -93,15 +93,15 @@ public class MediaButtonIntentReceiver extends BroadcastReceiver {
 
                         // The service may or may not be running, but we need to send it
                         // a command.
-                        Intent i = new Intent(context, MediaService.class);
-                        i.setAction(MediaService.SERVICECMD);
+                        Intent i = new Intent(context, MediaPlaybackService.class);
+                        i.setAction(MediaPlaybackService.SERVICECMD);
                         if (keycode == KeyEvent.KEYCODE_HEADSETHOOK &&
                                 eventtime - mLastClickTime < 300) {
-                            i.putExtra(MediaService.CMDNAME, MediaService.CMDNEXT);
+                            i.putExtra(MediaPlaybackService.CMDNAME, MediaPlaybackService.CMDNEXT);
                             context.startService(i);
                             mLastClickTime = 0;
                         } else {
-                            i.putExtra(MediaService.CMDNAME, command);
+                            i.putExtra(MediaPlaybackService.CMDNAME, command);
                             context.startService(i);
                             mLastClickTime = eventtime;
                         }

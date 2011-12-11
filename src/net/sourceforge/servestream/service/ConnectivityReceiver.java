@@ -1,3 +1,20 @@
+/*
+ * ServeStream: A HTTP stream browser/player for Android
+ * Copyright 2010 William Seemann
+ * 
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package net.sourceforge.servestream.service;
 
 import android.content.BroadcastReceiver;
@@ -20,7 +37,7 @@ public class ConnectivityReceiver extends BroadcastReceiver {
 
 	private boolean mIsConnected = false;
 
-	final private MediaService mMediaService;
+	final private MediaPlaybackService mMediaPlaybackService;
 
 	final private WifiLock mWifiLock;
 
@@ -30,13 +47,13 @@ public class ConnectivityReceiver extends BroadcastReceiver {
 
 	private Object[] mLock = new Object[0];
 
-	public ConnectivityReceiver(MediaService mediaService, boolean lockingWifi) {
-		mMediaService = mediaService;
+	public ConnectivityReceiver(MediaPlaybackService MediaPlaybackService, boolean lockingWifi) {
+		mMediaPlaybackService = MediaPlaybackService;
 
 		final ConnectivityManager cm =
-				(ConnectivityManager) mediaService.getSystemService(Context.CONNECTIVITY_SERVICE);
+				(ConnectivityManager) MediaPlaybackService.getSystemService(Context.CONNECTIVITY_SERVICE);
 
-		final WifiManager wm = (WifiManager) mediaService.getSystemService(Context.WIFI_SERVICE);
+		final WifiManager wm = (WifiManager) MediaPlaybackService.getSystemService(Context.WIFI_SERVICE);
 		mWifiLock = wm.createWifiLock(TAG);
 
 		final NetworkInfo info = cm.getActiveNetworkInfo();
@@ -48,7 +65,7 @@ public class ConnectivityReceiver extends BroadcastReceiver {
 
 		final IntentFilter filter = new IntentFilter();
 		filter.addAction(ConnectivityManager.CONNECTIVITY_ACTION);
-		mediaService.registerReceiver(this, filter);
+		MediaPlaybackService.registerReceiver(this, filter);
 	}
 
 	/* (non-Javadoc)
@@ -70,13 +87,13 @@ public class ConnectivityReceiver extends BroadcastReceiver {
 
 		if (noConnectivity && !isFailover && mIsConnected) {
 			mIsConnected = false;
-			mMediaService.onConnectivityLost();
+			mMediaPlaybackService.onConnectivityLost();
 		} else if (!mIsConnected) {
 			NetworkInfo info = (NetworkInfo) intent.getExtras()
 					.get(ConnectivityManager.EXTRA_NETWORK_INFO);
 
 			if (mIsConnected = (info.getState() == State.CONNECTED)) {
-				mMediaService.onConnectivityRestored();
+				mMediaPlaybackService.onConnectivityRestored();
 			}
 		}
 	}
@@ -88,7 +105,7 @@ public class ConnectivityReceiver extends BroadcastReceiver {
 		if (mWifiLock.isHeld())
 			mWifiLock.release();
 
-		mMediaService.unregisterReceiver(this);
+		mMediaPlaybackService.unregisterReceiver(this);
 	}
 
 	/**
