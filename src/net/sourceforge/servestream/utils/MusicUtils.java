@@ -17,20 +17,29 @@
 
 package net.sourceforge.servestream.utils;
 
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.util.Arrays;
 import java.util.Formatter;
 import java.util.HashMap;
 import java.util.Locale;
 
 import net.sourceforge.servestream.R;
+import net.sourceforge.servestream.dbutils.Stream;
 import net.sourceforge.servestream.service.IMediaPlaybackService;
 import net.sourceforge.servestream.service.MediaPlaybackService;
+import net.sourceforge.servestream.service.MediaPlaybackService.RetrieveMetadataAsyncTask;
 import android.app.Activity;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.ContextWrapper;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.database.Cursor;
+import android.os.RemoteException;
+import android.provider.MediaStore;
 import android.util.Log;
+import android.widget.Toast;
 
 public class MusicUtils {
 	
@@ -131,5 +140,87 @@ public class MusicUtils {
         timeArgs[4] = secs % 60;
 
         return sFormatter.format(durationformat, timeArgs).toString();
+    }
+    
+    public static void playAll(Context context, Cursor cursor) {
+        playAll(context, cursor, 0, false);
+    }
+    
+    public static void playAll(Context context, Cursor cursor, int position) {
+        playAll(context, cursor, position, false);
+    }
+    
+    public static void playAll(Context context, long [] list, int position) {
+        playAll(context, list, position, false);
+    }
+    
+    private static void playAll(Context context, Cursor cursor, int position, boolean force_shuffle) {
+    
+        //long [] list = getSongListForCursor(cursor);
+        //playAll(context, null, position, force_shuffle);
+    }
+    
+    private static void playAll(Context context, long [] list, int position, boolean force_shuffle) {
+        if (list.length == 0 || sService == null) {
+            Log.d("MusicUtils", "attempt to play empty song list");
+            // Don't try to play empty playlists. Nothing good will come of it.
+            String message = context.getString(R.string.emptyplaylist, list.length);
+            Toast.makeText(context, message, Toast.LENGTH_SHORT).show();
+            return;
+        }
+        try {
+            if (force_shuffle) {
+                sService.setShuffleMode(MediaPlaybackService.SHUFFLE_ON);
+                //sService.setShuffleMode(MediaPlaybackService.SHUFFLE_NORMAL);
+            }
+      //      long curid = sService.getAudioId();
+            int curpos = sService.getQueuePosition();
+      //      if (position != -1 && curpos == position && curid == list[position]) {
+                // The selected file is the file that's currently playing;
+                // figure out if we need to restart with a new playlist,
+                // or just launch the playback activity.
+      //          long [] playlist = sService.getQueue();
+      //          if (Arrays.equals(list, playlist)) {
+                    // we don't need to set a new list, but we should resume playback if needed
+                    sService.play();
+                    return; // the 'finally' block will still run
+      //          }
+      //      }
+      //      if (position < 0) {
+      //          position = 0;
+      //      }
+      //      sService.open(list, force_shuffle ? -1 : position);
+      //      sService.play();
+        } catch (RemoteException ex) {
+        } finally {
+            Intent intent = new Intent("com.android.music.PLAYBACK_VIEWER")
+                .setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+            context.startActivity(intent);
+        }
+    }
+    
+    private final static MediaFile [] sEmptyList = new MediaFile[0];
+    
+    public static MediaFile [] getSongListForPlaylist(Context context, URL url, String contentType) {
+    	MediaFile [] list;
+    	
+    	if (url == null) {
+    		return sEmptyList;
+    	}
+    	
+		PlaylistParser playlist = PlaylistParser.getPlaylistParser(url, contentType);
+			
+		if (playlist != null) {
+			playlist.retrieveAndParsePlaylist();
+			list = playlist.getPlaylistFiles();
+		} else {        
+			MediaFile mediaFile = new MediaFile();
+			mediaFile.setURL(url.toString());
+			mediaFile.setTrackNumber(1);
+			list = new MediaFile[1];
+			list[1] = mediaFile;
+		}
+    	
+        return list;
     }
 }

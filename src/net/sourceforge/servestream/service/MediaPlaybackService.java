@@ -584,6 +584,86 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
     }
     
     /**
+     * Appends a list of tracks to the current playlist.
+     * If nothing is playing currently, playback will be started at
+     * the first track.
+     * If the action is NOW, playback will switch to the first of
+     * the new tracks immediately.
+     * @param list The list of tracks to append.
+     * @param action NOW, NEXT or LAST
+     */
+    public void enqueue(long [] list, int action) {
+        /*synchronized(this) {
+            if (action == NEXT && mPlayPos + 1 < mPlayListLen) {
+                addToPlayList(list, mPlayPos + 1);
+                notifyChange(QUEUE_CHANGED);
+            } else {
+                // action == LAST || action == NOW || mPlayPos + 1 == mPlayListLen
+                addToPlayList(list, Integer.MAX_VALUE);
+                notifyChange(QUEUE_CHANGED);
+                if (action == NOW) {
+                    mPlayPos = mPlayListLen - list.length;
+                    openCurrent();
+                    play();
+                    notifyChange(META_CHANGED);
+                    return;
+                }
+            }
+            if (mPlayPos < 0) {
+                mPlayPos = 0;
+                openCurrent();
+                play();
+                notifyChange(META_CHANGED);
+            }
+        }*/
+    }
+
+    /**
+     * Replaces the current playlist with a new list,
+     * and prepares for starting playback at the specified
+     * position in the list, or a random position if the
+     * specified position is 0.
+     * @param list The new list of tracks.
+     */
+    public void open(long [] list, int position) {
+        /*synchronized (this) {
+            if (mShuffleMode == SHUFFLE_AUTO) {
+                mShuffleMode = SHUFFLE_NORMAL;
+            }
+            long oldId = getAudioId();
+            int listlength = list.length;
+            boolean newlist = true;
+            if (mPlayListLen == listlength) {
+                // possible fast path: list might be the same
+                newlist = false;
+                for (int i = 0; i < listlength; i++) {
+                    if (list[i] != mPlayList[i]) {
+                        newlist = true;
+                        break;
+                    }
+                }
+            }
+            if (newlist) {
+                addToPlayList(list, -1);
+                notifyChange(QUEUE_CHANGED);
+            }
+            int oldpos = mPlayPos;
+            if (position >= 0) {
+                mPlayPos = position;
+            } else {
+                mPlayPos = mRand.nextInt(mPlayListLen);
+            }
+            mHistory.clear();
+
+            saveBookmarkIfNeeded();
+            openCurrent();
+            if (oldId != getAudioId()) {
+                notifyChange(META_CHANGED);
+            }
+        }*/
+    }
+    
+    /**
      * Moves the item at index1 to index2.
      * @param index1
      * @param index2
@@ -1316,6 +1396,9 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
         public void openFile(String path)
         {
             mService.get().open(path);
+        }
+        public void open(long [] list, int position) {
+            mService.get().open(list, position);
         }
         public void queueFirstFile() {
             mService.get().queueFirstFile();

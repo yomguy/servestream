@@ -24,6 +24,7 @@ import net.sourceforge.servestream.utils.MediaFile;
 interface IMediaPlaybackService
 {
     void openFile(String path);
+    void open(in long [] list, int position);
     void queueFirstFile();
     int getQueuePosition();
     boolean isPlaying();
