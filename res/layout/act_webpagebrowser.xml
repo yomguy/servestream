@@ -18,21 +18,40 @@
  */
 -->
 
-<RelativeLayout
-	xmlns:android="http://schemas.android.com/apk/res/android"
-	android:orientation="vertical"
-	android:layout_width="fill_parent"
-	android:layout_height="fill_parent"
-	>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:orientation="vertical"
+    >
 
-	<RelativeLayout
-		android:id="@+id/home_tab"
-	    android:layout_width="fill_parent"
-		android:layout_height="wrap_content"
-		android:layout_alignParentBottom="true"
-		android:paddingTop="2dip"
+    <ListView android:id="@android:id/list"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:drawSelectorOnTop="false"/>
+
+	<LinearLayout android:id="@+id/empty"
+        android:layout_width="fill_parent" 
+        android:layout_height="fill_parent"
+        >
+        
+        <TextView android:id="@+id/empty_text"
+            android:layout_width="fill_parent" 
+            android:layout_height="fill_parent"
+            android:text="Folder is empty"
+        	android:textAppearance="?android:attr/textAppearanceMedium"
+        	android:gravity="center"
+        	/>
+        	
+    </LinearLayout>
+
+    <RelativeLayout
+    	android:id="@+id/home_tab"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:paddingTop="2dip"
 		android:paddingBottom="2dip"
-		>
+        >
 		
 		<View android:id="@+id/divider"
     	  	  android:layout_width="fill_parent"
@@ -44,50 +63,20 @@
 		<Button android:id="@+id/home_button"
 				android:layout_width="wrap_content"
 				android:layout_height="wrap_content"
-				android:layout_centerHorizontal="true"
+				android:layout_centerInParent="true"
 				android:layout_below="@+id/divider"
 				android:background="@drawable/ic_tab_home"
 				/>
-		
-        <TextView
+				
+		<TextView
                   android:layout_width="wrap_content" 
                   android:layout_height="wrap_content"
                   android:textAppearance="?android:attr/textAppearanceSmall"
                   android:text="Home"
-		          android:layout_centerHorizontal="true"
+		          android:layout_centerInParent="true"
 		       	  android:layout_below="@+id/home_button"
            		  />
 
 	</RelativeLayout>
 
-	<RelativeLayout
-		android:layout_width="fill_parent"
-		android:layout_height="wrap_content"
-		android:layout_above="@+id/home_tab"
-		>
-
-		<ListView
-			android:id="@android:id/list"
-			android:layout_width="fill_parent"
-			android:layout_height="fill_parent"
-			android:layout_alignParentTop="true"
-			/>
-			
-		<LinearLayout android:id="@+id/empty"
-            android:layout_width="fill_parent" 
-            android:layout_height="fill_parent"
-            >
-        
-        	<TextView android:id="@+id/empty_text"
-            	android:layout_width="fill_parent" 
-            	android:layout_height="fill_parent"
-            	android:text="Folder is empty"
-        		android:textAppearance="?android:attr/textAppearanceMedium"
-        		android:gravity="center"
-        		/>
-        	
-        </LinearLayout>
-
-	</RelativeLayout>
-
-</RelativeLayout>
+</LinearLayout>
