@@ -35,7 +35,7 @@ package net.sourceforge.servestream.widget;
 import net.sourceforge.servestream.R;
 import net.sourceforge.servestream.activity.StreamListActivity;
 import net.sourceforge.servestream.activity.StreamMediaActivity;
-import net.sourceforge.servestream.service.MediaService;
+import net.sourceforge.servestream.service.MediaPlaybackService;
 import android.app.PendingIntent;
 import android.appwidget.AppWidgetManager;
 import android.appwidget.AppWidgetProvider;
@@ -68,10 +68,10 @@ public class ServeStreamAppWidgetOneProvider extends AppWidgetProvider {
     public void onUpdate(Context context, AppWidgetManager appWidgetManager, int[] appWidgetIds) {
         defaultAppWidget(context, appWidgetIds);
         
-        // Send broadcast intent to any running MediaService so it can
+        // Send broadcast intent to any running MediaPlaybackService so it can
         // wrap around with an immediate update.
-        Intent updateIntent = new Intent(MediaService.SERVICECMD);
-        updateIntent.putExtra(MediaService.CMDNAME,
+        Intent updateIntent = new Intent(MediaPlaybackService.SERVICECMD);
+        updateIntent.putExtra(MediaPlaybackService.CMDNAME,
                 ServeStreamAppWidgetOneProvider.CMDAPPWIDGETUPDATE);
         updateIntent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS, appWidgetIds);
         updateIntent.addFlags(Intent.FLAG_RECEIVER_REGISTERED_ONLY);
@@ -114,14 +114,14 @@ public class ServeStreamAppWidgetOneProvider extends AppWidgetProvider {
     }
 
     /**
-     * Handle a change notification coming over from {@link MediaService}
+     * Handle a change notification coming over from {@link MediaPlaybackService}
      */
-    public void notifyChange(MediaService service, String what) {
+    public void notifyChange(MediaPlaybackService service, String what) {
         if (hasInstances(service)) {
-            if (MediaService.META_CHANGED.equals(what) ||
-            		MediaService.META_UPDATED.equals(what) ||
-            			MediaService.PLAYSTATE_CHANGED.equals(what) ||
-            				MediaService.PLAYER_CLOSED.equals(what)) {
+            if (MediaPlaybackService.META_CHANGED.equals(what) ||
+            		MediaPlaybackService.META_UPDATED.equals(what) ||
+            			MediaPlaybackService.PLAYSTATE_CHANGED.equals(what) ||
+            				MediaPlaybackService.PLAYER_CLOSED.equals(what)) {
                 performUpdate(service, null, what);
             }
         }
@@ -130,11 +130,11 @@ public class ServeStreamAppWidgetOneProvider extends AppWidgetProvider {
     /**
      * Update all active widget instances by pushing changes 
      */
-    public void performUpdate(MediaService service, int[] appWidgetIds, String what) {
+    public void performUpdate(MediaPlaybackService service, int[] appWidgetIds, String what) {
     	final Resources res = service.getResources();
         final RemoteViews views = new RemoteViews(service.getPackageName(), R.layout.appwidget_one);
         
-        if (what.equals(MediaService.PLAYER_CLOSED)) {
+        if (what.equals(MediaPlaybackService.PLAYER_CLOSED)) {
         	views.setViewVisibility(R.id.title, View.GONE);
             views.setTextViewText(R.id.artist, res.getText(R.string.widget_one_initial_text));
             
@@ -185,7 +185,7 @@ public class ServeStreamAppWidgetOneProvider extends AppWidgetProvider {
         Intent intent;
         PendingIntent pendingIntent;
         
-        final ComponentName serviceName = new ComponentName(context, MediaService.class);
+        final ComponentName serviceName = new ComponentName(context, MediaPlaybackService.class);
         
         if (playerActive) {
             intent = new Intent(context, StreamMediaActivity.class);
@@ -199,13 +199,13 @@ public class ServeStreamAppWidgetOneProvider extends AppWidgetProvider {
             views.setOnClickPendingIntent(R.id.appwidget_one, pendingIntent);
         }
         
-        intent = new Intent(MediaService.TOGGLEPAUSE_ACTION);
+        intent = new Intent(MediaPlaybackService.TOGGLEPAUSE_ACTION);
         intent.setComponent(serviceName);
         pendingIntent = PendingIntent.getService(context,
                 0 /* no requestCode */, intent, 0 /* no flags */);
         views.setOnClickPendingIntent(R.id.control_play, pendingIntent);
         
-        intent = new Intent(MediaService.NEXT_ACTION);
+        intent = new Intent(MediaPlaybackService.NEXT_ACTION);
         intent.setComponent(serviceName);
         pendingIntent = PendingIntent.getService(context,
                 0 /* no requestCode */, intent, 0 /* no flags */);

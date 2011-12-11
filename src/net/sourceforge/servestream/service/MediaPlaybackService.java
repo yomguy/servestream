@@ -14,21 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-/*
- * Copyright (C) 2009 The Android Open Source Project
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 
 package net.sourceforge.servestream.service;
 
@@ -77,8 +62,8 @@ import net.sourceforge.servestream.widget.ServeStreamAppWidgetOneProvider;
  * Provides "background" audio playback capabilities, allowing the
  * user to switch between activities without stopping playback.
  */
-public class MediaService extends Service implements OnSharedPreferenceChangeListener {
-	private static final String TAG = MediaService.class.getName();
+public class MediaPlaybackService extends Service implements OnSharedPreferenceChangeListener {
+	private static final String TAG = MediaPlaybackService.class.getName();
 	
 	private static final int AUDIOFOCUS_GAIN = 1;
 	private static final int AUDIOFOCUS_LOSS = -1;
@@ -121,7 +106,7 @@ public class MediaService extends Service implements OnSharedPreferenceChangeLis
     public static final String CONNECTIVITY_LOST = "net.sourceforge.servestream.connectivitylost";
     public static final String CONNECTIVITY_RESTORED = "net.sourceforge.servestream.connectivityrestored";
     
-    public static final String SERVICECMD = "net.sourceforge.servestream.mediaservicecommand";
+    public static final String SERVICECMD = "net.sourceforge.servestream.MediaPlaybackServicecommand";
     public static final String CMDNAME = "command";
     public static final String CMDTOGGLEPAUSE = "togglepause";
     public static final String CMDSTOP = "stop";
@@ -129,9 +114,9 @@ public class MediaService extends Service implements OnSharedPreferenceChangeLis
     public static final String CMDPREVIOUS = "previous";
     public static final String CMDNEXT = "next";
 
-    public static final String TOGGLEPAUSE_ACTION = "net.sourceforge.servestream.mediaservicecommand.togglepause";
-    public static final String PAUSE_ACTION = "net.sourceforge.servestream.mediaservicecommand.pause";
-    public static final String NEXT_ACTION = "net.sourceforge.servestream.mediaservicecommand.next";
+    public static final String TOGGLEPAUSE_ACTION = "net.sourceforge.servestream.MediaPlaybackServicecommand.togglepause";
+    public static final String PAUSE_ACTION = "net.sourceforge.servestream.MediaPlaybackServicecommand.pause";
+    public static final String NEXT_ACTION = "net.sourceforge.servestream.MediaPlaybackServicecommand.next";
 
     public static final int TRACK_ENDED = 1;
     public static final int SERVER_DIED = 2;
@@ -311,7 +296,7 @@ public class MediaService extends Service implements OnSharedPreferenceChangeLis
                 // Someone asked us to refresh a set of specific widgets, probably
                 // because they were just added.
                 int[] appWidgetIds = intent.getIntArrayExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS);
-                mAppWidgetProvider.performUpdate(MediaService.this, appWidgetIds, "");
+                mAppWidgetProvider.performUpdate(MediaPlaybackService.this, appWidgetIds, "");
             }
         }
     };
@@ -340,7 +325,7 @@ public class MediaService extends Service implements OnSharedPreferenceChangeLis
     /**
      * Default constructor
      */
-    public MediaService() {
+    public MediaPlaybackService() {
     }
 
     @Override
@@ -459,7 +444,7 @@ public class MediaService extends Service implements OnSharedPreferenceChangeLis
 		Log.v(TAG, "onBind called");
     	
 		// Make sure we stay running
-		startService(new Intent(this, MediaService.class));
+		startService(new Intent(this, MediaPlaybackService.class));
     	
         mServiceInUse = true;
         return mBinder;
@@ -1321,11 +1306,11 @@ public class MediaService extends Service implements OnSharedPreferenceChangeLis
      * ensure that the Service can be GCd even when the system process still
      * has a remote reference to the stub.
      */
-    static class ServiceStub extends IMediaService.Stub {
-        WeakReference<MediaService> mService;
+    static class ServiceStub extends IMediaPlaybackService.Stub {
+        WeakReference<MediaPlaybackService> mService;
         
-        ServiceStub(MediaService service) {
-            mService = new WeakReference<MediaService>(service);
+        ServiceStub(MediaPlaybackService service) {
+            mService = new WeakReference<MediaPlaybackService>(service);
         }
 
         public void openFile(String path)
@@ -1536,7 +1521,7 @@ public class MediaService extends Service implements OnSharedPreferenceChangeLis
                 //    Toast.makeText(this, R.string.playback_failed, Toast.LENGTH_SHORT).show();
                 //}
                 Log.d(TAG, "Failed to open file for playback");
-                mMediaplayerHandler.sendEmptyMessage(MediaService.PLAYER_ERROR);
+                mMediaplayerHandler.sendEmptyMessage(MediaPlaybackService.PLAYER_ERROR);
                 return false;
             }
         } else {

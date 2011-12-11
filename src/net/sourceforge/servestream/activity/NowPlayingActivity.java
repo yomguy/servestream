@@ -18,8 +18,8 @@
 package net.sourceforge.servestream.activity;
 
 import net.sourceforge.servestream.R;
-import net.sourceforge.servestream.service.IMediaService;
-import net.sourceforge.servestream.service.MediaService;
+import net.sourceforge.servestream.service.IMediaPlaybackService;
+import net.sourceforge.servestream.service.MediaPlaybackService;
 import net.sourceforge.servestream.utils.MediaFile;
 import android.app.ListActivity;
 import android.content.BroadcastReceiver;
@@ -44,7 +44,7 @@ import android.widget.AdapterView.OnItemClickListener;
 public class NowPlayingActivity extends ListActivity {
 	public final static String TAG = NowPlayingActivity.class.getName();
 	
-    private IMediaService mMediaService = null;
+    private IMediaPlaybackService mMediaPlaybackService = null;
 	private LayoutInflater mInflater = null;
     private NowPlayingAdapter mAdapter = null;
 	
@@ -52,9 +52,9 @@ public class NowPlayingActivity extends ListActivity {
         @Override
         public void onReceive(Context context, Intent intent) {
             String action = intent.getAction();
-            if (action.equals(MediaService.META_CHANGED) ||
-            		action.equals(MediaService.META_UPDATED) ||
-            			action.equals(MediaService.PLAYSTATE_CHANGED)) {
+            if (action.equals(MediaPlaybackService.META_CHANGED) ||
+            		action.equals(MediaPlaybackService.META_UPDATED) ||
+            			action.equals(MediaPlaybackService.PLAYSTATE_CHANGED)) {
             	updateList();
             }
         }
@@ -64,7 +64,7 @@ public class NowPlayingActivity extends ListActivity {
         @Override
         public void onReceive(Context context, Intent intent) {
             String action = intent.getAction();
-            if (action.equals(MediaService.CLOSE_PLAYER)) {
+            if (action.equals(MediaPlaybackService.CLOSE_PLAYER)) {
             	finish();
             }
         }
@@ -77,7 +77,7 @@ public class NowPlayingActivity extends ListActivity {
 	        // interact with the service.  Because we have bound to a explicit
 	        // service that we know is running in our own process, we can
 	        // cast its IBinder to a concrete class and directly access it.
-            mMediaService = IMediaService.Stub.asInterface(obj);
+            mMediaPlaybackService = IMediaPlaybackService.Stub.asInterface(obj);
             
             createList();
         }
@@ -86,7 +86,7 @@ public class NowPlayingActivity extends ListActivity {
 	        // unexpectedly disconnected -- that is, its process crashed.
 	        // Because it is running in our same process, we should never
 	        // see this happen.
-            mMediaService = null;
+            mMediaPlaybackService = null;
         }
     };
 	
@@ -104,10 +104,10 @@ public class NowPlayingActivity extends ListActivity {
 		list.setOnItemClickListener(new OnItemClickListener() {
 			public synchronized void onItemClick(AdapterView<?> parent, View view, int position, long id) {
 				try {
-					if (mMediaService.getQueuePosition() == position) {
+					if (mMediaPlaybackService.getQueuePosition() == position) {
 					    doPauseResume();
 					} else {
-					    mMediaService.setQueuePosition(position);
+					    mMediaPlaybackService.setQueuePosition(position);
 					}
 					updateList();
 				} catch (RemoteException e) {
@@ -125,16 +125,16 @@ public class NowPlayingActivity extends ListActivity {
 		
 		// connect with manager service to find all bridges
 		// when connected it will insert all views
-		bindService(new Intent(this, MediaService.class), connection, Context.BIND_AUTO_CREATE);
+		bindService(new Intent(this, MediaPlaybackService.class), connection, Context.BIND_AUTO_CREATE);
 		
         IntentFilter f = new IntentFilter();
-        f.addAction(MediaService.PLAYSTATE_CHANGED);
-        f.addAction(MediaService.META_CHANGED);
-        f.addAction(MediaService.META_UPDATED);
+        f.addAction(MediaPlaybackService.PLAYSTATE_CHANGED);
+        f.addAction(MediaPlaybackService.META_CHANGED);
+        f.addAction(MediaPlaybackService.META_UPDATED);
         registerReceiver(mStatusListener, new IntentFilter(f));
         
         f = new IntentFilter();
-        f.addAction(MediaService.CLOSE_PLAYER);
+        f.addAction(MediaPlaybackService.CLOSE_PLAYER);
         registerReceiver(mDisconnectListener, new IntentFilter(f));
 	}
 	
@@ -144,7 +144,7 @@ public class NowPlayingActivity extends ListActivity {
 		
         // Detach our existing connection.
         unbindService(connection);
-        mMediaService = null;
+        mMediaPlaybackService = null;
         
         unregisterReceiver(mStatusListener);
 	}
@@ -161,7 +161,7 @@ public class NowPlayingActivity extends ListActivity {
 		MediaFile[] streams = null;
 		
 		try {
-			streams = mMediaService.getQueue();
+			streams = mMediaPlaybackService.getQueue();
 		} catch (RemoteException e) {
 			e.printStackTrace();
 		}
@@ -173,11 +173,11 @@ public class NowPlayingActivity extends ListActivity {
 	
     private void doPauseResume() {
         try {
-            if(mMediaService != null) {
-                if (mMediaService.isPlaying()) {
-                    mMediaService.pause();
+            if(mMediaPlaybackService != null) {
+                if (mMediaPlaybackService.isPlaying()) {
+                    mMediaPlaybackService.pause();
                 } else {
-                    mMediaService.play();
+                    mMediaPlaybackService.play();
                 }
             }
         } catch (RemoteException ex) {
@@ -185,7 +185,7 @@ public class NowPlayingActivity extends ListActivity {
     }
 	
 	private void updateList() {
-		if (mMediaService == null) {
+		if (mMediaPlaybackService == null) {
 			return;
 		}
 		
@@ -246,8 +246,8 @@ public class NowPlayingActivity extends ListActivity {
             holder.artistName.setText(artistName);
 
 			try {
-				if (mMediaService.getQueuePosition() == position) {
-					if (mMediaService.isPlaying()) {
+				if (mMediaPlaybackService.getQueuePosition() == position) {
+					if (mMediaPlaybackService.isPlaying()) {
 					    holder.icon.setBackgroundResource(R.drawable.volume);
 					} else {
 						holder.icon.setBackgroundResource(R.drawable.pause);

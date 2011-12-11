@@ -26,7 +26,7 @@ import android.view.SurfaceHolder;
 
 import java.io.IOException;
 
-import net.sourceforge.servestream.service.MediaService;
+import net.sourceforge.servestream.service.MediaPlaybackService;
 
 
 /**
@@ -107,7 +107,7 @@ public class MultiPlayer implements Parcelable {
 			
 			Log.v(TAG, "media player is prepared");
 	        mIsInitialized = true;
-			mHandler.sendEmptyMessage(MediaService.PLAYER_PREPARED);
+			mHandler.sendEmptyMessage(MediaPlaybackService.PLAYER_PREPARED);
 		}
     };
     
@@ -121,7 +121,7 @@ public class MultiPlayer implements Parcelable {
             // and allow the device to go to sleep.
             // This temporary wakelock is released when the RELEASE_WAKELOCK
             // message is processed, but just in case, put a timeout on it.
-            mHandler.sendEmptyMessage(MediaService.TRACK_ENDED);
+            mHandler.sendEmptyMessage(MediaPlaybackService.TRACK_ENDED);
         }
     };
 
@@ -133,13 +133,13 @@ public class MultiPlayer implements Parcelable {
                 mIsInitialized = false;
                 mMediaPlayer.release();
                 mMediaPlayer = new MediaPlayer(); 
-                mHandler.sendMessageDelayed(mHandler.obtainMessage(MediaService.SERVER_DIED), 2000);
+                mHandler.sendMessageDelayed(mHandler.obtainMessage(MediaPlaybackService.SERVER_DIED), 2000);
                 return true;
             default:
             	Log.v(TAG, "onError called");
                 Log.d("MultiPlayer", "Error: " + what + "," + extra);
                 mIsInitialized = false;
-                mHandler.sendEmptyMessage(MediaService.PLAYER_PREPARED);
+                mHandler.sendEmptyMessage(MediaPlaybackService.PLAYER_PREPARED);
                 break;
             }
             return false;

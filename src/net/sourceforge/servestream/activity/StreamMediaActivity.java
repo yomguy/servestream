@@ -20,8 +20,8 @@ package net.sourceforge.servestream.activity;
 import net.sourceforge.servestream.R;
 import net.sourceforge.servestream.button.RepeatingImageButton;
 import net.sourceforge.servestream.player.MultiPlayer;
-import net.sourceforge.servestream.service.IMediaService;
-import net.sourceforge.servestream.service.MediaService;
+import net.sourceforge.servestream.service.IMediaPlaybackService;
+import net.sourceforge.servestream.service.MediaPlaybackService;
 import net.sourceforge.servestream.utils.MusicUtils;
 import net.sourceforge.servestream.utils.PreferenceConstants;
 import android.app.Activity;
@@ -86,7 +86,7 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
     
     private long mStartSeekPos = 0;
     private long mLastSeekEventTime;
-    private IMediaService mMediaService = null;
+    private IMediaPlaybackService mMediaPlaybackService = null;
     private Button mPrevButton;
     private RepeatingImageButton mSeekBackwardButton;
     private Button mPauseButton;
@@ -195,13 +195,13 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
             mFromTouch = true;
         }
         public void onProgressChanged(SeekBar bar, int progress, boolean fromuser) {
-            if (!fromuser || (mMediaService == null)) return;
+            if (!fromuser || (mMediaPlaybackService == null)) return;
             long now = SystemClock.elapsedRealtime();
             if ((now - mLastSeekEventTime) > 250) {
                 mLastSeekEventTime = now;
                 mPosOverride = mDuration * progress / 1000;
                 try {
-                    mMediaService.seek(mPosOverride);
+                    mMediaPlaybackService.seek(mPosOverride);
                 } catch (RemoteException ex) {
                 }
 
@@ -238,11 +238,11 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
 
     private View.OnClickListener mPrevListener = new View.OnClickListener() {
         public void onClick(View v) {
-            if (mMediaService == null) return;
+            if (mMediaPlaybackService == null) return;
             try {
 			    mMediaControls.startAnimation(media_controls_fade_out);
 				mMediaControls.setVisibility(View.GONE);
-            	mMediaService.prev();
+            	mMediaPlaybackService.prev();
             } catch (RemoteException ex) {
             }
         }
@@ -250,11 +250,11 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
 
     private View.OnClickListener mNextListener = new View.OnClickListener() {
         public void onClick(View v) {
-            if (mMediaService == null) return;
+            if (mMediaPlaybackService == null) return;
             try {
 			    mMediaControls.startAnimation(media_controls_fade_out);
 				mMediaControls.setVisibility(View.GONE);
-                mMediaService.next();
+                mMediaPlaybackService.next();
             } catch (RemoteException ex) {
             }
         }
@@ -286,19 +286,19 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
         paused = false;
         
         IntentFilter f = new IntentFilter();
-        f.addAction(MediaService.PLAYSTATE_CHANGED);
-        f.addAction(MediaService.META_CHANGED);
-        f.addAction(MediaService.META_UPDATED);
-        f.addAction(MediaService.START_DIALOG);
-        f.addAction(MediaService.STOP_DIALOG);
-        f.addAction(MediaService.ERROR_MESSAGE);
-        f.addAction(MediaService.QUEUE_LOADED);
-        f.addAction(MediaService.CONNECTIVITY_LOST);
-        f.addAction(MediaService.CONNECTIVITY_RESTORED);
+        f.addAction(MediaPlaybackService.PLAYSTATE_CHANGED);
+        f.addAction(MediaPlaybackService.META_CHANGED);
+        f.addAction(MediaPlaybackService.META_UPDATED);
+        f.addAction(MediaPlaybackService.START_DIALOG);
+        f.addAction(MediaPlaybackService.STOP_DIALOG);
+        f.addAction(MediaPlaybackService.ERROR_MESSAGE);
+        f.addAction(MediaPlaybackService.QUEUE_LOADED);
+        f.addAction(MediaPlaybackService.CONNECTIVITY_LOST);
+        f.addAction(MediaPlaybackService.CONNECTIVITY_RESTORED);
         registerReceiver(mStatusListener, new IntentFilter(f));
         
         f = new IntentFilter();
-        f.addAction(MediaService.CLOSE_PLAYER);
+        f.addAction(MediaPlaybackService.CLOSE_PLAYER);
         registerReceiver(mDisconnectListener, new IntentFilter(f));
         
     	if (preview == null) {
@@ -352,7 +352,7 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
         
         // Detach our existing connection.
         unbindService(connection);
-        mMediaService = null;
+        mMediaPlaybackService = null;
 	}
     
     @Override
@@ -378,17 +378,17 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
         		case (R.id.menu_item_sleep_timer): {
         			final String [] sleepTimerModes = getSleepTimerModes();
         			int sleepTimerMode = 0;
-					sleepTimerMode = mMediaService.getSleepTimerMode();
+					sleepTimerMode = mMediaPlaybackService.getSleepTimerMode();
 					AlertDialog.Builder builder = new AlertDialog.Builder(this);
 					builder.setTitle(R.string.menu_sleep_timer);
 					builder.setSingleChoiceItems(sleepTimerModes, sleepTimerMode, new DialogInterface.OnClickListener() {
 						public void onClick(DialogInterface dialog, int item) {
 							try {
-								mMediaService.setSleepTimerMode(item);
-								if (item == MediaService.SLEEP_TIMER_OFF) {
+								mMediaPlaybackService.setSleepTimerMode(item);
+								if (item == MediaPlaybackService.SLEEP_TIMER_OFF) {
 									showToast(R.string.sleep_timer_off_notif);
 								} else {
-								    showToast(getString(R.string.sleep_timer_on_notif) + " " + sleepTimerModes[mMediaService.getSleepTimerMode()]);
+								    showToast(getString(R.string.sleep_timer_on_notif) + " " + sleepTimerModes[mMediaPlaybackService.getSleepTimerMode()]);
 								}
 								dialog.dismiss();
 							} catch (RemoteException e) {
@@ -493,8 +493,8 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
         
 		// connect with manager service to find all bridges
 		// when connected it will insert all views
-        if (mMediaService == null) {
-        	bindService(new Intent(this, MediaService.class), connection, Context.BIND_AUTO_CREATE);
+        if (mMediaPlaybackService == null) {
+        	bindService(new Intent(this, MediaPlaybackService.class), connection, Context.BIND_AUTO_CREATE);
         } else {
         	updateTrackInfo();
         	setRepeatButtonImage();
@@ -522,10 +522,10 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
 	}
     
     private void scanBackward(int repcnt, long delta) {
-        if(mMediaService == null) return;
+        if(mMediaPlaybackService == null) return;
         try {
             if(repcnt == 0) {
-                mStartSeekPos = mMediaService.position();
+                mStartSeekPos = mMediaPlaybackService.position();
                 mLastSeekEventTime = 0;
             } else {
                 if (delta < 5000) {
@@ -538,13 +538,13 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
                 long newpos = mStartSeekPos - delta;
                 if (newpos < 0) {
                     // move to previous track
-                    mMediaService.prev();
-                    long duration = mMediaService.duration();
+                    mMediaPlaybackService.prev();
+                    long duration = mMediaPlaybackService.duration();
                     mStartSeekPos += duration;
                     newpos += duration;
                 }
                 if (((delta - mLastSeekEventTime) > 250) || repcnt < 0){
-                    mMediaService.seek(newpos);
+                    mMediaPlaybackService.seek(newpos);
                     mLastSeekEventTime = delta;
                 }
                 if (repcnt >= 0) {
@@ -559,10 +559,10 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
     }
 
     private void scanForward(int repcnt, long delta) {
-        if(mMediaService == null) return;
+        if(mMediaPlaybackService == null) return;
         try {
             if(repcnt == 0) {
-                mStartSeekPos = mMediaService.position();
+                mStartSeekPos = mMediaPlaybackService.position();
                 mLastSeekEventTime = 0;
             } else {
                 if (delta < 5000) {
@@ -573,15 +573,15 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
                     delta = 50000 + (delta - 5000) * 40;
                 }
                 long newpos = mStartSeekPos + delta;
-                long duration = mMediaService.duration();
+                long duration = mMediaPlaybackService.duration();
                 if (newpos >= duration) {
                     // move to next track
-                    mMediaService.next();
+                    mMediaPlaybackService.next();
                     mStartSeekPos -= duration; // is OK to go negative
                     newpos -= duration;
                 }
                 if (((delta - mLastSeekEventTime) > 250) || repcnt < 0){
-                    mMediaService.seek(newpos);
+                    mMediaPlaybackService.seek(newpos);
                     mLastSeekEventTime = delta;
                 }
                 if (repcnt >= 0) {
@@ -597,11 +597,11 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
     
     private void doPauseResume() {
         try {
-            if(mMediaService != null) {
-                if (mMediaService.isPlaying()) {
-                    mMediaService.pause();
+            if(mMediaPlaybackService != null) {
+                if (mMediaPlaybackService.isPlaying()) {
+                    mMediaPlaybackService.pause();
                 } else {
-                    mMediaService.play();
+                    mMediaPlaybackService.play();
                 }
                 refreshNow();
                 setPauseButtonImage();
@@ -611,20 +611,20 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
     }
     
     private void toggleShuffle() {
-        if (mMediaService == null) {
+        if (mMediaPlaybackService == null) {
             return;
         }
         try {
-            int shuffle = mMediaService.getShuffleMode();
-            if (shuffle == MediaService.SHUFFLE_NONE) {
-            	mMediaService.setShuffleMode(MediaService.SHUFFLE_ON);
-                if (mMediaService.getRepeatMode() == MediaService.REPEAT_CURRENT) {
-                	mMediaService.setRepeatMode(MediaService.REPEAT_ALL);
+            int shuffle = mMediaPlaybackService.getShuffleMode();
+            if (shuffle == MediaPlaybackService.SHUFFLE_NONE) {
+            	mMediaPlaybackService.setShuffleMode(MediaPlaybackService.SHUFFLE_ON);
+                if (mMediaPlaybackService.getRepeatMode() == MediaPlaybackService.REPEAT_CURRENT) {
+                	mMediaPlaybackService.setRepeatMode(MediaPlaybackService.REPEAT_ALL);
                     setRepeatButtonImage();
                 }
                 showToast(R.string.shuffle_on_notif);
-            } else if (shuffle == MediaService.SHUFFLE_ON) {
-            	mMediaService.setShuffleMode(MediaService.SHUFFLE_NONE);
+            } else if (shuffle == MediaPlaybackService.SHUFFLE_ON) {
+            	mMediaPlaybackService.setShuffleMode(MediaPlaybackService.SHUFFLE_NONE);
                 showToast(R.string.shuffle_off_notif);
             } else {
                 Log.e(TAG, "Invalid shuffle mode: " + shuffle);
@@ -635,23 +635,23 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
     }
     
     private void cycleRepeat() {
-        if (mMediaService == null) {
+        if (mMediaPlaybackService == null) {
             return;
         }
         try {
-            int mode = mMediaService.getRepeatMode();
-            if (mode == MediaService.REPEAT_NONE) {
-                mMediaService.setRepeatMode(MediaService.REPEAT_ALL);
+            int mode = mMediaPlaybackService.getRepeatMode();
+            if (mode == MediaPlaybackService.REPEAT_NONE) {
+                mMediaPlaybackService.setRepeatMode(MediaPlaybackService.REPEAT_ALL);
                 showToast(R.string.repeat_all_notif);
-            } else if (mode == MediaService.REPEAT_ALL) {
-                mMediaService.setRepeatMode(MediaService.REPEAT_CURRENT);
-                if (mMediaService.getShuffleMode() != MediaService.SHUFFLE_NONE) {
-                    mMediaService.setShuffleMode(MediaService.SHUFFLE_NONE);
+            } else if (mode == MediaPlaybackService.REPEAT_ALL) {
+                mMediaPlaybackService.setRepeatMode(MediaPlaybackService.REPEAT_CURRENT);
+                if (mMediaPlaybackService.getShuffleMode() != MediaPlaybackService.SHUFFLE_NONE) {
+                    mMediaPlaybackService.setShuffleMode(MediaPlaybackService.SHUFFLE_NONE);
                     setShuffleButtonImage();
                 }
                 showToast(R.string.repeat_current_notif);
             } else {
-                mMediaService.setRepeatMode(MediaService.REPEAT_NONE);
+                mMediaPlaybackService.setRepeatMode(MediaPlaybackService.REPEAT_NONE);
                 showToast(R.string.repeat_off_notif);
             }
             setRepeatButtonImage();
@@ -681,7 +681,7 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
         String filename = "";
     	String type = "";
         
-        if(mMediaService == null)
+        if(mMediaPlaybackService == null)
             return;
         
         filename = mRequestedStream;
@@ -697,7 +697,7 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
         	        mDialog.show();
         		}
         		
-                if (!mMediaService.loadQueue(filename, type)) {
+                if (!mMediaPlaybackService.loadQueue(filename, type)) {
                 	errorOpeningMediaMessage();
                 	return;
                 }
@@ -714,7 +714,7 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
     	        // interact with the service.  Because we have bound to a explicit
     	        // service that we know is running in our own process, we can
     	        // cast its IBinder to a concrete class and directly access it.
-                mMediaService = IMediaService.Stub.asInterface(obj);
+                mMediaPlaybackService = IMediaPlaybackService.Stub.asInterface(obj);
                 
             	Log.v(TAG, "Bind Complete");
             	
@@ -739,15 +739,15 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
             	// if the requested stream is null the intent used to launch
             	// StreamMediaActivity did not supply a new URL to stream
                 try {
-        			if ((mRequestedStream != null && mMediaService.getPlayListPath() == null) || 
-        					(mRequestedStream != null && !mRequestedStream.equals(mMediaService.getPlayListPath()))) {
+        			if ((mRequestedStream != null && mMediaPlaybackService.getPlayListPath() == null) || 
+        					(mRequestedStream != null && !mRequestedStream.equals(mMediaPlaybackService.getPlayListPath()))) {
         				
         				Log.v(TAG, mRequestedStream);
-        				if (mMediaService.getPlayListPath() != null)
-        				Log.v(TAG, mMediaService.getPlayListPath());
+        				if (mMediaPlaybackService.getPlayListPath() != null)
+        				Log.v(TAG, mMediaPlaybackService.getPlayListPath());
         				
         			    try {
-        			    	MultiPlayer mp = mMediaService.getMediaPlayer();
+        			    	MultiPlayer mp = mMediaPlaybackService.getMediaPlayer();
         			    	mp.setDisplay(holder);
         			        holder.setFixedSize(mDisplayWidth, mDisplayHeight);
         			        
@@ -775,18 +775,18 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
     	        // unexpectedly disconnected -- that is, its process crashed.
     	        // Because it is running in our same process, we should never
     	        // see this happen.
-                mMediaService = null;
+                mMediaPlaybackService = null;
             }
     };
 
     private void setRepeatButtonImage() {
-        if (mMediaService == null) return;
+        if (mMediaPlaybackService == null) return;
         try {
-            switch (mMediaService.getRepeatMode()) {
-                case MediaService.REPEAT_ALL:
+            switch (mMediaPlaybackService.getRepeatMode()) {
+                case MediaPlaybackService.REPEAT_ALL:
                     mRepeatButton.setBackgroundResource(R.drawable.repeat_all_button);
                     break;
-                case MediaService.REPEAT_CURRENT:
+                case MediaPlaybackService.REPEAT_CURRENT:
                     mRepeatButton.setBackgroundResource(R.drawable.repeat_one_button);
                     break;
                 default:
@@ -798,10 +798,10 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
     }
     
     private void setShuffleButtonImage() {
-        if (mMediaService == null) return;
+        if (mMediaPlaybackService == null) return;
         try {
-            switch (mMediaService.getShuffleMode()) {
-                case MediaService.SHUFFLE_NONE:
+            switch (mMediaPlaybackService.getShuffleMode()) {
+                case MediaPlaybackService.SHUFFLE_NONE:
                     mShuffleButton.setBackgroundResource(R.drawable.shuffle_disabled_button);
                     break;
                 default:
@@ -814,7 +814,7 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
     
     private void setPauseButtonImage() {
         try {
-            if (mMediaService != null && mMediaService.isPlaying()) {
+            if (mMediaPlaybackService != null && mMediaPlaybackService.isPlaying()) {
                 mPauseButton.setBackgroundResource(R.drawable.pause_button);
             } else {
                 mPauseButton.setBackgroundResource(R.drawable.play_button);
@@ -842,16 +842,16 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
     }
 
     private long refreshNow() {
-        if(mMediaService == null)
+        if(mMediaPlaybackService == null)
             return 500;
         try {
-        	if (!mMediaService.isStreaming()) {
-        		if (!mMediaService.isCompleteFileAvailable()) {
+        	if (!mMediaPlaybackService.isStreaming()) {
+        		if (!mMediaPlaybackService.isCompleteFileAvailable()) {
         			mSeekBackwardButton.setEnabled(false);
         			mSeekForwardButton.setEnabled(false);
         			mProgress.setEnabled(false);
         		} else {
-        			mDuration = mMediaService.getCompleteFileDuration();
+        			mDuration = mMediaPlaybackService.getCompleteFileDuration();
                 	mTotalTime.setText(MusicUtils.makeTimeString(this, mDuration / 1000));
                 	mSeekBackwardButton.setEnabled(true);
                 	mSeekForwardButton.setEnabled(true);
@@ -859,12 +859,12 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
         		}
         	}
         	
-            long pos = mPosOverride < 0 ? mMediaService.position() : mPosOverride;
+            long pos = mPosOverride < 0 ? mMediaPlaybackService.position() : mPosOverride;
             long remaining = 1000 - (pos % 1000);
             if ((pos >= 0) && (mDuration > 0)) {
                 mCurrentTime.setText(MusicUtils.makeTimeString(this, pos / 1000));
                 
-                if (mMediaService.isPlaying()) {
+                if (mMediaPlaybackService.isPlaying()) {
                     mCurrentTime.setVisibility(View.VISIBLE);
                 } else {
                     // blink the counter
@@ -904,7 +904,7 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
         @Override
         public void onReceive(Context context, Intent intent) {
             String action = intent.getAction();
-            if (action.equals(MediaService.META_CHANGED)) {
+            if (action.equals(MediaPlaybackService.META_CHANGED)) {
                 // redraw the artist/title info and
                 // set new max for progress bar
                 updateTrackInfo();
@@ -912,11 +912,11 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
                 queueNextRefresh(1);
         		mMediaControls.startAnimation(media_controls_fade_in);
         		mMediaControls.setVisibility(View.VISIBLE);
-            } else if (action.equals(MediaService.META_UPDATED)) {
+            } else if (action.equals(MediaPlaybackService.META_UPDATED)) {
             	updateTrackInfo();
-            } else if (action.equals(MediaService.PLAYSTATE_CHANGED)) {
+            } else if (action.equals(MediaPlaybackService.PLAYSTATE_CHANGED)) {
                 setPauseButtonImage();
-            } else if (action.equals(MediaService.START_DIALOG)) {
+            } else if (action.equals(MediaPlaybackService.START_DIALOG)) {
 	        	try {
 	        		if (mParentActivityState == VISIBLE && (mDialog == null || mDialog != null && !mDialog.isShowing())) {
 	        	    	mDialog = new ProgressDialog(StreamMediaActivity.this);
@@ -928,11 +928,11 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
 	        	} catch (Exception ex) {
 	        	    ex.printStackTrace();	
 	        	}
-            } else if (action.equals(MediaService.STOP_DIALOG)) {
+            } else if (action.equals(MediaPlaybackService.STOP_DIALOG)) {
             	if (mParentActivityState == VISIBLE) {
             		dismissDialog();
             	}
-            } else if (action.equals(MediaService.ERROR_MESSAGE)) {
+            } else if (action.equals(MediaPlaybackService.ERROR_MESSAGE)) {
 				new AlertDialog.Builder(StreamMediaActivity.this)
 				.setTitle(R.string.cannot_play_media_title)
 				.setMessage(R.string.cannot_play_media_message)
@@ -941,15 +941,15 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
 						finish();
 					}
 					}).create().show();
-            } else if (action.equals(MediaService.QUEUE_LOADED)) {
+            } else if (action.equals(MediaPlaybackService.QUEUE_LOADED)) {
                 try {
-					if (mMediaService.getPlayListLength() == 0) {
+					if (mMediaPlaybackService.getPlayListLength() == 0) {
 						handleInvalidPlaylist();
 					    return;
 					}
 				
-					mMediaService.stop();
-					mMediaService.queueFirstFile();
+					mMediaPlaybackService.stop();
+					mMediaPlaybackService.queueFirstFile();
 					setIntent(new Intent());
 					
 			        setRepeatButtonImage();
@@ -959,13 +959,13 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
 				} catch (RemoteException e) {
 					e.printStackTrace();
 				}
-            } else if (action.equals(MediaService.CONNECTIVITY_LOST)) {
+            } else if (action.equals(MediaPlaybackService.CONNECTIVITY_LOST)) {
     	    	/*mDialog = new ProgressDialog(StreamMediaActivity.this);
     	        mDialog.setMessage("Reconnecting");
     	        mDialog.setIndeterminate(true);
     	        mDialog.setCancelable(true);
     	        mDialog.show();*/
-            } else if (action.equals(MediaService.CONNECTIVITY_RESTORED)) {
+            } else if (action.equals(MediaPlaybackService.CONNECTIVITY_RESTORED)) {
             	//mDialog.dismiss();
             }
         }
@@ -975,50 +975,50 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
         @Override
         public void onReceive(Context context, Intent intent) {
             String action = intent.getAction();
-            if (action.equals(MediaService.CLOSE_PLAYER)) {
+            if (action.equals(MediaPlaybackService.CLOSE_PLAYER)) {
             	finish();
             }
         }
     };
     
     private void updateTrackInfo() {
-        if (mMediaService == null) {
+        if (mMediaPlaybackService == null) {
             return;
         }
         try {
-            String path = mMediaService.getPath();
+            String path = mMediaPlaybackService.getPath();
             if (path == null) {
                 finish();
                 return;
             }
             
-            mTrackNumber.setText(mMediaService.getTrackNumber());
+            mTrackNumber.setText(mMediaPlaybackService.getTrackNumber());
             
-            String trackName = mMediaService.getTrackName();            
+            String trackName = mMediaPlaybackService.getTrackName();            
             if (trackName == null) {
-            	trackName = mMediaService.getPlaylistMetadata();
+            	trackName = mMediaPlaybackService.getPlaylistMetadata();
             	if (trackName == null)
-            		trackName = mMediaService.getMediaURL();
+            		trackName = mMediaPlaybackService.getMediaURL();
             }
             mTrackName.setText(trackName);
 
-            String artistName = mMediaService.getArtistName();
+            String artistName = mMediaPlaybackService.getArtistName();
             if (artistName == null) {
             	artistName = "";
             }
             mArtistName.setText(artistName);
             
-            String albumName = mMediaService.getAlbumName();
+            String albumName = mMediaPlaybackService.getAlbumName();
             if (albumName == null) {
             	albumName = "" ;
             }
             mAlbumName.setText(albumName);
             
-            if (mMediaService.isStreaming()) {
-            	mDuration = mMediaService.duration();
+            if (mMediaPlaybackService.isStreaming()) {
+            	mDuration = mMediaPlaybackService.duration();
             } else {
-            	if (mMediaService.isCompleteFileAvailable())
-            		mDuration = mMediaService.getCompleteFileDuration();
+            	if (mMediaPlaybackService.isCompleteFileAvailable())
+            		mDuration = mMediaPlaybackService.getCompleteFileDuration();
             	else
             		mDuration = 0;
             }
