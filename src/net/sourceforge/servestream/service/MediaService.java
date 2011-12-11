@@ -112,7 +112,6 @@ public class MediaService extends Service implements OnSharedPreferenceChangeLis
     public static final String META_CHANGED = "net.sourceforge.servestream.metachanged";
     public static final String META_UPDATED = "net.sourceforge,servestream.metaupdated";
     public static final String QUEUE_LOADED = "net.sourceforge.servestream.queueloaded";
-    public static final String SHOUTCAST_META_CHANGED = "net.sourceforge.servestream.shoutcastmetachanged";
     public static final String START_DIALOG = "net.sourceforge.servestream.startdialog";
     public static final String STOP_DIALOG = "net.sourceforge.servestream.stopdialog";
     public static final String QUEUE_CHANGED = "net.sourceforge.servestream.queuechanged";
@@ -141,7 +140,7 @@ public class MediaService extends Service implements OnSharedPreferenceChangeLis
     public static final int PLAYER_ERROR = 7;
     private static final int MAX_HISTORY_SIZE = 100;
     
-    private static final int SHOUTCAST_METADATA_REFRESH = 1;
+    //private static final int SHOUTCAST_METADATA_REFRESH = 1;
     
     protected StreamDatabase mStreamdb = null;
     
@@ -268,7 +267,7 @@ public class MediaService extends Service implements OnSharedPreferenceChangeLis
   	    }
   	}
     
-    private final Handler mSHOUTcastMetadataHandler = new Handler() {
+    /*private final Handler mSHOUTcastMetadataHandler = new Handler() {
         @Override
         public void handleMessage(Message msg) {
             switch (msg.what) {
@@ -279,7 +278,7 @@ public class MediaService extends Service implements OnSharedPreferenceChangeLis
                     break;
             }
         }
-    };
+    };*/
     
     private BroadcastReceiver mIntentReceiver = new BroadcastReceiver() {
         @Override
@@ -1276,10 +1275,6 @@ public class MediaService extends Service implements OnSharedPreferenceChangeLis
         }
     }
     
-    public String getSHOUTcastMetadata() {
-    	return mSHOUTcastMetadata.getArtist() + " - " + mSHOUTcastMetadata.getTitle();
-    }
-    
     /**
      * Returns the duration of the file in milliseconds.
      * Currently this method returns -1 for the duration of MIDI files.
@@ -1391,9 +1386,6 @@ public class MediaService extends Service implements OnSharedPreferenceChangeLis
         public long getCompleteFileDuration() {
         	return mService.get().getCompleteFileDuration();
         }
-        public String getSHOUTcastMetadata() {
-            return mService.get().getSHOUTcastMetadata();
-		}
         public MediaFile [] getQueue() {
             return mService.get().getQueue();
         }
@@ -1620,35 +1612,6 @@ public class MediaService extends Service implements OnSharedPreferenceChangeLis
 		    
             Intent i = new Intent(QUEUE_LOADED);
             sendBroadcast(i);
-		}
-    }
-    
-    public class SHOUTcastMetadataAsyncTask extends AsyncTask<SHOUTcastMetadata, Void, Boolean> {
-		
-	    public SHOUTcastMetadataAsyncTask() {
-	        super();
-	    }
-	    
-		@Override
-		protected Boolean doInBackground(SHOUTcastMetadata... stream) {
-        	mSHOUTcastMetadata.refreshMetadata();
-        	
-			Log.v(TAG, mSHOUTcastMetadata.getTitle());
-			Log.v(TAG, mSHOUTcastMetadata.getArtist());
-
-    		return mSHOUTcastMetadata.containsMetadata();
-		}
-
-		@Override
-		protected void onPostExecute(Boolean containsMetadata) {
-			
-			mSHOUTcastMetadataHandler.removeMessages(SHOUTCAST_METADATA_REFRESH);
-			
-			if (containsMetadata) {
-	    		notifyChange(SHOUTCAST_META_CHANGED);
-				Message msg = mSHOUTcastMetadataHandler.obtainMessage(SHOUTCAST_METADATA_REFRESH);
-				mSHOUTcastMetadataHandler.sendMessageDelayed(msg, 4000);
-			}
 		}
     }
     
