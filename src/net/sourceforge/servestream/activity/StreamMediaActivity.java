@@ -100,7 +100,6 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
     private TextView mTrackName;
     private TextView mArtistName;
     private TextView mAlbumName;
-    private TextView mSHOUTcastMetadata;
     
     private SurfaceView preview = null;
     private SurfaceHolder holder;
@@ -915,8 +914,6 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
         		mMediaControls.setVisibility(View.VISIBLE);
             } else if (action.equals(MediaService.META_UPDATED)) {
             	updateTrackInfo();
-            } else if (action.equals(MediaService.SHOUTCAST_META_CHANGED)) {
-            	updateSHOUTcastMetaData();
             } else if (action.equals(MediaService.PLAYSTATE_CHANGED)) {
                 setPauseButtonImage();
             } else if (action.equals(MediaService.START_DIALOG)) {
@@ -1028,22 +1025,6 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
         	mTotalTime.setText(MusicUtils.makeTimeString(this, mDuration / 1000));
         } catch (RemoteException ex) {
 
-        }
-    }
-    
-    private void updateSHOUTcastMetaData() {
-        if (mMediaService == null) {
-            return;
-        }
-        try {
-            
-            if (mMediaService.getSHOUTcastMetadata() == null) {
-            	mSHOUTcastMetadata.setText("");
-            } else {
-            	mSHOUTcastMetadata.setText(mMediaService.getSHOUTcastMetadata());
-            }    		
-        } catch (RemoteException ex) {
-        
         }
     }
     
