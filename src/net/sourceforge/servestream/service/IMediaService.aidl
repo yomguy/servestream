@@ -56,7 +56,6 @@ interface IMediaService
     boolean isStreaming();
     boolean isCompleteFileAvailable();
     long getCompleteFileDuration();
-    String getSHOUTcastMetadata();
     long duration();
     long position();
     long seek(long pos);
