@@ -57,6 +57,9 @@
     <!-- Do not translate. Duration format for duration >= 1 hour -->
     <string name="durationformatlong" translatable="false"><xliff:g id="format">%1$d:%3$02d:%5$02d</xliff:g></string>
 
+    <!-- Toast after selecting an empty playlist -->
+    <string name="emptyplaylist">Selected playlist is empty.</string>
+
 	<!-- Displayed when a user tries to use the scan menu option without having ZXing barcode scanner installed. -->
 	<string name="find_barcode_scanner_message">This feature requires the ZXing barcode scanner. Find this application?</string>
 	<string name="find_pos">Yes</string>

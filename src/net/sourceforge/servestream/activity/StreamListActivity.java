@@ -39,6 +39,9 @@ import java.net.MalformedURLException;
 import java.net.URLDecoder;
 import java.util.ArrayList;
 
+import net.sourceforge.servestream.utils.MusicUtils;
+import net.sourceforge.servestream.utils.MusicUtils.ServiceToken;
+
 import net.sourceforge.servestream.R;
 import net.sourceforge.servestream.alarm.Alarm;
 import net.sourceforge.servestream.dbutils.Stream;
@@ -52,17 +55,20 @@ import android.app.Dialog;
 import android.app.ListActivity;
 import android.app.ProgressDialog;
 import android.content.ActivityNotFoundException;
+import android.content.ComponentName;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.DialogInterface.OnCancelListener;
 import android.content.Intent;
 import android.content.Intent.ShortcutIconResource;
+import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.IBinder;
 import android.os.Message;
 import android.preference.PreferenceManager;
 import android.util.Log;
@@ -88,7 +94,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.AdapterView.OnItemClickListener;
 
-public class StreamListActivity extends ListActivity {
+public class StreamListActivity extends ListActivity implements ServiceConnection {
 	public final static String TAG = StreamListActivity.class.getName();	
 	
  	private static final int MESSAGE_UPDATE_LIST = 1;
@@ -117,6 +123,8 @@ public class StreamListActivity extends ListActivity {
 	private boolean mActivityVisible = true;
 	
 	private DetermineIntentAsyncTask mDetermineIntentTask = null;
+	
+    private ServiceToken mToken;
 	
 	protected Handler mHandler = new Handler() {
 		@Override
@@ -250,6 +258,8 @@ public class StreamListActivity extends ListActivity {
 	public void onStart() {
 		super.onStart();
 		
+        mToken = MusicUtils.bindToService(this, this);
+		
 		updateList();
 		
 		if(this.mStreamdb == null)
@@ -273,6 +283,8 @@ public class StreamListActivity extends ListActivity {
 	@Override
 	public void onStop() {
 		super.onStop();
+		
+        MusicUtils.unbindFromService(mToken);
 		
 		if(this.mStreamdb != null) {
 			this.mStreamdb.close();
@@ -711,5 +723,15 @@ public class StreamListActivity extends ListActivity {
 			
 			return intent;
 		}		
+	}
+
+	@Override
+	public void onServiceConnected(ComponentName arg0, IBinder arg1) {
+		
+	}
+
+	@Override
+	public void onServiceDisconnected(ComponentName arg0) {
+		finish();
 	}
 }
