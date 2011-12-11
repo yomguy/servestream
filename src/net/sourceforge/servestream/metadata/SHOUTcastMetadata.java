@@ -22,29 +22,44 @@
 
 package net.sourceforge.servestream.metadata;
 
-import android.util.Log;
-
-import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import net.sourceforge.servestream.utils.URLUtils;
+import android.os.Handler;
+import android.os.Message;
+import android.util.Log;
+
 import net.sourceforge.servestream.utils.Utils;
 
 public class SHOUTcastMetadata {
 	private static final String TAG = SHOUTcastMetadata.class.getName();
-
+	
+	public static final String ARTIST = "artist";
+	public static final String TITLE = "title";  
+	
+	private static final String STREAM_TITLE = "StreamTitle";
+	private static final String STREAM_TITLE_REPLAY = "StreamTitleReplay";
+	
+    /**
+     * A map of all metadata attributes.
+     */
+    private Map<String, String> mMetadata = null;
+    
 	private URL mUrl = null;
-	private String mArtist = null;
-	private String mTitle = null;
 	private boolean mContainsMetadata = false;
+	
+	private Handler mHandler = null;
+	private int mWhat = -1;
   
+	private final AtomicReference<Thread> mThread = new AtomicReference<Thread>();
+	
     /**
      * Default constructor
      * 
@@ -52,8 +67,21 @@ public class SHOUTcastMetadata {
      */
     public SHOUTcastMetadata(URL url) {
     	mUrl = url;
+    	mMetadata = new HashMap<String, String>();
     }
   
+    /**
+     * Default constructor
+     * 
+     * @param url The url to extract SHOUTcast metadata from
+     */
+    public SHOUTcastMetadata(URL url, Handler handler, int what) {
+    	mUrl = url;
+    	mHandler = handler;
+    	mWhat = what;
+    	mMetadata = new HashMap<String, String>();
+    }
+    
     /**
      * Refreshes the SHOUTcast metadata
      */
@@ -66,27 +94,27 @@ public class SHOUTcastMetadata {
      * parses the SHOUTcast metadata returned
      */
     private void retrieveMetadata() {
-	  
     	int metaDataOffset = 0;
     	HttpURLConnection conn = null;
     	InputStream stream = null;
 	  
     	try {
-    		conn = URLUtils.getConnection(mUrl);
+        	conn = (HttpURLConnection) mUrl.openConnection();
       
     	    conn.setRequestProperty("Icy-MetaData", "1");
     	    conn.setRequestProperty("Connection", "close");
     	    conn.setRequestProperty("Accept", null);
+    		conn.setConnectTimeout(6000);
+    		conn.setReadTimeout(6000);
     	    conn.connect();
 		
     	    Map<String, List<String>> headers = conn.getHeaderFields();
     	    stream = conn.getInputStream();
 
     	    if (headers.containsKey("icy-metaint")) {
-    	    	mContainsMetadata = true;
     	    	metaDataOffset = Integer.parseInt(headers.get("icy-metaint").get(0));
     	    } else {
-    	    	/*StringBuffer strHeaders = new StringBuffer();
+    	    	StringBuffer strHeaders = new StringBuffer();
     	    	char c;
     	    	while ((c = (char)stream.read()) != -1) {
     	    		strHeaders.append(c);
@@ -101,16 +129,16 @@ public class SHOUTcastMetadata {
     		    Matcher m = p.matcher(strHeaders.toString());
     		    if (m.find()) {
     		    	metaDataOffset = Integer.parseInt(m.group(2));
-    		    }*/
+    		    }
     	    }
 
     	    // In case no data was sent
     	    if (metaDataOffset == 0) {
-    	    	Utils.closeInputStream(stream);
-    	    	Utils.closeHttpConnection(conn);
 			    return;
     	    }
 
+	    	mContainsMetadata = true;
+	    	
 		    // Read metadata
 		    int b;
 		    int count = 0;
@@ -151,13 +179,11 @@ public class SHOUTcastMetadata {
 
 		    // parse the returned metadata
 		    parseMetadata(metaData.toString());
-		    Log.v(TAG, metaData.toString());
-		
         } catch (Exception ex) {
         	ex.printStackTrace();
         } finally {
-        	Utils.closeInputStream(stream);
-        	Utils.closeHttpConnection(conn);
+			Utils.closeInputStream(stream);
+		    Utils.closeHttpConnection(conn);
         }
     }
 
@@ -177,84 +203,115 @@ public class SHOUTcastMetadata {
 		for (int i = 0; i < metaParts.length; i++) {
 			m = p.matcher(metaParts[i]);
 			if (m.find()) {
-				metadata.put((String)m.group(1), (String)m.group(2));
+				metadata.put((String)m.group(1), (String)m.group(2));				
 			}
 		}
 
-		streamTitle = metadata.get("StreamTitle");
+		streamTitle = metadata.get(STREAM_TITLE);
 		
-		if (streamTitle == null)
-			return;
- 
-		String artist = streamTitle.substring(0, streamTitle.indexOf("-")).trim();
-		mArtist = artist;
-		
-		String title = streamTitle.substring(streamTitle.indexOf("-") + 1).trim();
-		mTitle = title;
-	}
-	
-	/**
-	 * Get artist using stream's title
-	 *
-	 * @return String
-	 * @throws IOException
-	 */
-	public String getArtist() {
-		if (mArtist == null)
-			return "Unknown";
-		
-		return mArtist;
-	}
- 
-	/**
-	 * Get title using stream's title
-	 *
-	 * @return String
-	 * @throws IOException
-	 */
-	public String getTitle() {
-		if (mTitle == null)
-			return "Unknown";
-		
-		return mTitle;
-	}
-	
-	/**
-	 * Determines if the specified Url stream contains metadata
-	 * 
-	 * @return
-	 */
-	/*public boolean containsMetadata() {
-		
-		boolean containsMetadata = false;
-		
-	    HttpURLConnection conn = null;
-		  
-	    try {
-	      
-	    	conn = (HttpURLConnection) mUrl.openConnection();
-	      
-	    	conn.setRequestProperty("Icy-MetaData", "1");
-	    	conn.setRequestProperty("Connection", "close");
-	    	conn.setRequestProperty("Accept", null);
-	    	conn.connect();
+		if (streamTitle == null) {
+			streamTitle = metadata.get(STREAM_TITLE_REPLAY);
 			
-	    	Map<String, List<String>> headers = conn.getHeaderFields();
-
-	    	if (headers.containsKey("icy-metaint"))
-	    		containsMetadata = true;
-	    		
-	    } catch (Exception ex) {
-	    	ex.printStackTrace();
-	    } finally {
-	    	closeHttpConnection(conn);
-	    }
-	    
-	    return containsMetadata;
-	}*/
+			if (streamTitle == null) {
+				return;
+			}	
+		}
+		
+		try {
+			add(ARTIST, streamTitle.substring(0, streamTitle.indexOf("-")).trim());
+			add(TITLE, streamTitle.substring(streamTitle.indexOf("-") + 1).trim());
+		} catch (Exception ex) {
+		}
+	}
 	
+    /**
+     * Get the value associated to a metadata name. If many values are assiociated
+     * to the specified name, then the first one is returned.
+     * 
+     * @param name
+     *          of the metadata.
+     * @return the value associated to the specified metadata name.
+     */
+    public String get(final String name) {
+        String value = mMetadata.get(name);
+        if (value == null) {
+            return "Unknown";
+        } else {
+            return value;
+        }
+    }
+  	
+    /**
+     * Add a metadata name/value mapping. Add the specified value to the list of
+     * values associated to the specified metadata name.
+     * 
+     * @param name
+     *          the metadata name.
+     * @param value
+     *          the metadata value.
+     */
+    public void add(final String name, final String value) {
+    	if (value == null) {
+    		mMetadata.put(name, "Unknown");
+    	} else {
+    		mMetadata.put(name, value);
+    	}
+    }
+    
+    /**
+     * Returns the number of metadata names in this metadata.
+     * 
+     * @return number of metadata names
+     */
+    public int size() {
+        return mMetadata.size();
+    }
+    
+    /**
+     * Method to check of the url return SHOUTcast metadata
+     * 
+     * @return true of the url returns SHOUTcast metadata, false otherwise
+     */
     public boolean containsMetadata() {
     	return mContainsMetadata;
     }
-  	
+
+    public void start() {
+    	mThread.set(new Thread() {
+    		public void run() {
+    			int retries = 0;
+    			boolean metadataFound = false;
+    	
+    			//running.set(true);
+    			Log.d(TAG, "Starting thread");
+    			try {
+    				while (retries < 5 && !metadataFound) {
+    					refreshMetadata();
+    					metadataFound = containsMetadata();
+    					retries++;
+    					
+    					// sleep 2 seconds before retrying
+    					if (!metadataFound) {
+    						sleep(2000);
+    					}
+    				}
+    				
+    				if (metadataFound) {
+    					Message msg = null;							
+    					msg = mHandler.obtainMessage(mWhat);
+    					msg.obj = SHOUTcastMetadata.this;
+    					msg.sendToTarget();
+    				}
+    			} catch (InterruptedException ex) {
+    				ex.printStackTrace();
+    			} finally {
+    				//	running.set(false);
+    				Log.d(TAG, "Stopping thread");
+    			}
+    		}
+    	});
+    	
+    	mThread.get().start();
+    }
+    
 }
