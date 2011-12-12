@@ -376,7 +376,6 @@ public class StreamListActivity extends ListActivity implements ServiceConnectio
 	    	progressDialog.setMessage(getString(R.string.opening_url_message));
 	    	progressDialog.setOnCancelListener(new OnCancelListener() {
 
-				@Override
 				public void onCancel(DialogInterface dialog) {
 					if (mDetermineIntentTask != null) {
 						mDetermineIntentTask.cancel(true);
@@ -725,12 +724,10 @@ public class StreamListActivity extends ListActivity implements ServiceConnectio
 		}		
 	}
 
-	@Override
 	public void onServiceConnected(ComponentName arg0, IBinder arg1) {
 		
 	}
 
-	@Override
 	public void onServiceDisconnected(ComponentName arg0) {
 		finish();
 	}
