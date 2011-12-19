@@ -158,7 +158,7 @@ public class StreamListActivity extends ListActivity implements ServiceConnectio
 		new UpdateHelper(this);
 		
 		// connect with streams database and populate list
-		this.mStreamdb = new StreamDatabase(this);
+		mStreamdb = new StreamDatabase(this);
 		
 		ListView list = this.getListView();
 		list.setOnItemClickListener(new OnItemClickListener() {
@@ -246,8 +246,8 @@ public class StreamListActivity extends ListActivity implements ServiceConnectio
 		
 		updateList();
 		
-		if(this.mStreamdb == null)
-			this.mStreamdb = new StreamDatabase(this);
+		if(mStreamdb == null)
+			mStreamdb = new StreamDatabase(this);
 	}
 	
 	@Override
@@ -270,9 +270,9 @@ public class StreamListActivity extends ListActivity implements ServiceConnectio
 		
         MusicUtils.unbindFromService(mToken);
 		
-		if(this.mStreamdb != null) {
-			this.mStreamdb.close();
-			this.mStreamdb = null;
+		if(mStreamdb != null) {
+			mStreamdb.close();
+			mStreamdb = null;
 		}
 	}
 	
