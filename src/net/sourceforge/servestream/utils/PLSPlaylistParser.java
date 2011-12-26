@@ -19,8 +19,10 @@ package net.sourceforge.servestream.utils;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
+import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.net.URLDecoder;
 
 public class PLSPlaylistParser extends PlaylistParser {
 	public final static String TAG = PLSPlaylistParser.class.getName();
@@ -69,7 +71,12 @@ public class PLSPlaylistParser extends PlaylistParser {
                         		processingEntry = true;
                         	
         		    		mediaFile = new MediaFile();
-                            mediaFile.setURL(parsedLine[1].trim());
+        		    		
+    		    	    	try {
+    							mediaFile.setURL(URLDecoder.decode(parsedLine[1].trim(), "UTF-8"));
+    						} catch (UnsupportedEncodingException e) {
+    							mediaFile.setURL(parsedLine[1].trim());
+    						}
                         } else if (parsedLine[0].trim().contains("Title")) {
                             mediaFile.setPlaylistMetadata(parsedLine[1].trim());
                         } else if (parsedLine[0].trim().contains("Length")) {

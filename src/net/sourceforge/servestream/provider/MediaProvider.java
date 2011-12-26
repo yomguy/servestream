@@ -18,7 +18,7 @@
 package net.sourceforge.servestream.provider;
 
 import net.sourceforge.servestream.player.MultiPlayer;
-import net.sourceforge.servestream.provider.Audio.AudioColumns;
+import net.sourceforge.servestream.provider.Media.MediaColumns;
 
 import android.content.ContentProvider;
 import android.content.ContentUris;
@@ -37,21 +37,21 @@ import android.util.Log;
 import java.util.HashMap;
 
 /**
- * Provides access to a database of notes. Each note has a title, the note
+ * Provides access to a database of media files. Each media has a title, the note
  * itself, a creation date and a modified data.
  */
-public class AudioProvider extends ContentProvider {
+public class MediaProvider extends ContentProvider {
+	
+    private static final String TAG = MultiPlayer.class.getName();
 
-	private static final String TAG = MultiPlayer.class.getName();
+    private static final String DATABASE_NAME = "media.db";
+    private static final int DATABASE_VERSION = 1;
+    private static final String MEDIA_TABLE_NAME = "media_files";
 
-    private static final String DATABASE_NAME = "audio.db";
-    private static final int DATABASE_VERSION = 2;
-    private static final String AUDIO_TABLE_NAME = "uris";
+    private static HashMap<String, String> sMediaProjectionMap;
 
-    private static HashMap<String, String> sNotesProjectionMap;
-
-    private static final int AUDIO = 1;
-    private static final int AUDIO_ID = 2;
+    private static final int MEDIA = 1;
+    private static final int MEDIA_ID = 2;
 
     private static final UriMatcher sUriMatcher;
 
@@ -66,15 +66,15 @@ public class AudioProvider extends ContentProvider {
 
         @Override
         public void onCreate(SQLiteDatabase db) {
-            db.execSQL("CREATE TABLE " + AUDIO_TABLE_NAME + " ("
-                    + AudioColumns._ID + " INTEGER PRIMARY KEY,"
-                    + AudioColumns.URI + " TEXT,"
-                    + AudioColumns.TITLE + " TEXT,"
-                    + AudioColumns.ALBUM + " TEXT,"
-                    + AudioColumns.ARTIST + " TEXT,"
-                    + AudioColumns.DURATION + " INTEGER,"
-                    + AudioColumns.TRACK + " INTEGER,"
-                    + AudioColumns.YEAR + " INTEGER"
+            db.execSQL("CREATE TABLE " + MEDIA_TABLE_NAME + " ("
+                    + MediaColumns._ID + " INTEGER PRIMARY KEY,"
+                    + MediaColumns.URI + " TEXT,"
+                    + MediaColumns.TITLE + " TEXT,"
+                    + MediaColumns.ALBUM + " TEXT,"
+                    + MediaColumns.ARTIST + " TEXT,"
+                    + MediaColumns.DURATION + " INTEGER,"
+                    + MediaColumns.TRACK + " INTEGER,"
+                    + MediaColumns.YEAR + " INTEGER"
                     + ");");
         }
 
@@ -82,7 +82,7 @@ public class AudioProvider extends ContentProvider {
         public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
             Log.w(TAG, "Upgrading database from version " + oldVersion + " to "
                     + newVersion + ", which will destroy all old data");
-            db.execSQL("DROP TABLE IF EXISTS " + AUDIO_TABLE_NAME);
+            db.execSQL("DROP TABLE IF EXISTS " + MEDIA_TABLE_NAME);
             onCreate(db);
         }
     }
@@ -99,16 +99,16 @@ public class AudioProvider extends ContentProvider {
     public Cursor query(Uri uri, String[] projection, String selection, String[] selectionArgs,
             String sortOrder) {
         SQLiteQueryBuilder qb = new SQLiteQueryBuilder();
-        qb.setTables(AUDIO_TABLE_NAME);
+        qb.setTables(MEDIA_TABLE_NAME);
 
         switch (sUriMatcher.match(uri)) {
-        case AUDIO:
-            qb.setProjectionMap(sNotesProjectionMap);
+        case MEDIA:
+            qb.setProjectionMap(sMediaProjectionMap);
             break;
 
-        case AUDIO_ID:
-            qb.setProjectionMap(sNotesProjectionMap);
-            qb.appendWhere(AudioColumns._ID + "=" + uri.getPathSegments().get(1));
+        case MEDIA_ID:
+            qb.setProjectionMap(sMediaProjectionMap);
+            qb.appendWhere(MediaColumns._ID + "=" + uri.getPathSegments().get(1));
             break;
 
         default:
@@ -118,7 +118,7 @@ public class AudioProvider extends ContentProvider {
         // If no sort order is specified use the default
         String orderBy;
         if (TextUtils.isEmpty(sortOrder)) {
-            orderBy = AudioColumns.DEFAULT_SORT_ORDER;
+            orderBy = MediaColumns.DEFAULT_SORT_ORDER;
         } else {
             orderBy = sortOrder;
         }
@@ -135,11 +135,11 @@ public class AudioProvider extends ContentProvider {
     @Override
     public String getType(Uri uri) {
         switch (sUriMatcher.match(uri)) {
-        case AUDIO:
-            return AudioColumns.CONTENT_TYPE;
+        case MEDIA:
+            return MediaColumns.CONTENT_TYPE;
 
-        case AUDIO_ID:
-            return AudioColumns.CONTENT_ITEM_TYPE;
+        case MEDIA_ID:
+            return MediaColumns.CONTENT_ITEM_TYPE;
 
         default:
             throw new IllegalArgumentException("Unknown URI " + uri);
@@ -149,7 +149,7 @@ public class AudioProvider extends ContentProvider {
     @Override
     public Uri insert(Uri uri, ContentValues initialValues) {
         // Validate the requested uri
-        if (sUriMatcher.match(uri) != AUDIO) {
+        if (sUriMatcher.match(uri) != MEDIA) {
             throw new IllegalArgumentException("Unknown URI " + uri);
         }
 
@@ -161,42 +161,38 @@ public class AudioProvider extends ContentProvider {
         }
 
         // Make sure that the fields are all set
-        if (values.containsKey(AudioColumns.URI) == false) {
-            values.put(AudioColumns.URI, "Unknown");
+        if (values.containsKey(MediaColumns.URI) == false) {
+            values.put(MediaColumns.URI, "Unknown");
         }
         
-        if (values.containsKey(AudioColumns.TITLE) == false) {
-            values.put(AudioColumns.TITLE, "Unknown");
+        if (values.containsKey(MediaColumns.TITLE) == false) {
+            values.put(MediaColumns.TITLE, "Unknown");
         }
         
-        if (values.containsKey(AudioColumns.ALBUM) == false) {
-            values.put(AudioColumns.ALBUM, "Unknown");
+        if (values.containsKey(MediaColumns.ALBUM) == false) {
+            values.put(MediaColumns.ALBUM, "Unknown");
         }
         
-        if (values.containsKey(AudioColumns.ARTIST) == false) {
-            values.put(AudioColumns.ARTIST, "Unknown");
+        if (values.containsKey(MediaColumns.ARTIST) == false) {
+            values.put(MediaColumns.ARTIST, "Unknown");
         }
         
-        if (values.containsKey(AudioColumns.DURATION) == false) {
-            values.put(AudioColumns.DURATION, -1);
+        if (values.containsKey(MediaColumns.DURATION) == false) {
+            values.put(MediaColumns.DURATION, -1);
         }
         
-        if (values.containsKey(AudioColumns.TRACK) == false) {
-            values.put(AudioColumns.TRACK, -1);
+        if (values.containsKey(MediaColumns.TRACK) == false) {
+            values.put(MediaColumns.TRACK, -1);
         }
         
-        if (values.containsKey(AudioColumns.YEAR) == false) {
-            values.put(AudioColumns.YEAR, -1);
-        }
-
-        if (values.containsKey(AudioColumns._ID) == false) {
-            values.put(AudioColumns._ID, 99);
+        if (values.containsKey(MediaColumns.YEAR) == false) {
+            values.put(MediaColumns.YEAR, -1);
         }
         
         SQLiteDatabase db = mOpenHelper.getWritableDatabase();
-        long rowId = db.insert(AUDIO_TABLE_NAME, AudioColumns.URI, values);
+        long rowId = db.insert(MEDIA_TABLE_NAME, MediaColumns.URI, values);
         if (rowId > 0) {
-            Uri audioUri = ContentUris.withAppendedId(AudioColumns.CONTENT_URI, rowId);
+            Uri audioUri = ContentUris.withAppendedId(MediaColumns.CONTENT_URI, rowId);
             getContext().getContentResolver().notifyChange(audioUri, null);
             return audioUri;
         }
@@ -209,13 +205,13 @@ public class AudioProvider extends ContentProvider {
         SQLiteDatabase db = mOpenHelper.getWritableDatabase();
         int count;
         switch (sUriMatcher.match(uri)) {
-        case AUDIO:
-            count = db.delete(AUDIO_TABLE_NAME, where, whereArgs);
+        case MEDIA:
+            count = db.delete(MEDIA_TABLE_NAME, where, whereArgs);
             break;
 
-        case AUDIO_ID:
+        case MEDIA_ID:
             String noteId = uri.getPathSegments().get(1);
-            count = db.delete(AUDIO_TABLE_NAME, AudioColumns._ID + "=" + noteId
+            count = db.delete(MEDIA_TABLE_NAME, MediaColumns._ID + "=" + noteId
                     + (!TextUtils.isEmpty(where) ? " AND (" + where + ')' : ""), whereArgs);
             break;
 
@@ -232,13 +228,13 @@ public class AudioProvider extends ContentProvider {
         SQLiteDatabase db = mOpenHelper.getWritableDatabase();
         int count;
         switch (sUriMatcher.match(uri)) {
-        case AUDIO:
-            count = db.update(AUDIO_TABLE_NAME, values, where, whereArgs);
+        case MEDIA:
+            count = db.update(MEDIA_TABLE_NAME, values, where, whereArgs);
             break;
 
-        case AUDIO_ID:
+        case MEDIA_ID:
             String noteId = uri.getPathSegments().get(1);
-            count = db.update(AUDIO_TABLE_NAME, values, AudioColumns._ID + "=" + noteId
+            count = db.update(MEDIA_TABLE_NAME, values, MediaColumns._ID + "=" + noteId
                     + (!TextUtils.isEmpty(where) ? " AND (" + where + ')' : ""), whereArgs);
             break;
 
@@ -252,17 +248,17 @@ public class AudioProvider extends ContentProvider {
 
     static {
         sUriMatcher = new UriMatcher(UriMatcher.NO_MATCH);
-        sUriMatcher.addURI(Audio.AUTHORITY, "uris", AUDIO);
-        sUriMatcher.addURI(Audio.AUTHORITY, "uris/#", AUDIO_ID);
+        sUriMatcher.addURI(Media.AUTHORITY, "uris", MEDIA);
+        sUriMatcher.addURI(Media.AUTHORITY, "uris/#", MEDIA_ID);
 
-        sNotesProjectionMap = new HashMap<String, String>();
-        sNotesProjectionMap.put(AudioColumns._ID, AudioColumns._ID);
-        sNotesProjectionMap.put(AudioColumns.URI, AudioColumns.URI);
-        sNotesProjectionMap.put(AudioColumns.TITLE, AudioColumns.TITLE);
-        sNotesProjectionMap.put(AudioColumns.ALBUM, AudioColumns.ALBUM);
-        sNotesProjectionMap.put(AudioColumns.ARTIST, AudioColumns.ARTIST);
-        sNotesProjectionMap.put(AudioColumns.DURATION, AudioColumns.DURATION);
-        sNotesProjectionMap.put(AudioColumns.TRACK, AudioColumns.TRACK);
-        sNotesProjectionMap.put(AudioColumns.YEAR, AudioColumns.YEAR);
+        sMediaProjectionMap = new HashMap<String, String>();
+        sMediaProjectionMap.put(MediaColumns._ID, MediaColumns._ID);
+        sMediaProjectionMap.put(MediaColumns.URI, MediaColumns.URI);
+        sMediaProjectionMap.put(MediaColumns.TITLE, MediaColumns.TITLE);
+        sMediaProjectionMap.put(MediaColumns.ALBUM, MediaColumns.ALBUM);
+        sMediaProjectionMap.put(MediaColumns.ARTIST, MediaColumns.ARTIST);
+        sMediaProjectionMap.put(MediaColumns.DURATION, MediaColumns.DURATION);
+        sMediaProjectionMap.put(MediaColumns.TRACK, MediaColumns.TRACK);
+        sMediaProjectionMap.put(MediaColumns.YEAR, MediaColumns.YEAR);
     }
 }

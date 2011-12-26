@@ -17,31 +17,51 @@
 
 package net.sourceforge.servestream.utils;
 
-import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Formatter;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Locale;
 
 import net.sourceforge.servestream.R;
-import net.sourceforge.servestream.dbutils.Stream;
+import net.sourceforge.servestream.provider.Media;
 import net.sourceforge.servestream.service.IMediaPlaybackService;
 import net.sourceforge.servestream.service.MediaPlaybackService;
-import net.sourceforge.servestream.service.MediaPlaybackService.RetrieveMetadataAsyncTask;
 import android.app.Activity;
 import android.content.ComponentName;
+import android.content.ContentUris;
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.ContextWrapper;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.database.Cursor;
+import android.net.Uri;
 import android.os.RemoteException;
-import android.provider.MediaStore;
 import android.util.Log;
 import android.widget.Toast;
 
 public class MusicUtils {
+	
+    public interface Defs {
+        public final static int OPEN_URL = 0;
+        public final static int ADD_TO_PLAYLIST = 1;
+        public final static int USE_AS_RINGTONE = 2;
+        public final static int PLAYLIST_SELECTED = 3;
+        public final static int NEW_PLAYLIST = 4;
+        public final static int PLAY_SELECTION = 5;
+        public final static int GOTO_START = 6;
+        public final static int GOTO_PLAYBACK = 7;
+        public final static int PARTY_SHUFFLE = 8;
+        public final static int SHUFFLE_ALL = 9;
+        public final static int DELETE_ITEM = 10;
+        public final static int SCAN_DONE = 11;
+        public final static int QUEUE = 12;
+        public final static int EFFECTS_PANEL = 13;
+        public final static int CHILD_MENU_BASE = 14; // this should be the last item
+    }
 	
     public static IMediaPlaybackService sService = null;
     private static HashMap<Context, ServiceBinder> sConnectionMap = new HashMap<Context, ServiceBinder>();
@@ -142,23 +162,23 @@ public class MusicUtils {
         return sFormatter.format(durationformat, timeArgs).toString();
     }
     
-    public static void playAll(Context context, Cursor cursor) {
+    /*public static void playAll(Context context, Cursor cursor) {
         playAll(context, cursor, 0, false);
     }
     
     public static void playAll(Context context, Cursor cursor, int position) {
         playAll(context, cursor, position, false);
-    }
+    }*/
     
     public static void playAll(Context context, long [] list, int position) {
         playAll(context, list, position, false);
     }
     
-    private static void playAll(Context context, Cursor cursor, int position, boolean force_shuffle) {
+    /*private static void playAll(Context context, Cursor cursor, int position, boolean force_shuffle) {
     
-        //long [] list = getSongListForCursor(cursor);
-        //playAll(context, null, position, force_shuffle);
-    }
+        long [] list = getSongListForCursor(cursor);
+        playAll(context, list, position, force_shuffle);
+    }*/
     
     private static void playAll(Context context, long [] list, int position, boolean force_shuffle) {
         if (list.length == 0 || sService == null) {
@@ -171,38 +191,37 @@ public class MusicUtils {
         try {
             if (force_shuffle) {
                 sService.setShuffleMode(MediaPlaybackService.SHUFFLE_ON);
-                //sService.setShuffleMode(MediaPlaybackService.SHUFFLE_NORMAL);
             }
-      //      long curid = sService.getAudioId();
+            long curid = sService.getAudioId();
             int curpos = sService.getQueuePosition();
-      //      if (position != -1 && curpos == position && curid == list[position]) {
+            if (position != -1 && curpos == position && curid == list[position]) {
                 // The selected file is the file that's currently playing;
                 // figure out if we need to restart with a new playlist,
                 // or just launch the playback activity.
-      //          long [] playlist = sService.getQueue();
-      //          if (Arrays.equals(list, playlist)) {
+                long [] playlist = sService.getQueue();
+                if (Arrays.equals(list, playlist)) {
                     // we don't need to set a new list, but we should resume playback if needed
                     sService.play();
                     return; // the 'finally' block will still run
-      //          }
-      //      }
-      //      if (position < 0) {
-      //          position = 0;
-      //      }
-      //      sService.open(list, force_shuffle ? -1 : position);
-      //      sService.play();
+                }
+            }
+            if (position < 0) {
+                position = 0;
+            }
+            sService.open(list, force_shuffle ? -1 : position);
+            //sService.play();
         } catch (RemoteException ex) {
         } finally {
-            Intent intent = new Intent("com.android.music.PLAYBACK_VIEWER")
+            Intent intent = new Intent("net.sourceforge.servestream.PLAYBACK_VIEWER")
                 .setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
             context.startActivity(intent);
         }
     }
+
+    private final static long [] sEmptyList = new long[0];
     
-    private final static MediaFile [] sEmptyList = new MediaFile[0];
-    
-    public static MediaFile [] getSongListForPlaylist(Context context, URL url, String contentType) {
-    	MediaFile [] list;
+    public static long [] getFilesInPlaylist(Context context, URL url, String contentType) {
+    	List<MediaFile> mediaFiles = new ArrayList<MediaFile>();
     	
     	if (url == null) {
     		return sEmptyList;
@@ -212,15 +231,72 @@ public class MusicUtils {
 			
 		if (playlist != null) {
 			playlist.retrieveAndParsePlaylist();
-			list = playlist.getPlaylistFiles();
-		} else {        
+			mediaFiles = playlist.getPlaylistFiles();
+		} else {
 			MediaFile mediaFile = new MediaFile();
 			mediaFile.setURL(url.toString());
 			mediaFile.setTrackNumber(1);
-			list = new MediaFile[1];
-			list[1] = mediaFile;
+			mediaFiles.add(mediaFile);
 		}
     	
-        return list;
+		System.out.println("=====> Getting files from media store");
+		
+        return addFilesToMediaStore(context, mediaFiles);
+    }
+    
+    private static long [] addFilesToMediaStore(Context context, List<MediaFile> mediaFiles) {
+    	if (mediaFiles == null) {
+    		return sEmptyList;
+    	}	
+    	
+    	long [] list = new long[mediaFiles.size()];
+    	
+    	// process the returned media files
+    	for (int i = 0; i < mediaFiles.size(); i++) {
+    	
+    		// Form an array specifying which columns to return. 
+    		String [] projection = new String [] { Media.MediaColumns._ID, Media.MediaColumns.URI };
+
+    		// Get the base URI for the Media Files table in the Media content provider.
+    		Uri mediaFile =  Media.MediaColumns.CONTENT_URI;
+
+    		// Make the query.
+    		Cursor cursor = context.getContentResolver().query(mediaFile, 
+    				projection,
+    				Media.MediaColumns.URI + "= ? ",
+    				new String [] { mediaFiles.get(i).getURL() },
+    				null);    	
+    	
+    		long id = -1;
+    	
+    		if (cursor.moveToFirst()) {
+    			System.out.println("File exists");
+    			// the item already exists, retrieve the ID
+    			
+    			int idColumn = cursor.getColumnIndex(Media.MediaColumns._ID);
+    			int uriColumn = cursor.getColumnIndex(Media.MediaColumns.URI);
+    			id = cursor.getInt(idColumn);
+    			System.out.println(id);
+    			System.out.println(cursor.getString(uriColumn));
+    		} else {
+    			System.out.println("File doesn't exist, performing insert!");
+    			// the item doesn't exist, insert it
+        	
+        		ContentValues values = new ContentValues();
+        		values.put(Media.MediaColumns.URI, mediaFiles.get(i).getURL());
+        		values.put(Media.MediaColumns.TITLE, mediaFiles.get(i).getPlaylistMetadata());
+
+                Uri uri = context.getContentResolver().insert(
+                		Media.MediaColumns.CONTENT_URI, values);
+                
+                id = (int) ContentUris.parseId(uri);
+    		}
+    	
+    		cursor.close();
+    		
+    		list[i] = id;
+    	}
+    	
+    	return list;
     }
 }

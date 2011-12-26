@@ -28,11 +28,8 @@ import java.net.URLDecoder;
 
 import android.media.MediaPlayer;
 import android.os.AsyncTask;
-import android.os.Parcel;
-import android.os.Parcelable;
-import android.util.Log;
 
-public class MediaFile implements Parcelable {
+public class MediaFile {
 
 	private String mUrl = null;
 	private int mTrackNumber = -1;
@@ -210,26 +207,6 @@ public class MediaFile implements Parcelable {
 		
 		return decodedURL;
     }
-    
-	public int describeContents() {
-		return 0;
-	}
-
-	public void writeToParcel(Parcel dest, int flags) {
-		
-	}
-
-	public static final Parcelable.Creator<MediaFile> CREATOR = new
-	Parcelable.Creator<MediaFile>() {
-	    public MediaFile createFromParcel(Parcel in) {
-	    	Log.v("ParcelableTest","Creating from parcel");
-	    	return new MediaFile();
-	    }
-
-	    public MediaFile[] newArray(int size) {
-	    	return new MediaFile[size];
-	    }
-	};
 	
 	private class DownloadTask extends AsyncTask<Void, Void, Void> {
 		

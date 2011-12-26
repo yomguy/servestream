@@ -330,7 +330,7 @@ public class AlarmKlaxon extends Service {
 				
 				if (playlist != null) {
 					playlist.retrieveAndParsePlaylist();
-					mPlayListFiles = playlist.getPlaylistFiles();
+					//mPlayListFiles = playlist.getPlaylistFiles();
 				} else {
 					mPlayListFiles = new MediaFile[1];         
 					MediaFile mediaFile = new MediaFile();
