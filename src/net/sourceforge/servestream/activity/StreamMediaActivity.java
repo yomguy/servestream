@@ -288,7 +288,7 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
         IntentFilter f = new IntentFilter();
         f.addAction(MediaPlaybackService.PLAYSTATE_CHANGED);
         f.addAction(MediaPlaybackService.META_CHANGED);
-        f.addAction(MediaPlaybackService.META_UPDATED);
+        //f.addAction(MediaPlaybackService.META_UPDATED);
         f.addAction(MediaPlaybackService.START_DIALOG);
         f.addAction(MediaPlaybackService.STOP_DIALOG);
         f.addAction(MediaPlaybackService.ERROR_MESSAGE);
@@ -697,10 +697,10 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
         	        mDialog.show();
         		}
         		
-                if (!mMediaPlaybackService.loadQueue(filename, type)) {
+                /*if (!mMediaPlaybackService.loadQueue(filename, type)) {
                 	errorOpeningMediaMessage();
                 	return;
-                }
+                }*/
             
             } catch (Exception ex) {
                 Log.v(TAG, "couldn't start playback: " + ex);
@@ -738,13 +738,13 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
                 
             	// if the requested stream is null the intent used to launch
             	// StreamMediaActivity did not supply a new URL to stream
-                try {
-        			if ((mRequestedStream != null && mMediaPlaybackService.getPlayListPath() == null) || 
-        					(mRequestedStream != null && !mRequestedStream.equals(mMediaPlaybackService.getPlayListPath()))) {
+                //try {
+        			//if ((mRequestedStream != null && mMediaPlaybackService.getPlayListPath() == null) || 
+        			//		(mRequestedStream != null && !mRequestedStream.equals(mMediaPlaybackService.getPlayListPath()))) {
         				
         				Log.v(TAG, mRequestedStream);
-        				if (mMediaPlaybackService.getPlayListPath() != null)
-        				Log.v(TAG, mMediaPlaybackService.getPlayListPath());
+        			//	if (mMediaPlaybackService.getPlayListPath() != null)
+        				//Log.v(TAG, mMediaPlaybackService.getPlayListPath());
         				
         			    try {
         			    	MultiPlayer mp = mMediaPlaybackService.getMediaPlayer();
@@ -756,17 +756,17 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
         			    } catch (Exception ex) {
         			        Log.e(TAG, "error: " + ex.getMessage());
         			    }
-        			} else {
+        		/*	} else {
         				updateTrackInfo();
                         setRepeatButtonImage();
                         setShuffleButtonImage();
                         setPauseButtonImage();
                         queueNextRefresh(1);
         				mMediaControls.setVisibility(View.VISIBLE);
-        			}
-        		} catch (RemoteException ex) {
-        			ex.printStackTrace();
-        		}
+        			}*/
+        		//} catch (RemoteException ex) {
+        		//	ex.printStackTrace();
+        		//}
             	
             	
             }
@@ -912,8 +912,8 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
                 queueNextRefresh(1);
         		mMediaControls.startAnimation(media_controls_fade_in);
         		mMediaControls.setVisibility(View.VISIBLE);
-            } else if (action.equals(MediaPlaybackService.META_UPDATED)) {
-            	updateTrackInfo();
+            //} else if (action.equals(MediaPlaybackService.META_UPDATED)) {
+            //	updateTrackInfo();
             } else if (action.equals(MediaPlaybackService.PLAYSTATE_CHANGED)) {
                 setPauseButtonImage();
             } else if (action.equals(MediaPlaybackService.START_DIALOG)) {
@@ -943,13 +943,13 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
 					}).create().show();
             } else if (action.equals(MediaPlaybackService.QUEUE_LOADED)) {
                 try {
-					if (mMediaPlaybackService.getPlayListLength() == 0) {
+					/*if (mMediaPlaybackService.getPlayListLength() == 0) {
 						handleInvalidPlaylist();
 					    return;
-					}
+					}*/
 				
 					mMediaPlaybackService.stop();
-					mMediaPlaybackService.queueFirstFile();
+					//mMediaPlaybackService.queueFirstFile();
 					setIntent(new Intent());
 					
 			        setRepeatButtonImage();
@@ -992,7 +992,7 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
                 return;
             }
             
-            mTrackNumber.setText(mMediaPlaybackService.getTrackNumber());
+            /*mTrackNumber.setText(mMediaPlaybackService.getTrackNumber());
             
             String trackName = mMediaPlaybackService.getTrackName();            
             if (trackName == null) {
@@ -1000,7 +1000,7 @@ public class StreamMediaActivity extends Activity implements SurfaceHolder.Callb
             	if (trackName == null)
             		trackName = mMediaPlaybackService.getMediaURL();
             }
-            mTrackName.setText(trackName);
+            mTrackName.setText(trackName);*/
 
             String artistName = mMediaPlaybackService.getArtistName();
             if (artistName == null) {

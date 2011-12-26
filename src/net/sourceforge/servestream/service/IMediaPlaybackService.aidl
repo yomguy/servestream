@@ -19,13 +19,11 @@ package net.sourceforge.servestream.service;
 
 import android.graphics.Bitmap;
 import net.sourceforge.servestream.player.MultiPlayer;
-import net.sourceforge.servestream.utils.MediaFile;
 
 interface IMediaPlaybackService
 {
     void openFile(String path);
     void open(in long [] list, int position);
-    void queueFirstFile();
     int getQueuePosition();
     boolean isPlaying();
     void stop();
@@ -33,25 +31,18 @@ interface IMediaPlaybackService
     void play();
     void prev();
     void next();
-    String getTrackNumber();
-    String getTrackName();
-    String getArtistName();
-    String getAlbumName();
-    String getMediaURL();
-    String getPlaylistMetadata();
-    boolean isStreaming();
-    boolean isCompleteFileAvailable();
-    long getCompleteFileDuration();
     long duration();
     long position();
     long seek(long pos);
-    MediaFile [] getQueue();
+    String getTrackName();
+    String getAlbumName();
+    String getArtistName();
+    void enqueue(in long [] list, int action);
+    long [] getQueue();
     void moveQueueItem(int from, int to);
     void setQueuePosition(int index);
-    int getPlayListLength();
     String getPath();
-    String getPlayListPath();
-    long getMediaId();
+    long getAudioId();
     void setShuffleMode(int shufflemode);
     int getShuffleMode();
     int removeTracks(int first, int last);
@@ -59,6 +50,8 @@ interface IMediaPlaybackService
     int getRepeatMode();
     void setSleepTimerMode(int sleepmode);
     int getSleepTimerMode();
-    boolean loadQueue(String filename, String type);
     MultiPlayer getMediaPlayer();
+    boolean isStreaming();
+    boolean isCompleteFileAvailable();
+    long getCompleteFileDuration();
 }

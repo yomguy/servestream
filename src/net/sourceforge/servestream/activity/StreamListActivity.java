@@ -204,7 +204,7 @@ public class StreamListActivity extends ListActivity implements ServiceConnectio
 		
 		handleIntentData();
 	}
-
+	
 	private void handleIntentData() {
 		String intentUri = null;
 		
@@ -642,6 +642,15 @@ public class StreamListActivity extends ListActivity implements ServiceConnectio
 		}
 	}
 	
+	/*private void () {
+    case PLAY_SELECTION: {
+        // play the selected album
+        long [] list = MusicUtils.getSongListForAlbum(this, Long.parseLong(mCurrentAlbumId));
+        MusicUtils.playAll(this, list, 0);
+        return true;
+    }
+	}*/
+	
 	/**
 	 * Hides the keyboard
 	 */
@@ -677,7 +686,7 @@ public class StreamListActivity extends ListActivity implements ServiceConnectio
 
 		private Intent handleURL(Stream stream) {
 			Intent intent = null;
-			String contentTypeCode = null;
+			String contentType = null;
 			URLUtils urlUtils = null;
 			
 			try {
@@ -689,12 +698,17 @@ public class StreamListActivity extends ListActivity implements ServiceConnectio
 			}
 			
 			if (urlUtils.getResponseCode() == HttpURLConnection.HTTP_OK) {			
-				contentTypeCode = urlUtils.getContentType();
+				contentType = urlUtils.getContentType();
 				
-				if (contentTypeCode != null) {
-				    if (contentTypeCode.contains("text/html")) {
+				if (contentType != null) {
+				    if (contentType.contains("text/html")) {
 					    intent = new Intent(StreamListActivity.this, WebpageBrowserActivity.class);
 				    } else {
+				    	try {
+							long [] list = MusicUtils.getFilesInPlaylist(StreamListActivity.this, stream.getURL(), contentType);
+					        MusicUtils.playAll(StreamListActivity.this, list, 0);
+						} catch (MalformedURLException e) {
+						}
 					    intent = new Intent(StreamListActivity.this, StreamMediaActivity.class);
 				    }
 				}
@@ -704,8 +718,10 @@ public class StreamListActivity extends ListActivity implements ServiceConnectio
 				intent.setDataAndType(stream.getUri(), urlUtils.getContentType());
 			}
 			
+			intent = null;
+			
 			return intent;
-		}		
+		}
 	}
 
 	public void onServiceConnected(ComponentName arg0, IBinder arg1) {

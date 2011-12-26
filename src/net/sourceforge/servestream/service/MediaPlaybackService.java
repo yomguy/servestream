@@ -29,32 +29,29 @@ import android.content.BroadcastReceiver;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
+import android.database.Cursor;
 import android.media.AudioManager;
 import android.media.AudioManager.OnAudioFocusChangeListener;
-import android.os.AsyncTask;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
+import android.os.RemoteException;
 import android.preference.PreferenceManager;
 import android.telephony.PhoneStateListener;
 import android.telephony.TelephonyManager;
 import android.util.Log;
 
 import java.lang.ref.WeakReference;
-import java.net.MalformedURLException;
 import java.util.Random;
 import java.util.Vector;
 
 import net.sourceforge.servestream.R;
-import net.sourceforge.servestream.activity.StreamMediaActivity;
-import net.sourceforge.servestream.dbutils.Stream;
+import net.sourceforge.servestream.activity.MediaPlaybackActivity;
 import net.sourceforge.servestream.dbutils.StreamDatabase;
 import net.sourceforge.servestream.metadata.SHOUTcastMetadata;
 import net.sourceforge.servestream.player.MultiPlayer;
+import net.sourceforge.servestream.provider.Media;
 import net.sourceforge.servestream.utils.FileUtils;
-import net.sourceforge.servestream.utils.MediaFile;
-import net.sourceforge.servestream.utils.MetadataRetriever;
-import net.sourceforge.servestream.utils.PlaylistParser;
 import net.sourceforge.servestream.utils.PreferenceConstants;
 import net.sourceforge.servestream.widget.ServeStreamAppWidgetOneProvider;
 
@@ -95,7 +92,6 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
     
     public static final String PLAYSTATE_CHANGED = "net.sourceforge.servestream.playstatechanged";
     public static final String META_CHANGED = "net.sourceforge.servestream.metachanged";
-    public static final String META_UPDATED = "net.sourceforge,servestream.metaupdated";
     public static final String QUEUE_LOADED = "net.sourceforge.servestream.queueloaded";
     public static final String START_DIALOG = "net.sourceforge.servestream.startdialog";
     public static final String STOP_DIALOG = "net.sourceforge.servestream.stopdialog";
@@ -136,12 +132,22 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
     private int mRepeatMode = REPEAT_NONE;
     private int mSleepTimerMode = SLEEP_TIMER_OFF;
     private long [] mPlayList = null;
-    private MediaFile [] mPlayListFiles = null;
     private int mPlayListLen = 0;
     private Vector<Integer> mHistory = new Vector<Integer>(MAX_HISTORY_SIZE);
+    private Cursor mCursor;
     private int mPlayPos = -1;
     private final Shuffler mRand = new Shuffler();
     private int mOpenFailedCounter = 0;
+    String[] mCursorCols = new String[] {
+            Media.MediaColumns._ID,             // index must match IDCOLIDX below
+            Media.MediaColumns.URI,
+            Media.MediaColumns.TITLE,
+            Media.MediaColumns.ALBUM,
+            Media.MediaColumns.ARTIST,
+            Media.MediaColumns.DURATION,
+            Media.MediaColumns.TRACK,
+            Media.MediaColumns.YEAR
+    };
     private int mServiceStartId = -1;
     private boolean mServiceInUse = false;
     private boolean mIsSupposedToBePlaying = false;
@@ -427,17 +433,6 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
         mShuffleMode = shufmode;
     }
     
-    private boolean loadQueue(String filename, String type) {
-        Log.v(TAG, "Loading Queue");        
-        
-        boolean retVal = true;
-    	
-        deleteAllDownloadedFiles();
-		new ParsePlaylistAsyncTask(filename, type).execute(filename);
-		
-		return retVal;
-    }
-    
     @Override
     public IBinder onBind(Intent intent) {
     	
@@ -566,7 +561,7 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
      * or that the play-state changed (paused/resumed).
      */
     private void notifyChange(String what) {    	
-    	// send notification to StreamMediaActivity
+    	// send notification to MediaPlaybackActivity
         Intent i = new Intent(what);
         sendBroadcast(i);
         
@@ -575,12 +570,58 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
     }
 
     private void notifyStickyChange(String what) {
-    	// send notification to StreamMediaActivity
+    	// send notification to MediaPlaybackActivity
         Intent i = new Intent(what);
         sendStickyBroadcast(i);
         
         // Share this notification directly with our widgets
         //mAppWidgetProvider.notifyChange(this, what);
+    }
+    
+    private void ensurePlayListCapacity(int size) {
+        if (mPlayList == null || size > mPlayList.length) {
+            // reallocate at 2x requested size so we don't
+            // need to grow and copy the array for every
+            // insert
+            long [] newlist = new long[size * 2];
+            int len = mPlayList != null ? mPlayList.length : mPlayListLen;
+            for (int i = 0; i < len; i++) {
+                newlist[i] = mPlayList[i];
+            }
+            mPlayList = newlist;
+        }
+        // FIXME: shrink the array when the needed size is much smaller
+        // than the allocated size
+    }
+    
+    // insert the list of songs at the specified position in the playlist
+    private void addToPlayList(long [] list, int position) {
+        int addlen = list.length;
+        if (position < 0) { // overwrite
+            mPlayListLen = 0;
+            position = 0;
+        }
+        ensurePlayListCapacity(mPlayListLen + addlen);
+        if (position > mPlayListLen) {
+            position = mPlayListLen;
+        }
+        
+        // move part of list after insertion point
+        int tailsize = mPlayListLen - position;
+        for (int i = tailsize ; i > 0 ; i--) {
+            mPlayList[position + i] = mPlayList[position + i - addlen]; 
+        }
+        
+        // copy list into playlist
+        for (int i = 0; i < addlen; i++) {
+            mPlayList[position + i] = list[i];
+        }
+        mPlayListLen += addlen;
+        if (mPlayListLen == 0) {
+            mCursor.close();
+            mCursor = null;
+            notifyChange(META_CHANGED);
+        }
     }
     
     /**
@@ -626,10 +667,11 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
      * @param list The new list of tracks.
      */
     public void open(long [] list, int position) {
-        /*synchronized (this) {
-            if (mShuffleMode == SHUFFLE_AUTO) {
+        synchronized (this) {
+        	// TODO: fix this code
+            /*if (mShuffleMode == SHUFFLE_AUTO) {
                 mShuffleMode = SHUFFLE_NORMAL;
-            }
+            }*/
             long oldId = getAudioId();
             int listlength = list.length;
             boolean newlist = true;
@@ -655,12 +697,12 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
             }
             mHistory.clear();
 
-            saveBookmarkIfNeeded();
+            //saveBookmarkIfNeeded();
             openCurrent();
             if (oldId != getAudioId()) {
                 notifyChange(META_CHANGED);
             }
-        }*/
+        }
     }
     
     /**
@@ -704,22 +746,6 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
     }
     
     /**
-     * Returns the current play list
-     * 
-     * @return An array of MediaFile objects containing the tracks in the play list
-     */
-    public MediaFile [] getQueue() {
-        synchronized (this) {
-            int len = mPlayListLen;
-            MediaFile [] list = new MediaFile [len];
-            for (int i = 0; i < len; i++) {
-                list[i] = mPlayListFiles[i];
-            }
-            return list;
-        }
-    }
-    
-    /**
      * Returns the number of files in the current playlist
      * 
      * @return An integer 
@@ -728,23 +754,51 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
     	return mPlayListLen;
     }
 
+    /**
+     * Returns the current play list
+     * @return An array of integers containing the IDs of the tracks in the play list
+     */
+    public long [] getQueue() {
+        synchronized (this) {
+            int len = mPlayListLen;
+            long [] list = new long[len];
+            for (int i = 0; i < len; i++) {
+                list[i] = mPlayList[i];
+            }
+            return list;
+        }
+    }
+
     private void openCurrent() {
         synchronized (this) {
+            if (mCursor != null) {
+                mCursor.close();
+                mCursor = null;
+            }
 
             if (mPlayListLen == 0) {
                 return;
             }
             stop(false);
 
-            int id = (int) (mPlayList[mPlayPos]);
+            String id = String.valueOf(mPlayList[mPlayPos]);
             
-            MediaFile mediaFile = mPlayListFiles[id];
-            open(mediaFile.getURL().toString());
+            mCursor = getContentResolver().query(
+                    Media.MediaColumns.CONTENT_URI,
+                    mCursorCols, "_id=" + id , null, null);
+            if (mCursor != null) {
+            	mCursor.moveToFirst();
+                open(Media.MediaColumns.CONTENT_URI + "/" + id);
+                // TODO: add this code back
+                // go to bookmark if needed
+                /*if (isPodcast()) {
+                    long bookmark = getBookmark();
+                    // Start playing a little bit before the bookmark,
+                    // so it's easier to get back in to the narrative.
+                    seek(bookmark - 5000);
+                }*/
+            }
         }
-    }
-
-    public void queueFirstFile() {
-    	openCurrent();
     }
     
     /**
@@ -758,17 +812,21 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
                 return;
             }
             
+            //TODO: add back in cursor code
+            
             Intent i = new Intent(START_DIALOG);
             sendBroadcast(i);
             
-            mFileToPlay = path;
+            //mFileToPlay = path;
+            int uriColumn = mCursor.getColumnIndex(Media.MediaColumns.URI);
+            mFileToPlay = mCursor.getString(uriColumn);
             
-            Log.v(TAG, "opening: " + mPlayListFiles[mPlayPos].getURL().toString());
+            Log.v(TAG, "opening: " + mFileToPlay);
             if (mPreferences.getBoolean(PreferenceConstants.PROGRESSIVE_DOWNLOAD, false)) {
-                mPlayListFiles[mPlayPos].download();
-                new BufferMediaTask(mPlayListFiles[mPlayPos]).start();
+                //mPlayListFiles[mPlayPos].download();
+                //new BufferMediaTask(mPlayListFiles[mPlayPos]).start();
             } else {
-            	mPlayer.setDataSource(mPlayListFiles[mPlayPos].getURL(), false);
+            	mPlayer.setDataSource(mFileToPlay, false);
             }
         }
     }
@@ -790,9 +848,10 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
 
             String trackName = getTrackName();
         	if (trackName == null) {
-        		trackName = getPlaylistMetadata();
+        		//trackName = getPlaylistMetadata();
+        		trackName = null;
         		if (trackName == null)
-        			trackName = getMediaURL();
+        			trackName = getMediaUri();
         	}
         	
             String artist = getArtistName();
@@ -803,12 +862,34 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
             if (album == null)
                 album = getString(R.string.unknown_album_name);
             
+            /*RemoteViews views = new RemoteViews(getPackageName(), R.layout.statusbar);
+            views.setImageViewResource(R.id.icon, R.drawable.stat_notify_musicplayer);
+            if (getAudioId() < 0) {
+                // streaming
+                views.setTextViewText(R.id.trackname, getPath());
+                views.setTextViewText(R.id.artistalbum, null);
+            } else {
+                String artist = getArtistName();
+                views.setTextViewText(R.id.trackname, getTrackName());
+                if (artist == null || artist.equals(MediaStore.UNKNOWN_STRING)) {
+                    artist = getString(R.string.unknown_artist_name);
+                }
+                String album = getAlbumName();
+                if (album == null || album.equals(MediaStore.UNKNOWN_STRING)) {
+                    album = getString(R.string.unknown_album_name);
+                }
+                
+                views.setTextViewText(R.id.artistalbum,
+                        getString(R.string.notification_artist_album, artist, album)
+                        );
+            }*/
+            
     		Notification status = new Notification(
     				R.drawable.notification_icon, null,
     				System.currentTimeMillis());
             status.flags |= Notification.FLAG_ONGOING_EVENT;
             PendingIntent contentIntent = PendingIntent.getActivity(this, 1,
-                    new Intent(this, StreamMediaActivity.class), 0);
+                    new Intent(this, MediaPlaybackActivity.class), 0);
     		status.setLatestEventInfo(getApplicationContext(), trackName,
     				getString(R.string.notification_artist_album, artist, album), contentIntent);
             startForeground(PLAYBACKSERVICE_STATUS, status);
@@ -1011,10 +1092,10 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
     }
     
     private synchronized void deleteDownloadedFile() {
-        MediaFile mediaFile = mPlayListFiles[mPlayPos];
+        /*MediaFile mediaFile = mPlayListFiles[mPlayPos];
 
         if (!mediaFile.isStreaming())
-        	mediaFile.delete();
+        	mediaFile.delete();*/
     }
     
     private synchronized void deleteAllDownloadedFiles() {
@@ -1022,7 +1103,7 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
     }
     
     private synchronized void cancelAllDownloads() {
-    	if (mPlayListFiles == null)
+    	/*if (mPlayListFiles == null)
     		return;
     	
     	try {
@@ -1034,11 +1115,11 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
             }
     	} catch(Exception ex) {
     		ex.printStackTrace();
-    	}
+    	}*/
     }
 
     private synchronized void cancelAllDownloads1() {
-    	if (mPlayListFiles == null)
+    	/*if (mPlayListFiles == null)
     		return;
     	
     	try {
@@ -1050,11 +1131,11 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
             }
     	} catch(Exception ex) {
     		ex.printStackTrace();
-    	}
+    	}*/
     }
     
     private synchronized void resumeDownloading() {
-    	if (mPlayListFiles == null)
+    	/*if (mPlayListFiles == null)
     		return;
     	
     	try {
@@ -1067,7 +1148,7 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
     		}
     	} catch(Exception ex) {
     		ex.printStackTrace();
-    	}
+    	}*/
     }
     
     // A simple variation of Random that makes sure that the
@@ -1254,6 +1335,19 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
     }
     
     /**
+     * Returns the rowid of the currently playing file, or -1 if
+     * no file is currently playing.
+     */
+    public long getAudioId() {
+        synchronized (this) {
+            if (mPlayPos >= 0 && mPlayer.isInitialized()) {
+                return mPlayList[mPlayPos];
+            }
+        }
+        return -1;
+    }
+    
+    /**
      * Returns the position in the queue 
      * @return the position in the queue
      */
@@ -1274,69 +1368,69 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
             stop(false);
             openCurrent();
             notifyChange(META_CHANGED);
-        }
-    }
-    
-    public String getTrackNumber() {
-    	synchronized (this) {
-    		MediaFile mediaFile = mPlayListFiles[mPlayPos];
-    		return (mediaFile.getTrackNumber() + " / " + mPlayListLen);
-    	}
-    }
-    
-    public String getTrackName() {
-        synchronized (this) {
-        	MediaFile mediaFile = mPlayListFiles[mPlayPos];
-            return mediaFile.getTrack();
+            /*if (mShuffleMode == SHUFFLE_AUTO) {
+                doAutoShuffleUpdate();
+            }*/
         }
     }
 
+    public String getMediaUri() {
+        synchronized(this) {
+            if (mCursor == null) {
+                return null;
+            }
+            return mCursor.getString(mCursor.getColumnIndexOrThrow(Media.MediaColumns.URI));
+        }
+    }
+    
     public String getArtistName() {
-        synchronized (this) {
-        	MediaFile mediaFile = mPlayListFiles[mPlayPos];
-            return mediaFile.getArtist();
+        synchronized(this) {
+            if (mCursor == null) {
+                return null;
+            }
+            return mCursor.getString(mCursor.getColumnIndexOrThrow(Media.MediaColumns.ARTIST));
         }
     }
 
     public String getAlbumName() {
         synchronized (this) {
-        	MediaFile mediaFile = mPlayListFiles[mPlayPos];
-            return mediaFile.getAlbum();
-        }
-    }
-    
-    public String getMediaURL() {
-        synchronized (this) {    	
-        	MediaFile mediaFile = mPlayListFiles[mPlayPos];
-            return mediaFile.getDecodedURL();
+            if (mCursor == null) {
+                return null;
+            }
+            return mCursor.getString(mCursor.getColumnIndexOrThrow(Media.MediaColumns.ALBUM));
         }
     }
 
-    public String getPlaylistMetadata() {
-        synchronized (this) {    	
-        	MediaFile mediaFile = mPlayListFiles[mPlayPos];
-            return mediaFile.getPlaylistMetadata();
+    public String getTrackName() {
+        synchronized (this) {
+            if (mCursor == null) {
+                return null;
+            }
+            return mCursor.getString(mCursor.getColumnIndexOrThrow(Media.MediaColumns.TITLE));
         }
     }
     
     public boolean isStreaming() {
         synchronized (this) {    	
-        	MediaFile mediaFile = mPlayListFiles[mPlayPos];
-            return mediaFile.isStreaming();
+        	//MediaFile mediaFile = mPlayListFiles[mPlayPos];
+            //return mediaFile.isStreaming();
+        	return false;
         }
     }
     
     public boolean isCompleteFileAvailable() {
         synchronized (this) {    	
-        	MediaFile mediaFile = mPlayListFiles[mPlayPos];
-            return mediaFile.isCompleteFileAvailable();
+        	//MediaFile mediaFile = mPlayListFiles[mPlayPos];
+            //return mediaFile.isCompleteFileAvailable();
+        	return false;
         }
     }
     
     public long getCompleteFileDuration() {
         synchronized (this) {    	
-        	MediaFile mediaFile = mPlayListFiles[mPlayPos];
-            return mediaFile.getLength();
+        	//MediaFile mediaFile = mPlayListFiles[mPlayPos];
+            //return mediaFile.getLength();
+        	return -1;
         }
     }
     
@@ -1370,11 +1464,11 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
         if (mPlayer.isInitialized()) {
             if (pos < 0) pos = 0;
             
-            if (!mPlayListFiles[mPlayPos].isStreaming()) {
-        		if (pos > mPlayListFiles[mPlayPos].getLength()) pos = mPlayListFiles[mPlayPos].getLength();
-        	} else {
+            //if (!mPlayListFiles[mPlayPos].isStreaming()) {
+        	//	if (pos > mPlayListFiles[mPlayPos].getLength()) pos = mPlayListFiles[mPlayPos].getLength();
+        	//} else {
             	if (pos > mPlayer.duration()) pos = mPlayer.duration();
-        	}
+        	//}
             
             return mPlayer.seek(pos);
         }
@@ -1400,9 +1494,6 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
         public void open(long [] list, int position) {
             mService.get().open(list, position);
         }
-        public void queueFirstFile() {
-            mService.get().queueFirstFile();
-        }
         public int getQueuePosition() {
             return mService.get().getQueuePosition();
         }
@@ -1427,50 +1518,29 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
         public void next() {
             mService.get().next(true);
         }
-        public String getTrackNumber() {
-        	return mService.get().getTrackNumber();
-        }
         public String getTrackName() {
-        	return mService.get().getTrackName();
-        }
-        public String getArtistName() {
-        	return mService.get().getArtistName();
+            return mService.get().getTrackName();
         }
         public String getAlbumName() {
-        	return mService.get().getAlbumName();
+            return mService.get().getAlbumName();
         }
-        public String getMediaURL() {
-        	return mService.get().getMediaURL();
+        public String getArtistName() {
+            return mService.get().getArtistName();
         }
-        public String getPlaylistMetadata() {
-        	return mService.get().getPlaylistMetadata();
+        public void enqueue(long [] list , int action) {
+            mService.get().enqueue(list, action);
         }
-        public boolean isStreaming() {
-        	return mService.get().isStreaming();
-        }
-        public boolean isCompleteFileAvailable() {
-        	return mService.get().isCompleteFileAvailable();
-        }
-        public long getCompleteFileDuration() {
-        	return mService.get().getCompleteFileDuration();
-        }
-        public MediaFile [] getQueue() {
+        public long [] getQueue() {
             return mService.get().getQueue();
         }
         public void moveQueueItem(int from, int to) {
             mService.get().moveQueueItem(from, to);
         }
-        public int getPlayListLength() {
-        	return mService.get().getPlayListLength();
-        }
         public String getPath() {
             return mService.get().getPath();
         }
-        public String getPlayListPath() {
-        	return mService.get().getPlayListPath();
-        }
-        public long getMediaId() {
-            return mService.get().getMediaId();
+        public long getAudioId() {
+            return mService.get().getAudioId();
         }
         public long position() {
             return mService.get().position();
@@ -1488,7 +1558,10 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
             return mService.get().getShuffleMode();
         }
         public int removeTracks(int first, int last) {
-        	return mService.get().removeTracks(first, last);
+            return mService.get().removeTracks(first, last);
+        }
+        public int removeTrack(long id) {
+            return mService.get().removeTrack(id);
         }
         public void setRepeatMode(int repeatmode) {
             mService.get().setRepeatMode(repeatmode);
@@ -1496,20 +1569,26 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
         public int getRepeatMode() {
             return mService.get().getRepeatMode();
         }
-        public void setSleepTimerMode(int sleepmode) {
-        	mService.get().setSleepTimerMode(sleepmode);
-        }
-        public int getSleepTimerMode() {
-        	return mService.get().getSleepTimerMode();
-        }
-        public boolean loadQueue(String filename, String type) {
-        	return mService.get().loadQueue(filename, type);
-        }
-        public MultiPlayer getMediaPlayer() {
-        	return mService.get().getMediaPlayer();
-        }
+		public void setSleepTimerMode(int sleepmode) throws RemoteException {
+			mService.get().setSleepTimerMode(sleepmode);
+		}
+		public int getSleepTimerMode() throws RemoteException {
+			return mService.get().getSleepTimerMode();
+		}
+		public MultiPlayer getMediaPlayer() throws RemoteException {
+			return mService.get().getMediaPlayer();
+		}
+		public boolean isStreaming() throws RemoteException {
+			return mService.get().isStreaming();
+		}
+		public boolean isCompleteFileAvailable() throws RemoteException {
+			return mService.get().isCompleteFileAvailable();
+		}
+		public long getCompleteFileDuration() throws RemoteException {
+			return mService.get().getCompleteFileDuration();
+		}
     }
-
+    
     private final IBinder mBinder = new ServiceStub(this);
     
     private PhoneStateListener mPhoneListener = new PhoneStateListener() {
@@ -1613,75 +1692,9 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
     	
         return true;
     }
-    
-    public class ParsePlaylistAsyncTask extends AsyncTask<String, Void, String> {
-
-    	private String mFilename = null;
-    	private String mType = null;    	
-		private Stream mStream;
-		
-	    public ParsePlaylistAsyncTask(String filename, String type) {
-	        super();
-	        mFilename = filename;
-	        mType = type;
-	    }
-
-	    @Override
-	    protected void onPreExecute() {
-	    	
-	    }
-	    
-		@Override
-		protected String doInBackground(String... filename) {
-			//TODO add null check
-    		try {
-				mStream = new Stream(filename[0]);
 				
-				PlaylistParser playlist = PlaylistParser.getPlaylistParser(mStream.getURL(), mType);
-				
-				if (playlist != null) {
-					playlist.retrieveAndParsePlaylist();
-					mPlayListFiles = playlist.getPlaylistFiles();
-					mPlayListLen = mPlayListFiles.length;
-				} else {
-					mPlayListFiles = new MediaFile[1];         
-					MediaFile mediaFile = new MediaFile();
-					mediaFile.setURL(mStream.getURL().toString());
-					mediaFile.setTrackNumber(1);
-					mPlayListFiles[0] = mediaFile;
-					mPlayListLen = 1;
-				}
-				
-				if (mPreferences.getBoolean(PreferenceConstants.RETRIEVE_METADATA, false))
+	/*			if (mPreferences.getBoolean(PreferenceConstants.RETRIEVE_METADATA, false))
 					new RetrieveMetadataAsyncTask().execute(mPlayListFiles);
-			} catch (MalformedURLException e) {
-				e.printStackTrace();
-			}
-			
-			return filename[0];
-		}
-
-		@Override
-		protected void onPostExecute(String filename) {
-		    mPlayPos = 0;
-		    mPlayListToPlay = filename;
-			mPlayList = new long[mPlayListLen];
-			int len = mPlayListLen;
-			
-			for (int i = 0; i < len; i++) {
-				mPlayList[i] = i;
-			}
-        
-		    Stream foundStream = mStreamdb.findStream(mStream);
-		    
-		    if (foundStream != null) {
-			    mStreamdb.touchHost(foundStream);
-		    }
-		    
-            Intent i = new Intent(QUEUE_LOADED);
-            sendBroadcast(i);
-		}
-    }
     
     public class RetrieveMetadataAsyncTask extends AsyncTask<MediaFile [], Void, Boolean> {
 	    public RetrieveMetadataAsyncTask() {
@@ -1700,31 +1713,5 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
 		@Override
 		protected void onPostExecute(Boolean success) {
 		}
-    }
-    
-    private class BufferMediaTask extends Thread {
-    	
-    	private static final int INITIAL_BUFFER = 81920;
-    	
-    	private MediaFile mMediaFile = null;
-    	
-    	public BufferMediaTask(MediaFile mediaFile) {
-    		mMediaFile = mediaFile;
-    	}
-    	
-    	public void run() {
-            while (!bufferingComplete()) {
-            	try {
-					Thread.sleep(1000);
-				} catch (InterruptedException e) {
-					e.printStackTrace();
-				}
-            }
-            mPlayer.setDataSource(mPlayListFiles[mPlayPos].getPartialFile().getPath(), true);
-    	}
-    	
-    	private boolean bufferingComplete() {
-    		return mMediaFile.getPartialFile().length() >= INITIAL_BUFFER;
-    	}
-    }    
+    }*/
 }

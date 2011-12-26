@@ -53,7 +53,6 @@ public class NowPlayingActivity extends ListActivity {
         public void onReceive(Context context, Intent intent) {
             String action = intent.getAction();
             if (action.equals(MediaPlaybackService.META_CHANGED) ||
-            		action.equals(MediaPlaybackService.META_UPDATED) ||
             			action.equals(MediaPlaybackService.PLAYSTATE_CHANGED)) {
             	updateList();
             }
@@ -130,7 +129,6 @@ public class NowPlayingActivity extends ListActivity {
         IntentFilter f = new IntentFilter();
         f.addAction(MediaPlaybackService.PLAYSTATE_CHANGED);
         f.addAction(MediaPlaybackService.META_CHANGED);
-        f.addAction(MediaPlaybackService.META_UPDATED);
         registerReceiver(mStatusListener, new IntentFilter(f));
         
         f = new IntentFilter();
@@ -160,11 +158,12 @@ public class NowPlayingActivity extends ListActivity {
 		
 		MediaFile[] streams = null;
 		
+		/*
 		try {
 			streams = mMediaPlaybackService.getQueue();
 		} catch (RemoteException e) {
 			e.printStackTrace();
-		}
+		}*/
 
 		mAdapter = new NowPlayingAdapter(this, streams);
 		

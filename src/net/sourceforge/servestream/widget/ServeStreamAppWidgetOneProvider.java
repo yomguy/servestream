@@ -104,7 +104,6 @@ public class ServeStreamAppWidgetOneProvider extends AppWidgetProvider {
     public void notifyChange(MediaPlaybackService service, String what) {
         if (hasInstances(service)) {
             if (MediaPlaybackService.META_CHANGED.equals(what) ||
-            		MediaPlaybackService.META_UPDATED.equals(what) ||
             			MediaPlaybackService.PLAYSTATE_CHANGED.equals(what) ||
             				MediaPlaybackService.PLAYER_CLOSED.equals(what)) {
                 performUpdate(service, null, what);
@@ -130,13 +129,13 @@ public class ServeStreamAppWidgetOneProvider extends AppWidgetProvider {
         	//CharSequence errorState = null;
         
         	if (trackName == null) {
-        		trackName = service.getPlaylistMetadata();
+        		//trackName = service.getPlaylistMetadata();
         		if (trackName == null)
         			trackName = res.getText(R.string.widget_one_track_info_unavailable);
         	}
         		
         	if (artistName == null)
-        		artistName = service.getMediaURL();
+        		artistName = service.getMediaUri();
         	
         	// Show media info
         	views.setViewVisibility(R.id.title, View.VISIBLE);

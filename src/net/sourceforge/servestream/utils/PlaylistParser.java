@@ -19,6 +19,7 @@ package net.sourceforge.servestream.utils;
 
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.List;
 
 import android.webkit.MimeTypeMap;
 
@@ -87,8 +88,9 @@ public abstract class PlaylistParser {
      * 
      * @return An array of MediaFile objects, one entry per playlist entry
      */
-    public MediaFile [] getPlaylistFiles() {
-	    MediaFile [] playlistFiles = new MediaFile[mPlaylistFiles.size()];
-	    return mPlaylistFiles.toArray(playlistFiles);
+    public List<MediaFile> getPlaylistFiles() {
+	    //MediaFile [] playlistFiles = new MediaFile[mPlaylistFiles.size()];
+	    //return mPlaylistFiles.toArray(playlistFiles);
+	    return mPlaylistFiles;
     }
 }

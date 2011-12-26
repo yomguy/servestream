@@ -22,8 +22,10 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.io.StringReader;
+import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.net.URLDecoder;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -33,7 +35,7 @@ import org.jdom.JDOMException;
 import org.jdom.input.SAXBuilder;
 
 public class ASXPlaylistParser extends PlaylistParser {
-	public final static String TAG = ASXPlaylistParser.class.getName();
+	//private final static String TAG = ASXPlaylistParser.class.getName();
 
 	public final static String EXTENSION = "asx";
 	public final static String MIME_TYPE = "video/x-ms-asf";
@@ -159,8 +161,11 @@ public class ASXPlaylistParser extends PlaylistParser {
     	    	    href = children.get(i).getValue();
     	    	}
     	    	
-    	    	System.out.println(href);
-    	    	mediaFile.setURL(href);
+    	    	try {
+					mediaFile.setURL(URLDecoder.decode(href, "UTF-8"));
+				} catch (UnsupportedEncodingException e) {
+					mediaFile.setURL(href);
+				}
     	    } else if (attributeName.equalsIgnoreCase(REPEAT_ELEMENT)) {
     	    } else if (attributeName.equalsIgnoreCase(STARTMARKER_ELEMENT)) {
     	    } else if (attributeName.equalsIgnoreCase(STARTTIME_ELEMENT)) {
@@ -168,7 +173,6 @@ public class ASXPlaylistParser extends PlaylistParser {
     	    	String title = children.get(i).getValue();
     	    	
     	    	if (title != null) {
-    	    		System.out.println(title);
     	    		mediaFile.setPlaylistMetadata(title);
     	    	}
     	    }

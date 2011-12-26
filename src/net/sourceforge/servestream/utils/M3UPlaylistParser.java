@@ -19,11 +19,13 @@ package net.sourceforge.servestream.utils;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
+import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.net.URLDecoder;
 
 public class M3UPlaylistParser extends PlaylistParser {
-	public final static String TAG = M3UPlaylistParser.class.getName();
+	//private final static String TAG = M3UPlaylistParser.class.getName();
 
 	public final static String EXTENSION = "m3u";
 	public final static String MIME_TYPE = "audio/x-mpegurl";
@@ -71,7 +73,12 @@ public class M3UPlaylistParser extends PlaylistParser {
 		    			if (!processingEntry)
 		    				mediaFile = new MediaFile();
 		    			
-		    			mediaFile.setURL(line.trim());
+		    	    	try {
+							mediaFile.setURL(URLDecoder.decode(line.trim(), "UTF-8"));
+						} catch (UnsupportedEncodingException e) {
+							mediaFile.setURL(line.trim());
+						}
+		    	    	
 		    			savePlaylistFile();
 		    		}
 		    	}           
