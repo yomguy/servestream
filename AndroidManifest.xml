@@ -52,6 +52,9 @@
             </intent-filter>
         </receiver>
 
+        <provider android:name=".provider.MediaProvider"
+            android:authorities="net.sourceforge.servestream.provider.Media" />
+        
         <provider android:name=".alarm.AlarmProvider"
                 android:authorities="net.sourceforge.servestream"
                 android:exported="false" />
@@ -110,6 +113,29 @@
 			</intent-filter>
 		</activity>
 
+        <activity android:name=".activity.MediaPlaybackActivity"
+                android:theme="@android:style/Theme.NoTitleBar"
+                android:taskAffinity=""
+                android:launchMode="singleTask"
+                android:clearTaskOnLaunch="true"
+                android:excludeFromRecents="true"
+                android:exported="true" >
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:scheme="content"/>
+                <data android:host="media"/>
+                <data android:mimeType="audio/*"/>
+                <data android:mimeType="application/ogg"/>
+                <data android:mimeType="application/x-ogg"/>
+                <data android:mimeType="application/itunes"/>
+            </intent-filter>
+            <intent-filter>
+                <action android:name="net.sourceforge.servestream.PLAYBACK_VIEWER" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity>
+		
         <receiver android:name=".widget.ServeStreamAppWidgetOneProvider">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
