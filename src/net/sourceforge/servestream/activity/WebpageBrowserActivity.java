@@ -55,6 +55,7 @@ import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 public class WebpageBrowserActivity extends ListActivity { 
 	private final static String TAG = WebpageBrowserActivity.class.getName();
@@ -276,9 +277,9 @@ public class WebpageBrowserActivity extends ListActivity {
     		case MESSAGE_SHOW_DIRECTORY_CONTENTS:
     			showDirectoryContents((DirectoryContents) message.obj);
     			break;
-			case MESSAGE_HANDLE_INTENT:
-				handleIntent((Intent) message.obj);
-				break;
+    		case MESSAGE_HANDLE_INTENT:
+    			handleIntent((Intent) message.obj);
+    			break;
 			case MESSAGE_PARSE_WEBPAGE:
 				mStepsBack++;
 				mDirectory[mStepsBack] = (Stream) message.obj;
@@ -408,14 +409,16 @@ public class WebpageBrowserActivity extends ListActivity {
 		
 		if (intent != null) {
 			WebpageBrowserActivity.this.startActivity(intent);
+		} else {
+			showUrlNotOpenedToast();
 		}
 	}
 	
-	/*private void showUrlNotOpenedToast() {
+	private void showUrlNotOpenedToast() {
 		Toast.makeText(this, R.string.url_not_opened_message, Toast.LENGTH_SHORT).show();
-	}*/
+	}
     
-	public class DetermineIntentAsyncTask extends AsyncTask<Stream, Void, Intent> {
+	public class DetermineIntentAsyncTask extends AsyncTask<Stream, Void, String> {
 		
 		private Stream mStream;
 		
@@ -424,29 +427,31 @@ public class WebpageBrowserActivity extends ListActivity {
 	    }
 	    
 		@Override
-		protected Intent doInBackground(Stream... stream) {
+		protected String doInBackground(Stream... stream) {
 			mStream = stream[0];
 		    return handleURL(stream[0]);
 		}
 		
 		@Override
-		protected void onPostExecute(Intent result) {
-			Message msg = null;
-			
-			if (result != null) {
-				msg = mHandler.obtainMessage(WebpageBrowserActivity.MESSAGE_HANDLE_INTENT);
-				msg.obj = result;
+		protected void onPostExecute(String contentType) {
+			if (contentType == null) {
+				mHandler.sendEmptyMessage(WebpageBrowserActivity.MESSAGE_HANDLE_INTENT);
+			} else if (!contentType.contains("text/html")) {				
+				Intent intent = new Intent(WebpageBrowserActivity.this, StreamMediaActivity.class);
+				intent.setDataAndType(mStream.getUri(), contentType);
+				
+				Message msg = mHandler.obtainMessage(WebpageBrowserActivity.MESSAGE_HANDLE_INTENT);
+				msg.obj = intent;
 				msg.sendToTarget();
 			} else {
-				msg = mHandler.obtainMessage(WebpageBrowserActivity.MESSAGE_PARSE_WEBPAGE);
+				Message msg = mHandler.obtainMessage(WebpageBrowserActivity.MESSAGE_PARSE_WEBPAGE);
 				msg.obj = mStream;
 				msg.sendToTarget();
 			}
 		}
 
-		private Intent handleURL(Stream stream) {
-			Intent intent = null;
-			String contentTypeCode = null;
+		private String handleURL(Stream stream) {
+			String contentType = null;
 			URLUtils urlUtils = null;
 			
 			try {
@@ -458,20 +463,10 @@ public class WebpageBrowserActivity extends ListActivity {
 			}
 			
 			if (urlUtils.getResponseCode() == HttpURLConnection.HTTP_OK) {			
-				contentTypeCode = urlUtils.getContentType();
-				
-				if (contentTypeCode != null) {
-				    if (!contentTypeCode.contains("text/html")) {
-					    intent = new Intent(WebpageBrowserActivity.this, StreamMediaActivity.class);
-				    }
-				}
+				contentType = urlUtils.getContentType();
 		    }
 			
-			if (intent != null) {
-				intent.setDataAndType(stream.getUri(), urlUtils.getContentType());
-			}
-			
-			return intent;
+			return contentType;
 		}		
 	}
 }
