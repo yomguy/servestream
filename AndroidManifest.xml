@@ -83,12 +83,12 @@
 			</intent-filter>
 		</activity>
 
+		<activity android:name=".activity.BrowserActivity" android:configChanges="keyboardHidden|orientation" />
 		<activity android:name=".activity.HelpActivity" android:configChanges="keyboardHidden|orientation" />
 		<activity android:name=".activity.HelpTopicActivity" android:configChanges="keyboardHidden|orientation" />
 		<activity android:name=".activity.SettingsActivity" android:configChanges="keyboardHidden|orientation" />
 		<activity android:name=".activity.StreamEditorActivity" android:configChanges="keyboardHidden|orientation" />
-		<activity android:name=".activity.WebpageBrowserActivity" android:configChanges="keyboardHidden|orientation" />
-		
+
 		<activity android:name=".activity.NowPlayingActivity" 
 			android:configChanges="keyboardHidden|orientation" 
 			android:launchMode="singleInstance" />
