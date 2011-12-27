@@ -636,7 +636,7 @@ public class StreamListActivity extends ListActivity implements ServiceConnectio
 		} catch (Exception ex) {
 		}
 		
-		switch (message.what) {
+		switch (message.arg1) {
 			case STREAM_MEDIA_INTENT:
 		        MusicUtils.playAll(StreamListActivity.this, (long []) message.obj, 0);
 		        
@@ -701,12 +701,12 @@ public class StreamListActivity extends ListActivity implements ServiceConnectio
 		    }
 			
 			if (contentType == null) {
-				message.what = STREAM_MEDIA_INTENT;
+				message.arg1 = NO_INTENT;
 			} else if (contentType.contains("text/html")) {
 		        Intent intent = new Intent(StreamListActivity.this, BrowserActivity.class);
 				intent.setDataAndType(stream.getUri(), urlUtils.getContentType());
 				
-				message.what = STREAM_MEDIA_INTENT;
+				message.arg1 = BROWSE_MEDIA_INTENT;
 				message.obj = intent;
 			} else {
 				long[] list = null;
@@ -716,7 +716,7 @@ public class StreamListActivity extends ListActivity implements ServiceConnectio
 					e.printStackTrace();
 				}
 				
-		        message.what = BROWSE_MEDIA_INTENT;
+		        message.arg1 = STREAM_MEDIA_INTENT;
 		        message.obj = list;
 			}
 			
