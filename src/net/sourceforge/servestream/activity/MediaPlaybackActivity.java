@@ -736,12 +736,10 @@ public class MediaPlaybackActivity extends Activity implements SurfaceHolder.Cal
         holder.setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
     }
     
-	@Override
 	public void surfaceChanged(SurfaceHolder arg0, int arg1, int arg2, int arg3) {
 		
 	}
 
-	@Override
 	public void surfaceCreated(SurfaceHolder arg0) {
         Log.d(TAG, "surfaceCreated called");
         
@@ -754,7 +752,6 @@ public class MediaPlaybackActivity extends Activity implements SurfaceHolder.Cal
         }		
 	}
 
-	@Override
 	public void surfaceDestroyed(SurfaceHolder arg0) {
 
 	}
