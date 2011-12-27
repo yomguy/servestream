@@ -22,7 +22,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import net.sourceforge.servestream.R;
-import net.sourceforge.servestream.activity.WebpageBrowserActivity;
+import net.sourceforge.servestream.activity.BrowserActivity;
 import net.sourceforge.servestream.dbutils.Stream;
 import net.sourceforge.servestream.utils.StreamParser;
 import net.sourceforge.servestream.utils.URLUtils;
@@ -145,7 +145,7 @@ public class DirectoryScanner extends Thread {
 
 			contents.setListFiles(listFiles);
 
-			Message msg = handler.obtainMessage(WebpageBrowserActivity.MESSAGE_SHOW_DIRECTORY_CONTENTS);
+			Message msg = handler.obtainMessage(BrowserActivity.MESSAGE_SHOW_DIRECTORY_CONTENTS);
 			msg.obj = contents;
 			msg.sendToTarget();
 		}

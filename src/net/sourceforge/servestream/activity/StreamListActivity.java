@@ -83,7 +83,11 @@ public class StreamListActivity extends ListActivity implements ServiceConnectio
 	
  	private static final int MESSAGE_UPDATE_LIST = 1;
     public static final int MESSAGE_HANDLE_INTENT = 2;
-	
+
+    private static final int NO_INTENT = -1;
+    private static final int STREAM_MEDIA_INTENT = 1;    
+    private static final int BROWSE_MEDIA_INTENT = 2;
+    
     private static final String STATE_DETERMINE_INTENT_IN_PROGRESS = "net.sourceforge.servestream.inprogress";
     private static final String STATE_DETERMINE_INTENT_STREAM = "net.sourceforge.servestream.stream";
     private static final String STATE_MAKING_SHORTCUT = "net.sourceforge.servestream.makingshortcut";
@@ -500,7 +504,7 @@ public class StreamListActivity extends ListActivity implements ServiceConnectio
 				updateList();
 				break;
 			case MESSAGE_HANDLE_INTENT:
-				handleIntent((Intent) message.obj);
+				handleIntent(message);
 				break;
 		}
 	}
@@ -626,30 +630,27 @@ public class StreamListActivity extends ListActivity implements ServiceConnectio
 		}
 	}
 	
-	private void handleIntent(Intent intent) {
+	private void handleIntent(Message message) {
 		try {
 			removeDialog(DETERMINE_INTENT_TASK);
 		} catch (Exception ex) {
 		}
 		
-		if (intent != null) {
-			StreamListActivity.this.startActivity(intent);
-			
-			if (mPreferences.getBoolean(PreferenceConstants.AUTOSAVE, true))
-			    saveStream();
-		} else {
-			StreamListActivity.this.showUrlNotOpenedToast();
+		switch (message.what) {
+			case STREAM_MEDIA_INTENT:
+		        MusicUtils.playAll(StreamListActivity.this, (long []) message.obj, 0);
+		        
+				if (mPreferences.getBoolean(PreferenceConstants.AUTOSAVE, true))
+				    saveStream();				
+				break;
+			case BROWSE_MEDIA_INTENT:
+				StreamListActivity.this.startActivity((Intent) message.obj);
+				break;
+			case NO_INTENT:
+				StreamListActivity.this.showUrlNotOpenedToast();
+				break;
 		}
 	}
-	
-	/*private void () {
-    case PLAY_SELECTION: {
-        // play the selected album
-        long [] list = MusicUtils.getSongListForAlbum(this, Long.parseLong(mCurrentAlbumId));
-        MusicUtils.playAll(this, list, 0);
-        return true;
-    }
-	}*/
 	
 	/**
 	 * Hides the keyboard
@@ -666,28 +667,26 @@ public class StreamListActivity extends ListActivity implements ServiceConnectio
 		}
 	}
 
-	public class DetermineIntentAsyncTask extends AsyncTask<Stream, Void, Intent> {
+	public class DetermineIntentAsyncTask extends AsyncTask<Stream, Void, Message> {
 		
 	    public DetermineIntentAsyncTask() {
 	        super();
 	    }
 	    
 		@Override
-		protected Intent doInBackground(Stream... stream) {
+		protected Message doInBackground(Stream... stream) {
 		    return handleURL(stream[0]);
 		}
 		
 		@Override
-		protected void onPostExecute(Intent result) {
-			Message msg = mHandler.obtainMessage(StreamListActivity.MESSAGE_HANDLE_INTENT);
-			msg.obj = result;
-			msg.sendToTarget();
+		protected void onPostExecute(Message message) {
+			message.sendToTarget();
 		}
 
-		private Intent handleURL(Stream stream) {
-			Intent intent = null;
+		private Message handleURL(Stream stream) {
 			String contentType = null;
 			URLUtils urlUtils = null;
+			Message message = mHandler.obtainMessage(StreamListActivity.MESSAGE_HANDLE_INTENT);
 			
 			try {
 				urlUtils = new URLUtils(stream.getURL());
@@ -699,28 +698,29 @@ public class StreamListActivity extends ListActivity implements ServiceConnectio
 			
 			if (urlUtils.getResponseCode() == HttpURLConnection.HTTP_OK) {			
 				contentType = urlUtils.getContentType();
-				
-				if (contentType != null) {
-				    if (contentType.contains("text/html")) {
-					    intent = new Intent(StreamListActivity.this, WebpageBrowserActivity.class);
-				    } else {
-				    	try {
-							long [] list = MusicUtils.getFilesInPlaylist(StreamListActivity.this, stream.getURL(), contentType);
-					        MusicUtils.playAll(StreamListActivity.this, list, 0);
-						} catch (MalformedURLException e) {
-						}
-					    intent = new Intent(StreamListActivity.this, StreamMediaActivity.class);
-				    }
-				}
 		    }
 			
-			if (intent != null) {
+			if (contentType == null) {
+				message.what = STREAM_MEDIA_INTENT;
+			} else if (contentType.contains("text/html")) {
+		        Intent intent = new Intent(StreamListActivity.this, BrowserActivity.class);
 				intent.setDataAndType(stream.getUri(), urlUtils.getContentType());
+				
+				message.what = STREAM_MEDIA_INTENT;
+				message.obj = intent;
+			} else {
+				long[] list = null;
+				try {
+					list = MusicUtils.getFilesInPlaylist(StreamListActivity.this, stream.getURL(), contentType);
+				} catch (MalformedURLException e) {
+					e.printStackTrace();
+				}
+				
+		        message.what = BROWSE_MEDIA_INTENT;
+		        message.obj = list;
 			}
 			
-			intent = null;
-			
-			return intent;
+			return message;
 		}
 	}
 
