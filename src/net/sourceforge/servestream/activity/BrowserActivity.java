@@ -57,8 +57,8 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-public class WebpageBrowserActivity extends ListActivity { 
-	private final static String TAG = WebpageBrowserActivity.class.getName();
+public class BrowserActivity extends ListActivity { 
+	private final static String TAG = BrowserActivity.class.getName();
 
  	public static final int MESSAGE_SHOW_DIRECTORY_CONTENTS = 1;
     public static final int MESSAGE_HANDLE_INTENT = 2;
@@ -86,7 +86,7 @@ public class WebpageBrowserActivity extends ListActivity {
 	protected Handler mHandler = new Handler() {
 		@Override
 		public void handleMessage(Message msg) {
-			WebpageBrowserActivity.this.handleMessage(msg);
+			BrowserActivity.this.handleMessage(msg);
 		}
 	};
 	
@@ -128,7 +128,7 @@ public class WebpageBrowserActivity extends ListActivity {
 		mHomeButton.setOnClickListener(new OnClickListener() {
 
 			public void onClick(View arg0) {
-				WebpageBrowserActivity.this.startActivity(new Intent(WebpageBrowserActivity.this, StreamListActivity.class));
+				BrowserActivity.this.startActivity(new Intent(BrowserActivity.this, StreamListActivity.class));
 			}
 		});
 	    
@@ -188,7 +188,7 @@ public class WebpageBrowserActivity extends ListActivity {
         		refreshList();
         		break;
         	case (R.id.menu_item_settings):
-        		startActivity(new Intent(WebpageBrowserActivity.this, SettingsActivity.class));
+        		startActivity(new Intent(BrowserActivity.this, SettingsActivity.class));
     			break;
     	}
     	
@@ -200,7 +200,7 @@ public class WebpageBrowserActivity extends ListActivity {
 	    ProgressDialog progressDialog = null;
 	    switch(id) {
 	    case DETERMINE_INTENT_TASK:
-	    	progressDialog = new ProgressDialog(WebpageBrowserActivity.this);
+	    	progressDialog = new ProgressDialog(BrowserActivity.this);
 	    	progressDialog.setMessage(getString(R.string.loading_message));
 	    	progressDialog.setCancelable(true);
 	    	return progressDialog;
@@ -239,7 +239,7 @@ public class WebpageBrowserActivity extends ListActivity {
 		save.setOnMenuItemClickListener(new OnMenuItemClickListener() {
 			public boolean onMenuItemClick(MenuItem arg0) {
 				// prompt user to make sure they really want this
-				new AlertDialog.Builder(WebpageBrowserActivity.this)
+				new AlertDialog.Builder(BrowserActivity.this)
 					.setMessage(getString(R.string.save_message, streamURL))
 					.setPositiveButton(R.string.save_pos, new DialogInterface.OnClickListener() {
 						public void onClick(DialogInterface dialog, int which) {
@@ -256,7 +256,7 @@ public class WebpageBrowserActivity extends ListActivity {
 		view.setOnMenuItemClickListener(new OnMenuItemClickListener() {
 			public boolean onMenuItemClick(MenuItem arg0) {
 				// display the URL
-				new AlertDialog.Builder(WebpageBrowserActivity.this)
+				new AlertDialog.Builder(BrowserActivity.this)
 					.setMessage(streamURL)
 					.setPositiveButton(R.string.view_pos, new DialogInterface.OnClickListener() {
 						public void onClick(DialogInterface dialog, int which) {
@@ -408,7 +408,7 @@ public class WebpageBrowserActivity extends ListActivity {
 		}
 		
 		if (intent != null) {
-			WebpageBrowserActivity.this.startActivity(intent);
+			BrowserActivity.this.startActivity(intent);
 		} else {
 			showUrlNotOpenedToast();
 		}
@@ -435,16 +435,16 @@ public class WebpageBrowserActivity extends ListActivity {
 		@Override
 		protected void onPostExecute(String contentType) {
 			if (contentType == null) {
-				mHandler.sendEmptyMessage(WebpageBrowserActivity.MESSAGE_HANDLE_INTENT);
+				mHandler.sendEmptyMessage(BrowserActivity.MESSAGE_HANDLE_INTENT);
 			} else if (!contentType.contains("text/html")) {				
-				Intent intent = new Intent(WebpageBrowserActivity.this, StreamMediaActivity.class);
+				Intent intent = new Intent(BrowserActivity.this, StreamMediaActivity.class);
 				intent.setDataAndType(mStream.getUri(), contentType);
 				
-				Message msg = mHandler.obtainMessage(WebpageBrowserActivity.MESSAGE_HANDLE_INTENT);
+				Message msg = mHandler.obtainMessage(BrowserActivity.MESSAGE_HANDLE_INTENT);
 				msg.obj = intent;
 				msg.sendToTarget();
 			} else {
-				Message msg = mHandler.obtainMessage(WebpageBrowserActivity.MESSAGE_PARSE_WEBPAGE);
+				Message msg = mHandler.obtainMessage(BrowserActivity.MESSAGE_PARSE_WEBPAGE);
 				msg.obj = mStream;
 				msg.sendToTarget();
 			}
