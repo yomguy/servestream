@@ -515,8 +515,13 @@ public class MediaPlaybackActivity extends Activity implements SurfaceHolder.Cal
     		    	cycleRepeat();
     		        break;
         		case (R.id.menu_item_now_playing):
-        			startActivity(new Intent(MediaPlaybackActivity.this, NowPlayingActivity.class));
-        		    break;
+        			//startActivity(new Intent(MediaPlaybackActivity.this, NowPlayingActivity.class));
+                    startActivity(
+                            new Intent(Intent.ACTION_EDIT)
+                            .setDataAndType(Uri.EMPTY, "vnd.android.cursor.dir/track")
+                            .putExtra("playlist", "nowplaying")
+                            );
+        			break;
         		case (R.id.menu_item_sleep_timer): {
         			final String [] sleepTimerModes = getSleepTimerModes();
         			int sleepTimerMode = 0;
