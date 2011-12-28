@@ -640,11 +640,16 @@ public class StreamListActivity extends ListActivity implements ServiceConnectio
 			case STREAM_MEDIA_INTENT:
 		        MusicUtils.playAll(StreamListActivity.this, (long []) message.obj, 0);
 		        
-				if (mPreferences.getBoolean(PreferenceConstants.AUTOSAVE, true))
-				    saveStream();				
+				if (mPreferences.getBoolean(PreferenceConstants.AUTOSAVE, true)) {
+				    saveStream();
+				}
 				break;
 			case BROWSE_MEDIA_INTENT:
 				StreamListActivity.this.startActivity((Intent) message.obj);
+				
+				if (mPreferences.getBoolean(PreferenceConstants.AUTOSAVE, true)) {
+				    saveStream();
+				}
 				break;
 			case NO_INTENT:
 				StreamListActivity.this.showUrlNotOpenedToast();
