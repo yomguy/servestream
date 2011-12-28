@@ -162,19 +162,19 @@ public class MediaProvider extends ContentProvider {
 
         // Make sure that the fields are all set
         if (values.containsKey(MediaColumns.URI) == false) {
-            values.put(MediaColumns.URI, "Unknown");
+            values.put(MediaColumns.URI, Media.UNKNOWN_STRING);
         }
         
         if (values.containsKey(MediaColumns.TITLE) == false) {
-            values.put(MediaColumns.TITLE, "Unknown");
+            values.put(MediaColumns.TITLE, Media.UNKNOWN_STRING);
         }
         
         if (values.containsKey(MediaColumns.ALBUM) == false) {
-            values.put(MediaColumns.ALBUM, "Unknown");
+            values.put(MediaColumns.ALBUM, Media.UNKNOWN_STRING);
         }
         
         if (values.containsKey(MediaColumns.ARTIST) == false) {
-            values.put(MediaColumns.ARTIST, "Unknown");
+            values.put(MediaColumns.ARTIST, Media.UNKNOWN_STRING);
         }
         
         if (values.containsKey(MediaColumns.DURATION) == false) {
