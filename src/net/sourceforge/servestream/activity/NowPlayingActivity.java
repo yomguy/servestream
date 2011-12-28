@@ -92,7 +92,7 @@ public class NowPlayingActivity extends ListActivity {
 	@Override
 	public void onCreate(Bundle icicle) {
 		super.onCreate(icicle);
-		setContentView(R.layout.act_nowplaying);
+		//setContentView(R.layout.act_nowplaying);
 
 		this.setTitle(String.format("%s: %s",
 				getResources().getText(R.string.app_name),
@@ -203,7 +203,7 @@ public class NowPlayingActivity extends ListActivity {
 		}
 
 		public NowPlayingAdapter(Context context, MediaFile [] streams) {
-			super(context, R.layout.item_nowplaying, streams);
+			super(context, R.layout.item_stream, streams);
 
 			this.streams = streams;
 		}
@@ -213,11 +213,11 @@ public class NowPlayingActivity extends ListActivity {
 			ViewHolder holder;
 
 			if (convertView == null) {
-				convertView = mInflater.inflate(R.layout.item_nowplaying, null, false);
+				//convertView = mInflater.inflate(R.layout.item_nowplaying, null, false);
 
 				holder = new ViewHolder();
 
-				holder.trackNumber = (TextView)convertView.findViewById(R.id.number);
+				//holder.trackNumber = (TextView)convertView.findViewById(R.id.number);
 				holder.trackName = (TextView)convertView.findViewById(R.id.trackname);
 				holder.artistName = (TextView)convertView.findViewById(R.id.artistname);
 				holder.icon = (ImageView) convertView.findViewById(R.id.icon);
