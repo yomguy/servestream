@@ -136,6 +136,15 @@
             </intent-filter>
         </activity>
 		
+        <activity android:name=".activity.TrackBrowserActivity" android:exported="false" >
+            <intent-filter>
+                <action android:name="android.intent.action.EDIT" />
+                <action android:name="android.intent.action.PICK" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="vnd.android.cursor.dir/track"/>
+            </intent-filter>
+        </activity>
+        
         <receiver android:name=".widget.ServeStreamAppWidgetOneProvider">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
