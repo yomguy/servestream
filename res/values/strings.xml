@@ -270,6 +270,13 @@
 	<!-- Window title for Set Alarm -->
 	<string name="title_set_alarm">Set Alarm</string>
 
+	<!-- Begin Music Code String -->
+	
+	<!-- Do not translate. Background color for albums in the artists list view. -->
+    <color name="expanding_child_background">#ff404040</color>
+	
+    <!-- End Music Code Strings -->
+	
 	<!-- Begin Alarm Code Strings -->
 	
     <!-- -->
