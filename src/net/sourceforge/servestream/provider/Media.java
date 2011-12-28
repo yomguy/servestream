@@ -26,6 +26,11 @@ import android.provider.BaseColumns;
 public final class Media {
     public static final String AUTHORITY = "net.sourceforge.servestream.provider.Media";
 
+    /**
+     * The string that is used when a media attribute is not known.
+     */
+    public static final String UNKNOWN_STRING = "";
+    
     // This class cannot be instantiated
     private Media() {}
     
