@@ -55,12 +55,4 @@ public class IconifiedTextView extends LinearLayout {
     public void setIcon(Drawable bullet) { 
     	mIcon.setImageDrawable(bullet); 
     }
-
-	public void setTextColor(int color) {
-		mText.setTextColor(color); 
-    }
-
-	public void setInfoColor(int color) {
-		mInfo.setTextColor(color); 
-    } 
 }
