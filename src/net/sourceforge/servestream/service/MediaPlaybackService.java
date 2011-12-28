@@ -494,24 +494,32 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
     
     @Override
     public boolean onUnbind(Intent intent) {
+    	Log.v(TAG, "onUnbind called");
+    	
         mServiceInUse = false;
 		
         // Take a snapshot of the current settings
         saveSettings();
-        
-        /*if (isPlaying() && !playingVideo()) { //|| mPausedByTransientLossOfFocus) {
+        //saveQueue(true);
+
+        if (isPlaying() || mPausedByTransientLossOfFocus) {
             // something is currently playing, or will be playing once 
             // an in-progress action requesting audio focus ends, so don't stop the service now.
-        	Log.v(TAG, "RETURNING" + mIsSupposedToBePlaying);
             return true;
-        }*/
+        }
         
-		if (!isPlaying() || playingVideo()) {
-			// No active playlist, OK to stop the service right now
-			stopSelf(mServiceStartId);
-		}
-    	
-		Log.v(TAG, "onUnbind succedded");
+        // If there is a playlist but playback is paused, then wait a while
+        // before stopping the service, so that pause/resume isn't slow.
+        // Also delay stopping the service if we're transitioning between tracks.
+        if (mPlayListLen > 0  || mMediaplayerHandler.hasMessages(TRACK_ENDED)) {
+            //Message msg = mDelayedStopHandler.obtainMessage();
+            //mDelayedStopHandler.sendMessageDelayed(msg, IDLE_DELAY);
+            return true;
+        }
+        
+        // No active playlist, OK to stop the service right now
+        stopSelf(mServiceStartId);
+    	Log.v(TAG, "onUnbind succedded");
         return true;
     }
 
@@ -1311,14 +1319,6 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
      */
     public String getPath() {
         return mFileToPlay;
-    }
-    
-    /**
-     * Returns the path of the currently playlist file, or null if
-     * no playlist is currently playing.
-     */
-    public String getPlayListPath() {
-    	return mPlayListToPlay;
     }
     
     /**
