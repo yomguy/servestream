@@ -86,6 +86,7 @@
 		<activity android:name=".activity.BrowserActivity" android:configChanges="keyboardHidden|orientation" />
 		<activity android:name=".activity.HelpActivity" android:configChanges="keyboardHidden|orientation" />
 		<activity android:name=".activity.HelpTopicActivity" android:configChanges="keyboardHidden|orientation" />
+		<activity android:name=".activity.NowPlayingActivity" android:exported="false" />
 		<activity android:name=".activity.SettingsActivity" android:configChanges="keyboardHidden|orientation" />
 		<activity android:name=".activity.StreamEditorActivity" android:configChanges="keyboardHidden|orientation" />
 
@@ -129,15 +130,6 @@
             <intent-filter>
                 <action android:name="net.sourceforge.servestream.PLAYBACK_VIEWER" />
                 <category android:name="android.intent.category.DEFAULT" />
-            </intent-filter>
-        </activity>
-		
-        <activity android:name=".activity.TrackBrowserActivity" android:exported="false" >
-            <intent-filter>
-                <action android:name="android.intent.action.EDIT" />
-                <action android:name="android.intent.action.PICK" />
-                <category android:name="android.intent.category.DEFAULT" />
-                <data android:mimeType="vnd.android.cursor.dir/track"/>
             </intent-filter>
         </activity>
         
