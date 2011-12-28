@@ -922,8 +922,13 @@ public class NowPlayingActivity extends ListActivity
             // For this reason, we don't show the play indicator at all when in edit
             // playlist mode (except when you're viewing the "current playlist",
             // which is not really a playlist)
-            iv.setImageResource(R.drawable.indicator_ic_mp_playing_list);
-            iv.setVisibility(View.VISIBLE);
+            if ( (cursor.getPosition() == id) ||
+                    cursor.getLong(mAudioIdIdx) == id) {
+                iv.setImageResource(R.drawable.indicator_ic_mp_playing_list);
+                iv.setVisibility(View.VISIBLE);
+            } else {
+                iv.setVisibility(View.GONE);
+            }
         }
         
         @Override
