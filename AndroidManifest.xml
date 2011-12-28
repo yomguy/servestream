@@ -89,10 +89,6 @@
 		<activity android:name=".activity.SettingsActivity" android:configChanges="keyboardHidden|orientation" />
 		<activity android:name=".activity.StreamEditorActivity" android:configChanges="keyboardHidden|orientation" />
 
-		<activity android:name=".activity.NowPlayingActivity" 
-			android:configChanges="keyboardHidden|orientation" 
-			android:launchMode="singleInstance" />
-
 		<service android:name=".service.MediaPlaybackService"
 			android:configChanges="keyboardHidden|orientation"
 			android:description="@string/media_service_desc" />
