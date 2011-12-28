@@ -26,13 +26,10 @@ import net.sourceforge.servestream.utils.MusicUtils.ServiceToken;
 import net.sourceforge.servestream.utils.TouchInterceptor;
 
 import android.app.ListActivity;
-import android.app.SearchManager;
 import android.content.AsyncQueryHandler;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.ContentResolver;
-import android.content.ContentUris;
-import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
@@ -40,7 +37,6 @@ import android.content.ServiceConnection;
 import android.database.AbstractCursor;
 import android.database.CharArrayBuffer;
 import android.database.Cursor;
-import android.graphics.Bitmap;
 import android.media.AudioManager;
 import android.net.Uri;
 import android.os.Bundle;
@@ -49,17 +45,13 @@ import android.os.IBinder;
 import android.os.Message;
 import android.os.RemoteException;
 import android.provider.MediaStore;
-import android.provider.MediaStore.Audio.Playlists;
-import android.text.TextUtils;
 import android.util.Log;
 import android.view.ContextMenu;
 import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.SubMenu;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.Window;
 import android.view.ContextMenu.ContextMenuInfo;
 import android.widget.AlphabetIndexer;
 import android.widget.ImageView;
@@ -67,15 +59,13 @@ import android.widget.ListView;
 import android.widget.SectionIndexer;
 import android.widget.SimpleCursorAdapter;
 import android.widget.TextView;
-import android.widget.AdapterView.AdapterContextMenuInfo;
 
-import java.text.Collator;
 import java.util.Arrays;
 
 public class TrackBrowserActivity extends ListActivity
         implements View.OnCreateContextMenuListener, MusicUtils.Defs, ServiceConnection
 {
-	// TODO: add MusicUtils.Defs?
+    private static final String TAG = TrackBrowserActivity.class.getName();
 	
     private static final int Q_SELECTED = CHILD_MENU_BASE;
     private static final int Q_ALL = CHILD_MENU_BASE + 1;
@@ -85,42 +75,29 @@ public class TrackBrowserActivity extends ListActivity
     private static final int REMOVE = CHILD_MENU_BASE + 5;
     private static final int SEARCH = CHILD_MENU_BASE + 6;
 
-
-    private static final String TAG = TrackBrowserActivity.class.getName();
-
     private String[] mCursorCols;
     private boolean mDeletedOneRow = false;
+    private boolean mEditMode = false;
     private ListView mTrackList;
     private Cursor mTrackCursor;
     private TrackListAdapter mAdapter;
     private boolean mAdapterSent = false;
     private String mPlaylist;
-    private static int mLastListPosCourse = -1;
-    private static int mLastListPosFine = -1;
-    //private boolean mUseLastListPos = false;
     private ServiceToken mToken;
-
-    public TrackBrowserActivity()
-    {
-    }
 
     /** Called when the activity is first created. */
     @Override
     public void onCreate(Bundle icicle)
     {
         super.onCreate(icicle);
-        requestWindowFeature(Window.FEATURE_INDETERMINATE_PROGRESS);
         Intent intent = getIntent();
-        if (intent != null) {
-            if (intent.getBooleanExtra("withtabs", false)) {
-                requestWindowFeature(Window.FEATURE_NO_TITLE);
-            }
-        }
         setVolumeControlStream(AudioManager.STREAM_MUSIC);
         if (icicle != null) {
             mPlaylist = icicle.getString("playlist");
+            mEditMode = icicle.getBoolean("editmode", false);
         } else {
             mPlaylist = intent.getStringExtra("playlist");
+            mEditMode = intent.getAction().equals(Intent.ACTION_EDIT);
         }
 
         mCursorCols = new String[] {
@@ -132,12 +109,17 @@ public class TrackBrowserActivity extends ListActivity
         };
 
         setContentView(R.layout.media_picker_activity);
-        //mUseLastListPos = MusicUtils.updateButtonBar(this, R.id.songtab);
         mTrackList = getListView();
         mTrackList.setOnCreateContextMenuListener(this);
         mTrackList.setCacheColorHint(0);
-        mTrackList.setTextFilterEnabled(true);
-
+        if (mEditMode) {
+            ((TouchInterceptor) mTrackList).setDropListener(mDropListener);
+            ((TouchInterceptor) mTrackList).setRemoveListener(mRemoveListener);
+            mTrackList.setDivider(null);
+            mTrackList.setSelector(R.drawable.list_selector_background);
+        } else {
+            mTrackList.setTextFilterEnabled(true);
+        }
         mAdapter = (TrackListAdapter) getLastNonConfigurationInstance();
         
         if (mAdapter != null) {
@@ -154,7 +136,7 @@ public class TrackBrowserActivity extends ListActivity
             mAdapter = new TrackListAdapter(
                     getApplication(), // need to use application context to avoid leaks
                     this,
-                    R.layout.track_list_item,
+                    mEditMode ? R.layout.edit_track_list_item : R.layout.track_list_item,
                     null, // cursor
                     new String[] {},
                     new int[] {},
@@ -179,7 +161,9 @@ public class TrackBrowserActivity extends ListActivity
                 getTrackCursor(mAdapter.getQueryHandler(), null, true);
             }
         }
-        MusicUtils.updateNowPlaying(this);
+        if (!mEditMode) {
+            MusicUtils.updateNowPlaying(this);
+        }
     }
     
     public void onServiceDisconnected(ComponentName name) {
@@ -198,20 +182,16 @@ public class TrackBrowserActivity extends ListActivity
     public void onDestroy() {
         ListView lv = getListView();
         if (lv != null) {
-            /*if (mUseLastListPos) {
-                mLastListPosCourse = lv.getFirstVisiblePosition();
-                View cv = lv.getChildAt(0);
-                if (cv != null) {
-                    mLastListPosFine = cv.getTop();
-                }
-            }*/
+            if (mEditMode) {
+                // clear the listeners so we won't get any more callbacks
+                ((TouchInterceptor) lv).setDropListener(null);
+                ((TouchInterceptor) lv).setRemoveListener(null);
+            }
         }
 
         MusicUtils.unbindFromService(mToken);
         try {
-            if ("nowplaying".equals(mPlaylist)) {
-                unregisterReceiverSafe(mNowPlayingListener);
-            }
+            unregisterReceiverSafe(mNowPlayingListener);
         } catch (IllegalArgumentException ex) {
             // we end up here in case we never registered the listeners
         }
@@ -276,6 +256,7 @@ public class TrackBrowserActivity extends ListActivity
         // of an orientation switch. Otherwise we could lose it while
         // in the middle of specifying a playlist to add the item to.
         outcicle.putString("playlist", mPlaylist);
+        outcicle.putBoolean("editmode", mEditMode);
         super.onSaveInstanceState(outcicle);
     }
     
@@ -314,14 +295,12 @@ public class TrackBrowserActivity extends ListActivity
         IntentFilter f = new IntentFilter();
         f.addAction(MediaPlaybackService.META_CHANGED);
         f.addAction(MediaPlaybackService.QUEUE_CHANGED);
-        if ("nowplaying".equals(mPlaylist)) {
-            try {
-                int cur = MusicUtils.sService.getQueuePosition();
-                setSelection(cur);
-                registerReceiver(mNowPlayingListener, new IntentFilter(f));
-                mNowPlayingListener.onReceive(this, new Intent(MediaPlaybackService.META_CHANGED));
-            } catch (RemoteException ex) {
-            }
+        try {
+            int cur = MusicUtils.sService.getQueuePosition();
+            setSelection(cur);
+            registerReceiver(mNowPlayingListener, new IntentFilter(f));
+            mNowPlayingListener.onReceive(this, new Intent(MediaPlaybackService.META_CHANGED));
+        } catch (RemoteException ex) {
         }
     }
 
@@ -348,19 +327,12 @@ public class TrackBrowserActivity extends ListActivity
     private TouchInterceptor.DropListener mDropListener =
         new TouchInterceptor.DropListener() {
         public void drop(int from, int to) {
-            if (mTrackCursor instanceof NowPlayingCursor) {
-                // update the currently playing list
-                NowPlayingCursor c = (NowPlayingCursor) mTrackCursor;
-                c.moveItem(from, to);
-                ((TrackListAdapter)getListAdapter()).notifyDataSetChanged();
-                getListView().invalidateViews();
-                mDeletedOneRow = true;
-            } else {
-                // update a saved playlist
-                //MediaStore.Audio.Playlists.Members.moveItem(getContentResolver(),
-                //        Long.valueOf(mPlaylist), from, to);
-            	// TODO: remove this?
-            }
+            // update the currently playing list
+            NowPlayingCursor c = (NowPlayingCursor) mTrackCursor;
+            c.moveItem(from, to);
+            ((TrackListAdapter)getListAdapter()).notifyDataSetChanged();
+            getListView().invalidateViews();
+            mDeletedOneRow = true;
         }
     };
     
@@ -388,9 +360,7 @@ public class TrackBrowserActivity extends ListActivity
         }
         v.setVisibility(View.GONE);
         mTrackList.invalidateViews();
-        if (mTrackCursor instanceof NowPlayingCursor) {
-            ((NowPlayingCursor)mTrackCursor).removeItem(which);
-        }
+        ((NowPlayingCursor)mTrackCursor).removeItem(which);
         v.setVisibility(View.VISIBLE);
         mTrackList.invalidateViews();
     }
@@ -469,24 +439,22 @@ public class TrackBrowserActivity extends ListActivity
             return;
         }
         
-        if ("nowplaying".equals(mPlaylist)) {
-            // remove track from queue
+        // remove track from queue
 
-            // Work around bug 902971. To get quick visual feedback
-            // of the deletion of the item, hide the selected view.
-            try {
-                if (curpos != MusicUtils.sService.getQueuePosition()) {
-                    mDeletedOneRow = true;
-                }
-            } catch (RemoteException ex) {
+        // Work around bug 902971. To get quick visual feedback
+        // of the deletion of the item, hide the selected view.
+        try {
+            if (curpos != MusicUtils.sService.getQueuePosition()) {
+                mDeletedOneRow = true;
             }
-            View v = mTrackList.getSelectedView();
-            v.setVisibility(View.GONE);
-            mTrackList.invalidateViews();
-            ((NowPlayingCursor)mTrackCursor).removeItem(curpos);
-            v.setVisibility(View.VISIBLE);
-            mTrackList.invalidateViews();
+        } catch (RemoteException ex) {
         }
+        View v = mTrackList.getSelectedView();
+        v.setVisibility(View.GONE);
+        mTrackList.invalidateViews();
+        ((NowPlayingCursor)mTrackCursor).removeItem(curpos);
+        v.setVisibility(View.VISIBLE);
+        mTrackList.invalidateViews();
     }
     
     private void moveItem(boolean up) {
@@ -496,17 +464,15 @@ public class TrackBrowserActivity extends ListActivity
             return;
         }
 
-        if (mTrackCursor instanceof NowPlayingCursor) {
-            NowPlayingCursor c = (NowPlayingCursor) mTrackCursor;
-            c.moveItem(curpos, up ? curpos - 1 : curpos + 1);
-            ((TrackListAdapter)getListAdapter()).notifyDataSetChanged();
-            getListView().invalidateViews();
-            mDeletedOneRow = true;
-            if (up) {
-                mTrackList.setSelection(curpos - 1);
-            } else {
-                mTrackList.setSelection(curpos + 1);
-            }
+        NowPlayingCursor c = (NowPlayingCursor) mTrackCursor;
+        c.moveItem(curpos, up ? curpos - 1 : curpos + 1);
+        ((TrackListAdapter)getListAdapter()).notifyDataSetChanged();
+        getListView().invalidateViews();
+        mDeletedOneRow = true;
+        if (up) {
+            mTrackList.setSelection(curpos - 1);
+        } else {
+            mTrackList.setSelection(curpos + 1);
         }
     }
     
@@ -568,15 +534,13 @@ public class TrackBrowserActivity extends ListActivity
         where.append(MediaStore.Audio.Media.TITLE + " != ''");
 
         if (mPlaylist != null) {
-            if (mPlaylist.equals("nowplaying")) {
-                if (MusicUtils.sService != null) {
-                    ret = new NowPlayingCursor(MusicUtils.sService, mCursorCols);
-                    if (ret.getCount() == 0) {
-                        finish();
-                    }
-                } else {
-                    // Nothing is playing.
+            if (MusicUtils.sService != null) {
+                ret = new NowPlayingCursor(MusicUtils.sService, mCursorCols);
+                if (ret.getCount() == 0) {
+                    finish();
                 }
+            } else {
+                // Nothing is playing.
             }
         }
         
