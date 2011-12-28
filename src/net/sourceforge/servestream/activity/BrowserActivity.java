@@ -18,28 +18,33 @@
 package net.sourceforge.servestream.activity;
 
 import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
 import java.util.ArrayList;
 import java.util.List;
 
 import net.sourceforge.servestream.R;
 import net.sourceforge.servestream.activity.SettingsActivity;
 import net.sourceforge.servestream.activity.StreamListActivity;
-import net.sourceforge.servestream.activity.StreamMediaActivity;
 import net.sourceforge.servestream.dbutils.Stream;
 import net.sourceforge.servestream.dbutils.StreamDatabase;
 import net.sourceforge.servestream.filemanager.*;
+import net.sourceforge.servestream.utils.MusicUtils;
 import net.sourceforge.servestream.utils.URLUtils;
+import net.sourceforge.servestream.utils.MusicUtils.ServiceToken;
 
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.ListActivity;
 import android.app.ProgressDialog;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.ServiceConnection;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.IBinder;
 import android.os.Message;
 import android.util.Log;
 import android.view.ContextMenu;
@@ -57,13 +62,16 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-public class BrowserActivity extends ListActivity { 
+public class BrowserActivity extends ListActivity implements ServiceConnection { 
 	private final static String TAG = BrowserActivity.class.getName();
 
  	public static final int MESSAGE_SHOW_DIRECTORY_CONTENTS = 1;
     public static final int MESSAGE_HANDLE_INTENT = 2;
     public static final int MESSAGE_PARSE_WEBPAGE = 3;
 	
+    private static final int NO_INTENT = -1;
+    private static final int STREAM_MEDIA_INTENT = 1;
+    
     private final static int DETERMINE_INTENT_TASK = 1;
     
 	/** Contains directories and files together */
@@ -83,6 +91,8 @@ public class BrowserActivity extends ListActivity {
 	private StreamDatabase mStreamdb = null;
 	private Button mHomeButton = null;
 
+    private ServiceToken mToken;
+	
 	protected Handler mHandler = new Handler() {
 		@Override
 		public void handleMessage(Message msg) {
@@ -139,6 +149,8 @@ public class BrowserActivity extends ListActivity {
 	public void onStart() {
 		super.onStart();
 		
+        mToken = MusicUtils.bindToService(this, this);
+		
 		// connect to the stream database if we don't
 		// already have a connection
 		if(this.mStreamdb == null)
@@ -161,6 +173,8 @@ public class BrowserActivity extends ListActivity {
 	@Override
 	public void onStop() {
 		super.onStop();
+		
+        MusicUtils.unbindFromService(mToken);
 		
 		// close the connection to the database
 		if(this.mStreamdb != null) {
@@ -278,7 +292,7 @@ public class BrowserActivity extends ListActivity {
     			showDirectoryContents((DirectoryContents) message.obj);
     			break;
     		case MESSAGE_HANDLE_INTENT:
-    			handleIntent((Intent) message.obj);
+    			handleIntent(message);
     			break;
 			case MESSAGE_PARSE_WEBPAGE:
 				mStepsBack++;
@@ -401,16 +415,19 @@ public class BrowserActivity extends ListActivity {
 		}
 	}
 	
-	private void handleIntent(Intent intent) {
+	private void handleIntent(Message message) {
 		try {
 			removeDialog(DETERMINE_INTENT_TASK);
 		} catch (Exception ex) {
 		}
 		
-		if (intent != null) {
-			BrowserActivity.this.startActivity(intent);
-		} else {
-			showUrlNotOpenedToast();
+		switch (message.arg1) {
+			case STREAM_MEDIA_INTENT:
+		        MusicUtils.playAll(BrowserActivity.this, (long []) message.obj, 0);
+				break;
+			case NO_INTENT:
+				BrowserActivity.this.showUrlNotOpenedToast();
+				break;
 		}
 	}
 	
@@ -418,41 +435,26 @@ public class BrowserActivity extends ListActivity {
 		Toast.makeText(this, R.string.url_not_opened_message, Toast.LENGTH_SHORT).show();
 	}
     
-	public class DetermineIntentAsyncTask extends AsyncTask<Stream, Void, String> {
-		
-		private Stream mStream;
+	public class DetermineIntentAsyncTask extends AsyncTask<Stream, Void, Message> {
 		
 	    public DetermineIntentAsyncTask() {
 	        super();
 	    }
 	    
 		@Override
-		protected String doInBackground(Stream... stream) {
-			mStream = stream[0];
+		protected Message doInBackground(Stream... stream) {
 		    return handleURL(stream[0]);
 		}
 		
 		@Override
-		protected void onPostExecute(String contentType) {
-			if (contentType == null) {
-				mHandler.sendEmptyMessage(BrowserActivity.MESSAGE_HANDLE_INTENT);
-			} else if (!contentType.contains("text/html")) {				
-				Intent intent = new Intent(BrowserActivity.this, StreamMediaActivity.class);
-				intent.setDataAndType(mStream.getUri(), contentType);
-				
-				Message msg = mHandler.obtainMessage(BrowserActivity.MESSAGE_HANDLE_INTENT);
-				msg.obj = intent;
-				msg.sendToTarget();
-			} else {
-				Message msg = mHandler.obtainMessage(BrowserActivity.MESSAGE_PARSE_WEBPAGE);
-				msg.obj = mStream;
-				msg.sendToTarget();
-			}
+		protected void onPostExecute(Message message) {
+			message.sendToTarget();
 		}
 
-		private String handleURL(Stream stream) {
+		private Message handleURL(Stream stream) {
 			String contentType = null;
 			URLUtils urlUtils = null;
+			Message message = mHandler.obtainMessage(StreamListActivity.MESSAGE_HANDLE_INTENT);
 			
 			try {
 				urlUtils = new URLUtils(stream.getURL());
@@ -466,7 +468,32 @@ public class BrowserActivity extends ListActivity {
 				contentType = urlUtils.getContentType();
 		    }
 			
-			return contentType;
-		}		
+			if (contentType == null) {
+				message.arg1 = NO_INTENT;
+			} else if (contentType.contains("text/html")) {
+				Message msg = mHandler.obtainMessage(BrowserActivity.MESSAGE_PARSE_WEBPAGE);
+				msg.obj = stream;
+			} else {
+				long[] list = null;
+				try {
+					list = MusicUtils.getFilesInPlaylist(BrowserActivity.this, stream.getURL(), contentType);
+				} catch (MalformedURLException e) {
+					e.printStackTrace();
+				}
+				
+		        message.arg1 = STREAM_MEDIA_INTENT;
+		        message.obj = list;
+			}
+			
+			return message;
+		}	
+	}
+
+	public void onServiceConnected(ComponentName arg0, IBinder arg1) {
+		
+	}
+
+	public void onServiceDisconnected(ComponentName arg0) {
+		
 	}
 }
