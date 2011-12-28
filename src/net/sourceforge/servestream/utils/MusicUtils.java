@@ -26,11 +26,13 @@ import java.util.List;
 import java.util.Locale;
 
 import net.sourceforge.servestream.R;
+import net.sourceforge.servestream.activity.MediaPlaybackActivity;
 import net.sourceforge.servestream.provider.Media;
 import net.sourceforge.servestream.service.IMediaPlaybackService;
 import net.sourceforge.servestream.service.MediaPlaybackService;
 import android.app.Activity;
 import android.content.ComponentName;
+import android.content.ContentResolver;
 import android.content.ContentUris;
 import android.content.ContentValues;
 import android.content.Context;
@@ -40,7 +42,10 @@ import android.content.ServiceConnection;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.RemoteException;
+import android.provider.MediaStore;
 import android.util.Log;
+import android.view.View;
+import android.widget.TextView;
 import android.widget.Toast;
 
 public class MusicUtils {
@@ -131,6 +136,27 @@ public class MusicUtils {
             }
             sService = null;
         }
+    }
+    
+    public static Cursor query(Context context, Uri uri, String[] projection,
+            String selection, String[] selectionArgs, String sortOrder, int limit) {
+        try {
+            ContentResolver resolver = context.getContentResolver();
+            if (resolver == null) {
+                return null;
+            }
+            if (limit > 0) {
+                uri = uri.buildUpon().appendQueryParameter("limit", "" + limit).build();
+            }
+            return resolver.query(uri, projection, selection, selectionArgs, sortOrder);
+         } catch (UnsupportedOperationException ex) {
+            return null;
+        }
+        
+    }
+    public static Cursor query(Context context, Uri uri, String[] projection,
+            String selection, String[] selectionArgs, String sortOrder) {
+        return query(context, uri, projection, selection, selectionArgs, sortOrder, 0);
     }
     
     /*  Try to use String.format() as little as possible, because it creates a
@@ -298,5 +324,41 @@ public class MusicUtils {
     	}
     	
     	return list;
+    }
+    
+    public static void updateNowPlaying(Activity a) {
+        View nowPlayingView = a.findViewById(R.id.nowplaying);
+        if (nowPlayingView == null) {
+            return;
+        }
+        try {
+            boolean withtabs = false;
+            Intent intent = a.getIntent();
+            if (intent != null) {
+                withtabs = intent.getBooleanExtra("withtabs", false);
+            }
+            if (true && MusicUtils.sService != null && MusicUtils.sService.getAudioId() != -1) {
+                TextView title = (TextView) nowPlayingView.findViewById(R.id.title);
+                TextView artist = (TextView) nowPlayingView.findViewById(R.id.artist);
+                title.setText(MusicUtils.sService.getTrackName());
+                String artistName = MusicUtils.sService.getArtistName();
+                if (MediaStore.UNKNOWN_STRING.equals(artistName)) {
+                    artistName = a.getString(R.string.unknown_artist_name);
+                }
+                artist.setText(artistName);
+                //mNowPlayingView.setOnFocusChangeListener(mFocuser);
+                //mNowPlayingView.setOnClickListener(this);
+                nowPlayingView.setVisibility(View.VISIBLE);
+                nowPlayingView.setOnClickListener(new View.OnClickListener() {
+
+                    public void onClick(View v) {
+                        Context c = v.getContext();
+                        c.startActivity(new Intent(c, MediaPlaybackActivity.class));
+                    }});
+                return;
+            }
+        } catch (RemoteException ex) {
+        }
+        nowPlayingView.setVisibility(View.GONE);
     }
 }
