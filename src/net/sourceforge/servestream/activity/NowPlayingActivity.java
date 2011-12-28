@@ -89,6 +89,8 @@ public class NowPlayingActivity extends ListActivity
     public void onCreate(Bundle icicle)
     {
         super.onCreate(icicle);
+        setTitle(getText(R.string.nowplaying_title));
+        
         setVolumeControlStream(AudioManager.STREAM_MUSIC);
 
         mCursorCols = new String[] {
@@ -128,7 +130,6 @@ public class NowPlayingActivity extends ListActivity
                     new String[] {},
                     new int[] {});
             setListAdapter(mAdapter);
-            setTitle("POOPS");
             getTrackCursor(mAdapter.getQueryHandler(), null, true);
         } else {
             mTrackCursor = mAdapter.getCursor();
@@ -141,7 +142,6 @@ public class NowPlayingActivity extends ListActivity
             if (mTrackCursor != null) {
                 init(mTrackCursor, false);
             } else {
-                setTitle("POPOOPO");
                 getTrackCursor(mAdapter.getQueryHandler(), null, true);
             }
         }
@@ -210,8 +210,8 @@ public class NowPlayingActivity extends ListActivity
         if (mTrackCursor != null) {
             getListView().invalidateViews();
         }
-        //MusicUtils.setSpinnerState(this);
     }
+    
     @Override
     public void onPause() {
         mReScanHandler.removeCallbacksAndMessages(null);
@@ -251,22 +251,6 @@ public class NowPlayingActivity extends ListActivity
             return;
         }
 
-        //MusicUtils.hideDatabaseError(this);
-        //mUseLastListPos = MusicUtils.updateButtonBar(this, R.id.songtab);
-        setTitle();
-
-        // Restore previous position
-        /*if (mLastListPosCourse >= 0 && mUseLastListPos) {
-            ListView lv = getListView();
-            // this hack is needed because otherwise the position doesn't change
-            // for the 2nd (non-limited) cursor
-            lv.setAdapter(lv.getAdapter());
-            lv.setSelectionFromTop(mLastListPosCourse, mLastListPosFine);
-            if (!isLimited) {
-                mLastListPosCourse = -1;
-            }
-        }*/
-
         // When showing the queue, position the selection on the currently playing track
         // Otherwise, position the selection on the first matching artist, if any
         IntentFilter f = new IntentFilter();
@@ -278,22 +262,6 @@ public class NowPlayingActivity extends ListActivity
             registerReceiver(mNowPlayingListener, new IntentFilter(f));
             mNowPlayingListener.onReceive(this, new Intent(MediaPlaybackService.META_CHANGED));
         } catch (RemoteException ex) {
-        }
-    }
-
-    private void setTitle() {
-
-        CharSequence fancyName = null;
-                //if (MusicUtils.getCurrentShuffleMode() == MediaPlaybackService.SHUFFLE_AUTO) {
-                    //fancyName = getText(R.string.partyshuffle_title);
-                //} else {
-                    fancyName = getText(R.string.nowplaying_title);
-                //}
-
-        if (fancyName != null) {
-            setTitle(fancyName);
-        } else {
-            setTitle("Tracks");
         }
     }
     
@@ -452,24 +420,29 @@ public class NowPlayingActivity extends ListActivity
     @Override
     protected void onListItemClick(ListView l, View v, int position, long id)
     {
-    	// TODO: add this back
-    	/*
         if (mTrackCursor.getCount() == 0) {
             return;
         }
         // When selecting a track from the queue, just jump there instead of
         // reloading the queue. This is both faster, and prevents accidentally
         // dropping out of party shuffle.
-        if (mTrackCursor instanceof NowPlayingCursor) {
-            if (MusicUtils.sService != null) {
-                try {
-                    MusicUtils.sService.setQueuePosition(position);
-                    return;
-                } catch (RemoteException ex) {
+        if (MusicUtils.sService != null) {
+            try {
+                int queuePosition = MusicUtils.sService.getQueuePosition();
+                	
+                if (position == queuePosition) {
+                	if (MusicUtils.sService.isPlaying()) {
+                        MusicUtils.sService.pause();
+                    } else {
+                        MusicUtils.sService.play();
+                    }
+                } else {
+                	MusicUtils.sService.setQueuePosition(position);
                 }
+                return;
+            } catch (RemoteException ex) {
             }
         }
-        MusicUtils.playAll(this, mTrackCursor, position);*/
     }
 
     @Override
@@ -519,7 +492,6 @@ public class NowPlayingActivity extends ListActivity
         // asynchronously using AsyncQueryHandler, so we do some extra initialization here.
         if (ret != null && async) {
             init(ret, false);
-            setTitle();
         }
         return ret;
     }
