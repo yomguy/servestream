@@ -378,14 +378,9 @@ public class MediaPlaybackActivity extends Activity implements SurfaceHolder.Cal
         public void onClick(View v) {
             if (mService == null) return;
             try {
-                if (mService.position() < 2000) {
-    			    mMediaControls.startAnimation(media_controls_fade_out);
-    				mMediaControls.setVisibility(View.GONE);
-                	mService.prev();
-                } else {
-                    mService.seek(0);
-                    mService.play();
-                }
+    			mMediaControls.startAnimation(media_controls_fade_out);
+    			mMediaControls.setVisibility(View.GONE);
+                mService.prev();
             } catch (RemoteException ex) {
             }
         }
