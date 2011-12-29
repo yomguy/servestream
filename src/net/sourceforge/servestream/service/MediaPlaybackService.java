@@ -52,6 +52,7 @@ import net.sourceforge.servestream.metadata.SHOUTcastMetadata;
 import net.sourceforge.servestream.player.MultiPlayer;
 import net.sourceforge.servestream.provider.Media;
 import net.sourceforge.servestream.utils.FileUtils;
+import net.sourceforge.servestream.utils.MetadataRetriever;
 import net.sourceforge.servestream.utils.PreferenceConstants;
 import net.sourceforge.servestream.widget.ServeStreamAppWidgetOneProvider;
 
@@ -630,6 +631,10 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
             mCursor = null;
             notifyChange(META_CHANGED);
         }
+        
+		if (mPreferences.getBoolean(PreferenceConstants.RETRIEVE_METADATA, false)) {
+			MetadataRetriever.retrieve(MediaPlaybackService.this, mPlayList);
+    	}
     }
     
     /**
