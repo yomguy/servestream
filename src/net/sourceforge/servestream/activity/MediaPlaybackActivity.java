@@ -111,6 +111,8 @@ public class MediaPlaybackActivity extends Activity implements SurfaceHolder.Cal
     private int mTouchSlop;
     private ServiceToken mToken;
 
+    private TextView mTrackNumber;
+    
     private SurfaceView preview = null;
     private SurfaceHolder holder;
     
@@ -170,7 +172,7 @@ public class MediaPlaybackActivity extends Activity implements SurfaceHolder.Cal
         mDeviceHasDpad = (getResources().getConfiguration().navigation ==
             Configuration.NAVIGATION_DPAD);
         
-	    //mTrackNumber = (TextView) findViewById(R.id.track_number_text);
+	    mTrackNumber = (TextView) findViewById(R.id.track_number_text);
 	    mTrackName = (TextView) findViewById(R.id.trackname);
 	    mArtistName = (TextView) findViewById(R.id.artistname);
 	    mAlbumName = (TextView) findViewById(R.id.albumname);
@@ -1219,6 +1221,8 @@ public class MediaPlaybackActivity extends Activity implements SurfaceHolder.Cal
                 finish();
                 return;
             }
+            
+            mTrackNumber.setText(mService.getTrackNumber());
             
             long songid = mService.getAudioId(); 
             if (songid < 0 && path.toLowerCase().startsWith("http://")) {
