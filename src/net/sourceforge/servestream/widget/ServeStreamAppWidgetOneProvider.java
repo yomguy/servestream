@@ -18,8 +18,8 @@
 package net.sourceforge.servestream.widget;
 
 import net.sourceforge.servestream.R;
+import net.sourceforge.servestream.activity.MediaPlaybackActivity;
 import net.sourceforge.servestream.activity.StreamListActivity;
-import net.sourceforge.servestream.activity.StreamMediaActivity;
 import net.sourceforge.servestream.service.MediaPlaybackService;
 import android.app.PendingIntent;
 import android.appwidget.AppWidgetManager;
@@ -161,8 +161,8 @@ public class ServeStreamAppWidgetOneProvider extends AppWidgetProvider {
      * Link up various button actions using {@link PendingIntents}.
      * 
      * @param playerActive True if player is active in background, which means
-     *            widget click will launch {@link StreamMediaActivity},
-     *            otherwise we launch {@link StreamListActivity}.
+     *            widget click will launch {@link MediaPlaybackActivity},
+     *            otherwise we launch {@link MediaPlaybackActivity}.
      */
     private void linkButtons(Context context, RemoteViews views, boolean playerActive) {
         // Connect up various buttons and touch events
@@ -172,7 +172,7 @@ public class ServeStreamAppWidgetOneProvider extends AppWidgetProvider {
         final ComponentName serviceName = new ComponentName(context, MediaPlaybackService.class);
         
         if (playerActive) {
-            intent = new Intent(context, StreamMediaActivity.class);
+            intent = new Intent(context, MediaPlaybackActivity.class);
             pendingIntent = PendingIntent.getActivity(context,
                     0 /* no requestCode */, intent, 0 /* no flags */);
             views.setOnClickPendingIntent(R.id.appwidget_one, pendingIntent);
