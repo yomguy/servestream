@@ -73,7 +73,7 @@ public class MediaProvider extends ContentProvider {
                     + MediaColumns.ALBUM + " TEXT,"
                     + MediaColumns.ARTIST + " TEXT,"
                     + MediaColumns.DURATION + " INTEGER,"
-                    + MediaColumns.TRACK + " INTEGER,"
+                    + MediaColumns.TRACK + " TEXT,"
                     + MediaColumns.YEAR + " INTEGER"
                     + ");");
         }
@@ -178,15 +178,15 @@ public class MediaProvider extends ContentProvider {
         }
         
         if (values.containsKey(MediaColumns.DURATION) == false) {
-            values.put(MediaColumns.DURATION, -1);
+            values.put(MediaColumns.DURATION, Media.UNKNOWN_INTEGER);
         }
         
         if (values.containsKey(MediaColumns.TRACK) == false) {
-            values.put(MediaColumns.TRACK, -1);
+            values.put(MediaColumns.TRACK, Media.UNKNOWN_STRING);
         }
         
         if (values.containsKey(MediaColumns.YEAR) == false) {
-            values.put(MediaColumns.YEAR, -1);
+            values.put(MediaColumns.YEAR, Media.UNKNOWN_INTEGER);
         }
         
         SQLiteDatabase db = mOpenHelper.getWritableDatabase();
