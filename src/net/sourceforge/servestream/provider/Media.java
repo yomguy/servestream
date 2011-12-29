@@ -31,6 +31,11 @@ public final class Media {
      */
     public static final String UNKNOWN_STRING = "";
     
+    /**
+     * The integer that is used when a media attribute is not known.
+     */
+    public static final int UNKNOWN_INTEGER = -1;
+    
     // This class cannot be instantiated
     private Media() {}
     
@@ -93,7 +98,7 @@ public final class Media {
 
         /**
          * The track number of a song on the album, if any. This number encodes both the track number and the disc number. For multi-disc sets, this number will be 1xxx for tracks on the first disc, 2xxx for tracks on the second disc, etc.
-         * <P>Type: INTEGER</P>
+         * <P>Type: TEXT</P>
          */
         public static final String TRACK = "track";
 
