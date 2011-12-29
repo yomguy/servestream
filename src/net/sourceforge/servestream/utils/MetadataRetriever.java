@@ -192,9 +192,7 @@ public class MetadataRetriever {
 		values.put(Media.MediaColumns.TITLE, validateAttribute(metadata.get(Metadata.TITLE)));
 		values.put(Media.MediaColumns.ALBUM, validateAttribute(metadata.get(XMPDM.ALBUM)));
 		values.put(Media.MediaColumns.ARTIST, validateAttribute(metadata.get(XMPDM.ARTIST)));
-		System.out.println("Storing===>" + validateAttribute(metadata.get(XMPDM.TRACK_NUMBER)));
 		values.put(Media.MediaColumns.TRACK, validateAttribute(metadata.get(XMPDM.TRACK_NUMBER)));
-		System.out.println("Storing===>" + convertToInteger(metadata.get(XMPDM.RELEASE_DATE)));
 		values.put(Media.MediaColumns.YEAR, convertToInteger(metadata.get(XMPDM.RELEASE_DATE)));
 
 		// Get the base URI for the Media Files table in the Media content provider.
