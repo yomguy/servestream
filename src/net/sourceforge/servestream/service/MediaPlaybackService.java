@@ -128,7 +128,6 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
     
     private MultiPlayer mPlayer;
     private String mFileToPlay;
-    private String mPlayListToPlay;
     private int mShuffleMode = SHUFFLE_NONE;
     private int mRepeatMode = REPEAT_NONE;
     private int mSleepTimerMode = SLEEP_TIMER_OFF;
@@ -1379,6 +1378,12 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
         }
     }
 
+    public String getTrackNumber() {
+    	synchronized (this) {
+    		return ((mPlayPos + 1) + " / " + mPlayListLen);
+    	}
+    }
+    
     public String getMediaUri() {
         synchronized(this) {
             if (mCursor == null) {
@@ -1504,6 +1509,9 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
         }
         public void setQueuePosition(int index) {
             mService.get().setQueuePosition(index);
+        }
+        public String getTrackNumber() {
+        	return mService.get().getTrackNumber();
         }
         public boolean isPlaying() {
             return mService.get().isPlaying();
