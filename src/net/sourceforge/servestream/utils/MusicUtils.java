@@ -325,40 +325,4 @@ public class MusicUtils {
     	
     	return list;
     }
-    
-    public static void updateNowPlaying(Activity a) {
-        View nowPlayingView = a.findViewById(R.id.nowplaying);
-        if (nowPlayingView == null) {
-            return;
-        }
-        try {
-            boolean withtabs = false;
-            Intent intent = a.getIntent();
-            if (intent != null) {
-                withtabs = intent.getBooleanExtra("withtabs", false);
-            }
-            if (true && MusicUtils.sService != null && MusicUtils.sService.getAudioId() != -1) {
-                TextView title = (TextView) nowPlayingView.findViewById(R.id.title);
-                TextView artist = (TextView) nowPlayingView.findViewById(R.id.artist);
-                title.setText(MusicUtils.sService.getTrackName());
-                String artistName = MusicUtils.sService.getArtistName();
-                if (MediaStore.UNKNOWN_STRING.equals(artistName)) {
-                    artistName = a.getString(R.string.unknown_artist_name);
-                }
-                artist.setText(artistName);
-                //mNowPlayingView.setOnFocusChangeListener(mFocuser);
-                //mNowPlayingView.setOnClickListener(this);
-                nowPlayingView.setVisibility(View.VISIBLE);
-                nowPlayingView.setOnClickListener(new View.OnClickListener() {
-
-                    public void onClick(View v) {
-                        Context c = v.getContext();
-                        c.startActivity(new Intent(c, MediaPlaybackActivity.class));
-                    }});
-                return;
-            }
-        } catch (RemoteException ex) {
-        }
-        nowPlayingView.setVisibility(View.GONE);
-    }
 }
