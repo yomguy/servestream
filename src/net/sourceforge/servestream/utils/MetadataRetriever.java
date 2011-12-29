@@ -189,9 +189,13 @@ public class MetadataRetriever {
 		
 		// Form an array specifying which columns to return. 
 		ContentValues values = new ContentValues();
-		values.put(Media.MediaColumns.TITLE, metadata.get(Metadata.TITLE));
-		values.put(Media.MediaColumns.ALBUM, metadata.get(XMPDM.ALBUM));
-		values.put(Media.MediaColumns.ARTIST, metadata.get(XMPDM.ARTIST));
+		values.put(Media.MediaColumns.TITLE, validateAttribute(metadata.get(Metadata.TITLE)));
+		values.put(Media.MediaColumns.ALBUM, validateAttribute(metadata.get(XMPDM.ALBUM)));
+		values.put(Media.MediaColumns.ARTIST, validateAttribute(metadata.get(XMPDM.ARTIST)));
+		System.out.println("Storing===>" + validateAttribute(metadata.get(XMPDM.TRACK_NUMBER)));
+		values.put(Media.MediaColumns.TRACK, validateAttribute(metadata.get(XMPDM.TRACK_NUMBER)));
+		System.out.println("Storing===>" + convertToInteger(metadata.get(XMPDM.RELEASE_DATE)));
+		values.put(Media.MediaColumns.YEAR, convertToInteger(metadata.get(XMPDM.RELEASE_DATE)));
 
 		// Get the base URI for the Media Files table in the Media content provider.
 		Uri mediaFile =  Media.MediaColumns.CONTENT_URI;
@@ -204,5 +208,29 @@ public class MetadataRetriever {
 	
 		// return the number of rows updated.
 		return rows;
+	}
+	
+	private static String validateAttribute(String attribute) {
+		if (attribute == null) {
+			return Media.UNKNOWN_STRING;
+		}
+		
+		return attribute.trim();
+	}
+	
+	private static int convertToInteger(String attribute) {
+		int integerAttribute = Media.UNKNOWN_INTEGER;
+		
+		String validatedAttribute = validateAttribute(attribute);
+		
+		if (!validatedAttribute.equals(Media.UNKNOWN_STRING)) {
+			try {
+				integerAttribute = Integer.valueOf(validatedAttribute);
+			} catch(NumberFormatException e) {
+				// there was a problem converting the string
+			}
+		}
+		
+		return integerAttribute;
 	}
 }
