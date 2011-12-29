@@ -29,6 +29,4 @@
         android:drawSelectorOnTop="false"
         android:fastScrollEnabled="true" /> 
 
-    <include layout="@layout/nowplaying" />
-
 </LinearLayout>

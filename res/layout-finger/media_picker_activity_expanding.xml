@@ -31,6 +31,4 @@
         android:indicatorLeft="8dip"
         android:indicatorRight="52dip" />
 
-    <include layout="@layout/nowplaying" />
-
 </LinearLayout>
