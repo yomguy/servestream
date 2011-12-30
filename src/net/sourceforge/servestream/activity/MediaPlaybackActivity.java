@@ -405,12 +405,6 @@ public class MediaPlaybackActivity extends Activity implements SurfaceHolder.Cal
 			mWakeLock.acquire();
         
         paused = false;
-
-        /*mToken = MusicUtils.bindToService(this, osc);
-        if (mToken == null) {
-            // something went wrong
-            mHandler.sendEmptyMessage(QUIT);
-        }*/
         
         IntentFilter f = new IntentFilter();
         f.addAction(MediaPlaybackService.PLAYSTATE_CHANGED);
@@ -962,8 +956,7 @@ public class MediaPlaybackActivity extends Activity implements SurfaceHolder.Cal
         Intent intent = getIntent();
         String action = intent.getAction();
         
-        if (action != null && action.equals("poop")) {
-        	System.out.println("=============> starting video!");
+        if (action != null && action.equals(MediaPlaybackService.PREPARE_VIDEO)) {
         	try {
 				mService.setDataSource(false);
 			} catch (RemoteException e) {
