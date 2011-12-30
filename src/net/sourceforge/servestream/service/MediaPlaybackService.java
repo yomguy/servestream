@@ -581,15 +581,6 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
         // Share this notification directly with our widgets
         mAppWidgetProvider.notifyChange(this, what);
     }
-
-    private void notifyStickyChange(String what) {
-    	// send notification to MediaPlaybackActivity
-        Intent i = new Intent(what);
-        sendStickyBroadcast(i);
-        
-        // Share this notification directly with our widgets
-        //mAppWidgetProvider.notifyChange(this, what);
-    }
     
     private void ensurePlayListCapacity(int size) {
         if (mPlayList == null || size > mPlayList.length) {
@@ -1650,7 +1641,6 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
 	 */
 	public void onConnectivityLost() {
 		if (isPlaying()) {
-			notifyStickyChange(CONNECTIVITY_LOST);
 			mPausedByConnectivityReceiver = true;
 			pause();
         }
@@ -1661,7 +1651,6 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
 	 */
 	public void onConnectivityRestored() {
 		if (mPausedByConnectivityReceiver) {
-			notifyStickyChange(CONNECTIVITY_RESTORED);
 			mPausedByConnectivityReceiver = false;
 			play();
 		}
