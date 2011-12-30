@@ -80,6 +80,15 @@
 				<category android:name="android.intent.category.DEFAULT" />
 				<data android:mimeType="net.sourceforge.servestream/*" />
 			</intent-filter>
+			<intent-filter>
+				<action android:name="android.intent.action.VIEW" />
+				<category android:name="android.intent.category.BROWSABLE" />
+				<category android:name="android.intent.category.DEFAULT" />
+				<data android:scheme="http" />
+				<data android:host="*" />
+				<data android:mimeType="audio/*" />
+				<data android:mimeType="video/*"/>
+			</intent-filter>
 		</activity>
 
 		<activity android:name=".activity.BrowserActivity" android:configChanges="keyboardHidden|orientation" />
@@ -92,22 +101,6 @@
 		<service android:name=".service.MediaPlaybackService"
 			android:configChanges="keyboardHidden|orientation"
 			android:description="@string/media_service_desc" />
-
-		<activity android:name=".activity.StreamMediaActivity" android:configChanges="keyboardHidden|orientation"
-			android:launchMode="singleTop">
-			<intent-filter>
-				<action android:name="android.intent.action.DOCK_EVENT" />
-			</intent-filter>
-			<intent-filter>
-				<action android:name="android.intent.action.VIEW" />
-				<category android:name="android.intent.category.BROWSABLE" />
-				<category android:name="android.intent.category.DEFAULT" />
-				<data android:scheme="http" />
-				<data android:host="*" />
-				<data android:mimeType="audio/*" />
-				<data android:mimeType="video/*"/>
-			</intent-filter>
-		</activity>
 
         <activity android:name=".activity.MediaPlaybackActivity"
                 android:theme="@android:style/Theme.NoTitleBar"
