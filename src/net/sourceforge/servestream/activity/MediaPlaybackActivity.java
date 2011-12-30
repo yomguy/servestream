@@ -41,7 +41,6 @@ import android.content.SharedPreferences;
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
 import android.content.res.Configuration;
 import android.media.AudioManager;
-import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
@@ -419,8 +418,6 @@ public class MediaPlaybackActivity extends Activity implements SurfaceHolder.Cal
         f.addAction(MediaPlaybackService.START_DIALOG);
         f.addAction(MediaPlaybackService.STOP_DIALOG);
         f.addAction(MediaPlaybackService.ERROR_MESSAGE);
-       // f.addAction(MediaPlaybackService.CONNECTIVITY_LOST);
-       // f.addAction(MediaPlaybackService.CONNECTIVITY_RESTORED);
         
         registerReceiver(mStatusListener, new IntentFilter(f));
         
@@ -961,26 +958,20 @@ public class MediaPlaybackActivity extends Activity implements SurfaceHolder.Cal
 
         if(mService == null)
             return;
+
         Intent intent = getIntent();
-        String filename = "";
-        Uri uri = intent.getData();
-        if (uri != null && uri.toString().length() > 0) {
-            // If this is a file:// URI, just use the path directly instead
-            // of going through the open-from-filedescriptor codepath.
-            String scheme = uri.getScheme();
-            if ("file".equals(scheme)) {
-                filename = uri.getPath();
-            } else {
-                filename = uri.toString();
-            }
-            try {
-                mService.stop();
-                mService.openFile(filename);
-                mService.play();
-                setIntent(new Intent());
-            } catch (Exception ex) {
-                Log.d("MediaPlaybackActivity", "couldn't start playback: " + ex);
-            }
+        String action = intent.getAction();
+        
+        if (action != null && action.equals("poop")) {
+        	System.out.println("=============> starting video!");
+        	try {
+				mService.setDataSource(false);
+			} catch (RemoteException e) {
+				e.printStackTrace();
+				Log.d("MediaPlaybackActivity", "couldn't start playback: " + e);
+			}
+			
+			setIntent(new Intent());
         }
 
         updateTrackInfo();
@@ -1017,16 +1008,8 @@ public class MediaPlaybackActivity extends Activity implements SurfaceHolder.Cal
                     }
                 } catch (RemoteException ex) {
                 }
-                // Service is dead or not playing anything. If we got here as part
-                // of a "play this file" Intent, exit. Otherwise go to the Music
-                // app start screen.
-                if (getIntent().getData() == null) {
-                	//TODO: fix this stuff
-                    /*Intent intent = new Intent(Intent.ACTION_MAIN);
-                    intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                    intent.setClass(MediaPlaybackActivity.this, MusicBrowserActivity.class);
-                    startActivity(intent);*/
-                }
+                // Service is dead or not playing anything. Return to the previous
+                // activity.
                 finish();
             }
             public void onServiceDisconnected(ComponentName classname) {
