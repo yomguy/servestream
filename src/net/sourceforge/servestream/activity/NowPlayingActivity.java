@@ -53,27 +53,16 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ContextMenu.ContextMenuInfo;
-import android.widget.AlphabetIndexer;
 import android.widget.ImageView;
 import android.widget.ListView;
-import android.widget.SectionIndexer;
 import android.widget.SimpleCursorAdapter;
 import android.widget.TextView;
 
 import java.util.Arrays;
 
-public class NowPlayingActivity extends ListActivity
-        implements View.OnCreateContextMenuListener, MusicUtils.Defs, ServiceConnection
+public class NowPlayingActivity extends ListActivity implements View.OnCreateContextMenuListener, MusicUtils.Defs, ServiceConnection
 {
     private static final String TAG = NowPlayingActivity.class.getName();
-	
-    private static final int Q_SELECTED = CHILD_MENU_BASE;
-    private static final int Q_ALL = CHILD_MENU_BASE + 1;
-    private static final int SAVE_AS_PLAYLIST = CHILD_MENU_BASE + 2;
-    private static final int PLAY_ALL = CHILD_MENU_BASE + 3;
-    private static final int CLEAR_PLAYLIST = CHILD_MENU_BASE + 4;
-    private static final int REMOVE = CHILD_MENU_BASE + 5;
-    private static final int SEARCH = CHILD_MENU_BASE + 6;
 
     private String[] mCursorCols;
     private boolean mDeletedOneRow = false;
@@ -81,7 +70,6 @@ public class NowPlayingActivity extends ListActivity
     private Cursor mTrackCursor;
     private TrackListAdapter mAdapter;
     private boolean mAdapterSent = false;
-    //private String mPlaylist;
     private ServiceToken mToken;
 
     /** Called when the activity is first created. */
@@ -89,7 +77,12 @@ public class NowPlayingActivity extends ListActivity
     public void onCreate(Bundle icicle)
     {
         super.onCreate(icicle);
-        setTitle(getText(R.string.nowplaying_title));
+        
+        setContentView(R.layout.acc_nowplaying);
+        
+		this.setTitle(String.format("%s: %s",
+				getResources().getText(R.string.app_name),
+				getResources().getText(R.string.title_stream_browse))); 
         
         setVolumeControlStream(AudioManager.STREAM_MUSIC);
 
@@ -101,7 +94,6 @@ public class NowPlayingActivity extends ListActivity
                 Media.MediaColumns.DURATION
         };
 
-        setContentView(R.layout.media_picker_activity);
         mTrackList = getListView();
         mTrackList.setOnCreateContextMenuListener(this);
         mTrackList.setCacheColorHint(0);
@@ -310,6 +302,8 @@ public class NowPlayingActivity extends ListActivity
         @Override
         public void onReceive(Context context, Intent intent) {
             if (intent.getAction().equals(MediaPlaybackService.META_CHANGED)) {
+                Cursor c = new NowPlayingCursor(MusicUtils.sService, mCursorCols);
+                mAdapter.changeCursor(c);
                 getListView().invalidateViews();
             } else if (intent.getAction().equals(MediaPlaybackService.QUEUE_CHANGED)) {
                 if (mDeletedOneRow) {
@@ -476,8 +470,6 @@ public class NowPlayingActivity extends ListActivity
         }
 
         Cursor ret = null;
-        StringBuilder where = new StringBuilder();
-        where.append(MediaStore.Audio.Media.TITLE + " != ''");
 
         if (MusicUtils.sService != null) {
             ret = new NowPlayingCursor(MusicUtils.sService, mCursorCols);
@@ -714,7 +706,7 @@ public class NowPlayingActivity extends ListActivity
         private IMediaPlaybackService mService;
     }
     
-    static class TrackListAdapter extends SimpleCursorAdapter implements SectionIndexer {
+    static class TrackListAdapter extends SimpleCursorAdapter {
 
         int mTitleIdx;
         int mArtistIdx;
@@ -724,8 +716,6 @@ public class NowPlayingActivity extends ListActivity
         private final StringBuilder mBuilder = new StringBuilder();
         private final String mUnknownArtist;
         private final String mUnknownAlbum;
-        
-        private AlphabetIndexer mIndexer;
         
         private NowPlayingActivity mActivity = null;
         private TrackQueryHandler mQueryHandler;
@@ -817,10 +807,6 @@ public class NowPlayingActivity extends ListActivity
                             MediaStore.Audio.Playlists.Members.AUDIO_ID);
                 } catch (IllegalArgumentException ex) {
                     mAudioIdIdx = cursor.getColumnIndexOrThrow(Media.MediaColumns._ID);
-                }
-                
-                if (mIndexer != null) {
-                    mIndexer.setCursor(cursor);
                 }
             }
         }
@@ -928,25 +914,6 @@ public class NowPlayingActivity extends ListActivity
             mConstraintIsValid = true;
             return c;
         }
-        
-        // SectionIndexer methods
-        
-        public Object[] getSections() {
-            if (mIndexer != null) { 
-                return mIndexer.getSections();
-            } else {
-                return null;
-            }
-        }
-        
-        public int getPositionForSection(int section) {
-            int pos = mIndexer.getPositionForSection(section);
-            return pos;
-        }
-        
-        public int getSectionForPosition(int position) {
-            return 0;
-        }        
     }
 }
 
