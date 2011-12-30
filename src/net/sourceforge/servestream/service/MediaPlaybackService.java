@@ -830,15 +830,27 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
             mFileToPlay = mCursor.getString(uriColumn);
             
             Log.v(TAG, "opening: " + mFileToPlay);
-            if (mPreferences.getBoolean(PreferenceConstants.PROGRESSIVE_DOWNLOAD, false)) {
-                //mPlayListFiles[mPlayPos].download();
-                //new BufferMediaTask(mPlayListFiles[mPlayPos]).start();
-            } else {
-            	mPlayer.setDataSource(mFileToPlay, false);
+            
+            if (playingVideo()) {
+                Intent intent = new Intent(this, MediaPlaybackActivity.class);
+                intent.setAction("poop");
+                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                startActivity(intent);
+            } else { 
+            	if (mPreferences.getBoolean(PreferenceConstants.PROGRESSIVE_DOWNLOAD, false)) {
+            		//mPlayListFiles[mPlayPos].download();
+            		//new BufferMediaTask(mPlayListFiles[mPlayPos]).start();
+            	} else {
+            		mPlayer.setDataSource(mFileToPlay, false);
+            	}
             }
         }
     }
 
+    private void setDataSource(boolean progressiveDownload) {    	
+    	mPlayer.setDataSource(mFileToPlay, false);
+    }
+    
     /**
      * Starts playback of a previously opened file.
      */
@@ -1502,6 +1514,9 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
         }
         public void open(long [] list, int position) {
             mService.get().open(list, position);
+        }
+        public void setDataSource(boolean progressiveDownload) {
+        	mService.get().setDataSource(progressiveDownload);
         }
         public int getQueuePosition() {
             return mService.get().getQueuePosition();

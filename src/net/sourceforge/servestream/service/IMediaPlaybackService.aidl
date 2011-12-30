@@ -24,6 +24,7 @@ interface IMediaPlaybackService
 {
     void openFile(String path);
     void open(in long [] list, int position);
+    void setDataSource(boolean progressiveDownload);
     int getQueuePosition();
     boolean isPlaying();
     void stop();
