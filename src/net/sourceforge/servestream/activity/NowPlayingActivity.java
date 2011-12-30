@@ -82,7 +82,7 @@ public class NowPlayingActivity extends ListActivity implements View.OnCreateCon
         
 		this.setTitle(String.format("%s: %s",
 				getResources().getText(R.string.app_name),
-				getResources().getText(R.string.title_stream_browse))); 
+				getResources().getText(R.string.title_now_playing))); 
         
         setVolumeControlStream(AudioManager.STREAM_MUSIC);
 
