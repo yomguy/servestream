@@ -100,8 +100,7 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
     public static final String PLAYER_CLOSED = "net.sourceforge.servestream.playerclosed";
     public static final String ERROR_MESSAGE = "net.sourceforge.servestream.errormessage";
     public static final String CLOSE_PLAYER = "net.sourceforge.servestream.closeplayer";
-    public static final String CONNECTIVITY_LOST = "net.sourceforge.servestream.connectivitylost";
-    public static final String CONNECTIVITY_RESTORED = "net.sourceforge.servestream.connectivityrestored";
+    public static final String PREPARE_VIDEO = "net.sourceforge.servestream.preparevideo";    
     
     public static final String SERVICECMD = "net.sourceforge.servestream.MediaPlaybackServicecommand";
     public static final String CMDNAME = "command";
@@ -833,7 +832,7 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
             
             if (playingVideo()) {
                 Intent intent = new Intent(this, MediaPlaybackActivity.class);
-                intent.setAction("poop");
+                intent.setAction(PREPARE_VIDEO);
                 intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                 startActivity(intent);
             } else { 
