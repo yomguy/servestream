@@ -95,7 +95,7 @@ public class BrowserActivity extends ListActivity implements ServiceConnection {
 	
 	protected Handler mHandler = new Handler() {
 		@Override
-		public void handleMessage(Message msg) {
+		public void handleMessage(Message msg) {			
 			BrowserActivity.this.handleMessage(msg);
 		}
 	};
@@ -454,7 +454,7 @@ public class BrowserActivity extends ListActivity implements ServiceConnection {
 		private Message handleURL(Stream stream) {
 			String contentType = null;
 			URLUtils urlUtils = null;
-			Message message = mHandler.obtainMessage(StreamListActivity.MESSAGE_HANDLE_INTENT);
+			Message message = null;
 			
 			try {
 				urlUtils = new URLUtils(stream.getURL());
@@ -469,10 +469,11 @@ public class BrowserActivity extends ListActivity implements ServiceConnection {
 		    }
 			
 			if (contentType == null) {
+				message = mHandler.obtainMessage(StreamListActivity.MESSAGE_HANDLE_INTENT);
 				message.arg1 = NO_INTENT;
 			} else if (contentType.contains("text/html")) {
-				Message msg = mHandler.obtainMessage(BrowserActivity.MESSAGE_PARSE_WEBPAGE);
-				msg.obj = stream;
+				message = mHandler.obtainMessage(BrowserActivity.MESSAGE_PARSE_WEBPAGE);
+				message.obj = stream;
 			} else {
 				long[] list = null;
 				try {
@@ -481,6 +482,7 @@ public class BrowserActivity extends ListActivity implements ServiceConnection {
 					e.printStackTrace();
 				}
 				
+				message = mHandler.obtainMessage(StreamListActivity.MESSAGE_HANDLE_INTENT);
 		        message.arg1 = STREAM_MEDIA_INTENT;
 		        message.obj = list;
 			}
