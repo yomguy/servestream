@@ -115,9 +115,6 @@
 	<!-- The dialog message when loading a URL -->
 	<string name="loading_message">Loading. Please wait...</string>
 
-    <!-- Toast to let people know how to hide media controls -->
-    <string name="media_controls_notif">Long press screen to hide controls</string>
-
     <!-- Title of sleep timer menu entry -->
     <string name="menu_sleep_timer">Sleep Timer</string>
 
