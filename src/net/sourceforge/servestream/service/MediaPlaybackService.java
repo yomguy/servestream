@@ -1716,26 +1716,4 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
     	
         return true;
     }
-				
-	/*			if (mPreferences.getBoolean(PreferenceConstants.RETRIEVE_METADATA, false))
-					new RetrieveMetadataAsyncTask().execute(mPlayListFiles);
-    
-    public class RetrieveMetadataAsyncTask extends AsyncTask<MediaFile [], Void, Boolean> {
-	    public RetrieveMetadataAsyncTask() {
-	        super();
-	    }
-	    
-		@Override
-		protected Boolean doInBackground(MediaFile []... mediaFiles) {
-			for (int i = 0; i < mediaFiles[0].length; i++) {
-				MetadataRetriever.retrieveMetadata(mediaFiles[0][i]);
-				notifyChange(META_UPDATED);
-			}
-    		return true;
-		}
-
-		@Override
-		protected void onPostExecute(Boolean success) {
-		}
-    }*/
 }
