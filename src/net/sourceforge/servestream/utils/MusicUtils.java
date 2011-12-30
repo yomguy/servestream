@@ -26,7 +26,6 @@ import java.util.List;
 import java.util.Locale;
 
 import net.sourceforge.servestream.R;
-import net.sourceforge.servestream.activity.MediaPlaybackActivity;
 import net.sourceforge.servestream.provider.Media;
 import net.sourceforge.servestream.service.IMediaPlaybackService;
 import net.sourceforge.servestream.service.MediaPlaybackService;
@@ -42,10 +41,7 @@ import android.content.ServiceConnection;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.RemoteException;
-import android.provider.MediaStore;
 import android.util.Log;
-import android.view.View;
-import android.widget.TextView;
 import android.widget.Toast;
 
 public class MusicUtils {
