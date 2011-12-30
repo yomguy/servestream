@@ -400,6 +400,11 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
         mSleepTimerHandler.removeCallbacksAndMessages(null);
         mMediaplayerHandler.removeCallbacksAndMessages(null);
 
+        if (mCursor != null) {
+            mCursor.close();
+            mCursor = null;
+        }
+        
 		notifyChange(PLAYER_CLOSED);
         
         unregisterReceiver(mIntentReceiver);
@@ -918,7 +923,10 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
             mPlayer.stop();
         }
         mFileToPlay = null;
-
+        if (mCursor != null) {
+            mCursor.close();
+            mCursor = null;
+        }
         if (remove_status_icon) {
         	stopForeground(true);
         } else {
