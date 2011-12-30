@@ -211,10 +211,16 @@ public class StreamListActivity extends ListActivity implements ServiceConnectio
 	
 	private void handleIntentData() {
 		String intentUri = null;
+		String contentType = null;
 		
         // check to see if we were called from a shortcut
-		if (getIntent().getType() != null)
-			intentUri = getIntent().getType().toString().replace("net.sourceforge.servestream/", "");
+		if ((contentType = getIntent().getType()) != null) {
+			if (contentType.contains("net.sourceforge.servestream/")) {
+				intentUri = getIntent().getType().toString().replace("net.sourceforge.servestream/", "");
+			} else {
+				intentUri = getIntent().getData().toString();
+			}
+		}
 			
 		// check to see if the application was opened from a share intent
 		if (getIntent().getExtras() != null)
