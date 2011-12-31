@@ -40,6 +40,7 @@ public class URLUtils {
 	
 	private int mResponseCode = -1;
 	private String mContentType = "";
+	private boolean mContentFound = false;
 	
 	/*
 	 * Default constructor
@@ -90,6 +91,9 @@ public class URLUtils {
 	        if (mResponseCode == -1)
 	        	mResponseCode = HttpURLConnection.HTTP_OK;
 	        
+	        if ((mContentType = conn.getContentType()) != null)
+	        	mContentFound = true;
+            
 		} catch (IOException ex) {
 			ex.printStackTrace();
 		} catch (IllegalArgumentException ex) {
