@@ -53,23 +53,27 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ContextMenu.ContextMenuInfo;
+import android.view.MenuItem.OnMenuItemClickListener;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.SimpleCursorAdapter;
 import android.widget.TextView;
+import android.widget.AdapterView.AdapterContextMenuInfo;
 
 import java.util.Arrays;
 
 public class NowPlayingActivity extends ListActivity implements View.OnCreateContextMenuListener, MusicUtils.Defs, ServiceConnection
 {
     private static final String TAG = NowPlayingActivity.class.getName();
-
+    
     private String[] mCursorCols;
     private boolean mDeletedOneRow = false;
+    private String mCurrentTrackName;
     private ListView mTrackList;
     private Cursor mTrackCursor;
     private TrackListAdapter mAdapter;
     private boolean mAdapterSent = false;
+    private int mSelectedPosition;
     private ServiceToken mToken;
 
     /** Called when the activity is first created. */
@@ -248,6 +252,7 @@ public class NowPlayingActivity extends ListActivity implements View.OnCreateCon
         IntentFilter f = new IntentFilter();
         f.addAction(MediaPlaybackService.META_CHANGED);
         f.addAction(MediaPlaybackService.QUEUE_CHANGED);
+        f.addAction(MediaPlaybackService.PLAYSTATE_CHANGED);
         try {
             int cur = MusicUtils.sService.getQueuePosition();
             setSelection(cur);
@@ -302,8 +307,6 @@ public class NowPlayingActivity extends ListActivity implements View.OnCreateCon
         @Override
         public void onReceive(Context context, Intent intent) {
             if (intent.getAction().equals(MediaPlaybackService.META_CHANGED)) {
-                Cursor c = new NowPlayingCursor(MusicUtils.sService, mCursorCols);
-                mAdapter.changeCursor(c);
                 getListView().invalidateViews();
             } else if (intent.getAction().equals(MediaPlaybackService.QUEUE_CHANGED)) {
                 if (mDeletedOneRow) {
@@ -327,21 +330,29 @@ public class NowPlayingActivity extends ListActivity implements View.OnCreateCon
                     }
                     mAdapter.changeCursor(c);
                 }
+            } else if (intent.getAction().equals(MediaPlaybackService.PLAYSTATE_CHANGED)) {
+            	getListView().invalidateViews();
             }
         }
     };
 
     @Override
-    public void onCreateContextMenu(ContextMenu menu, View view, ContextMenuInfo menuInfoIn) {
-    	// TODO: add this back
-    }
-
-    @Override
-    public boolean onContextItemSelected(MenuItem item) {
-        switch (item.getItemId()) {
-        // TODO: add this back
-        }
-        return super.onContextItemSelected(item);
+    public void onCreateContextMenu(ContextMenu menu, View view, ContextMenuInfo menuInfo) {
+        AdapterContextMenuInfo info = (AdapterContextMenuInfo) menuInfo;
+        mSelectedPosition =  info.position;
+        mTrackCursor.moveToPosition(mSelectedPosition);
+        mCurrentTrackName = mTrackCursor.getString(mTrackCursor.getColumnIndexOrThrow(
+                Media.MediaColumns.TITLE));
+        
+        menu.setHeaderTitle(mCurrentTrackName);
+        
+        MenuItem remove = menu.add(R.string.remove_from_playlist);
+        remove.setOnMenuItemClickListener(new OnMenuItemClickListener() {
+			public boolean onMenuItemClick(MenuItem arg0) {
+				removePlaylistItem(mSelectedPosition);
+				return true;
+			}
+        });
     }
 
     // In order to use alt-up/down as a shortcut for moving the selected item
@@ -861,10 +872,12 @@ public class NowPlayingActivity extends ListActivity implements View.OnCreateCon
 
             ImageView iv = vh.play_indicator;
             long id = -1;
+            boolean isPlaying = false;
             if (MusicUtils.sService != null) {
                 // TODO: IPC call on each bind??
                 try {
                     id = MusicUtils.sService.getQueuePosition();
+                    isPlaying = MusicUtils.sService.isPlaying();
                 } catch (RemoteException ex) {
                 }
             }
@@ -881,7 +894,11 @@ public class NowPlayingActivity extends ListActivity implements View.OnCreateCon
             // playlist mode (except when you're viewing the "current playlist",
             // which is not really a playlist)
             if ( (cursor.getPosition() == id)) {
-                iv.setImageResource(R.drawable.indicator_ic_mp_playing_list);
+            	if (isPlaying) {
+            		iv.setImageResource(R.drawable.indicator_ic_mp_playing_list);
+            	} else {
+            		iv.setImageResource(R.drawable.indicator_ic_mp_paused_list);
+            	}
                 iv.setVisibility(View.VISIBLE);
             } else {
                 iv.setVisibility(View.GONE);
