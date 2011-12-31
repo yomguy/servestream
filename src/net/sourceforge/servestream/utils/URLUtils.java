@@ -40,7 +40,6 @@ public class URLUtils {
 	
 	private int mResponseCode = -1;
 	private String mContentType = "";
-	private boolean mContentFound = false;
 	
 	/*
 	 * Default constructor
@@ -55,8 +54,9 @@ public class URLUtils {
 	    
 		try {
 			
-			if (url == null)
+			if (url == null) {
 				return;
+			}
 			
 		    if (url.getUserInfo() != null) {
 		    	String [] userInfo = url.getUserInfo().split("\\:");
@@ -78,8 +78,9 @@ public class URLUtils {
         		conn = (HttpsURLConnection) url.openConnection();        		
         	}
 			
-        	if (conn == null)
+        	if (conn == null) {
         		return;
+        	}
         	
         	conn.setRequestProperty("User-Agent", USER_AGENT);
     		conn.setConnectTimeout(6000);
@@ -88,12 +89,10 @@ public class URLUtils {
 	        
 	        mResponseCode = conn.getResponseCode();
 	    
-	        if (mResponseCode == -1)
+	        if (mResponseCode == -1) {
 	        	mResponseCode = HttpURLConnection.HTTP_OK;
-	        
-	        if ((mContentType = conn.getContentType()) != null)
-	        	mContentFound = true;
-            
+	        }
+
 		} catch (IOException ex) {
 			ex.printStackTrace();
 		} catch (IllegalArgumentException ex) {
@@ -108,14 +107,16 @@ public class URLUtils {
 		String extension = null;
 		String contentType = null;
 		
-		if (url == null)
+		if (url == null) {
 			return null;
+		}
 		
 		extension = MimeTypeMap.getFileExtensionFromUrl(url);
     
 		if (extension.equals("")) {
-			if (url.lastIndexOf("/") == (url.length() - 1))
+			if (url.lastIndexOf("/") == (url.length() - 1)) {
 				contentType = "text/html";
+			}
 		} else {
 			contentType = mMimeTypeMap.getMimeTypeFromExtension(extension);
 		}
@@ -132,8 +133,9 @@ public class URLUtils {
 	public static HttpURLConnection getConnection(URL url) {
 		HttpURLConnection conn = null;
 		
-		if (url == null)
+		if (url == null) {
 			return null;
+		}
     	
     	String userInfo = url.getUserInfo();
     	
