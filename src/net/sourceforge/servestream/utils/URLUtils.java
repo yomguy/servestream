@@ -92,7 +92,9 @@ public class URLUtils {
 	        if (mResponseCode == -1) {
 	        	mResponseCode = HttpURLConnection.HTTP_OK;
 	        }
-
+	        
+	        mContentType = conn.getContentType();
+            
 		} catch (IOException ex) {
 			ex.printStackTrace();
 		} catch (IllegalArgumentException ex) {
