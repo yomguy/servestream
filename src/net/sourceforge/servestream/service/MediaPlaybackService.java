@@ -326,12 +326,6 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
             mMediaplayerHandler.obtainMessage(FOCUSCHANGE, focusChange, 0).sendToTarget();
         }
     };
-    
-    /**
-     * Default constructor
-     */
-    public MediaPlaybackService() {
-    }
 
     @Override
     public void onCreate() {
@@ -641,7 +635,7 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
      * @param action NOW, NEXT or LAST
      */
     public void enqueue(long [] list, int action) {
-        /*synchronized(this) {
+        synchronized(this) {
             if (action == NEXT && mPlayPos + 1 < mPlayListLen) {
                 addToPlayList(list, mPlayPos + 1);
                 notifyChange(QUEUE_CHANGED);
@@ -663,7 +657,7 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
                 play();
                 notifyChange(META_CHANGED);
             }
-        }*/
+        }
     }
 
     /**
@@ -675,10 +669,6 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
      */
     public void open(long [] list, int position) {
         synchronized (this) {
-        	// TODO: fix this code
-            /*if (mShuffleMode == SHUFFLE_AUTO) {
-                mShuffleMode = SHUFFLE_NORMAL;
-            }*/
             long oldId = getAudioId();
             int listlength = list.length;
             boolean newlist = true;
@@ -696,7 +686,6 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
                 addToPlayList(list, -1);
                 notifyChange(QUEUE_CHANGED);
             }
-            int oldpos = mPlayPos;
             if (position >= 0) {
                 mPlayPos = position;
             } else {
@@ -704,7 +693,6 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
             }
             mHistory.clear();
 
-            //saveBookmarkIfNeeded();
             openCurrent();
             if (oldId != getAudioId()) {
                 notifyChange(META_CHANGED);
@@ -751,15 +739,6 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
             notifyChange(QUEUE_CHANGED);
         }
     }
-    
-    /**
-     * Returns the number of files in the current playlist
-     * 
-     * @return An integer 
-     */
-    public int getPlayListLength() {
-    	return mPlayListLen;
-    }
 
     /**
      * Returns the current play list
@@ -796,14 +775,6 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
             if (mCursor != null) {
             	mCursor.moveToFirst();
                 open(Media.MediaColumns.CONTENT_URI + "/" + id);
-                // TODO: add this code back
-                // go to bookmark if needed
-                /*if (isPodcast()) {
-                    long bookmark = getBookmark();
-                    // Start playing a little bit before the bookmark,
-                    // so it's easier to get back in to the narrative.
-                    seek(bookmark - 5000);
-                }*/
             }
         }
     }
@@ -819,12 +790,11 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
                 return;
             }
             
-            //TODO: add back in cursor code
+            //TODO: add back in cursor code?
             
             Intent i = new Intent(START_DIALOG);
             sendBroadcast(i);
             
-            //mFileToPlay = path;
             int uriColumn = mCursor.getColumnIndex(Media.MediaColumns.URI);
             mFileToPlay = mCursor.getString(uriColumn);
             
@@ -880,28 +850,6 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
         	String album = getAlbumName();
             if (album == null)
                 album = getString(R.string.unknown_album_name);
-            
-            /*RemoteViews views = new RemoteViews(getPackageName(), R.layout.statusbar);
-            views.setImageViewResource(R.id.icon, R.drawable.stat_notify_musicplayer);
-            if (getAudioId() < 0) {
-                // streaming
-                views.setTextViewText(R.id.trackname, getPath());
-                views.setTextViewText(R.id.artistalbum, null);
-            } else {
-                String artist = getArtistName();
-                views.setTextViewText(R.id.trackname, getTrackName());
-                if (artist == null || artist.equals(MediaStore.UNKNOWN_STRING)) {
-                    artist = getString(R.string.unknown_artist_name);
-                }
-                String album = getAlbumName();
-                if (album == null || album.equals(MediaStore.UNKNOWN_STRING)) {
-                    album = getString(R.string.unknown_album_name);
-                }
-                
-                views.setTextViewText(R.id.artistalbum,
-                        getString(R.string.notification_artist_album, artist, album)
-                        );
-            }*/
             
     		Notification status = new Notification(
     				R.drawable.notification_icon, null,
@@ -1228,6 +1176,10 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
                 if (mPlayListLen == 0) {
                     stop(true);
                     mPlayPos = -1;
+                    if (mCursor != null) {
+                        mCursor.close();
+                        mCursor = null;
+                    }
                 } else {
                     if (mPlayPos >= mPlayListLen) {
                         mPlayPos = 0;
@@ -1378,13 +1330,10 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
     public void setQueuePosition(int pos) {
         synchronized(this) {
         	deleteDownloadedFile();
+        	stop(false);
         	mPlayPos = pos;
-            stop(false);
             openCurrent();
             notifyChange(META_CHANGED);
-            /*if (mShuffleMode == SHUFFLE_AUTO) {
-                doAutoShuffleUpdate();
-            }*/
         }
     }
 
