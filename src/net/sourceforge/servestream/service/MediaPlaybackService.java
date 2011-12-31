@@ -121,8 +121,6 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
     public static final int PLAYER_ERROR = 7;
     private static final int MAX_HISTORY_SIZE = 100;
     
-    //private static final int SHOUTCAST_METADATA_REFRESH = 1;
-    
     protected StreamDatabase mStreamdb = null;
     
     private MultiPlayer mPlayer;
@@ -156,7 +154,6 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
     private boolean mPausedByTransientLossOfFocus = false;
     private boolean mPausedByConnectivityReceiver = false;
     private boolean mPausedDuringPhoneCall = false;
-    private SHOUTcastMetadata mSHOUTcastMetadata = null;
     
     private SharedPreferences mPreferences;
     private ConnectivityReceiver connectivityManager;
