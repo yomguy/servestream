@@ -106,6 +106,15 @@ public class Stream {
 		} else {
 			this.reference = "";
 		}
+		
+		// the following code is used as a temporary fix to deal with Android's
+		// handling of URL's that contain "special characters" such as "[" (Issue 12724)
+		String [] split = hostname.split("\\:");
+		
+		if (split.length == 2) {
+			hostname = split[0];
+			port = split[1];
+		}
 	}
 	
 	public void setID(long id) {
@@ -365,7 +374,7 @@ public class Stream {
 		sb.append(hostname)
 			.append(':')
 			.append(port)
-			.append(path);
+			.append(scrubPath(path));
 		
 		if (!query.equals("")) {
 		    sb.append('?')
@@ -378,5 +387,26 @@ public class Stream {
 		}
 		
 		return new URL(sb.toString());
+	}
+	
+	/**
+	 * Converts invalid URL characters to UTF-8 format. This method is used as a 
+	 * temporary fix to deal with Android's handling of URL's that contain 
+	 * "special characters" such as "[" (Issue 12724).
+	 * 
+	 * @param path The path to scrub
+	 * @return The path with invalid characters converted
+	 */
+	private String scrubPath(String path) {
+		String scrubbedPath = null;
+		
+		if (path == null) {
+			return null;
+		}
+		
+		scrubbedPath = path.replace("[", "%5B");
+		scrubbedPath = scrubbedPath.replace("]", "%5D");
+		
+		return scrubbedPath;
 	}
 }
