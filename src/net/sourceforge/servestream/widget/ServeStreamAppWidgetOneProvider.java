@@ -20,6 +20,7 @@ package net.sourceforge.servestream.widget;
 import net.sourceforge.servestream.R;
 import net.sourceforge.servestream.activity.MediaPlaybackActivity;
 import net.sourceforge.servestream.activity.StreamListActivity;
+import net.sourceforge.servestream.provider.Media;
 import net.sourceforge.servestream.service.MediaPlaybackService;
 import android.app.PendingIntent;
 import android.appwidget.AppWidgetManager;
@@ -128,14 +129,13 @@ public class ServeStreamAppWidgetOneProvider extends AppWidgetProvider {
         	CharSequence artistName = service.getArtistName();
         	//CharSequence errorState = null;
         
-        	if (trackName == null) {
-        		//trackName = service.getPlaylistMetadata();
-        		if (trackName == null)
-        			trackName = res.getText(R.string.widget_one_track_info_unavailable);
+        	if (trackName == null || trackName.equals(Media.UNKNOWN_STRING)) {
+        		trackName = res.getText(R.string.widget_one_track_info_unavailable);
         	}
         		
-        	if (artistName == null)
+        	if (artistName == null || artistName.equals(Media.UNKNOWN_STRING)) {
         		artistName = service.getMediaUri();
+        	}
         	
         	// Show media info
         	views.setViewVisibility(R.id.title, View.VISIBLE);
