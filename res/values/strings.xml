@@ -272,6 +272,9 @@
 	<!-- Do not translate. Background color for albums in the artists list view. -->
     <color name="expanding_child_background">#ff404040</color>
 	
+    <!-- context menu item to remove the selected item from the playlist -->
+    <string name="remove_from_playlist">Remove from playlist</string>
+    	
     <!-- End Music Code Strings -->
 	
 	<!-- Begin Alarm Code Strings -->
