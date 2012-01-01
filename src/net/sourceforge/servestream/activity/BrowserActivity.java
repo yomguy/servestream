@@ -174,8 +174,6 @@ public class BrowserActivity extends ListActivity implements ServiceConnection {
 	public void onStop() {
 		super.onStop();
 		
-        MusicUtils.unbindFromService(mToken);
-		
 		// close the connection to the database
 		if(this.mStreamdb != null) {
 			this.mStreamdb.close();
@@ -193,6 +191,8 @@ public class BrowserActivity extends ListActivity implements ServiceConnection {
     	}
     	 
     	mDirectoryScanner = null;
+    	
+        MusicUtils.unbindFromService(mToken);
     }
 	
 	@Override
