@@ -20,6 +20,7 @@ package net.sourceforge.servestream.activity;
 import net.sourceforge.servestream.R;
 import net.sourceforge.servestream.button.RepeatingImageButton;
 import net.sourceforge.servestream.player.MultiPlayer;
+import net.sourceforge.servestream.provider.Media;
 import net.sourceforge.servestream.service.IMediaPlaybackService;
 import net.sourceforge.servestream.service.MediaPlaybackService;
 import net.sourceforge.servestream.utils.MusicUtils;
@@ -51,7 +52,6 @@ import android.os.RemoteException;
 import android.os.SystemClock;
 import android.os.PowerManager.WakeLock;
 import android.preference.PreferenceManager;
-import android.provider.MediaStore;
 import android.text.Layout;
 import android.text.TextUtils.TruncateAt;
 import android.util.Log;
@@ -1195,27 +1195,18 @@ public class MediaPlaybackActivity extends Activity implements SurfaceHolder.Cal
             
             mTrackNumber.setText(mService.getTrackNumber());
             
-            long songid = mService.getAudioId(); 
-            if (songid < 0 && path.toLowerCase().startsWith("http://")) {
-                // Once we can get album art and meta data from MediaPlayer, we
-                // can show that info again when streaming.
-                ((View) mArtistName.getParent()).setVisibility(View.INVISIBLE);
-                ((View) mAlbumName.getParent()).setVisibility(View.INVISIBLE);
-                //mAlbum.setVisibility(View.GONE);
-                mTrackName.setText(path);
-            } else {
-                ((View) mArtistName.getParent()).setVisibility(View.VISIBLE);
-                ((View) mAlbumName.getParent()).setVisibility(View.VISIBLE);
-                String artistName = mService.getArtistName();
-                if (MediaStore.UNKNOWN_STRING.equals(artistName)) {
-                    artistName = getString(R.string.unknown_artist_name);
-                }
-                mArtistName.setText(artistName);
-                String albumName = mService.getAlbumName();
-                mAlbumName.setText(albumName);
-                mTrackName.setText(mService.getTrackName());
-                //mAlbum.setVisibility(View.VISIBLE);
+            ((View) mArtistName.getParent()).setVisibility(View.VISIBLE);
+            ((View) mAlbumName.getParent()).setVisibility(View.VISIBLE);
+                
+            String trackName = mService.getTrackName();
+            if (trackName == null || trackName.equals(Media.UNKNOWN_STRING)) {
+            	trackName = mService.getMediaUri();
             }
+                
+            mTrackName.setText(trackName);
+            mArtistName.setText(mService.getArtistName());
+            mAlbumName.setText(mService.getAlbumName());
+                
             mDuration = mService.duration();
             mTotalTime.setText(MusicUtils.makeTimeString(this, mDuration / 1000));
         } catch (RemoteException ex) {

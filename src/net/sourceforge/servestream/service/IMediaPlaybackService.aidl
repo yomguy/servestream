@@ -35,6 +35,7 @@ interface IMediaPlaybackService
     long duration();
     long position();
     long seek(long pos);
+    String getMediaUri();
     String getTrackName();
     String getAlbumName();
     String getArtistName();
