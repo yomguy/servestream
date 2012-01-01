@@ -689,8 +689,6 @@ public class NowPlayingActivity extends ListActivity implements View.OnCreateCon
         int mAudioIdIdx;
 
         private final StringBuilder mBuilder = new StringBuilder();
-        private final String mUnknownArtist;
-        private final String mUnknownAlbum;
         
         private NowPlayingActivity mActivity = null;
         private TrackQueryHandler mQueryHandler;
@@ -758,8 +756,6 @@ public class NowPlayingActivity extends ListActivity implements View.OnCreateCon
             super(context, layout, cursor, from, to);
             mActivity = currentactivity;
             getColumnIndices(cursor);
-            mUnknownArtist = context.getString(R.string.unknown_artist_name);
-            mUnknownAlbum = context.getString(R.string.unknown_album_name);
             
             mQueryHandler = new TrackQueryHandler(context.getContentResolver());
         }
