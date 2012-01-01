@@ -73,8 +73,6 @@ public class MetadataRetriever {
 		public RetrieveMetadataAsyncTask(Context context, int position) {
 	        super();
 	        mContext = context;
-	        
-	        System.out.println("POSITION IS++++++++++++++++++++> " + position);
 	        mPosition = position;
 	    }
 	    
