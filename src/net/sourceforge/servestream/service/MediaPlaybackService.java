@@ -616,9 +616,9 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
             notifyChange(META_CHANGED);
         }
         
-		if (mPreferences.getBoolean(PreferenceConstants.RETRIEVE_METADATA, false)) {
+		/*if (mPreferences.getBoolean(PreferenceConstants.RETRIEVE_METADATA, false)) {
 			MetadataRetriever.retrieve(MediaPlaybackService.this, mPlayList);
-    	}
+    	}*/
     }
     
     /**
@@ -693,6 +693,10 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
             if (oldId != getAudioId()) {
                 notifyChange(META_CHANGED);
             }
+            
+    		if (mPreferences.getBoolean(PreferenceConstants.RETRIEVE_METADATA, false)) {
+    			MetadataRetriever.retrieve(MediaPlaybackService.this, mPlayList, mPlayPos);
+        	}
         }
     }
     
@@ -1638,6 +1642,27 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
     	}
     	
     	return false;
+    }
+    
+    public void updateMetadata() {    	
+    	Cursor cursor;
+    	Cursor tempCursor;
+    	
+    	long id = mPlayList[mPlayPos];
+    	
+        cursor = getContentResolver().query(
+                Media.MediaColumns.CONTENT_URI,
+                mCursorCols, "_id=" + id , null, null);
+        
+        if (cursor != null) {
+        	cursor.moveToFirst();
+        	tempCursor = mCursor;
+        	mCursor = null;
+        	tempCursor.close();
+        	mCursor = cursor;
+        	
+            notifyChange(META_CHANGED);
+        }
     }
     
     private boolean handleError() {

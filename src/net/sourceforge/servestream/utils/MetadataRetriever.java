@@ -36,7 +36,6 @@ import org.xml.sax.SAXException;
 
 import android.content.ContentValues;
 import android.content.Context;
-import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.AsyncTask;
@@ -54,45 +53,50 @@ public class MetadataRetriever {
 	 * Retrieves metadata for an audio file and stores the information in the
 	 * corresponding media table row.
 	 */
-	public static void retrieve(Context context, long id) {
-		new RetrieveMetadataAsyncTask(context).execute(id);
+	public static void retrieve(Context context, long id, int position) {
+		//new RetrieveMetadataAsyncTask(context, position).execute(id);
 	}
 	
 	/*
 	 * Retrieves metadata for a set of audio files and stores the information in the
 	 * corresponding media table rows.
 	 */
-	public static void retrieve(Context context, long [] list) {
-		for (int i = 0; i < list.length; i++) {
-			new RetrieveMetadataAsyncTask(context).execute(list[i]);
-		}
+	public static void retrieve(Context context, long [] list, int position) {
+		new RetrieveMetadataAsyncTask(context, position).execute(list);
 	}
 	
-	private static class RetrieveMetadataAsyncTask extends AsyncTask<Long, Void, Boolean> {
+	private static class RetrieveMetadataAsyncTask extends AsyncTask<long [], Void, Boolean> {
 	    
 		private Context mContext = null;
+		int mPosition = -1;
 		
-		public RetrieveMetadataAsyncTask(Context context) {
+		public RetrieveMetadataAsyncTask(Context context, int position) {
 	        super();
 	        mContext = context;
+	        
+	        System.out.println("POSITION IS++++++++++++++++++++> " + position);
+	        mPosition = position;
 	    }
 	    
 		@Override
-		protected Boolean doInBackground(Long ... list) {
-			String uri = getUri(mContext, list[0]);
+		protected Boolean doInBackground(long [] ... list) {
+			for (int i = 0; i < list[0].length; i++) {
 			
-			if (uri != null) {
-				Metadata metadata = retrieveMetadata(uri);
+				String uri = getUri(mContext, list[0][i]);
+			
+				if (uri != null) {
+					Metadata metadata = retrieveMetadata(uri);
 				
-				if (metadata != null) {
-					updateMetadata(mContext, list[0], metadata);
+					if (metadata != null) {
+						updateMetadata(mContext, list[0][i], metadata);
 					
-					// send a broadcast so our activities can use the updated metadata 
-			        Intent intent = new Intent(MediaPlaybackService.META_CHANGED);
-					mContext.sendBroadcast(intent);
+						if (i == mPosition) {
+							// send a broadcast so our activities can use the updated metadata 
+							((MediaPlaybackService) mContext).updateMetadata();
+						}
+					}
 				}
 			}
-			
     		return true;
 		}
     }
