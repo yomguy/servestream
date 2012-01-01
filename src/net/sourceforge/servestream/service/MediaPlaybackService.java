@@ -833,20 +833,19 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
             mPlayer.start();
 
             String trackName = getTrackName();
-        	if (trackName == null) {
-        		//trackName = getPlaylistMetadata();
-        		trackName = null;
-        		if (trackName == null)
+        	if (trackName == null || trackName.equals(Media.UNKNOWN_STRING)) {
         			trackName = getMediaUri();
         	}
         	
             String artist = getArtistName();
-        	if (artist == null)
+        	if (artist == null || artist.equals(Media.UNKNOWN_STRING)) {
         		artist = getString(R.string.unknown_artist_name);
+        	}
                 
         	String album = getAlbumName();
-            if (album == null)
+            if (album == null || album.equals(Media.UNKNOWN_STRING)) {
                 album = getString(R.string.unknown_album_name);
+            }
             
     		Notification status = new Notification(
     				R.drawable.notification_icon, null,
@@ -1349,15 +1348,15 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
         }
     }
     
-    public String getArtistName() {
-        synchronized(this) {
+    public String getTrackName() {
+        synchronized (this) {
             if (mCursor == null) {
                 return null;
             }
-            return mCursor.getString(mCursor.getColumnIndexOrThrow(Media.MediaColumns.ARTIST));
+            return mCursor.getString(mCursor.getColumnIndexOrThrow(Media.MediaColumns.TITLE));
         }
     }
-
+    
     public String getAlbumName() {
         synchronized (this) {
             if (mCursor == null) {
@@ -1366,13 +1365,13 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
             return mCursor.getString(mCursor.getColumnIndexOrThrow(Media.MediaColumns.ALBUM));
         }
     }
-
-    public String getTrackName() {
-        synchronized (this) {
+    
+    public String getArtistName() {
+        synchronized(this) {
             if (mCursor == null) {
                 return null;
             }
-            return mCursor.getString(mCursor.getColumnIndexOrThrow(Media.MediaColumns.TITLE));
+            return mCursor.getString(mCursor.getColumnIndexOrThrow(Media.MediaColumns.ARTIST));
         }
     }
     
@@ -1489,6 +1488,9 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
         }
         public void next() {
             mService.get().next(true);
+        }
+        public String getMediaUri() {
+        	return mService.get().getMediaUri();
         }
         public String getTrackName() {
             return mService.get().getTrackName();
