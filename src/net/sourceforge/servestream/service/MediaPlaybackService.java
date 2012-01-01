@@ -48,7 +48,6 @@ import java.util.Vector;
 import net.sourceforge.servestream.R;
 import net.sourceforge.servestream.activity.MediaPlaybackActivity;
 import net.sourceforge.servestream.dbutils.StreamDatabase;
-import net.sourceforge.servestream.metadata.SHOUTcastMetadata;
 import net.sourceforge.servestream.player.MultiPlayer;
 import net.sourceforge.servestream.provider.Media;
 import net.sourceforge.servestream.utils.FileUtils;
