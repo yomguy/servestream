@@ -39,9 +39,7 @@ import android.database.CharArrayBuffer;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
-import android.os.Handler;
 import android.os.IBinder;
-import android.os.Message;
 import android.os.RemoteException;
 import android.provider.MediaStore;
 import android.util.Log;
@@ -196,24 +194,6 @@ public class NowPlayingActivity extends ListActivity implements View.OnCreateCon
         }
     }
     
-    @Override
-    public void onPause() {
-        mReScanHandler.removeCallbacksAndMessages(null);
-        super.onPause();
-    }
-    
-    private Handler mReScanHandler = new Handler() {
-        @Override
-        public void handleMessage(Message msg) {
-            if (mAdapter != null) {
-                getTrackCursor(mAdapter.getQueryHandler(), null, true);
-            }
-            // if the query results in a null cursor, onQueryComplete() will
-            // call init(), which will post a delayed message to this handler
-            // in order to try again.
-        }
-    };
-    
     public void init(Cursor newCursor, boolean isLimited) {
 
         if (mAdapter == null) {
@@ -224,7 +204,6 @@ public class NowPlayingActivity extends ListActivity implements View.OnCreateCon
         if (mTrackCursor == null) {
             //MusicUtils.displayDatabaseError(this);
             closeContextMenu();
-            mReScanHandler.sendEmptyMessageDelayed(0, 1000);
             return;
         }
 
@@ -703,6 +682,7 @@ public class NowPlayingActivity extends ListActivity implements View.OnCreateCon
     
     static class TrackListAdapter extends SimpleCursorAdapter {
 
+    	int mUriIdx;
         int mTitleIdx;
         int mArtistIdx;
         int mDurationIdx;
@@ -794,6 +774,7 @@ public class NowPlayingActivity extends ListActivity implements View.OnCreateCon
         
         private void getColumnIndices(Cursor cursor) {
             if (cursor != null) {
+            	mUriIdx = cursor.getColumnIndexOrThrow(Media.MediaColumns.URI);
                 mTitleIdx = cursor.getColumnIndexOrThrow(Media.MediaColumns.TITLE);
                 mArtistIdx = cursor.getColumnIndexOrThrow(Media.MediaColumns.ARTIST);
                 mDurationIdx = cursor.getColumnIndexOrThrow(Media.MediaColumns.DURATION);
@@ -828,12 +809,17 @@ public class NowPlayingActivity extends ListActivity implements View.OnCreateCon
             
             ViewHolder vh = (ViewHolder) view.getTag();
             
-            cursor.copyStringToBuffer(mTitleIdx, vh.buffer1);
-            vh.line1.setText(vh.buffer1.data, 0, vh.buffer1.sizeCopied);
+            String trackName = cursor.getString(mTitleIdx);
+            if (trackName == null || trackName.equals(Media.UNKNOWN_STRING)) {
+            	vh.line1.setText(R.string.widget_one_track_info_unavailable);
+            } else {           
+            	cursor.copyStringToBuffer(mTitleIdx, vh.buffer1);
+            	vh.line1.setText(vh.buffer1.data, 0, vh.buffer1.sizeCopied);
+        	}
             
             int secs = cursor.getInt(mDurationIdx) / 1000;
             if (secs == 0) {
-                vh.duration.setText("");
+                vh.duration.setText("    ");
             } else {
                 vh.duration.setText(MusicUtils.makeTimeString(context, secs));
             }
@@ -841,11 +827,11 @@ public class NowPlayingActivity extends ListActivity implements View.OnCreateCon
             final StringBuilder builder = mBuilder;
             builder.delete(0, builder.length());
 
-            String name = cursor.getString(mArtistIdx);
-            if (name == null || name.equals(MediaStore.UNKNOWN_STRING)) {
-                builder.append(mUnknownArtist);
+            String artistName = cursor.getString(mArtistIdx); 
+            if (artistName == null || artistName.equals(Media.UNKNOWN_STRING)) {
+            	builder.append(cursor.getString(mUriIdx));
             } else {
-                builder.append(name);
+            	builder.append(artistName);
             }
             int len = builder.length();
             if (vh.buffer2.length < len) {
