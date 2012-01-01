@@ -278,12 +278,17 @@ public class StreamListActivity extends ListActivity implements ServiceConnectio
 	public void onStop() {
 		super.onStop();
 		
-        MusicUtils.unbindFromService(mToken);
-		
 		if(mStreamdb != null) {
 			mStreamdb.close();
 			mStreamdb = null;
 		}
+	}
+	
+	@Override
+	public void onDestroy() {
+		super.onDestroy();
+		
+        MusicUtils.unbindFromService(mToken);		
 	}
 	
     @Override
