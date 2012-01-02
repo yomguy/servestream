@@ -17,16 +17,20 @@
 
 package net.sourceforge.servestream.alarm;
 
+import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 
 import net.sourceforge.servestream.R;
 import net.sourceforge.servestream.dbutils.Stream;
 import net.sourceforge.servestream.dbutils.StreamDatabase;
-import net.sourceforge.servestream.utils.MediaFile;
-import net.sourceforge.servestream.utils.PlaylistParser;
+import net.sourceforge.servestream.utils.MusicUtils;
+import net.sourceforge.servestream.utils.URLUtils;
+import net.sourceforge.servestream.utils.MusicUtils.ServiceToken;
 import android.app.Service;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.ServiceConnection;
 import android.content.res.AssetFileDescriptor;
 import android.content.res.Resources;
 import android.media.AudioManager;
@@ -48,7 +52,7 @@ import android.util.Log;
  * Manages alarms and vibe. Runs as a service so that it can continue to play
  * if another activity overrides the AlarmAlert dialog.
  */
-public class AlarmKlaxon extends Service {
+public class AlarmKlaxon extends Service implements ServiceConnection {
 	private static final String TAG = AlarmKlaxon.class.getName();
 	
     /** Play alarm up to 20 minutes before silencing */
@@ -64,8 +68,12 @@ public class AlarmKlaxon extends Service {
     private TelephonyManager mTelephonyManager;
     private int mInitialCallState;
 
+    private Alarm mAlarm;
+    private ServiceToken mToken;
+    
     // Internal messages
     private static final int KILLER = 1000;
+    private static final int FALLBACK = 2000;
     private Handler mHandler = new Handler() {
         public void handleMessage(Message msg) {
             switch (msg.what) {
@@ -74,6 +82,9 @@ public class AlarmKlaxon extends Service {
                     sendKillBroadcast((Alarm) msg.obj);
                     stopSelf();
                     break;
+                case FALLBACK:
+                	useFallbackSound();
+                	break;
             }
         }
     };
@@ -110,6 +121,8 @@ public class AlarmKlaxon extends Service {
         // Stop listening for incoming calls.
         mTelephonyManager.listen(mPhoneStateListener, 0);
         AlarmAlertWakeLock.releaseCpuLock();
+        
+        MusicUtils.unbindFromService(mToken);
     }
 
     @Override
@@ -138,11 +151,8 @@ public class AlarmKlaxon extends Service {
             sendKillBroadcast(mCurrentAlarm);
         }
 
-        play(alarm);
-        mCurrentAlarm = alarm;
-        // Record the initial call state here so that the new alarm has the
-        // newest state.
-        mInitialCallState = mTelephonyManager.getCallState();
+        mAlarm = alarm;
+        mToken = MusicUtils.bindToService(this, this);
 
         return START_STICKY;
     }
@@ -211,23 +221,11 @@ public class AlarmKlaxon extends Service {
                     setDataSourceFromResource(getResources(), mMediaPlayer,
                             R.raw.in_call_alarm);
                     startAlarm(mMediaPlayer);
-                } else {
-                	new ParsePlaylistAsyncTask().execute(alert.toString());
+                } else {                	
+                	new AlarmAsyncTask().execute(alert.toString());
                 }
             } catch (Exception ex) {
-                Log.v(TAG, "Using the fallback ringtone");
-                // The alert may be on the sd card which could be busy right
-                // now. Use the fallback ringtone.
-                try {
-                    // Must reset the media player to clear the error state.
-                    mMediaPlayer.reset();
-                    setDataSourceFromResource(getResources(), mMediaPlayer,
-                            R.raw.fallbackring);
-                    startAlarm(mMediaPlayer);
-                } catch (Exception ex2) {
-                    // At this point we just don't play anything.
-                    Log.e(TAG, "Failed to play fallback ringtone", ex2);
-                }
+            	useFallbackSound();
             }
         }
 
@@ -281,10 +279,19 @@ public class AlarmKlaxon extends Service {
 
             // Stop audio playing
             if (mMediaPlayer != null) {
-                mMediaPlayer.stop();
+            	mMediaPlayer.stop();
                 mMediaPlayer.release();
                 mMediaPlayer = null;
             }
+            
+            try {
+            	if (MusicUtils.sService.isPlaying()) {
+            		MusicUtils.sService.pause();
+            		MusicUtils.sService.stop();
+            	}
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
 
             // Stop vibrator
             mVibrator.cancel();
@@ -308,52 +315,94 @@ public class AlarmKlaxon extends Service {
         mHandler.removeMessages(KILLER);
     }
     
-    public class ParsePlaylistAsyncTask extends AsyncTask<String, Void, MediaFile> {
+    public class AlarmAsyncTask extends AsyncTask<String, Void, Boolean> {
 		
-	    public ParsePlaylistAsyncTask() {
+	    public AlarmAsyncTask() {
 	        super();
-	    }
-
-	    @Override
-	    protected void onPreExecute() {
-	    	
 	    }
 	    
 		@Override
-		protected MediaFile doInBackground(String... filename) {
-			MediaFile [] mPlayListFiles = null;
+		protected Boolean doInBackground(String... uri) {
+			Stream stream = null;
 			
     		try {
-				Stream stream = new Stream(filename[0]);
-			
-				PlaylistParser playlist = PlaylistParser.getPlaylistParser(stream.getURL(), "");
-				
-				if (playlist != null) {
-					playlist.retrieveAndParsePlaylist();
-					//mPlayListFiles = playlist.getPlaylistFiles();
-				} else {
-					mPlayListFiles = new MediaFile[1];         
-					MediaFile mediaFile = new MediaFile();
-					mediaFile.setURL(stream.getURL().toString());
-					mediaFile.setTrackNumber(1);
-					mPlayListFiles[0] = mediaFile;
-				}
+				stream = new Stream(uri[0]);				
 			} catch (MalformedURLException ex) {
 				ex.printStackTrace();
 			}
 			
-			return mPlayListFiles[0];
+			return handleURL(stream);
 		}
 
 		@Override
-		protected void onPostExecute(MediaFile mediaFile) {
-		    try {
-				mMediaPlayer.setDataSource(mediaFile.getURL().toString());
-				startAlarm(mMediaPlayer);
+		protected void onPostExecute(Boolean success) {
+			if (!success) {
+				mHandler.sendEmptyMessage(FALLBACK);
+			}
+		}
+		
+		private boolean handleURL(Stream stream) {
+			String contentType = null;
+			URLUtils urlUtils = null;
+			boolean success = false;
+			
+			try {
+				urlUtils = new URLUtils(stream.getURL());
+				Log.v(TAG, "URI is: " + stream.getURL());
 			} catch (Exception ex) {
 				ex.printStackTrace();
+				return false;
 			}
+			
+			if (urlUtils.getResponseCode() == HttpURLConnection.HTTP_OK) {			
+				contentType = urlUtils.getContentType();
+		    }
+			
+			if (contentType != null && !contentType.contains("text/html")) {
+				try {
+					long [] list = MusicUtils.getFilesInPlaylist(AlarmKlaxon.this, stream.getURL(), contentType);
+					
+					if (list != null && list.length > 0) {
+						MusicUtils.playAll(AlarmKlaxon.this, list, 0, false, true);
+						success = true;
+					}
+				} catch (MalformedURLException e) {
+					e.printStackTrace();
+				}
+			}
+			
+			return success;
 		}
     }
 
+    /**
+     * Starts the fallback alarm sound
+     */
+    private void useFallbackSound() {
+        Log.v(TAG, "Using the fallback ringtone");
+        // The alert may be on the sd card which could be busy right
+        // now. Use the fallback ringtone.
+        try {
+            // Must reset the media player to clear the error state.
+            mMediaPlayer.reset();
+            setDataSourceFromResource(getResources(), mMediaPlayer,
+                    R.raw.fallbackring);
+            startAlarm(mMediaPlayer);
+        } catch (Exception ex2) {
+            // At this point we just don't play anything.
+            Log.e(TAG, "Failed to play fallback ringtone", ex2);
+        }
+    }
+    
+	public void onServiceConnected(ComponentName name, IBinder service) {		
+        play(mAlarm);
+        mCurrentAlarm = mAlarm;
+        // Record the initial call state here so that the new alarm has the
+        // newest state.
+        mInitialCallState = mTelephonyManager.getCallState();
+	}
+
+	public void onServiceDisconnected(ComponentName name) {
+				
+	}
 }
