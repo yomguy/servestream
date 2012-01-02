@@ -30,6 +30,7 @@ import net.sourceforge.servestream.provider.Media;
 import net.sourceforge.servestream.service.IMediaPlaybackService;
 import net.sourceforge.servestream.service.MediaPlaybackService;
 import android.app.Activity;
+import android.app.Service;
 import android.content.ComponentName;
 import android.content.ContentResolver;
 import android.content.ContentUris;
@@ -84,6 +85,18 @@ public class MusicUtils {
             realActivity = context;
         }
         ContextWrapper cw = new ContextWrapper(realActivity);
+        cw.startService(new Intent(cw, MediaPlaybackService.class));
+        ServiceBinder sb = new ServiceBinder(callback);
+        if (cw.bindService((new Intent()).setClass(cw, MediaPlaybackService.class), sb, 0)) {
+            sConnectionMap.put(cw, sb);
+            return new ServiceToken(cw);
+        }
+        Log.e("Music", "Failed to bind to service");
+        return null;
+    }
+    
+    public static ServiceToken bindToService(Service context, ServiceConnection callback) {
+        ContextWrapper cw = new ContextWrapper(context);
         cw.startService(new Intent(cw, MediaPlaybackService.class));
         ServiceBinder sb = new ServiceBinder(callback);
         if (cw.bindService((new Intent()).setClass(cw, MediaPlaybackService.class), sb, 0)) {
@@ -184,25 +197,15 @@ public class MusicUtils {
         return sFormatter.format(durationformat, timeArgs).toString();
     }
     
-    /*public static void playAll(Context context, Cursor cursor) {
-        playAll(context, cursor, 0, false);
+    public static void playAll(Context context, long [] list, int position, boolean fromActivity) {
+        playAll(context, list, position, false, fromActivity);
     }
-    
-    public static void playAll(Context context, Cursor cursor, int position) {
-        playAll(context, cursor, position, false);
-    }*/
     
     public static void playAll(Context context, long [] list, int position) {
-        playAll(context, list, position, false);
+        playAll(context, list, position, false, true);
     }
     
-    /*private static void playAll(Context context, Cursor cursor, int position, boolean force_shuffle) {
-    
-        long [] list = getSongListForCursor(cursor);
-        playAll(context, list, position, force_shuffle);
-    }*/
-    
-    private static void playAll(Context context, long [] list, int position, boolean force_shuffle) {
+    private static void playAll(Context context, long [] list, int position, boolean force_shuffle, boolean fromActivity) {
         if (list.length == 0 || sService == null) {
             Log.d("MusicUtils", "attempt to play empty song list");
             // Don't try to play empty playlists. Nothing good will come of it.
@@ -231,11 +234,16 @@ public class MusicUtils {
                 position = 0;
             }
             sService.open(list, force_shuffle ? -1 : position);
-            //sService.play();
         } catch (RemoteException ex) {
         } finally {
-            Intent intent = new Intent("net.sourceforge.servestream.PLAYBACK_VIEWER")
-                .setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+            Intent intent = new Intent("net.sourceforge.servestream.PLAYBACK_VIEWER");
+            
+            if (fromActivity) {
+            	intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+            } else {
+            	intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            }
+            
             context.startActivity(intent);
         }
     }
