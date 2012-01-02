@@ -363,7 +363,7 @@ public class AlarmKlaxon extends Service implements ServiceConnection {
 					long [] list = MusicUtils.getFilesInPlaylist(AlarmKlaxon.this, stream.getURL(), contentType);
 					
 					if (list != null && list.length > 0) {
-						MusicUtils.playAll(AlarmKlaxon.this, list, 0, false, true);
+						MusicUtils.playAll(AlarmKlaxon.this, list, 0, false);
 						success = true;
 					}
 				} catch (MalformedURLException e) {
