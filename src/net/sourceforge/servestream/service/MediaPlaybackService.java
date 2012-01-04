@@ -73,7 +73,7 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
     public static final int NOW = 1;
     public static final int NEXT = 2;
     public static final int LAST = 3;
-    public static final int PLAYBACKSERVICE_STATUS = 1;
+    public static final int PLAYBACKSERVICE_STATUS = 100;
     
     public static final int SHUFFLE_NONE = 0;
     public static final int SHUFFLE_ON = 1;
