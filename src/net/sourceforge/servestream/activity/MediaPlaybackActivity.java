@@ -52,21 +52,18 @@ import android.os.RemoteException;
 import android.os.SystemClock;
 import android.os.PowerManager.WakeLock;
 import android.preference.PreferenceManager;
-import android.text.Layout;
-import android.text.TextUtils.TruncateAt;
 import android.util.Log;
 import android.view.Display;
 import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
-import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
-import android.view.ViewConfiguration;
 import android.view.Window;
 import android.view.View.OnLongClickListener;
+import android.view.WindowManager;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.Button;
@@ -107,7 +104,6 @@ public class MediaPlaybackActivity extends Activity implements SurfaceHolder.Cal
     private Button mRepeatButton;
     private Button mShuffleButton;
     private Toast mToast;
-    private int mTouchSlop;
     private ServiceToken mToken;
 
     private TextView mTrackNumber;
@@ -129,8 +125,9 @@ public class MediaPlaybackActivity extends Activity implements SurfaceHolder.Cal
         super.onCreate(icicle);
         setVolumeControlStream(AudioManager.STREAM_MUSIC);
 
-        if (Build.VERSION.SDK_INT < 11)
-        	this.requestWindowFeature(Window.FEATURE_NO_TITLE);
+        if (Build.VERSION.SDK_INT < 11) {
+        	requestWindowFeature(Window.FEATURE_NO_TITLE);
+        }
 
         mPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         mPreferences.registerOnSharedPreferenceChangeListener(this);
@@ -143,7 +140,7 @@ public class MediaPlaybackActivity extends Activity implements SurfaceHolder.Cal
 		getDisplayMeasurements();
         
 		// determine fullscreen mode
-		//setFullscreenMode(getResources().getConfiguration().orientation);
+		setFullscreenMode(getResources().getConfiguration().orientation);
 		
         setContentView(R.layout.acc_mediaplayer);
 
@@ -183,8 +180,6 @@ public class MediaPlaybackActivity extends Activity implements SurfaceHolder.Cal
         }
         mProgress.setMax(1000);
 
-        mTouchSlop = ViewConfiguration.get(this).getScaledTouchSlop();
-        
 		// preload animation for media controller
 		media_controls_fade_in = AnimationUtils.loadAnimation(this, R.anim.media_controls_fade_in);
 		media_controls_fade_out = AnimationUtils.loadAnimation(this, R.anim.media_controls_fade_out);
@@ -222,95 +217,6 @@ public class MediaPlaybackActivity extends Activity implements SurfaceHolder.Cal
         if (vv != null) return (TextView) vv;
         return null;
     }
-    
-    public boolean onTouch(View v, MotionEvent event) {
-        int action = event.getAction();
-        TextView tv = textViewForContainer(v);
-        if (tv == null) {
-            return false;
-        }
-        if (action == MotionEvent.ACTION_DOWN) {
-            v.setBackgroundColor(0xff606060);
-            mInitialX = mLastX = (int) event.getX();
-            mDraggingLabel = false;
-        } else if (action == MotionEvent.ACTION_UP ||
-                action == MotionEvent.ACTION_CANCEL) {
-            v.setBackgroundColor(0);
-            if (mDraggingLabel) {
-                Message msg = mLabelScroller.obtainMessage(0, tv);
-                mLabelScroller.sendMessageDelayed(msg, 1000);
-            }
-        } else if (action == MotionEvent.ACTION_MOVE) {
-            if (mDraggingLabel) {
-                int scrollx = tv.getScrollX();
-                int x = (int) event.getX();
-                int delta = mLastX - x;
-                if (delta != 0) {
-                    mLastX = x;
-                    scrollx += delta;
-                    if (scrollx > mTextWidth) {
-                        // scrolled the text completely off the view to the left
-                        scrollx -= mTextWidth;
-                        scrollx -= mViewWidth;
-                    }
-                    if (scrollx < -mViewWidth) {
-                        // scrolled the text completely off the view to the right
-                        scrollx += mViewWidth;
-                        scrollx += mTextWidth;
-                    }
-                    tv.scrollTo(scrollx, 0);
-                }
-                return true;
-            }
-            int delta = mInitialX - (int) event.getX();
-            if (Math.abs(delta) > mTouchSlop) {
-                // start moving
-                mLabelScroller.removeMessages(0, tv);
-                
-                // Only turn ellipsizing off when it's not already off, because it
-                // causes the scroll position to be reset to 0.
-                if (tv.getEllipsize() != null) {
-                    tv.setEllipsize(null);
-                }
-                Layout ll = tv.getLayout();
-                // layout might be null if the text just changed, or ellipsizing
-                // was just turned off
-                if (ll == null) {
-                    return false;
-                }
-                // get the non-ellipsized line width, to determine whether scrolling
-                // should even be allowed
-                mTextWidth = (int) tv.getLayout().getLineWidth(0);
-                mViewWidth = tv.getWidth();
-                if (mViewWidth > mTextWidth) {
-                    tv.setEllipsize(TruncateAt.END);
-                    v.cancelLongPress();
-                    return false;
-                }
-                mDraggingLabel = true;
-                tv.setHorizontalFadingEdgeEnabled(true);
-                v.cancelLongPress();
-                return true;
-            }
-        }
-        return false; 
-    }
-
-    Handler mLabelScroller = new Handler() {
-        @Override
-        public void handleMessage(Message msg) {
-            TextView tv = (TextView) msg.obj;
-            int x = tv.getScrollX();
-            x = x * 3 / 4;
-            tv.scrollTo(x, 0);
-            if (x == 0) {
-                tv.setEllipsize(TruncateAt.END);
-            } else {
-                Message newmsg = obtainMessage(0, tv);
-                mLabelScroller.sendMessageDelayed(newmsg, 15);
-            }
-        }
-    };
     
     private OnSeekBarChangeListener mSeekListener = new OnSeekBarChangeListener() {
         public void onStartTrackingTouch(SeekBar bar) {
@@ -457,39 +363,18 @@ public class MediaPlaybackActivity extends Activity implements SurfaceHolder.Cal
     
     @Override
     public void onStop() {
+    	super.onStop();
+    	
         paused = true;
         mHandler.removeMessages(REFRESH);
         unregisterReceiver(mStatusListener);
         MusicUtils.unbindFromService(mToken);
         mService = null;
-        super.onStop();
     }
     
     @Override
     public void onDestroy() {
         super.onDestroy();
-    }
-
-    protected Dialog onCreateDialog(int id) {
-	    Dialog dialog;
-	    ProgressDialog progressDialog = null;
-	    switch(id) {
-	    case PREPARING_MEDIA:
-        	progressDialog = new ProgressDialog(MediaPlaybackActivity.this);
-        	progressDialog.setMessage("Opening file...");
-        	progressDialog.setCancelable(true);
-	    	return progressDialog;
-	    default:
-	        dialog = null;
-	    }
-	    return dialog;
-	}
-    
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        MenuInflater inflater = getMenuInflater();
-        inflater.inflate(R.menu.stream_media_menu, menu);
-        return true;
     }
 
     @Override
@@ -538,6 +423,69 @@ public class MediaPlaybackActivity extends Activity implements SurfaceHolder.Cal
 		}
          	
 		return false;
+    }
+    
+    protected Dialog onCreateDialog(int id) {
+	    Dialog dialog;
+	    ProgressDialog progressDialog = null;
+	    switch(id) {
+	    case PREPARING_MEDIA:
+        	progressDialog = new ProgressDialog(MediaPlaybackActivity.this);
+        	progressDialog.setMessage("Opening file...");
+        	progressDialog.setCancelable(true);
+	    	return progressDialog;
+	    default:
+	        dialog = null;
+	    }
+	    return dialog;
+	}
+    
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.stream_media_menu, menu);
+        return true;
+    }
+
+    @Override
+   	public void onConfigurationChanged(Configuration newConfig) {
+   		super.onConfigurationChanged(newConfig);
+   		
+   		boolean controlsAreVisible = false;
+   		
+   		if (controlsAreVisible = mMediaControls.isShown()) {
+   			mMediaControls.setVisibility(View.GONE);
+   		}
+   		
+   		// get new window size on orientation change
+   		getDisplayMeasurements();
+   		
+   		setFullscreenMode(newConfig.orientation);
+   	    
+   	    if (holder != null)
+   	    	holder.setFixedSize(mDisplayWidth, mDisplayHeight);
+   	    
+   	    if (controlsAreVisible)
+   	    	mMediaControls.setVisibility(View.VISIBLE);
+   	}
+    
+    private void setFullscreenMode(int orientation) {
+	    if (orientation == Configuration.ORIENTATION_LANDSCAPE) {
+	        getWindow().clearFlags(WindowManager.LayoutParams.FLAG_FORCE_NOT_FULLSCREEN);
+	        getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
+	    } else {
+	        getWindow().clearFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
+	        getWindow().setFlags(WindowManager.LayoutParams.FLAG_FORCE_NOT_FULLSCREEN, WindowManager.LayoutParams.FLAG_FORCE_NOT_FULLSCREEN);
+	    }
+    }
+    
+    /**
+     * Retrieve the phone display width and height
+     */
+    private void getDisplayMeasurements() {
+        Display display = getWindowManager().getDefaultDisplay();
+        mDisplayWidth = display.getWidth();
+        mDisplayHeight = display.getHeight();
     }
     
     private final int keyboard[][] = {
@@ -694,15 +642,6 @@ public class MediaPlaybackActivity extends Activity implements SurfaceHolder.Cal
         return false;
     }
 
-    /**
-     * Retrieve the phone display width and height
-     */
-    private void getDisplayMeasurements() {
-        Display display = getWindowManager().getDefaultDisplay();
-        mDisplayWidth = display.getWidth();
-        mDisplayHeight = display.getHeight();
-    }
-    
     private void makeSurface() {
         preview = (SurfaceView) findViewById(R.id.surface_view);
         preview.setOnLongClickListener(new OnLongClickListener() {
