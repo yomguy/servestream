@@ -1090,8 +1090,11 @@ public class MediaPlaybackActivity extends Activity implements SurfaceHolder.Cal
                 updateTrackInfo();
                 setPauseButtonImage();
                 queueNextRefresh(1);
-        		mMediaControls.startAnimation(media_controls_fade_in);
-        		mMediaControls.setVisibility(View.VISIBLE);
+        		
+                if (mMediaControls.getVisibility() != View.VISIBLE) {
+                	mMediaControls.startAnimation(media_controls_fade_in);
+                	mMediaControls.setVisibility(View.VISIBLE);
+                }
             } else if (action.equals(MediaPlaybackService.PLAYSTATE_CHANGED)) {
                 setPauseButtonImage();
             } else if (action.equals(MediaPlaybackService.START_DIALOG)) {
