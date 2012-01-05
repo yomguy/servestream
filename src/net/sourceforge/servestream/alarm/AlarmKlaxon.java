@@ -287,7 +287,6 @@ public class AlarmKlaxon extends Service implements ServiceConnection {
             try {
             	if (MusicUtils.sService.isPlaying()) {
             		MusicUtils.sService.pause();
-            		MusicUtils.sService.stop();
             	}
 			} catch (Exception e) {
 				e.printStackTrace();
