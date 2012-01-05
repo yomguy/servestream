@@ -253,19 +253,6 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
   	    }
   	}
     
-    /*private final Handler mSHOUTcastMetadataHandler = new Handler() {
-        @Override
-        public void handleMessage(Message msg) {
-            switch (msg.what) {
-                case SHOUTCAST_METADATA_REFRESH:
-                	new SHOUTcastMetadataAsyncTask().execute(mSHOUTcastMetadata);
-                    break;
-                default:
-                    break;
-            }
-        }
-    };*/
-    
     private BroadcastReceiver mIntentReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
@@ -360,6 +347,11 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
         commandFilter = new IntentFilter();
         commandFilter.addAction(Intent.ACTION_DOCK_EVENT);
         registerReceiver(mDockReceiver,commandFilter);
+        
+        // If the service was idle, but got killed before it stopped itself, the
+        // system will relaunch it. Make sure it gets stopped again in that case.
+        Message msg = mDelayedStopHandler.obtainMessage();
+        mDelayedStopHandler.sendMessageDelayed(msg, IDLE_DELAY);
     }
 
     @Override
@@ -386,8 +378,9 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
         mAudioManager.abandonAudioFocus(mAudioFocusListener);
 
         // make sure there aren't any other messages coming
-        mSleepTimerHandler.removeCallbacksAndMessages(null);
+        mDelayedStopHandler.removeCallbacksAndMessages(null);
         mMediaplayerHandler.removeCallbacksAndMessages(null);
+        mSleepTimerHandler.removeCallbacksAndMessages(null);
 
         if (mCursor != null) {
             mCursor.close();
@@ -429,24 +422,25 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
     
     @Override
     public IBinder onBind(Intent intent) {
-    	
 		Log.v(TAG, "onBind called");
     	
-		// Make sure we stay running
-		startService(new Intent(this, MediaPlaybackService.class));
-    	
+        mDelayedStopHandler.removeCallbacksAndMessages(null);
         mServiceInUse = true;
         return mBinder;
     }
 
     @Override
     public void onRebind(Intent intent) {
+    	Log.v(TAG, "onRebind called");
+    	
+    	mDelayedStopHandler.removeCallbacksAndMessages(null);
         mServiceInUse = true;
     }
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         mServiceStartId = startId;
+        mDelayedStopHandler.removeCallbacksAndMessages(null);
 
         if (intent != null) {
             String action = intent.getAction();
@@ -483,6 +477,11 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
             
         }
         
+        // make sure the service will shut down on its own if it was
+        // just started but not bound to and nothing is playing
+        mDelayedStopHandler.removeCallbacksAndMessages(null);
+        Message msg = mDelayedStopHandler.obtainMessage();
+        mDelayedStopHandler.sendMessageDelayed(msg, IDLE_DELAY);
         return START_STICKY;
     }
     
@@ -506,8 +505,8 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
         // before stopping the service, so that pause/resume isn't slow.
         // Also delay stopping the service if we're transitioning between tracks.
         if (mPlayListLen > 0  || mMediaplayerHandler.hasMessages(TRACK_ENDED)) {
-            //Message msg = mDelayedStopHandler.obtainMessage();
-            //mDelayedStopHandler.sendMessageDelayed(msg, IDLE_DELAY);
+            Message msg = mDelayedStopHandler.obtainMessage();
+            mDelayedStopHandler.sendMessageDelayed(msg, IDLE_DELAY);
             return true;
         }
         
@@ -521,12 +520,16 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
         @Override
         public void handleMessage(Message msg) {
             // Check again to make sure nothing is playing right now
-            //if (isPlaying() || mPausedByTransientLossOfFocus || mServiceInUse
-            //        || mMediaplayerHandler.hasMessages(TRACK_ENDED)) {
-            //    return;
-            //}
+            if (isPlaying() || mPausedByTransientLossOfFocus || mServiceInUse
+                    || mMediaplayerHandler.hasMessages(TRACK_ENDED)) {
+                return;
+            }
             
             cancelAllDownloads1();
+            // save the queue again, because it might have changed
+            // since the user exited the music app (because of
+            // party-shuffle or because the play-position changed)
+            stopSelf(mServiceStartId);
         }
     };
     
@@ -877,7 +880,7 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
             mCursor = null;
         }
         if (remove_status_icon) {
-        	stopForeground(true);
+        	gotoIdleState();
         } else {
             stopForeground(false);
         }
@@ -1018,7 +1021,11 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
                         }
                     } else {
                         // all done
-                    	notifyChange(CLOSE_PLAYER);
+                        gotoIdleState();
+                        if (mIsSupposedToBePlaying) {
+                            mIsSupposedToBePlaying = false;
+                            notifyChange(PLAYSTATE_CHANGED);
+                        }
                         return;
                     }
                 }
@@ -1038,9 +1045,10 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
                     // we're at the end of the list
                     if (mRepeatMode == REPEAT_NONE && !force) {
                         // all done
-                        mIsSupposedToBePlaying = false;
-                        notifyChange(CLOSE_PLAYER);
-                        return;
+                    	 gotoIdleState();
+                         mIsSupposedToBePlaying = false;
+                         notifyChange(PLAYSTATE_CHANGED);
+                         return;
                     } else if (mRepeatMode == REPEAT_ALL || force) {
                         mPlayPos = 0;
                     }
@@ -1058,6 +1066,7 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
         mDelayedStopHandler.removeCallbacksAndMessages(null);
         Message msg = mDelayedStopHandler.obtainMessage();
         mDelayedStopHandler.sendMessageDelayed(msg, IDLE_DELAY);
+        stopForeground(true);
     }
     
     private synchronized void deleteDownloadedFile() {
