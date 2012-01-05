@@ -365,6 +365,8 @@ public class MediaPlaybackActivity extends Activity implements SurfaceHolder.Cal
     public void onStop() {
     	super.onStop();
     	
+    	Log.v(TAG, "onStop called");
+    	
         paused = true;
         mHandler.removeMessages(REFRESH);
         unregisterReceiver(mStatusListener);
