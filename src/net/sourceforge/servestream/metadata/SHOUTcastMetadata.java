@@ -24,25 +24,39 @@ package net.sourceforge.servestream.metadata;
 
 import java.io.InputStream;
 import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import android.os.Handler;
-import android.os.Message;
+import android.content.BroadcastReceiver;
+import android.content.ContentValues;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
+import android.database.Cursor;
+import android.net.Uri;
+import android.os.AsyncTask;
+import android.os.RemoteException;
 import android.util.Log;
 
+import net.sourceforge.servestream.provider.Media;
+import net.sourceforge.servestream.service.MediaPlaybackService;
+import net.sourceforge.servestream.utils.MusicUtils;
 import net.sourceforge.servestream.utils.Utils;
 
-public class SHOUTcastMetadata {
+public class SHOUTcastMetadata extends BroadcastReceiver {
 	private static final String TAG = SHOUTcastMetadata.class.getName();
 	
-	public static final String ARTIST = "artist";
-	public static final String TITLE = "title";  
+    private static final int POLLING_FREQUENCY = 10000;
+	
+	private final MediaPlaybackService mMediaPlaybackService;
+	
+	private static final String ARTIST = "artist";
+	private static final String TITLE = "title";  
 	
 	private static final String STREAM_TITLE = "StreamTitle";
 	private static final String STREAM_TITLE_REPLAY = "StreamTitleReplay";
@@ -52,40 +66,83 @@ public class SHOUTcastMetadata {
      */
     private Map<String, String> mMetadata = null;
     
+    private long mId;
 	private URL mUrl = null;
-	private boolean mContainsMetadata = false;
+	private boolean mContainsMetadata = false;	
 	
-	private Handler mHandler = null;
-	private int mWhat = -1;
-  
-	private final AtomicReference<Thread> mThread = new AtomicReference<Thread>();
+	private PollingAsyncTask mPollingAsyncTask = null;
 	
     /**
      * Default constructor
      * 
      * @param url The url to extract SHOUTcast metadata from
      */
-    public SHOUTcastMetadata(URL url) {
-    	mUrl = url;
-    	mMetadata = new HashMap<String, String>();
-    }
-  
-    /**
-     * Default constructor
-     * 
-     * @param url The url to extract SHOUTcast metadata from
-     */
-    public SHOUTcastMetadata(URL url, Handler handler, int what) {
-    	mUrl = url;
-    	mHandler = handler;
-    	mWhat = what;
-    	mMetadata = new HashMap<String, String>();
-    }
+	public SHOUTcastMetadata(MediaPlaybackService mediaPlaybackService) {
+		mMediaPlaybackService = mediaPlaybackService;
+		mMetadata = new HashMap<String, String>();
+	    mId = -1;
+		
+		IntentFilter filter = new IntentFilter();
+		filter.addAction(MediaPlaybackService.PLAYSTATE_CHANGED);
+		mediaPlaybackService.registerReceiver(this, filter);
+	}
+	
+	@Override
+	public void onReceive(Context context, Intent intent) {
+		final String action = intent.getAction();
+
+		if (action.equals(MediaPlaybackService.PLAYSTATE_CHANGED)) {
+           Log.w(TAG, "onReceived() called: " + intent);
+           
+           long id = intent.getLongExtra("id", -1);
+           
+           if (id == -1) {
+        	   return;
+           }
+        	   
+           try {
+        	   if (MusicUtils.sService != null) {        		   
+        		   if (MusicUtils.sService.isPlaying()) {
+        			   if (id != mId) {
+        				   retrieve(id);
+        			   } else {
+        				   // If the url does not contain metadata so don't try
+        				   // to start another thread
+        				   if (!mContainsMetadata) {
+        					   Log.v(TAG, "Not starting thread because URL doesn't have metadata");
+        					   return;
+        				   }
+        			   }
+        			   
+        			   start();
+        		   } else {
+        			   cancel();
+        		   }
+        	   }
+   			} catch (RemoteException e) {
+   				e.printStackTrace();
+   			}
+		}
+	}
+	
+	private void retrieve(long id) {
+		String uri = getUri(mMediaPlaybackService, id);
+		
+		if (uri != null) {
+			mId = id;
+			
+			try {
+				mUrl = new URL(uri);
+			} catch (MalformedURLException e) {
+				e.printStackTrace();
+			}			
+		}
+	}
     
     /**
      * Refreshes the SHOUTcast metadata
      */
-    public void refreshMetadata() {
+    private void refreshMetadata() {
     	retrieveMetadata();
     }
 
@@ -97,6 +154,8 @@ public class SHOUTcastMetadata {
     	int metaDataOffset = 0;
     	HttpURLConnection conn = null;
     	InputStream stream = null;
+    	int bytesRead = 0;
+    	mContainsMetadata = false;
 	  
     	try {
         	conn = (HttpURLConnection) mUrl.openConnection();
@@ -117,8 +176,9 @@ public class SHOUTcastMetadata {
     	    	StringBuffer strHeaders = new StringBuffer();
     	    	char c;
     	    	while ((c = (char)stream.read()) != -1) {
+    	    		bytesRead++;
     	    		strHeaders.append(c);
-    	    		if (strHeaders.length() > 5 && (strHeaders.substring((strHeaders.length() - 4), strHeaders.length()).equals("\r\n\r\n"))) {
+    	    		if ((strHeaders.length() > 5 && (strHeaders.substring((strHeaders.length() - 4), strHeaders.length()).equals("\r\n\r\n")) || bytesRead > 200)) {
     	    			// end of headers
     	    			break;
     	    		}
@@ -232,7 +292,7 @@ public class SHOUTcastMetadata {
      *          of the metadata.
      * @return the value associated to the specified metadata name.
      */
-    public String get(final String name) {
+    private String get(final String name) {
         String value = mMetadata.get(name);
         if (value == null) {
             return "Unknown";
@@ -250,7 +310,7 @@ public class SHOUTcastMetadata {
      * @param value
      *          the metadata value.
      */
-    public void add(final String name, final String value) {
+    private void add(final String name, final String value) {
     	if (value == null) {
     		mMetadata.put(name, "Unknown");
     	} else {
@@ -259,59 +319,122 @@ public class SHOUTcastMetadata {
     }
     
     /**
-     * Returns the number of metadata names in this metadata.
-     * 
-     * @return number of metadata names
-     */
-    public int size() {
-        return mMetadata.size();
-    }
-    
-    /**
      * Method to check of the url return SHOUTcast metadata
      * 
      * @return true of the url returns SHOUTcast metadata, false otherwise
      */
-    public boolean containsMetadata() {
+    private boolean containsMetadata() {
     	return mContainsMetadata;
     }
+    
+    private void start() {
+    	if (mPollingAsyncTask != null) {
+    		cancel();
+    	}
+    	
+    	mPollingAsyncTask = new PollingAsyncTask();
+    	mPollingAsyncTask.execute();
+    }
 
-    public void start() {
-    	mThread.set(new Thread() {
-    		public void run() {
-    			int retries = 0;
-    			boolean metadataFound = false;
-    	
-    			//running.set(true);
-    			Log.d(TAG, "Starting thread");
-    			try {
-    				while (retries < 5 && !metadataFound) {
-    					refreshMetadata();
-    					metadataFound = containsMetadata();
-    					retries++;
-    					
-    					// sleep 2 seconds before retrying
-    					if (!metadataFound) {
-    						sleep(2000);
-    					}
-    				}
-    				
-    				if (metadataFound) {
-    					Message msg = null;							
-    					msg = mHandler.obtainMessage(mWhat);
-    					msg.obj = SHOUTcastMetadata.this;
-    					msg.sendToTarget();
-    				}
-    			} catch (InterruptedException ex) {
-    				ex.printStackTrace();
-    			} finally {
-    				//	running.set(false);
-    				Log.d(TAG, "Stopping thread");
-    			}
-    		}
-    	});
-    	
-    	mThread.get().start();
+    private void cancel() {
+    	if (mPollingAsyncTask != null) {
+        	PollingAsyncTask pollingAsyncTask = mPollingAsyncTask;
+        	pollingAsyncTask.cancel(false);
+        	mPollingAsyncTask = null;
+    	}
     }
     
+	public void cleanup() {
+		cancel();		
+		mMediaPlaybackService.unregisterReceiver(this);
+	}
+    
+	private class PollingAsyncTask extends AsyncTask<Void, Void, Boolean> {
+		
+	    public PollingAsyncTask() {
+	        super();
+	    }
+	    
+		@Override
+		protected Boolean doInBackground(Void... stream) {  
+			int retries = 0;
+			boolean metadataFound = false;
+	
+			Log.v(TAG, "Starting polling thread");
+			try {
+				while (retries < 2 && !isCancelled()) {
+					refreshMetadata();
+					metadataFound = containsMetadata();
+					retries++;
+					
+					if (metadataFound) {
+						retries = 0;
+						updateMetadata();
+
+						Log.v(TAG, "Metadata found");
+						
+						mMediaPlaybackService.updateMetadata();
+					} else {
+						Log.v(TAG, "Metadata not found");
+					}
+				
+					Log.v(TAG, "Sleeping...");
+					Thread.sleep(POLLING_FREQUENCY);
+				}
+			} catch (InterruptedException ex) {
+				ex.printStackTrace();
+			} finally {
+				Log.v(TAG, "Stopping polling thread");
+			}
+			
+			return true;
+		}
+	}
+    
+	private String getUri(Context context, long id) {
+		String uri = null;
+		
+		// Form an array specifying which columns to return. 
+		String [] projection = new String [] { Media.MediaColumns.URI };
+
+		// Get the base URI for the Media Files table in the Media content provider.
+		Uri mediaFile =  Media.MediaColumns.CONTENT_URI;
+
+		// Make the query.
+		Cursor cursor = context.getContentResolver().query(mediaFile, 
+				projection,
+				Media.MediaColumns._ID + "= ? ",
+				new String [] { String.valueOf(id) },
+				null);    	
+	
+		if (cursor.moveToFirst()) {
+			int uriColumn = cursor.getColumnIndex(Media.MediaColumns.URI);
+			uri = cursor.getString(uriColumn);
+		}
+		
+		cursor.close();
+		
+		return uri;
+	}
+    
+	private int updateMetadata() {
+		int rows = 0;
+		
+		// Form an array specifying which columns to return. 
+		ContentValues values = new ContentValues();
+		values.put(Media.MediaColumns.ARTIST, get(ARTIST));
+		values.put(Media.MediaColumns.TITLE, get(TITLE));
+
+		// Get the base URI for the Media Files table in the Media content provider.
+		Uri mediaFile =  Media.MediaColumns.CONTENT_URI;
+
+		// Execute the update.
+		rows = mMediaPlaybackService.getContentResolver().update(mediaFile, 
+				values, 
+				Media.MediaColumns._ID + "= ? ", 
+				new String [] { String.valueOf(mId) } );
+	
+		// return the number of rows updated.
+		return rows;
+	}
 }

@@ -48,6 +48,7 @@ import java.util.Vector;
 import net.sourceforge.servestream.R;
 import net.sourceforge.servestream.activity.MediaPlaybackActivity;
 import net.sourceforge.servestream.dbutils.StreamDatabase;
+import net.sourceforge.servestream.metadata.SHOUTcastMetadata;
 import net.sourceforge.servestream.player.MultiPlayer;
 import net.sourceforge.servestream.provider.Media;
 import net.sourceforge.servestream.utils.FileUtils;
@@ -156,11 +157,12 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
     
     private SharedPreferences mPreferences;
     private ConnectivityReceiver connectivityManager;
+    private SHOUTcastMetadata mSHOUTcastMetadata;
     
     private ServeStreamAppWidgetOneProvider mAppWidgetProvider = ServeStreamAppWidgetOneProvider.getInstance();
     
     // interval after which we stop the service when idle
-    private static final int IDLE_DELAY = 60000;
+    private static final int IDLE_DELAY = 300000;
     
     private Handler mMediaplayerHandler = new Handler() {
         float mCurrentVolume = 1.0f;
@@ -321,7 +323,9 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
         
 		final boolean lockingWifi = mPreferences.getBoolean(PreferenceConstants.WIFI_LOCK, true);
 		connectivityManager = new ConnectivityReceiver(this, lockingWifi);
-        
+
+		mSHOUTcastMetadata = new SHOUTcastMetadata(this);
+		
         mAudioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
         mAudioManager.registerMediaButtonEventReceiver(new ComponentName(getPackageName(),
                 MediaButtonIntentReceiver.class.getName()));
@@ -371,6 +375,8 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
             Log.e(TAG, "Service being destroyed while still playing.");
         }
         
+        notifyChange(PLAYER_CLOSED);
+        
         // release all MediaPlayer resources
         mPlayer.release();
         mPlayer = null;
@@ -387,12 +393,12 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
             mCursor = null;
         }
         
-		notifyChange(PLAYER_CLOSED);
-        
         unregisterReceiver(mIntentReceiver);
         unregisterReceiver(mDockReceiver);
         
         connectivityManager.cleanup();
+        
+        mSHOUTcastMetadata.cleanup();
         
 		stopForeground(true);
 		
@@ -565,9 +571,14 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
      * the last file in the list has been played,
      * or that the play-state changed (paused/resumed).
      */
-    private void notifyChange(String what) {    	
-    	// send notification to MediaPlaybackActivity
+    private void notifyChange(String what) {
+    	
         Intent i = new Intent(what);
+        i.putExtra("id", Long.valueOf(getAudioId()));
+        i.putExtra("artist", getArtistName());
+        i.putExtra("album",getAlbumName());
+        i.putExtra("track", getTrackName());
+        i.putExtra("playing", isPlaying());
         sendBroadcast(i);
         
         // Share this notification directly with our widgets
