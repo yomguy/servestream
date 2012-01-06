@@ -154,6 +154,11 @@
 	<!-- Summary for the retrieve metadata preference -->
 	<string name="pref_retrievemetadata_summary">"Read and display metadata (for supported file types)"</string>
 
+	<!-- Name for the retrieve shoutcast metadata preference -->
+	<string name="pref_retrieveshoutcastmetadata_title">"Retrieve SHOUTcast metadata"</string>
+	<!-- Summary for the retrieve shoutcast metadata preference -->
+	<string name="pref_retrieveshoutcastmetadata_summary">"Read and display metadata for SHOUTcast streams (experimental)"</string>
+	
 	<!-- Name for the update check preference -->
 	<string name="pref_update_title">Update check</string>
 	<!-- Summary for the update check preference -->
