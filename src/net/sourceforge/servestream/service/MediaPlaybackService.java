@@ -148,7 +148,7 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
     private int mServiceStartId = -1;
     private boolean mServiceInUse = false;
     private boolean mIsSupposedToBePlaying = false;
-    private boolean mQuietMode = false;
+    //private boolean mQuietMode = false;
     private AudioManager mAudioManager;
     // used to track what type of audio focus loss caused the playback to pause
     private boolean mPausedByTransientLossOfFocus = false;
@@ -156,7 +156,7 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
     private boolean mPausedDuringPhoneCall = false;
     
     private SharedPreferences mPreferences;
-    private ConnectivityReceiver connectivityManager;
+    private ConnectivityReceiver mConnectivityManager;
     private SHOUTcastMetadata mSHOUTcastMetadata;
     private DownloadManager mDownloadManager;
     private boolean mIsStreaming = true;
@@ -252,7 +252,7 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
   	    if (key.equals(PreferenceConstants.WIFI_LOCK)) {
 			if (sharedPreferences.getBoolean(PreferenceConstants.WIFI_LOCK, true)) {
 				final boolean lockingWifi = mPreferences.getBoolean(PreferenceConstants.WIFI_LOCK, true);
-				connectivityManager.setWantWifiLock(lockingWifi);
+				mConnectivityManager.setWantWifiLock(lockingWifi);
   	        }
   	    }
   	}
@@ -324,7 +324,7 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
         mPreferences.registerOnSharedPreferenceChangeListener(this);
         
 		final boolean lockingWifi = mPreferences.getBoolean(PreferenceConstants.WIFI_LOCK, true);
-		connectivityManager = new ConnectivityReceiver(this, lockingWifi);
+		mConnectivityManager = new ConnectivityReceiver(this, lockingWifi);
 		mSHOUTcastMetadata = new SHOUTcastMetadata(this);
 		mDownloadManager = new DownloadManager(this);
 		
@@ -364,9 +364,6 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
     public void onDestroy() {
     	Log.v(TAG, "onDestroy called");
     	
-    	mDownloadManager.cancelDownload();
-    	FileUtils.deleteAllFiles();
-    	
 		if(mStreamdb != null) {
 			mStreamdb.close();
 			mStreamdb = null;
@@ -398,9 +395,10 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
         unregisterReceiver(mIntentReceiver);
         unregisterReceiver(mDockReceiver);
         
-        connectivityManager.cleanup();
-        
+        mConnectivityManager.cleanup();
         mSHOUTcastMetadata.cleanup();
+    	mDownloadManager.cancelDownload();
+    	FileUtils.deleteAllFiles();
         
 		stopForeground(true);
 		
