@@ -158,6 +158,8 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
     private SharedPreferences mPreferences;
     private ConnectivityReceiver connectivityManager;
     private SHOUTcastMetadata mSHOUTcastMetadata;
+    private DownloadManager mDownloadManager;
+    private boolean mIsStreaming = true;
     
     private ServeStreamAppWidgetOneProvider mAppWidgetProvider = ServeStreamAppWidgetOneProvider.getInstance();
     
@@ -323,8 +325,8 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
         
 		final boolean lockingWifi = mPreferences.getBoolean(PreferenceConstants.WIFI_LOCK, true);
 		connectivityManager = new ConnectivityReceiver(this, lockingWifi);
-
 		mSHOUTcastMetadata = new SHOUTcastMetadata(this);
+		mDownloadManager = new DownloadManager(this);
 		
         mAudioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
         mAudioManager.registerMediaButtonEventReceiver(new ComponentName(getPackageName(),
@@ -360,10 +362,10 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
 
     @Override
     public void onDestroy() {
-    	
     	Log.v(TAG, "onDestroy called");
     	
-    	cancelAllDownloads();
+    	mDownloadManager.cancelDownload();
+    	FileUtils.deleteAllFiles();
     	
 		if(mStreamdb != null) {
 			mStreamdb.close();
@@ -531,7 +533,6 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
                 return;
             }
             
-            cancelAllDownloads1();
             // save the queue again, because it might have changed
             // since the user exited the music app (because of
             // party-shuffle or because the play-position changed)
@@ -814,16 +815,20 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
             
             Log.v(TAG, "opening: " + mFileToPlay);
             
+    		mDownloadManager.cancelDownload();
+            
             if (playingVideo()) {
+            	mIsStreaming = true;
                 Intent intent = new Intent(this, MediaPlaybackActivity.class);
                 intent.setAction(PREPARE_VIDEO);
                 intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                 startActivity(intent);
             } else { 
             	if (mPreferences.getBoolean(PreferenceConstants.PROGRESSIVE_DOWNLOAD, false)) {
-            		//mPlayListFiles[mPlayPos].download();
-            		//new BufferMediaTask(mPlayListFiles[mPlayPos]).start();
+            		mIsStreaming = false;
+            		mDownloadManager.download(mPlayList[mPlayPos]);
             	} else {
+            		mIsStreaming = true;
             		mPlayer.setDataSource(mFileToPlay, false);
             	}
             }
@@ -844,8 +849,6 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
                 MediaButtonIntentReceiver.class.getName()));
     	
     	if (mPlayer.isInitialized()) {
-    		
-    		resumeDownloading();
     		
             mPlayer.start();
 
@@ -956,10 +959,7 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
      */
 
     public void prev() {
-        synchronized (this) {
-        	
-        	deleteDownloadedFile();
-        	
+        synchronized (this) {        	
             if (mShuffleMode == SHUFFLE_ON) {
                 // go to previously-played track and remove it from the history
                 int histsize = mHistory.size();
@@ -987,9 +987,6 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
                 Log.d(TAG, "No media in playlist queue");
                 return;
             }
-
-            deleteDownloadedFile();
-            
             if (mShuffleMode == SHUFFLE_ON) {
                 // Pick random next track from the not-yet-played ones
                 // TODO: make it work right after adding/removing items in the queue.
@@ -1078,66 +1075,6 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
         Message msg = mDelayedStopHandler.obtainMessage();
         mDelayedStopHandler.sendMessageDelayed(msg, IDLE_DELAY);
         stopForeground(true);
-    }
-    
-    private synchronized void deleteDownloadedFile() {
-        /*MediaFile mediaFile = mPlayListFiles[mPlayPos];
-
-        if (!mediaFile.isStreaming())
-        	mediaFile.delete();*/
-    }
-    
-    private synchronized void deleteAllDownloadedFiles() {
-    	FileUtils.deleteAllFiles();
-    }
-    
-    private synchronized void cancelAllDownloads() {
-    	/*if (mPlayListFiles == null)
-    		return;
-    	
-    	try {
-            for (int i = 0; i < mPlayListFiles.length; i ++) {
-            	if (!mPlayListFiles[i].isStreaming()) {
-            		Log.v(TAG, "Cancelling download: " + mPlayListFiles[i].getDecodedURL());
-            		mPlayListFiles[i].delete();
-            	}
-            }
-    	} catch(Exception ex) {
-    		ex.printStackTrace();
-    	}*/
-    }
-
-    private synchronized void cancelAllDownloads1() {
-    	/*if (mPlayListFiles == null)
-    		return;
-    	
-    	try {
-            for (int i = 0; i < mPlayListFiles.length; i ++) {
-            	if (!mPlayListFiles[i].isStreaming()) {
-            		Log.v(TAG, "==================> Cancelling download: " + mPlayListFiles[i].getDecodedURL());
-            		mPlayListFiles[i].cancelDownload();
-            	}
-            }
-    	} catch(Exception ex) {
-    		ex.printStackTrace();
-    	}*/
-    }
-    
-    private synchronized void resumeDownloading() {
-    	/*if (mPlayListFiles == null)
-    		return;
-    	
-    	try {
-    		MediaFile mediaFile = mPlayListFiles[mPlayPos];
-    		if (!mediaFile.isStreaming() && 
-    				mediaFile.isDownloadCancelled() && 
-    				!mediaFile.isCompleteFileAvailable()) {
-        		Log.v(TAG, "==================> Resuming download: " + mediaFile.getDecodedURL());
-    			mediaFile.download();
-    		}
-    	} catch(Exception ex) {
-    		ex.printStackTrace();
-    	}*/
     }
     
     // A simple variation of Random that makes sure that the
@@ -1348,7 +1285,6 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
      */
     public void setQueuePosition(int pos) {
         synchronized(this) {
-        	deleteDownloadedFile();
         	stop(false);
         	mPlayPos = pos;
             openCurrent();
@@ -1400,25 +1336,19 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
     
     public boolean isStreaming() {
         synchronized (this) {    	
-        	//MediaFile mediaFile = mPlayListFiles[mPlayPos];
-            //return mediaFile.isStreaming();
-        	return false;
+        	return mIsStreaming;
         }
     }
     
     public boolean isCompleteFileAvailable() {
         synchronized (this) {    	
-        	//MediaFile mediaFile = mPlayListFiles[mPlayPos];
-            //return mediaFile.isCompleteFileAvailable();
-        	return false;
+            return mDownloadManager.isCompleteFileAvailable();
         }
     }
     
     public long getCompleteFileDuration() {
         synchronized (this) {    	
-        	//MediaFile mediaFile = mPlayListFiles[mPlayPos];
-            //return mediaFile.getLength();
-        	return -1;
+            return mDownloadManager.getLength();
         }
     }
     

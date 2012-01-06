@@ -1022,6 +1022,20 @@ public class MediaPlaybackActivity extends Activity implements SurfaceHolder.Cal
         if(mService == null)
             return 500;
         try {
+        	if (!mService.isStreaming()) {
+        		if (!mService.isCompleteFileAvailable()) {
+        			mSeekBackwardButton.setEnabled(false);
+        			mSeekForwardButton.setEnabled(false);
+        			mProgress.setEnabled(false);
+        		} else {
+        			mDuration = mService.getCompleteFileDuration();
+                	mTotalTime.setText(MusicUtils.makeTimeString(this, mDuration / 1000));
+                	mSeekBackwardButton.setEnabled(true);
+                	mSeekForwardButton.setEnabled(true);
+                	mProgress.setEnabled(true);
+        		}
+        	}
+        	
             long pos = mPosOverride < 0 ? mService.position() : mPosOverride;
             long remaining = 1000 - (pos % 1000);
             if ((pos >= 0) && (mDuration > 0)) {
@@ -1151,7 +1165,15 @@ public class MediaPlaybackActivity extends Activity implements SurfaceHolder.Cal
             mArtistName.setText(mService.getArtistName());
             mAlbumName.setText(mService.getAlbumName());
                 
-            mDuration = mService.duration();
+            if (mService.isStreaming()) {
+            	mDuration = mService.duration();
+            } else {
+            	if (mService.isCompleteFileAvailable()) {
+            		mDuration = mService.getCompleteFileDuration();
+            	} else {
+            		mDuration = 0;
+            	}
+            }
             mTotalTime.setText(MusicUtils.makeTimeString(this, mDuration / 1000));
         } catch (RemoteException ex) {
             finish();
