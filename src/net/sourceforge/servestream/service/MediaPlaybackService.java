@@ -93,6 +93,7 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
     
     public static final String PLAYSTATE_CHANGED = "net.sourceforge.servestream.playstatechanged";
     public static final String META_CHANGED = "net.sourceforge.servestream.metachanged";
+    public static final String TRACK_STARTED = "net.sourceforge.servestream.trackstarted";
     public static final String QUEUE_LOADED = "net.sourceforge.servestream.queueloaded";
     public static final String START_DIALOG = "net.sourceforge.servestream.startdialog";
     public static final String STOP_DIALOG = "net.sourceforge.servestream.stopdialog";
@@ -198,6 +199,7 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
                     if (handleError()) {
                     play();
                     notifyChange(META_CHANGED);
+                    notifyChange(TRACK_STARTED);
                     }
                 	break;
                 case PLAYER_ERROR:
@@ -254,6 +256,9 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
 				final boolean lockingWifi = mPreferences.getBoolean(PreferenceConstants.WIFI_LOCK, true);
 				mConnectivityManager.setWantWifiLock(lockingWifi);
   	        }
+  	    } else if (key.equals(PreferenceConstants.RETRIEVE_SHOUTCAST_METADATA)) {
+			final boolean retrieveSHOUTcastMetadata = mPreferences.getBoolean(PreferenceConstants.RETRIEVE_SHOUTCAST_METADATA, true);
+			mSHOUTcastMetadata.setShouldRetrieveMetadata(retrieveSHOUTcastMetadata);
   	    }
   	}
     
@@ -325,7 +330,8 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
         
 		final boolean lockingWifi = mPreferences.getBoolean(PreferenceConstants.WIFI_LOCK, true);
 		mConnectivityManager = new ConnectivityReceiver(this, lockingWifi);
-		mSHOUTcastMetadata = new SHOUTcastMetadata(this);
+		final boolean retrieveSHOUTcastMetadata = mPreferences.getBoolean(PreferenceConstants.RETRIEVE_SHOUTCAST_METADATA, true);
+		mSHOUTcastMetadata = new SHOUTcastMetadata(this, retrieveSHOUTcastMetadata);
 		mDownloadManager = new DownloadManager(this);
 		
         mAudioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
