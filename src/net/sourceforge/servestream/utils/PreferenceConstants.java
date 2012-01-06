@@ -35,10 +35,6 @@ package net.sourceforge.servestream.utils;
 
 import android.os.Build;
 
-/**
- * @author Kenny Root
- *
- */
 public class PreferenceConstants {
 	public static final boolean PRE_ECLAIR = (Integer.parseInt(Build.VERSION.SDK) <= 4);
 	public static final boolean PRE_FROYO = PRE_ECLAIR ? true :
@@ -59,6 +55,8 @@ public class PreferenceConstants {
 	public static final String WIFI_LOCK = "wifilock";
 	
 	public static final String RETRIEVE_METADATA = "retrievemetadata";
+	
+	public static final String RETRIEVE_SHOUTCAST_METADATA = "retrieveshoutcastmetadata";
 
 	public static final String PROGRESSIVE_DOWNLOAD = "progressivedownload";
 	
