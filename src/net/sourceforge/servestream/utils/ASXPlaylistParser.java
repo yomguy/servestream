@@ -162,9 +162,9 @@ public class ASXPlaylistParser extends PlaylistParser {
     	    	}
     	    	
     	    	try {
-					mediaFile.setURL(URLDecoder.decode(href, "UTF-8"));
+					mediaFile.setUrl(URLDecoder.decode(href, "UTF-8"));
 				} catch (UnsupportedEncodingException e) {
-					mediaFile.setURL(href);
+					mediaFile.setUrl(href);
 				}
     	    } else if (attributeName.equalsIgnoreCase(REPEAT_ELEMENT)) {
     	    } else if (attributeName.equalsIgnoreCase(STARTMARKER_ELEMENT)) {
@@ -179,7 +179,7 @@ public class ASXPlaylistParser extends PlaylistParser {
     	}
     	
     	mNumberOfFiles = mNumberOfFiles + 1;
-    	mediaFile.setTrackNumber(mNumberOfFiles);
+    	mediaFile.setTrack(mNumberOfFiles);
     	mPlaylistFiles.add(mediaFile);
     }
 }

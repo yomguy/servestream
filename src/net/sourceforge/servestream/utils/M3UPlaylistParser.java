@@ -74,9 +74,9 @@ public class M3UPlaylistParser extends PlaylistParser {
 		    				mediaFile = new MediaFile();
 		    			
 		    	    	try {
-							mediaFile.setURL(URLDecoder.decode(line.trim(), "UTF-8"));
+							mediaFile.setUrl(URLDecoder.decode(line.trim(), "UTF-8"));
 						} catch (UnsupportedEncodingException e) {
-							mediaFile.setURL(line.trim());
+							mediaFile.setUrl(line.trim());
 						}
 		    	    	
 		    			savePlaylistFile();
@@ -93,7 +93,7 @@ public class M3UPlaylistParser extends PlaylistParser {
 
     public void savePlaylistFile() {
     	mNumberOfFiles = mNumberOfFiles + 1;
-    	mediaFile.setTrackNumber(mNumberOfFiles);
+    	mediaFile.setTrack(mNumberOfFiles);
     	mPlaylistFiles.add(mediaFile);
     	processingEntry = false;
     }

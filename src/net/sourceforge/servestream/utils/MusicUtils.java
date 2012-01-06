@@ -264,8 +264,8 @@ public class MusicUtils {
 			mediaFiles = playlist.getPlaylistFiles();
 		} else {
 			MediaFile mediaFile = new MediaFile();
-			mediaFile.setURL(url.toString());
-			mediaFile.setTrackNumber(1);
+			mediaFile.setUrl(url.toString());
+			mediaFile.setTrack(1);
 			mediaFiles.add(mediaFile);
 		}
     	
@@ -294,7 +294,7 @@ public class MusicUtils {
     		Cursor cursor = context.getContentResolver().query(mediaFile, 
     				projection,
     				Media.MediaColumns.URI + "= ? ",
-    				new String [] { mediaFiles.get(i).getURL() },
+    				new String [] { mediaFiles.get(i).getUrl() },
     				null);    	
     	
     		long id = -1;
@@ -313,7 +313,7 @@ public class MusicUtils {
     			// the item doesn't exist, insert it
         	
         		ContentValues values = new ContentValues();
-        		values.put(Media.MediaColumns.URI, mediaFiles.get(i).getURL());
+        		values.put(Media.MediaColumns.URI, mediaFiles.get(i).getUrl());
         		values.put(Media.MediaColumns.TITLE, mediaFiles.get(i).getPlaylistMetadata());
 
                 Uri uri = context.getContentResolver().insert(
