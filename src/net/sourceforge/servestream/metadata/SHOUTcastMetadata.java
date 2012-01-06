@@ -53,14 +53,14 @@ public class SHOUTcastMetadata extends BroadcastReceiver {
 	
     private static final int POLLING_FREQUENCY = 10000;
 	
-	private final MediaPlaybackService mMediaPlaybackService;
-	
 	private static final String ARTIST = "artist";
 	private static final String TITLE = "title";  
 	
 	private static final String STREAM_TITLE = "StreamTitle";
 	private static final String STREAM_TITLE_REPLAY = "StreamTitleReplay";
 	
+	private final MediaPlaybackService mMediaPlaybackService;
+	private boolean mRetrieveSHOUTcastMetadata;
     /**
      * A map of all metadata attributes.
      */
@@ -72,46 +72,60 @@ public class SHOUTcastMetadata extends BroadcastReceiver {
 	
 	private PollingAsyncTask mPollingAsyncTask = null;
 	
+	private Object[] mLock = new Object[0];
+	
     /**
      * Default constructor
      * 
      * @param url The url to extract SHOUTcast metadata from
      */
-	public SHOUTcastMetadata(MediaPlaybackService mediaPlaybackService) {
+	public SHOUTcastMetadata(MediaPlaybackService mediaPlaybackService, boolean retrieveSHOUTcastMetadata) {
 		mMediaPlaybackService = mediaPlaybackService;
+		mRetrieveSHOUTcastMetadata = retrieveSHOUTcastMetadata;
 		mMetadata = new HashMap<String, String>();
 	    mId = -1;
 		
 		IntentFilter filter = new IntentFilter();
 		filter.addAction(MediaPlaybackService.PLAYSTATE_CHANGED);
+		filter.addAction(MediaPlaybackService.TRACK_STARTED);
 		mediaPlaybackService.registerReceiver(this, filter);
 	}
 	
 	@Override
 	public void onReceive(Context context, Intent intent) {
 		final String action = intent.getAction();
+        Log.w(TAG, "onReceived() called: " + intent);
 
-		if (action.equals(MediaPlaybackService.PLAYSTATE_CHANGED)) {
-           Log.w(TAG, "onReceived() called: " + intent);
-           
-           long id = intent.getLongExtra("id", -1);
-           
-           if (id == -1) {
-        	   return;
-           }
-        	   
+        if (!mRetrieveSHOUTcastMetadata) {
+        	return;
+        }
+        
+		if (action.equals(MediaPlaybackService.TRACK_STARTED)) {
+			long id = intent.getLongExtra("id", -1);
+	           
+	        if (id == -1) {
+	        	return;
+	        }
+	        
+			if (id != mId) {
+				retrieve(id);
+				start();
+			}
+		} else if (action.equals(MediaPlaybackService.PLAYSTATE_CHANGED)) {
+			long id = intent.getLongExtra("id", -1);
+			
+			if (id != mId) {
+				return;
+			}
+			
            try {
         	   if (MusicUtils.sService != null) {        		   
         		   if (MusicUtils.sService.isPlaying()) {
-        			   if (id != mId) {
-        				   retrieve(id);
-        			   } else {
-        				   // If the url does not contain metadata so don't try
-        				   // to start another thread
-        				   if (!mContainsMetadata) {
-        					   Log.v(TAG, "Not starting thread because URL doesn't have metadata");
-        					   return;
-        				   }
+        			   // If the url does not contain metadata so don't try
+        			   // to start another thread
+        			   if (!mContainsMetadata) {
+        				   Log.v(TAG, "Not starting thread because URL doesn't have metadata");
+        				   return;
         			   }
         			   
         			   start();
@@ -122,6 +136,28 @@ public class SHOUTcastMetadata extends BroadcastReceiver {
    			} catch (RemoteException e) {
    				e.printStackTrace();
    			}
+		}
+	}
+	
+	/**
+	 * @param mLockingWifi
+	 */
+	public void setShouldRetrieveMetadata(boolean retrieveMetadata) {
+		synchronized (mLock) {
+			mRetrieveSHOUTcastMetadata = retrieveMetadata;
+
+			if (mRetrieveSHOUTcastMetadata) {
+				long id = mMediaPlaybackService.getAudioId();
+		           
+		        if (id == -1) {
+		        	return;
+		        }
+		        
+				retrieve(id);
+				start();
+			} else {
+				cancel();
+			}
 		}
 	}
 	
