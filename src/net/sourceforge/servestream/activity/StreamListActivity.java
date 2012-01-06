@@ -648,6 +648,7 @@ public class StreamListActivity extends ListActivity implements ServiceConnectio
 		        
 				if (mPreferences.getBoolean(PreferenceConstants.AUTOSAVE, true)) {
 				    saveStream();
+					mStreamdb.touchHost(mRequestedStream);
 				}
 				break;
 			case BROWSE_MEDIA_INTENT:
