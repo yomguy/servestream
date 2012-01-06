@@ -24,6 +24,7 @@ public class DownloadManager {
 
 	private MediaPlaybackService mMediaPlaybackService = null;
 
+	private long mLength = -1;
 	private File mPartialFile = null;
 	private File mCompleteFile = null;
 	private DownloadTask mDownloadTask = null;
@@ -45,7 +46,8 @@ public class DownloadManager {
 				return;
 			}
 		}
-		
+
+		mLength = -1;
 		mPartialFile = new File(FileUtils.getDownloadDirectory(), "mediafile" + id + ".partial.dat");
         mCompleteFile = new File(FileUtils.getDownloadDirectory(), "mediafile" + id + ".complete.dat");
 		mDownloadTask = new DownloadTask();
@@ -87,7 +89,6 @@ public class DownloadManager {
 			mediaPlayer.prepare();
 			duration = mediaPlayer.getDuration();
 		} catch (Exception e) {
-			return duration;
 		}
 		
 		return duration;
@@ -123,9 +124,11 @@ public class DownloadManager {
 		long length = -1;
 		
 		if (isCompleteFileAvailable()) {
-			if (length == -1) {
-				length = getCompleteFileDuration();
+			if (mLength == -1) {
+				mLength = getCompleteFileDuration();
 			}
+			
+			length = mLength;
 		}
 		
 		return length;
