@@ -73,9 +73,9 @@ public class PLSPlaylistParser extends PlaylistParser {
         		    		mediaFile = new MediaFile();
         		    		
     		    	    	try {
-    							mediaFile.setURL(URLDecoder.decode(parsedLine[1].trim(), "UTF-8"));
+    							mediaFile.setUrl(URLDecoder.decode(parsedLine[1].trim(), "UTF-8"));
     						} catch (UnsupportedEncodingException e) {
-    							mediaFile.setURL(parsedLine[1].trim());
+    							mediaFile.setUrl(parsedLine[1].trim());
     						}
                         } else if (parsedLine[0].trim().contains("Title")) {
                             mediaFile.setPlaylistMetadata(parsedLine[1].trim());
@@ -104,7 +104,7 @@ public class PLSPlaylistParser extends PlaylistParser {
     
     public void savePlaylistFile() {
     	mNumberOfFiles = mNumberOfFiles + 1;
-    	mediaFile.setTrackNumber(mNumberOfFiles);
+    	mediaFile.setTrack(mNumberOfFiles);
     	mPlaylistFiles.add(mediaFile);
     	processingEntry = false;
     }
