@@ -51,9 +51,9 @@ import net.sourceforge.servestream.dbutils.StreamDatabase;
 import net.sourceforge.servestream.metadata.SHOUTcastMetadata;
 import net.sourceforge.servestream.player.MultiPlayer;
 import net.sourceforge.servestream.provider.Media;
-import net.sourceforge.servestream.utils.FileUtils;
 import net.sourceforge.servestream.utils.MetadataRetriever;
 import net.sourceforge.servestream.utils.PreferenceConstants;
+import net.sourceforge.servestream.utils.Utils;
 import net.sourceforge.servestream.widget.ServeStreamAppWidgetOneProvider;
 
 /**
@@ -408,7 +408,7 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
         mConnectivityManager.cleanup();
         mSHOUTcastMetadata.cleanup();
     	mDownloadManager.cancelDownload();
-    	FileUtils.deleteAllFiles();
+    	Utils.deleteAllFiles();
     	mSimpleLastfmScrobblerManager.cleanup();
         
 		stopForeground(true);
