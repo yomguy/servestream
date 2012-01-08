@@ -93,14 +93,13 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
     
     public static final String PLAYSTATE_CHANGED = "net.sourceforge.servestream.playstatechanged";
     public static final String META_CHANGED = "net.sourceforge.servestream.metachanged";
-    public static final String TRACK_STARTED = "net.sourceforge.servestream.trackstarted";
-    public static final String QUEUE_LOADED = "net.sourceforge.servestream.queueloaded";
+    public static final String QUEUE_CHANGED = "net.sourceforge.servestream.queuechanged";
+    
+    public static final String PLAYBACK_STARTED = "net.sourceforge.servestream.playbackstarted";
+    public static final String PLAYBACK_COMPLETE = "net.sourceforge.servestream.playbackcomplete";
     public static final String START_DIALOG = "net.sourceforge.servestream.startdialog";
     public static final String STOP_DIALOG = "net.sourceforge.servestream.stopdialog";
-    public static final String QUEUE_CHANGED = "net.sourceforge.servestream.queuechanged";
     public static final String PLAYER_CLOSED = "net.sourceforge.servestream.playerclosed";
-    public static final String ERROR_MESSAGE = "net.sourceforge.servestream.errormessage";
-    public static final String CLOSE_PLAYER = "net.sourceforge.servestream.closeplayer";
     public static final String PREPARE_VIDEO = "net.sourceforge.servestream.preparevideo";    
     
     public static final String SERVICECMD = "net.sourceforge.servestream.MediaPlaybackServicecommand";
@@ -186,6 +185,8 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
                     }
                     break;
                 case TRACK_ENDED:
+                	notifyChange(PLAYBACK_COMPLETE);
+                	
                     if (mRepeatMode == REPEAT_CURRENT) {
                         seek(0);
                         play();
@@ -196,15 +197,12 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
                 case PLAYER_PREPARED:
                     Intent i = new Intent(STOP_DIALOG);
                     sendBroadcast(i);
+                    
                     if (handleError()) {
-                    play();
-                    notifyChange(META_CHANGED);
-                    notifyChange(TRACK_STARTED);
+                    	play();
+                    	notifyChange(META_CHANGED);
+                    	notifyChange(PLAYBACK_STARTED);
                     }
-                	break;
-                case PLAYER_ERROR:
-                	i = new Intent(ERROR_MESSAGE);
-                	sendBroadcast(i);
                 	break;
                 case FOCUSCHANGE:
                     // This code is here so we can better synchronize it with the code that
@@ -549,7 +547,7 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
     	public void handleMessage(Message msg) {
     		Log.v(TAG, "mSleepTimerHandler called");
     		pause();
-    		notifyChange(CLOSE_PLAYER);
+    		//TODO: is this enough?
     	}
     };
     
@@ -583,6 +581,7 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
         i.putExtra("artist", getArtistName());
         i.putExtra("album",getAlbumName());
         i.putExtra("track", getTrackName());
+        i.putExtra("duration", Long.valueOf(duration()));
         i.putExtra("playing", isPlaying());
         sendBroadcast(i);
         
