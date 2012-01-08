@@ -49,7 +49,11 @@ public class DownloadManager {
 		mLength = -1;
 		mPartialFile = new File(Utils.getDownloadDirectory(), "mediafile" + id + ".partial.dat");
         mCompleteFile = new File(Utils.getDownloadDirectory(), "mediafile" + id + ".complete.dat");
-		mDownloadTask = new DownloadTask();
+        Utils.deleteFile(mPartialFile);
+        Utils.deleteFile(mCompleteFile);
+        
+        Log.v(TAG, "=============> " + mPartialFile.toString());
+		mDownloadTask = new DownloadTask(mPartialFile, mCompleteFile);
         mDownloadTask.execute(url);
         mPollingAsyncTask = new PollingAsyncTask();
         mPollingAsyncTask.execute();
@@ -135,6 +139,14 @@ public class DownloadManager {
 	
 	private class DownloadTask extends AsyncTask<URL, Void, Void> {
 		
+		private File mPartialFile = null;
+		private File mCompleteFile = null;
+		
+		public DownloadTask(File partialFile, File completeFile) {
+			mPartialFile = partialFile;
+			mCompleteFile = completeFile;
+		}
+		
 		@Override
 		protected Void doInBackground(URL... url) {
         	HttpURLConnection conn = null;
@@ -148,7 +160,6 @@ public class DownloadManager {
 			Log.v(TAG, "starting download task");
             while (!mCompleteFile.exists() && !isCancelled()) {
             	try {
-            	
                 	conn = determineRange(url[0], mPartialFile.length());
             
                 	if (conn.getResponseCode() == HttpURLConnection.HTTP_PARTIAL)
