@@ -9,7 +9,6 @@ import java.net.MalformedURLException;
 import java.net.URL;
 
 import net.sourceforge.servestream.provider.Media;
-import net.sourceforge.servestream.utils.FileUtils;
 import net.sourceforge.servestream.utils.URLUtils;
 import net.sourceforge.servestream.utils.Utils;
 import android.content.Context;
@@ -48,8 +47,8 @@ public class DownloadManager {
 		}
 
 		mLength = -1;
-		mPartialFile = new File(FileUtils.getDownloadDirectory(), "mediafile" + id + ".partial.dat");
-        mCompleteFile = new File(FileUtils.getDownloadDirectory(), "mediafile" + id + ".complete.dat");
+		mPartialFile = new File(Utils.getDownloadDirectory(), "mediafile" + id + ".partial.dat");
+        mCompleteFile = new File(Utils.getDownloadDirectory(), "mediafile" + id + ".complete.dat");
 		mDownloadTask = new DownloadTask();
         mDownloadTask.execute(url);
         mPollingAsyncTask = new PollingAsyncTask();
@@ -113,8 +112,8 @@ public class DownloadManager {
 	public void delete() {
 		cancelDownload();
 		cancelPollingTask();
-		FileUtils.deleteFile(mPartialFile);
-		FileUtils.deleteFile(mCompleteFile);
+		Utils.deleteFile(mPartialFile);
+		Utils.deleteFile(mCompleteFile);
 	}
 	
 	/**
@@ -166,7 +165,7 @@ public class DownloadManager {
                 	out.flush();
                 	out.close();
                 
-                	FileUtils.copyFile(mPartialFile, mCompleteFile);
+                	Utils.copyFile(mPartialFile, mCompleteFile);
         			Log.v(TAG, "download task is complete");
             	} catch (IOException e) {
             		e.printStackTrace();

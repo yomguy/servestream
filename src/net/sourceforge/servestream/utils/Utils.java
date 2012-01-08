@@ -18,13 +18,81 @@
 package net.sourceforge.servestream.utils;
 
 import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 
+import android.os.Environment;
+
 public class Utils {
     
+	private static final String DOWNLOAD_DIRECTORY_NAME = "ServeStream";
+	
+    public static File getDownloadDirectory() {
+        File file = new File(Environment.getExternalStorageDirectory(), DOWNLOAD_DIRECTORY_NAME);
+        
+        if (!file.exists() && !file.mkdirs())
+        	return null;
+        	
+    	return file;
+    }
+
+    public static boolean deleteAllFiles() {
+    	boolean success = true;
+    	
+    	File file = getDownloadDirectory();
+    	File [] files = file.listFiles();
+    	
+        for (int i = 0; i < files.length; i++) {
+        	if (!deleteFile(files[i]));
+        		success = false;
+        }
+        
+        return success;
+    }
+    
+    public static boolean deleteFile(File file) {
+        if (file != null && file.exists()) {
+            return file.delete();
+        }
+        
+        return false;
+    }
+    
+    public static void copyFile(File fromFile, File toFile) {
+    	InputStream in = null;
+    	OutputStream out = null;
+    	
+    	if (fromFile == null || toFile == null)
+    		return;
+    	
+    	File tempFile = new File(toFile.getPath() + ".tmp");
+    
+    	try {
+    		
+    		in = new FileInputStream(fromFile);
+    		out = new FileOutputStream(tempFile);
+
+    		byte[] buf = new byte[1024];
+    		int len;
+    		while ((len = in.read(buf)) != -1){
+    			out.write(buf, 0, len);
+    		}
+    		out.close();
+            tempFile.renameTo(toFile);    		
+    	} catch (IOException e) {
+			e.printStackTrace();
+		} finally {
+    		Utils.closeInputStream(in);
+    		Utils.closeOutputStream(out);
+    		deleteFile(tempFile);
+    	}
+    }
+	
     /**
 	 * Closes a BufferedReader
 	 * 
