@@ -317,7 +317,6 @@ public class MediaPlaybackActivity extends Activity implements SurfaceHolder.Cal
         f.addAction(MediaPlaybackService.META_CHANGED);
         f.addAction(MediaPlaybackService.START_DIALOG);
         f.addAction(MediaPlaybackService.STOP_DIALOG);
-        f.addAction(MediaPlaybackService.ERROR_MESSAGE);
         
         registerReceiver(mStatusListener, new IntentFilter(f));
         
@@ -1127,15 +1126,6 @@ public class MediaPlaybackActivity extends Activity implements SurfaceHolder.Cal
     	        	    ex.printStackTrace();	
     	        	}
             	}
-            } else if (action.equals(MediaPlaybackService.ERROR_MESSAGE)) {
-				new AlertDialog.Builder(MediaPlaybackActivity.this)
-				.setTitle(R.string.cannot_play_media_title)
-				.setMessage(R.string.cannot_play_media_message)
-				.setPositiveButton(R.string.cannot_play_media_pos, new DialogInterface.OnClickListener() {
-					public void onClick(DialogInterface dialog, int which) {
-						finish();
-					}
-					}).create().show();
             }
         }
     };
