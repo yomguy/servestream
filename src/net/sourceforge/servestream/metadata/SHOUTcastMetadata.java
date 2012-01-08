@@ -87,7 +87,7 @@ public class SHOUTcastMetadata extends BroadcastReceiver {
 		
 		IntentFilter filter = new IntentFilter();
 		filter.addAction(MediaPlaybackService.PLAYSTATE_CHANGED);
-		filter.addAction(MediaPlaybackService.TRACK_STARTED);
+		filter.addAction(MediaPlaybackService.PLAYBACK_STARTED);
 		mediaPlaybackService.registerReceiver(this, filter);
 	}
 	
@@ -100,7 +100,7 @@ public class SHOUTcastMetadata extends BroadcastReceiver {
         	return;
         }
         
-		if (action.equals(MediaPlaybackService.TRACK_STARTED)) {
+		if (action.equals(MediaPlaybackService.PLAYBACK_STARTED)) {
 			long id = intent.getLongExtra("id", -1);
 	           
 	        if (id == -1) {
