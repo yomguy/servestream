@@ -1,3 +1,20 @@
+/*
+ * ServeStream: A HTTP stream browser/player for Android
+ * Copyright 2010 William Seemann
+ * 
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package net.sourceforge.servestream.service;
 
 import net.sourceforge.servestream.R;
@@ -10,7 +27,7 @@ import android.util.Log;
 
 public class SimpleLastfmScrobblerManager extends BroadcastReceiver {
 	private static final String TAG = SimpleLastfmScrobblerManager.class.getName();
-
+	
 	private static final String BROADCAST_ACTION = "com.adam.aslfms.notify.playstatechanged";
 	
 	private static final int START = 0;
@@ -32,6 +49,14 @@ public class SimpleLastfmScrobblerManager extends BroadcastReceiver {
 	private final MediaPlaybackService mMediaPlaybackService;
 	private boolean mSendScrobblerInfo = false;
 	
+	private Object[] mLock = new Object[0];
+	
+	/**
+	 * Default constructor.
+	 * 
+	 * @param mediaPlaybackService The current MediaPlaybackService context
+	 * @param sendScrobblerInfo Decides if the metadata should be broadcasted to SLS.
+	 */
 	public SimpleLastfmScrobblerManager(MediaPlaybackService mediaPlaybackService, boolean sendScrobblerInfo) {
 		mMediaPlaybackService = mediaPlaybackService;
 		mSendScrobblerInfo = sendScrobblerInfo;
@@ -48,8 +73,8 @@ public class SimpleLastfmScrobblerManager extends BroadcastReceiver {
 		final String action = intent.getAction();
 
 		if (!mSendScrobblerInfo ||
-				(!action.equals(MediaPlaybackService.PLAYBACK_STARTED) ||
-				!action.equals(MediaPlaybackService.PLAYSTATE_CHANGED) ||
+				(!action.equals(MediaPlaybackService.PLAYBACK_STARTED) &&
+				!action.equals(MediaPlaybackService.PLAYSTATE_CHANGED) &&
 				!action.equals(MediaPlaybackService.PLAYBACK_COMPLETE))) {
            Log.w(TAG, "onReceived() called: " + intent);
            return;
@@ -60,7 +85,15 @@ public class SimpleLastfmScrobblerManager extends BroadcastReceiver {
 		}
 	}
 
+	/**
+	 * Checks if an intent has the minimum metadata necessary to scrobble.
+	 * 
+	 * @param intent The intent to validate.
+	 * @return True if the intent has valid metadata, false otherwise.
+	 */
 	private boolean metadataPresent(Intent intent) {
+		Log.d(TAG, "Checking for valid metadata");
+		
 		String artist = intent.getStringExtra("artist");
 		String track = intent.getStringExtra("track");
 		long duration = intent.getLongExtra("duration", 0);
@@ -80,12 +113,17 @@ public class SimpleLastfmScrobblerManager extends BroadcastReceiver {
 		return true;
 	}
 	
+	/**
+	 * Parses a broadcasted MediaPlaybackService intent and sends a broadcast to SLS.
+	 * 
+	 * @param intent The intent to parse and broadcast.
+	 */
 	private void sendBroadcast(Intent intent) {
 		int state = RESUME;
 		
 		Intent bCast = new Intent(BROADCAST_ACTION);
-		bCast.putExtra(APP_NAME_NAME, R.string.app_name);
-		bCast.putExtra(APP_PACKAGE_NAME, SimpleLastfmScrobblerManager.class.getPackage().toString());
+		bCast.putExtra(APP_NAME_NAME, mMediaPlaybackService.getString(R.string.app_name));
+		bCast.putExtra(APP_PACKAGE_NAME, mMediaPlaybackService.getApplicationContext().getPackageName());
 		
 		String action = intent.getAction();
 		if (action.equals(MediaPlaybackService.PLAYBACK_STARTED)) {
@@ -107,11 +145,48 @@ public class SimpleLastfmScrobblerManager extends BroadcastReceiver {
 		
 		String album = intent.getStringExtra("album");
 		if (album != null && !album.equals(Media.UNKNOWN_STRING)) {
-			bCast.putExtra(ALBUM_NAME, "com.example.exampleapp");
+			bCast.putExtra(ALBUM_NAME, album);
 		}
 		
 		bCast.putExtra(TRACK_NAME, intent.getStringExtra("track"));
-		bCast.putExtra(DURATION_NAME, intent.getLongExtra("duration", 0));
+		bCast.putExtra(DURATION_NAME, ((int) intent.getLongExtra("duration", 0) / 1000));
+
+		// send the broadcast
 		mMediaPlaybackService.sendBroadcast(bCast);
+		Log.d(TAG, "Broadcast sent");
+	}
+	
+	/**
+	 * Manually scrobbles a track.
+	 * 
+	 * @param intent An intent containing the track information to scrobble.
+	 */
+	public void scrobble(Intent intent) {
+		if (!mSendScrobblerInfo) {
+			return;
+		}
+		
+		Log.d(TAG, "Manual scrobble requested");
+		if (metadataPresent(intent)) {
+			sendBroadcast(intent);
+		}
+	}
+	
+	/**
+	 * Sets if scrobbler information should be broadcasted to SLS.
+	 * 
+	 * @param sendScrobblerInfo True if the information should be sent, false otherwise.
+	 */
+	public void setShouldSendScrobblerInfo(boolean sendScrobblerInfo) {
+		synchronized (mLock) {
+			mSendScrobblerInfo = sendScrobblerInfo;
+		}
+	}
+	
+	/**
+	 * Unregisters the receiver.
+	 */
+	public void cleanup() {	
+		mMediaPlaybackService.unregisterReceiver(this);
 	}
 }
