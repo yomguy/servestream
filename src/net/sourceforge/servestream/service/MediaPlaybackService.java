@@ -40,6 +40,7 @@ import android.preference.PreferenceManager;
 import android.telephony.PhoneStateListener;
 import android.telephony.TelephonyManager;
 import android.util.Log;
+import android.widget.Toast;
 
 import java.lang.ref.WeakReference;
 import java.util.Random;
@@ -148,7 +149,7 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
     private int mServiceStartId = -1;
     private boolean mServiceInUse = false;
     private boolean mIsSupposedToBePlaying = false;
-    //private boolean mQuietMode = false;
+    private boolean mQuietMode = false;
     private AudioManager mAudioManager;
     // used to track what type of audio focus loss caused the playback to pause
     private boolean mPausedByTransientLossOfFocus = false;
@@ -198,12 +199,12 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
                 case PLAYER_PREPARED:
                     Intent i = new Intent(STOP_DIALOG);
                     sendBroadcast(i);
-                    
-                    if (handleError()) {
-                    	play();
-                    	notifyChange(META_CHANGED);
-                    	notifyChange(PLAYBACK_STARTED);
-                    }
+                    play();
+                    notifyChange(META_CHANGED);
+                    notifyChange(PLAYBACK_STARTED);
+                	break;
+                case PLAYER_ERROR:
+                	handleError();
                 	break;
                 case FOCUSCHANGE:
                     // This code is here so we can better synchronize it with the code that
@@ -1604,9 +1605,13 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
     	return false;
     }
     
-    public void updateMetadata() {    	
+    public void updateMetadata() {
     	Cursor cursor;
     	Cursor tempCursor;
+    	
+    	if (mCursor == null) {
+    		return;
+    	}
     	
     	long id = mPlayList[mPlayPos];
     	
@@ -1617,7 +1622,6 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
         if (cursor != null) {
         	cursor.moveToFirst();
         	tempCursor = mCursor;
-        	mCursor = null;
         	tempCursor.close();
         	mCursor = cursor;
         	
@@ -1634,27 +1638,26 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
         }
     }
     
-    private boolean handleError() {
-    	if (!mPlayer.isInitialized()) {
-    		stop(true);
+    private void handleError() {
+    	if (! mPlayer.isInitialized()) {
+            Intent i = new Intent(STOP_DIALOG);
+            sendBroadcast(i);
+            
+            stop(true);
             if (mOpenFailedCounter++ < 10 &&  mPlayListLen > 1) {
-            	// beware: this ends up being recursive because next() calls open() again.
+                // beware: this ends up being recursive because next() calls open() again.
                 next(false);
             }
-            if (!mPlayer.isInitialized() && mOpenFailedCounter != 0) {
+            if (! mPlayer.isInitialized() && mOpenFailedCounter != 0) {
                 // need to make sure we only shows this once
                 mOpenFailedCounter = 0;
-                //if (!mQuietMode) {
-                //    Toast.makeText(this, R.string.playback_failed, Toast.LENGTH_SHORT).show();
-                //}
+                if (!mQuietMode) {
+                    Toast.makeText(this, R.string.playback_failed, Toast.LENGTH_SHORT).show();
+                }
                 Log.d(TAG, "Failed to open file for playback");
-                mMediaplayerHandler.sendEmptyMessage(MediaPlaybackService.PLAYER_ERROR);
-                return false;
             }
         } else {
             mOpenFailedCounter = 0;
         }
-    	
-        return true;
     }
 }

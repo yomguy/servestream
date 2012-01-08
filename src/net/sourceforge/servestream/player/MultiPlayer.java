@@ -54,7 +54,11 @@ public class MultiPlayer implements Parcelable {
             if (isLocalFile) {
             	mMediaPlayer.prepare();
             } else {
-            	mMediaPlayer.prepareAsync();
+            	try {
+            		mMediaPlayer.prepareAsync();
+            	} catch (IllegalStateException e) {
+            		setDataSource(path, isLocalFile);
+            	}
             }
             Log.v(TAG, "Preparing media plyer");
         } catch (IOException ex) {
@@ -127,19 +131,18 @@ public class MultiPlayer implements Parcelable {
 
     MediaPlayer.OnErrorListener errorListener = new MediaPlayer.OnErrorListener() {
         public boolean onError(MediaPlayer mp, int what, int extra) {
+        	Log.d(TAG, "Error: " + what + "," + extra);
+        	
             switch (what) {
             case MediaPlayer.MEDIA_ERROR_SERVER_DIED:
-            	Log.v(TAG, "onError called");
                 mIsInitialized = false;
                 mMediaPlayer.release();
                 mMediaPlayer = new MediaPlayer(); 
                 mHandler.sendMessageDelayed(mHandler.obtainMessage(MediaPlaybackService.SERVER_DIED), 2000);
                 return true;
             default:
-            	Log.v(TAG, "onError called");
-                Log.d("MultiPlayer", "Error: " + what + "," + extra);
                 mIsInitialized = false;
-                mHandler.sendEmptyMessage(MediaPlaybackService.PLAYER_PREPARED);
+                mHandler.sendEmptyMessage(MediaPlaybackService.PLAYER_ERROR);
                 break;
             }
             return false;
