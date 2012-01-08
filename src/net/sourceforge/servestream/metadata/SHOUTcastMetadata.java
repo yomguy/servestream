@@ -40,12 +40,10 @@ import android.content.IntentFilter;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.AsyncTask;
-import android.os.RemoteException;
 import android.util.Log;
 
 import net.sourceforge.servestream.provider.Media;
 import net.sourceforge.servestream.service.MediaPlaybackService;
-import net.sourceforge.servestream.utils.MusicUtils;
 import net.sourceforge.servestream.utils.Utils;
 
 public class SHOUTcastMetadata extends BroadcastReceiver {
@@ -55,18 +53,14 @@ public class SHOUTcastMetadata extends BroadcastReceiver {
 	
 	private static final String ARTIST = "artist";
 	private static final String TITLE = "title";  
-	
 	private static final String STREAM_TITLE = "StreamTitle";
 	private static final String STREAM_TITLE_REPLAY = "StreamTitleReplay";
 	
 	private final MediaPlaybackService mMediaPlaybackService;
 	private boolean mRetrieveSHOUTcastMetadata;
-    /**
-     * A map of all metadata attributes.
-     */
     private Map<String, String> mMetadata = null;
     
-    private long mId;
+    private long mId = -1;
 	private URL mUrl = null;
 	private boolean mContainsMetadata = false;	
 	
@@ -77,98 +71,73 @@ public class SHOUTcastMetadata extends BroadcastReceiver {
     /**
      * Default constructor
      * 
-     * @param url The url to extract SHOUTcast metadata from
+     * @param url The url to extract SHOUTcast metadata from.
      */
 	public SHOUTcastMetadata(MediaPlaybackService mediaPlaybackService, boolean retrieveSHOUTcastMetadata) {
 		mMediaPlaybackService = mediaPlaybackService;
 		mRetrieveSHOUTcastMetadata = retrieveSHOUTcastMetadata;
 		mMetadata = new HashMap<String, String>();
-	    mId = -1;
 		
 		IntentFilter filter = new IntentFilter();
-		filter.addAction(MediaPlaybackService.PLAYSTATE_CHANGED);
 		filter.addAction(MediaPlaybackService.PLAYBACK_STARTED);
+		filter.addAction(MediaPlaybackService.PLAYSTATE_CHANGED);
+		filter.addAction(MediaPlaybackService.PLAYBACK_COMPLETE);		
 		mediaPlaybackService.registerReceiver(this, filter);
 	}
 	
 	@Override
 	public void onReceive(Context context, Intent intent) {
 		final String action = intent.getAction();
-        Log.w(TAG, "onReceived() called: " + intent);
 
-        if (!mRetrieveSHOUTcastMetadata) {
-        	return;
-        }
-        
+		if (!mRetrieveSHOUTcastMetadata ||
+				(!action.equals(MediaPlaybackService.PLAYBACK_STARTED) &&
+				!action.equals(MediaPlaybackService.PLAYSTATE_CHANGED) &&
+				!action.equals(MediaPlaybackService.PLAYBACK_COMPLETE))) {
+           Log.w(TAG, "onReceived() called: " + intent);
+           return;
+		}
+
+		long id = intent.getLongExtra("id", -1);
+		
 		if (action.equals(MediaPlaybackService.PLAYBACK_STARTED)) {
-			long id = intent.getLongExtra("id", -1);
-	           
-	        if (id == -1) {
-	        	return;
-	        }
-	        
-			if (id != mId) {
-				retrieve(id);
-				start();
-			}
+			changeUrl(id);
+			start();
 		} else if (action.equals(MediaPlaybackService.PLAYSTATE_CHANGED)) {
-			long id = intent.getLongExtra("id", -1);
+			boolean isPlaying = intent.getBooleanExtra("playing", false);
 			
 			if (id != mId) {
 				return;
 			}
 			
-           try {
-        	   if (MusicUtils.sService != null) {        		   
-        		   if (MusicUtils.sService.isPlaying()) {
-        			   // If the url does not contain metadata so don't try
-        			   // to start another thread
-        			   if (!mContainsMetadata) {
-        				   Log.v(TAG, "Not starting thread because URL doesn't have metadata");
-        				   return;
-        			   }
+        	if (isPlaying) {
+        		// If the url does not contain metadata so don't try
+        		// to start another thread
+        		if (!mContainsMetadata) {
+        			Log.v(TAG, "Not starting thread because URL doesn't have metadata");
+        			return;
+        		}
         			   
-        			   start();
-        		   } else {
-        			   cancel();
-        		   }
-        	   }
-   			} catch (RemoteException e) {
-   				e.printStackTrace();
-   			}
+        		start();
+        	} else {
+        		cancel();
+        	}
+		} else if (action.equals(MediaPlaybackService.PLAYBACK_COMPLETE)) {
+			cancel();
 		}
 	}
 	
 	/**
-	 * @param mLockingWifi
+	 * Retrieves the corresponding URI of id and creates a URL using that value.
+	 * 
+	 * @param id The id to generate a URL for.
 	 */
-	public void setShouldRetrieveMetadata(boolean retrieveMetadata) {
-		synchronized (mLock) {
-			mRetrieveSHOUTcastMetadata = retrieveMetadata;
-
-			if (mRetrieveSHOUTcastMetadata) {
-				long id = mMediaPlaybackService.getAudioId();
-		           
-		        if (id == -1) {
-		        	return;
-		        }
-		        
-				retrieve(id);
-				start();
-			} else {
-				cancel();
-			}
-		}
-	}
-	
-	private void retrieve(long id) {
+	private void changeUrl(long id) {
 		String uri = getUri(mMediaPlaybackService, id);
 		
 		if (uri != null) {
-			mId = id;
-			
 			try {
 				mUrl = new URL(uri);
+				mId = id;
 			} catch (MalformedURLException e) {
 				e.printStackTrace();
 			}			
@@ -176,23 +145,20 @@ public class SHOUTcastMetadata extends BroadcastReceiver {
 	}
     
     /**
-     * Refreshes the SHOUTcast metadata
-     */
-    private void refreshMetadata() {
-    	retrieveMetadata();
-    }
-
-    /**
      * Establishes a connection to the specified Url and, if available, obtains and
-     * parses the SHOUTcast metadata returned
+     * parses the SHOUTcast metadata returned.
      */
-    private void retrieveMetadata() {
+    private void retrieveMetadata(URL url) {
     	int metaDataOffset = 0;
     	HttpURLConnection conn = null;
     	InputStream stream = null;
     	int bytesRead = 0;
     	mContainsMetadata = false;
 	  
+    	if (url == null) {
+    		return;
+    	}
+    	
     	try {
         	conn = (HttpURLConnection) mUrl.openConnection();
       
@@ -284,10 +250,9 @@ public class SHOUTcastMetadata extends BroadcastReceiver {
     }
 
     /**
-     * Parses the metadata returned
+     * Parses a string of SHOUTcast metadata.
      * 
-     * @param metaString The metadata to parse
-     * @return 
+     * @param metaString The metadata to parse.
      */
 	private void parseMetadata(String metadataString) {
 		String streamTitle = null;
@@ -324,8 +289,7 @@ public class SHOUTcastMetadata extends BroadcastReceiver {
      * Get the value associated to a metadata name. If many values are assiociated
      * to the specified name, then the first one is returned.
      * 
-     * @param name
-     *          of the metadata.
+     * @param name Name of the metadata.
      * @return the value associated to the specified metadata name.
      */
     private String get(final String name) {
@@ -341,10 +305,8 @@ public class SHOUTcastMetadata extends BroadcastReceiver {
      * Add a metadata name/value mapping. Add the specified value to the list of
      * values associated to the specified metadata name.
      * 
-     * @param name
-     *          the metadata name.
-     * @param value
-     *          the metadata value.
+     * @param name The metadata name.
+     * @param value The metadata value.
      */
     private void add(final String name, final String value) {
     	if (value == null) {
@@ -352,15 +314,6 @@ public class SHOUTcastMetadata extends BroadcastReceiver {
     	} else {
     		mMetadata.put(name, value);
     	}
-    }
-    
-    /**
-     * Method to check of the url return SHOUTcast metadata
-     * 
-     * @return true of the url returns SHOUTcast metadata, false otherwise
-     */
-    private boolean containsMetadata() {
-    	return mContainsMetadata;
     }
     
     private void start() {
@@ -380,6 +333,28 @@ public class SHOUTcastMetadata extends BroadcastReceiver {
     	}
     }
     
+	/**
+	 * Sets if metadata should be retrieved and starts or stops the polling thread.
+	 * 
+	 * @param retrieveMetadata True if metadata should be retrieved, false otherwise.
+	 */
+	public void setShouldRetrieveMetadata(boolean retrieveMetadata) {
+		synchronized (mLock) {
+			mRetrieveSHOUTcastMetadata = retrieveMetadata;
+
+			if (mRetrieveSHOUTcastMetadata) {
+				long id = mMediaPlaybackService.getAudioId();
+				changeUrl(id);
+				start();
+			} else {
+				cancel();
+			}
+		}
+	}
+    
+	/**
+	 * Cancels any running polling task and unregisters the receiver.
+	 */
 	public void cleanup() {
 		cancel();		
 		mMediaPlaybackService.unregisterReceiver(this);
@@ -392,15 +367,15 @@ public class SHOUTcastMetadata extends BroadcastReceiver {
 	    }
 	    
 		@Override
-		protected Boolean doInBackground(Void... stream) {  
+		protected Boolean doInBackground(Void... Void) {
 			int retries = 0;
 			boolean metadataFound = false;
 	
 			Log.v(TAG, "Starting polling thread");
 			try {
 				while (retries < 2 && !isCancelled()) {
-					refreshMetadata();
-					metadataFound = containsMetadata();
+					retrieveMetadata(mUrl);
+					metadataFound = mContainsMetadata;
 					retries++;
 					
 					if (metadataFound) {
