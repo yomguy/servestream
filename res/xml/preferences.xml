@@ -81,4 +81,16 @@
 		
 	</PreferenceCategory>
 
+	<PreferenceCategory
+		android:title="@string/pref_social_media_category">
+		
+	    <CheckBoxPreference
+			android:key="sendscrobblerinfo"
+			android:title="@string/pref_sendscrobblerinfo_title"
+			android:summary="@string/pref_sendscrobblerinfo_summary"
+			android:defaultValue="false"
+			/>
+	    
+	</PreferenceCategory>
+	
 </PreferenceScreen>

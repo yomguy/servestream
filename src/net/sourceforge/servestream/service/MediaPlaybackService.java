@@ -159,6 +159,7 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
     private ConnectivityReceiver mConnectivityManager;
     private SHOUTcastMetadata mSHOUTcastMetadata;
     private DownloadManager mDownloadManager;
+    private SimpleLastfmScrobblerManager mSimpleLastfmScrobblerManager;
     private boolean mIsStreaming = true;
     
     private ServeStreamAppWidgetOneProvider mAppWidgetProvider = ServeStreamAppWidgetOneProvider.getInstance();
@@ -255,8 +256,11 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
 				mConnectivityManager.setWantWifiLock(lockingWifi);
   	        }
   	    } else if (key.equals(PreferenceConstants.RETRIEVE_SHOUTCAST_METADATA)) {
-			final boolean retrieveSHOUTcastMetadata = mPreferences.getBoolean(PreferenceConstants.RETRIEVE_SHOUTCAST_METADATA, true);
+			final boolean retrieveSHOUTcastMetadata = mPreferences.getBoolean(PreferenceConstants.RETRIEVE_SHOUTCAST_METADATA, false);
 			mSHOUTcastMetadata.setShouldRetrieveMetadata(retrieveSHOUTcastMetadata);
+  	    } else if (key.equals(PreferenceConstants.SEND_SCROBBLER_INFO)) {
+			final boolean sendShoutcastInfo = mPreferences.getBoolean(PreferenceConstants.SEND_SCROBBLER_INFO, false);
+			mSimpleLastfmScrobblerManager.setShouldSendScrobblerInfo(sendShoutcastInfo);
   	    }
   	}
     
@@ -328,9 +332,11 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
         
 		final boolean lockingWifi = mPreferences.getBoolean(PreferenceConstants.WIFI_LOCK, true);
 		mConnectivityManager = new ConnectivityReceiver(this, lockingWifi);
-		final boolean retrieveSHOUTcastMetadata = mPreferences.getBoolean(PreferenceConstants.RETRIEVE_SHOUTCAST_METADATA, true);
+		final boolean retrieveSHOUTcastMetadata = mPreferences.getBoolean(PreferenceConstants.RETRIEVE_SHOUTCAST_METADATA, false);
 		mSHOUTcastMetadata = new SHOUTcastMetadata(this, retrieveSHOUTcastMetadata);
 		mDownloadManager = new DownloadManager(this);
+		final boolean sendScrobblerInfo = mPreferences.getBoolean(PreferenceConstants.SEND_SCROBBLER_INFO, false);
+		mSimpleLastfmScrobblerManager = new SimpleLastfmScrobblerManager(this, sendScrobblerInfo);
 		
         mAudioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
         mAudioManager.registerMediaButtonEventReceiver(new ComponentName(getPackageName(),
@@ -403,6 +409,7 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
         mSHOUTcastMetadata.cleanup();
     	mDownloadManager.cancelDownload();
     	FileUtils.deleteAllFiles();
+    	mSimpleLastfmScrobblerManager.cleanup();
         
 		stopForeground(true);
 		
@@ -1613,6 +1620,15 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
         	mCursor = null;
         	tempCursor.close();
         	mCursor = cursor;
+        	
+            Intent i = new Intent(PLAYSTATE_CHANGED);
+            i.putExtra("id", Long.valueOf(getAudioId()));
+            i.putExtra("artist", getArtistName());
+            i.putExtra("album",getAlbumName());
+            i.putExtra("track", getTrackName());
+            i.putExtra("duration", Long.valueOf(duration()));
+            i.putExtra("playing", isPlaying());
+        	mSimpleLastfmScrobblerManager.scrobble(i);
         	
             notifyChange(META_CHANGED);
         }

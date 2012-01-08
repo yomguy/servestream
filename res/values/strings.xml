@@ -136,6 +136,9 @@
 	<!-- The category title for playback preferences -->
 	<string name="pref_playback_category">Playback settings</string>
 
+	<!-- The category title for social media preferences -->
+	<string name="pref_social_media_category">Social media settings</string>
+	
 	<!-- The category title for user interface preferences -->
 	<string name="pref_ui_category">User interface</string>
 
@@ -158,7 +161,12 @@
 	<string name="pref_retrieveshoutcastmetadata_title">"Retrieve SHOUTcast metadata"</string>
 	<!-- Summary for the retrieve shoutcast metadata preference -->
 	<string name="pref_retrieveshoutcastmetadata_summary">"Read and display metadata for SHOUTcast streams (experimental)"</string>
-	
+
+	<!-- Name for the send scrobbler info preference -->
+	<string name="pref_sendscrobblerinfo_title">"Send scrobbler info"</string>
+	<!-- Summary for the send scrobbler info preference -->
+	<string name="pref_sendscrobblerinfo_summary">"Enable support for Last.fm's Scrobbler service. Must have \"Simple LastFM Scrobbler\" installed."</string>
+		
 	<!-- Name for the update check preference -->
 	<string name="pref_update_title">Update check</string>
 	<!-- Summary for the update check preference -->

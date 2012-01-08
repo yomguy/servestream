@@ -50,6 +50,8 @@ public class PreferenceConstants {
 	
 	public static final String AUTOSAVE = "autosave";
 	
+	public static final String PROGRESSIVE_DOWNLOAD = "progressivedownload";
+	
 	public static final String WAKELOCK = "wakelock";
 	
 	public static final String WIFI_LOCK = "wifilock";
@@ -57,8 +59,8 @@ public class PreferenceConstants {
 	public static final String RETRIEVE_METADATA = "retrievemetadata";
 	
 	public static final String RETRIEVE_SHOUTCAST_METADATA = "retrieveshoutcastmetadata";
-
-	public static final String PROGRESSIVE_DOWNLOAD = "progressivedownload";
+	
+	public static final String SEND_SCROBBLER_INFO = "sendscrobblerinfo";
 	
 	/* Backup identifiers */
 	public static final String BACKUP_PREF_KEY = "prefs";
