@@ -374,7 +374,7 @@ public class Stream {
 		sb.append(hostname)
 			.append(':')
 			.append(port)
-			.append(scrubPath(path));
+			.append(path);
 		
 		if (!query.equals("")) {
 		    sb.append('?')
@@ -397,7 +397,7 @@ public class Stream {
 	 * @param path The path to scrub
 	 * @return The path with invalid characters converted
 	 */
-	private String scrubPath(String path) {
+	/*private String scrubPath(String path) {
 		String scrubbedPath = null;
 		
 		if (path == null) {
@@ -408,5 +408,5 @@ public class Stream {
 		scrubbedPath = scrubbedPath.replace("]", "%5D");
 		
 		return scrubbedPath;
-	}
+	}*/
 }
