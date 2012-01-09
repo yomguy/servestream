@@ -26,6 +26,7 @@ import android.view.SurfaceHolder;
 
 import java.io.IOException;
 
+import net.sourceforge.servestream.utils.URLUtils;
 import net.sourceforge.servestream.service.MediaPlaybackService;
 
 
@@ -49,15 +50,16 @@ public class MultiPlayer implements Parcelable {
             mMediaPlayer.reset();
             mMediaPlayer.setOnPreparedListener(onPreparedListener);
             mMediaPlayer.setOnCompletionListener(completionListener);
-            mMediaPlayer.setOnErrorListener(errorListener);
-            mMediaPlayer.setDataSource(path);            
+            mMediaPlayer.setOnErrorListener(errorListener);            
             if (isLocalFile) {
+                mMediaPlayer.setDataSource(path);
             	mMediaPlayer.prepare();
             } else {
             	try {
+                    mMediaPlayer.setDataSource(URLUtils.encodeUrl(path));
             		mMediaPlayer.prepareAsync();
             	} catch (IllegalStateException e) {
-            		setDataSource(path, isLocalFile);
+            		//setDataSource(path, isLocalFile);
             	}
             }
             Log.v(TAG, "Preparing media plyer");

@@ -20,7 +20,10 @@ package net.sourceforge.servestream.utils;
 import java.io.IOException;
 import java.net.Authenticator;
 import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
 import java.net.PasswordAuthentication;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 
 import javax.net.ssl.HttpsURLConnection;
@@ -28,6 +31,7 @@ import javax.net.ssl.HttpsURLConnection;
 import android.webkit.MimeTypeMap;
 
 public class URLUtils {
+	//private final static String TAG = URLUtils.class.getName();
 	
 	private static final MimeTypeMap mMimeTypeMap = MimeTypeMap.getSingleton();
 	
@@ -57,6 +61,8 @@ public class URLUtils {
 			if (url == null) {
 				return;
 			}
+			
+			url = encodeUrl(url);
 			
 		    if (url.getUserInfo() != null) {
 		    	String [] userInfo = url.getUserInfo().split("\\:");
@@ -139,6 +145,8 @@ public class URLUtils {
 			return null;
 		}
     	
+		url = encodeUrl(url);
+		
     	String userInfo = url.getUserInfo();
     	
     	if (userInfo != null && (userInfo.split("\\:").length == 2)) {
@@ -166,6 +174,75 @@ public class URLUtils {
     	return conn;
 	}
     
+	public static String encodeUrl(String url) {
+		URL encodedUrl = null;
+		
+		if (url == null) {
+			return null;
+		}
+		
+		try {
+			encodedUrl = encodeUrl(new URL(url)); 
+		} catch (MalformedURLException e) {
+			e.printStackTrace();
+		}
+		
+		if (encodedUrl == null) {
+			return null;
+		} else {
+			return encodedUrl.toString();
+		}
+	}
+	
+	public static URL encodeUrl(URL url) {
+		URL encodedUrl = null;
+		
+		if (url == null) {
+			return null;
+		}
+		
+		String protocol = url.getProtocol();
+		String userinfo = url.getUserInfo();
+		String host = url.getHost();
+		
+		int port = -1;
+		
+		if (url.getPort() == -1) {
+			if (protocol.equalsIgnoreCase(HTTP)) {
+				port = 80;
+			} else if (protocol.equalsIgnoreCase(HTTPS)) {
+				port = 443;
+			}
+		} else {
+			port = url.getPort();
+		}
+		
+		String path = url.getPath();
+		String query = url.getQuery();
+		String ref = url.getRef();
+		
+		String [] split = host.split("\\:");
+		
+		if (split.length == 2) {
+			host = split[0];
+			port = Integer.valueOf(split[1]);
+		}
+		
+		URI uri = null;
+		
+		try {
+			uri = new URI(protocol, userinfo, host, port, path, query, ref);
+			encodedUrl = uri.toURL();
+			//Log.d(TAG, "Encoded URL===> " + encodedUrl);
+		} catch (URISyntaxException e) {
+			e.printStackTrace();
+		} catch (MalformedURLException e) {
+			e.printStackTrace();
+		}
+		
+		return encodedUrl;
+	}
+	
     /**
      * Returns the response code from the URL
      * 

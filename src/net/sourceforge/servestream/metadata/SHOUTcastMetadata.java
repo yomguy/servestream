@@ -42,6 +42,7 @@ import android.net.Uri;
 import android.os.AsyncTask;
 import android.util.Log;
 
+import net.sourceforge.servestream.utils.URLUtils;
 import net.sourceforge.servestream.provider.Media;
 import net.sourceforge.servestream.service.MediaPlaybackService;
 import net.sourceforge.servestream.utils.Utils;
@@ -160,7 +161,7 @@ public class SHOUTcastMetadata extends BroadcastReceiver {
     	}
     	
     	try {
-        	conn = (HttpURLConnection) mUrl.openConnection();
+    		conn = URLUtils.getConnection(mUrl);
       
     	    conn.setRequestProperty("Icy-MetaData", "1");
     	    conn.setRequestProperty("Connection", "close");
