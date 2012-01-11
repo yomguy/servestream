@@ -58,7 +58,7 @@
                 android:authorities="net.sourceforge.servestream"
                 android:exported="false" />
 
-		<activity android:name=".activity.StreamListActivity"
+		<activity android:name=".activity.URLListActivity"
 		    android:launchMode="singleTop" >
 		    
 			<intent-filter>

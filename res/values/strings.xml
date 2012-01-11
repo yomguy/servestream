@@ -69,7 +69,7 @@
 	<string name="invalid_playlist_message">Sorry, the selected playlist file has no valid entries.</string>
 	<string name="invalid_playlist_pos">OK</string>
 
-	<string name="invalid_url_message">Enter a valid Url</string>
+	<string name="invalid_url_message">Enter a valid URL</string>
 
 	<string name="url_not_opened_message">The url could not be opened.</string>
 
@@ -88,9 +88,10 @@
  	<string name="list_sleep_timer_fifty_min">50 minutes</string>
  	<string name="list_sleep_timer_sixty_min">60 minutes</string>
 	
-	<string name="list_stream_edit">Edit stream</string>
-	<string name="list_stream_delete">Delete stream</string>
+	<string name="list_edit">Edit</string>
+	<string name="list_delete">Delete</string>
 	<string name="list_stream_save">Save stream</string>
+	<string name="list_share">Share</string>
 	<string name="list_stream_view">View stream URL</string>
 	
 	<!-- Note that the '\n' splits the lines so it's actually "quick-connect box above to connect" -->
@@ -245,8 +246,11 @@
 	<!-- Window title for Now Playing Activity -->
 	<string name="title_now_playing">Now Playing</string>
 
-	<!-- Window title for main Stream List -->
-	<string name="title_stream_list">Streams</string>
+	<!-- Dialog title for the share intent -->
+	<string name="title_share">Share via</string>
+	
+	<!-- Window title for main URL list -->
+	<string name="title_url_list">URLs</string>
 
 	<!-- Window title for Browsing Streams List -->
 	<string name="title_stream_browse">Browse Streams</string>

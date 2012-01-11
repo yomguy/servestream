@@ -24,7 +24,7 @@ import java.util.List;
 
 import net.sourceforge.servestream.R;
 import net.sourceforge.servestream.activity.SettingsActivity;
-import net.sourceforge.servestream.activity.StreamListActivity;
+import net.sourceforge.servestream.activity.URLListActivity;
 import net.sourceforge.servestream.dbutils.Stream;
 import net.sourceforge.servestream.dbutils.StreamDatabase;
 import net.sourceforge.servestream.filemanager.*;
@@ -138,7 +138,7 @@ public class BrowserActivity extends ListActivity implements ServiceConnection {
 		mHomeButton.setOnClickListener(new OnClickListener() {
 
 			public void onClick(View arg0) {
-				BrowserActivity.this.startActivity(new Intent(BrowserActivity.this, StreamListActivity.class));
+				BrowserActivity.this.startActivity(new Intent(BrowserActivity.this, URLListActivity.class));
 			}
 		});
 	    
@@ -469,7 +469,7 @@ public class BrowserActivity extends ListActivity implements ServiceConnection {
 		    }
 			
 			if (contentType == null) {
-				message = mHandler.obtainMessage(StreamListActivity.MESSAGE_HANDLE_INTENT);
+				message = mHandler.obtainMessage(URLListActivity.MESSAGE_HANDLE_INTENT);
 				message.arg1 = NO_INTENT;
 			} else if (contentType.contains("text/html")) {
 				message = mHandler.obtainMessage(BrowserActivity.MESSAGE_PARSE_WEBPAGE);
@@ -482,7 +482,7 @@ public class BrowserActivity extends ListActivity implements ServiceConnection {
 					e.printStackTrace();
 				}
 				
-				message = mHandler.obtainMessage(StreamListActivity.MESSAGE_HANDLE_INTENT);
+				message = mHandler.obtainMessage(URLListActivity.MESSAGE_HANDLE_INTENT);
 		        message.arg1 = STREAM_MEDIA_INTENT;
 		        message.obj = list;
 			}
