@@ -78,8 +78,8 @@ import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.AdapterView.OnItemClickListener;
 
-public class StreamListActivity extends ListActivity implements ServiceConnection {
-	public final static String TAG = StreamListActivity.class.getName();	
+public class URLListActivity extends ListActivity implements ServiceConnection {
+	public final static String TAG = URLListActivity.class.getName();	
 	
  	private static final int MESSAGE_UPDATE_LIST = 1;
     public static final int MESSAGE_HANDLE_INTENT = 2;
@@ -117,7 +117,7 @@ public class StreamListActivity extends ListActivity implements ServiceConnectio
 	protected Handler mHandler = new Handler() {
 		@Override
 		public void handleMessage(Message msg) {
-			StreamListActivity.this.handleMessage(msg);
+			URLListActivity.this.handleMessage(msg);
 		}
 	};
 	
@@ -129,7 +129,7 @@ public class StreamListActivity extends ListActivity implements ServiceConnectio
 
 		this.setTitle(String.format("%s: %s",
 				getResources().getText(R.string.app_name),
-				getResources().getText(R.string.title_stream_list)));
+				getResources().getText(R.string.title_url_list)));
 		
 		mPreferences = PreferenceManager.getDefaultSharedPreferences(this);
 		
@@ -176,7 +176,7 @@ public class StreamListActivity extends ListActivity implements ServiceConnectio
 					contents.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
 					
 					// create shortcut if requested
-					ShortcutIconResource icon = Intent.ShortcutIconResource.fromContext(StreamListActivity.this, R.drawable.icon);
+					ShortcutIconResource icon = Intent.ShortcutIconResource.fromContext(URLListActivity.this, R.drawable.icon);
 
 					Intent intent = new Intent();
 					intent.putExtra(Intent.EXTRA_SHORTCUT_INTENT, contents);
@@ -347,10 +347,10 @@ public class StreamListActivity extends ListActivity implements ServiceConnectio
     public boolean onOptionsItemSelected(MenuItem item) {
     	switch(item.getItemId()) {
         	case (R.id.menu_item_settings):
-        		startActivity(new Intent(StreamListActivity.this, SettingsActivity.class));
+        		startActivity(new Intent(URLListActivity.this, SettingsActivity.class));
         		break;
         	case (R.id.menu_item_help):
-        		startActivity(new Intent(StreamListActivity.this, HelpActivity.class));
+        		startActivity(new Intent(URLListActivity.this, HelpActivity.class));
         		break;
             case (R.id.menu_item_alarms):
                 startActivity(new Intent(this, AlarmClockActivity.class));
@@ -377,7 +377,7 @@ public class StreamListActivity extends ListActivity implements ServiceConnectio
     	AlertDialog alertDialog;
 	    switch(id) {
 	    case DETERMINE_INTENT_TASK:
-	    	progressDialog = new ProgressDialog(StreamListActivity.this);
+	    	progressDialog = new ProgressDialog(URLListActivity.this);
 	    	progressDialog.setMessage(getString(R.string.opening_url_message));
 	    	progressDialog.setOnCancelListener(new OnCancelListener() {
 
@@ -455,30 +455,30 @@ public class StreamListActivity extends ListActivity implements ServiceConnectio
 			return;
 		}
 		
-		// create menu to handle editing and deleting streams
+		// create menu to handle editing, deleting and sharing of URLs
 		AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo) menuInfo;
 		final Stream stream = (Stream) this.getListView().getItemAtPosition(info.position);
 
-		// set the menu to the name of the stream
+		// set the menu to the name of the URL
 		menu.setHeaderTitle(stream.getNickname());
 
-		// edit the host
-		MenuItem edit = menu.add(R.string.list_stream_edit);
+		// edit the URL
+		MenuItem edit = menu.add(R.string.list_edit);
 		edit.setOnMenuItemClickListener(new OnMenuItemClickListener() {
 			public boolean onMenuItemClick(MenuItem arg0) {
-				Intent intent = new Intent(StreamListActivity.this, StreamEditorActivity.class);
+				Intent intent = new Intent(URLListActivity.this, StreamEditorActivity.class);
 				intent.putExtra(Intent.EXTRA_TITLE, stream.getId());
-				StreamListActivity.this.startActivity(intent);
+				URLListActivity.this.startActivity(intent);
 				return true;
 			}
 		});
 		
-		// delete the host
-		MenuItem delete = menu.add(R.string.list_stream_delete);
+		// delete the URL
+		MenuItem delete = menu.add(R.string.list_delete);
 		delete.setOnMenuItemClickListener(new OnMenuItemClickListener() {
 			public boolean onMenuItemClick(MenuItem item) {
 				// prompt user to make sure they really want this
-				new AlertDialog.Builder(StreamListActivity.this)
+				new AlertDialog.Builder(URLListActivity.this)
 					.setMessage(getString(R.string.delete_message, stream.getNickname()))
 					.setPositiveButton(R.string.delete_pos, new DialogInterface.OnClickListener() {
 						public void onClick(DialogInterface dialog, int which) {
@@ -491,7 +491,18 @@ public class StreamListActivity extends ListActivity implements ServiceConnectio
 						}
 						})
 					.setNegativeButton(R.string.delete_neg, null).create().show();
-
+				return true;
+			}
+		});
+		
+		// share the URL
+		MenuItem share = menu.add(R.string.list_share);
+		share.setOnMenuItemClickListener(new OnMenuItemClickListener() {
+			public boolean onMenuItemClick(MenuItem item) {
+				Intent intent = new Intent(Intent.ACTION_SEND);
+				intent.setType("text/plain");
+				intent.putExtra(Intent.EXTRA_TEXT, stream.getUri().toString());
+				startActivity(Intent.createChooser(intent, getString(R.string.title_share)));
 				return true;
 			}
 		});
@@ -660,7 +671,7 @@ public class StreamListActivity extends ListActivity implements ServiceConnectio
 		
 		switch (message.arg1) {
 			case STREAM_MEDIA_INTENT:
-		        MusicUtils.playAll(StreamListActivity.this, (long []) message.obj, 0);
+		        MusicUtils.playAll(URLListActivity.this, (long []) message.obj, 0);
 		        
 				if (mPreferences.getBoolean(PreferenceConstants.AUTOSAVE, true)) {
 				    saveStream();
@@ -668,14 +679,14 @@ public class StreamListActivity extends ListActivity implements ServiceConnectio
 				}
 				break;
 			case BROWSE_MEDIA_INTENT:
-				StreamListActivity.this.startActivity((Intent) message.obj);
+				URLListActivity.this.startActivity((Intent) message.obj);
 				
 				if (mPreferences.getBoolean(PreferenceConstants.AUTOSAVE, true)) {
 				    saveStream();
 				}
 				break;
 			case NO_INTENT:
-				StreamListActivity.this.showUrlNotOpenedToast();
+				URLListActivity.this.showUrlNotOpenedToast();
 				break;
 		}
 	}
@@ -714,7 +725,7 @@ public class StreamListActivity extends ListActivity implements ServiceConnectio
 		private Message handleURL(Stream stream) {
 			String contentType = null;
 			URLUtils urlUtils = null;
-			Message message = mHandler.obtainMessage(StreamListActivity.MESSAGE_HANDLE_INTENT);
+			Message message = mHandler.obtainMessage(URLListActivity.MESSAGE_HANDLE_INTENT);
 			
 			try {
 				urlUtils = new URLUtils(stream.getURL());
@@ -731,7 +742,7 @@ public class StreamListActivity extends ListActivity implements ServiceConnectio
 			if (contentType == null) {
 				message.arg1 = NO_INTENT;
 			} else if (contentType.contains("text/html")) {
-		        Intent intent = new Intent(StreamListActivity.this, BrowserActivity.class);
+		        Intent intent = new Intent(URLListActivity.this, BrowserActivity.class);
 				intent.setDataAndType(stream.getUri(), urlUtils.getContentType());
 				
 				message.arg1 = BROWSE_MEDIA_INTENT;
@@ -739,7 +750,7 @@ public class StreamListActivity extends ListActivity implements ServiceConnectio
 			} else {
 				long[] list = null;
 				try {
-					list = MusicUtils.getFilesInPlaylist(StreamListActivity.this, stream.getURL(), contentType);
+					list = MusicUtils.getFilesInPlaylist(URLListActivity.this, stream.getURL(), contentType);
 				} catch (MalformedURLException e) {
 					e.printStackTrace();
 				}
