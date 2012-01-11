@@ -168,8 +168,6 @@ public class StreamListActivity extends ListActivity implements ServiceConnectio
 		list.setOnItemClickListener(new OnItemClickListener() {
 			public synchronized void onItemClick(AdapterView<?> parent, View view, int position, long id) {
 
-				//hideKeyboard();
-				
 				mRequestedStream = (Stream) parent.getAdapter().getItem(position);
 				
 				if (mMakingShortcut) {
@@ -213,26 +211,39 @@ public class StreamListActivity extends ListActivity implements ServiceConnectio
 		String intentUri = null;
 		String contentType = null;
 		
-        // check to see if we were called from a shortcut
-		if ((contentType = getIntent().getType()) != null) {
+		Intent intent = getIntent();
+		
+        // check to see if we were called from a home screen shortcut
+		if ((contentType = intent.getType()) != null) {
 			if (contentType.contains("net.sourceforge.servestream/")) {
-				intentUri = getIntent().getType().toString().replace("net.sourceforge.servestream/", "");
-			} else {
-				intentUri = getIntent().getData().toString();
+				intentUri = intent.getType().toString().replace("net.sourceforge.servestream/", "");
+				try {
+					mRequestedStream = new Stream(intentUri);
+					determineIntent();
+				} catch (MalformedURLException ex) {
+				}
+				
+				setIntent(new Intent());
+				return;
 			}
 		}
-			
+		
+		// check to see if we were called by clicking on a URL
+		if (intent.getData() != null) {
+			intentUri = intent.getData().toString();
+		}
+		
 		// check to see if the application was opened from a share intent
-		if (getIntent().getExtras() != null)
-			intentUri = getIntent().getExtras().getCharSequence(Intent.EXTRA_TEXT).toString();
+		if (intent.getExtras() != null && intent.getExtras().getCharSequence(Intent.EXTRA_TEXT) != null) {
+			intentUri = intent.getExtras().getCharSequence(Intent.EXTRA_TEXT).toString();
+		}
 
 		if (intentUri != null) {
 			try {
-				mRequestedStream = new Stream(intentUri);
-				
-				if (mRequestedStream != null)
-					determineIntent();
-			} catch (MalformedURLException e) {
+				intentUri = URLDecoder.decode(intentUri, "UTF-8");
+				mQuickconnect.setText(intentUri);
+				handleUrl(true);
+			} catch (UnsupportedEncodingException e) {
 				e.printStackTrace();
 			}
 		}
@@ -428,8 +439,9 @@ public class StreamListActivity extends ListActivity implements ServiceConnectio
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
 		// don't offer menus when creating shortcut
-		if (mMakingShortcut)
+		if (mMakingShortcut) {
 			return true;
+		}
     	
         MenuInflater inflater = getMenuInflater();
         inflater.inflate(R.menu.stream_list_menu, menu);
@@ -438,7 +450,11 @@ public class StreamListActivity extends ListActivity implements ServiceConnectio
 	
 	@Override
 	public void onCreateContextMenu(ContextMenu menu, View v, ContextMenu.ContextMenuInfo menuInfo) {
-
+		// don't offer menus when creating shortcut
+		if (mMakingShortcut) {
+			return;
+		}
+		
 		// create menu to handle editing and deleting streams
 		AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo) menuInfo;
 		final Stream stream = (Stream) this.getListView().getItemAtPosition(info.position);
