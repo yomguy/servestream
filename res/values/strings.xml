@@ -21,6 +21,15 @@
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
 	
 	<string name="app_desc">An Open-Source HTTP Media Stream Browser and Player.</string>
+	
+	<!-- Toasts after adding song(s) to playlists -->
+    <plurals name="NNNtrackstoplaylist">
+        <!-- message shown when one song was added -->
+        <item quantity="one">1 song added to playlist.</item>
+        <!-- message shown when zero or more than one song was added -->
+        <item quantity="other"><xliff:g id="number" example="27">%d</xliff:g> songs added to playlist.</item>
+    </plurals>
+	
 	<string name="media_service_desc">"Allows media to play in the background"</string>
 	
 	<string name="help_intro">Please select a topic below for more information on a particular subject.</string>
@@ -77,6 +86,8 @@
 	<string name="save_pos">Yes, save</string>
 	<string name="save_neg">Cancel</string>
 
+	<string name="share_signature">%1$s \n\n\n\nSent using %2$s</string>
+	
 	<string name="view_pos">OK</string>
 	
 	<!-- Default sleep timer selection -->
@@ -92,6 +103,8 @@
 	<string name="list_delete">Delete</string>
 	<string name="list_stream_save">Save stream</string>
 	<string name="list_share">Share</string>
+	    <!-- Context menu item -->
+    <string name="add_to_playlist">Add to playlist</string>
 	<string name="list_stream_view">View stream URL</string>
 	
 	<!-- Note that the '\n' splits the lines so it's actually "quick-connect box above to connect" -->

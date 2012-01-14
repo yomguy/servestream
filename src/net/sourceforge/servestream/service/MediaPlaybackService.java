@@ -640,6 +640,11 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
             mCursor.close();
             mCursor = null;
             notifyChange(META_CHANGED);
+        } else {
+    		if (mPreferences.getBoolean(PreferenceConstants.RETRIEVE_METADATA, false)) {
+    			MetadataRetriever.retrieve(MediaPlaybackService.this, list, mPlayPos);
+    			System.out.println("Getting some metadata!");
+        	}
         }
     }
     
@@ -715,10 +720,6 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
             if (oldId != getAudioId()) {
                 notifyChange(META_CHANGED);
             }
-            
-    		if (mPreferences.getBoolean(PreferenceConstants.RETRIEVE_METADATA, false)) {
-    			MetadataRetriever.retrieve(MediaPlaybackService.this, mPlayList, mPlayPos);
-        	}
         }
     }
     

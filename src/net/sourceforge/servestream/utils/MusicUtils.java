@@ -17,6 +17,8 @@
 
 package net.sourceforge.servestream.utils;
 
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -27,6 +29,7 @@ import java.util.Locale;
 import java.util.Map;
 
 import net.sourceforge.servestream.R;
+import net.sourceforge.servestream.dbutils.Stream;
 import net.sourceforge.servestream.provider.Media;
 import net.sourceforge.servestream.service.IMediaPlaybackService;
 import net.sourceforge.servestream.service.MediaPlaybackService;
@@ -42,6 +45,9 @@ import android.content.Intent;
 import android.content.ServiceConnection;
 import android.database.Cursor;
 import android.net.Uri;
+import android.os.AsyncTask;
+import android.os.Handler;
+import android.os.Message;
 import android.os.RemoteException;
 import android.util.Log;
 import android.widget.Toast;
@@ -146,6 +152,73 @@ public class MusicUtils {
             }
             sService = null;
         }
+    }
+    
+    public static AddToCurrentPlaylistAsyncTask addToCurrentPlaylistFromURL(Context context, Handler handler, Stream stream) {
+    	AddToCurrentPlaylistAsyncTask playlistTask = new AddToCurrentPlaylistAsyncTask(context, handler);
+    	playlistTask.execute(stream);
+    	
+    	return playlistTask;
+    }
+    
+    public static void addToCurrentPlaylist(Context context, long [] list) {
+        if (sService == null) {
+            return;
+        }
+        try {
+            sService.enqueue(list, MediaPlaybackService.LAST);
+            String message = context.getResources().getQuantityString(
+                    R.plurals.NNNtrackstoplaylist, list.length, Integer.valueOf(list.length));
+            Toast.makeText(context, message, Toast.LENGTH_SHORT).show();
+        } catch (RemoteException ex) {
+        }
+    }
+    
+    public static class AddToCurrentPlaylistAsyncTask extends AsyncTask<Stream, Void, Void> {
+		
+    	Context mContext = null;
+    	Handler mHandler = null;
+    	
+	    public AddToCurrentPlaylistAsyncTask(Context context, Handler handler) {
+	        super();
+	        mContext = context;
+	        mHandler = handler;
+	    }
+
+		@Override
+		protected Void doInBackground(Stream... stream) {
+			String contentType = null;
+			URLUtils urlUtils = null;
+			URL url = null;
+			long [] list = new long[0];
+			
+			try {
+				url = stream[0].getURL();
+			} catch (MalformedURLException e) {
+				e.printStackTrace();
+			}
+			
+			try {
+				urlUtils = new URLUtils(url);
+			} catch (Exception ex) {
+				ex.printStackTrace();
+				return null;
+			}
+			
+			if (urlUtils.getResponseCode() == HttpURLConnection.HTTP_OK) {			
+				contentType = urlUtils.getContentType();
+		    }
+	
+			if (contentType != null && !contentType.contains("text/html")) {
+				list = MusicUtils.getFilesInPlaylist(mContext, url, contentType);
+			}
+			
+	        Message msg = new Message();
+	        msg.obj = list;
+			mHandler.sendMessage(msg);
+	        
+			return null;
+		}
     }
     
     public static Cursor query(Context context, Uri uri, String[] projection,
