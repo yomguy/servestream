@@ -121,6 +121,13 @@ public class URLListActivity extends ListActivity implements ServiceConnection {
 		}
 	};
 	
+	protected Handler mQueueHandler = new Handler() {
+		@Override
+		public void handleMessage(Message msg) {
+			MusicUtils.addToCurrentPlaylist(URLListActivity.this, (long []) msg.obj);
+		}
+	};
+	
 	@Override
 	public void onCreate(Bundle icicle) {
 		super.onCreate(icicle);
@@ -495,13 +502,25 @@ public class URLListActivity extends ListActivity implements ServiceConnection {
 			}
 		});
 		
+		// add to playlist
+		MenuItem add = menu.add(R.string.add_to_playlist);
+		add.setOnMenuItemClickListener(new OnMenuItemClickListener() {
+			public boolean onMenuItemClick(MenuItem item) {
+				MusicUtils.addToCurrentPlaylistFromURL(URLListActivity.this, mQueueHandler, stream);
+				return true;
+			}
+		});
+		
 		// share the URL
 		MenuItem share = menu.add(R.string.list_share);
 		share.setOnMenuItemClickListener(new OnMenuItemClickListener() {
 			public boolean onMenuItemClick(MenuItem item) {
+				String url = stream.getUri().toString();
+				String appName = getString(R.string.app_name);
+				
 				Intent intent = new Intent(Intent.ACTION_SEND);
 				intent.setType("text/plain");
-				intent.putExtra(Intent.EXTRA_TEXT, stream.getUri().toString());
+				intent.putExtra(Intent.EXTRA_TEXT, getString(R.string.share_signature, url, appName));
 				startActivity(Intent.createChooser(intent, getString(R.string.title_share)));
 				return true;
 			}
