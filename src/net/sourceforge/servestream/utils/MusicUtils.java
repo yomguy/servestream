@@ -24,6 +24,7 @@ import java.util.Formatter;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
 import net.sourceforge.servestream.R;
 import net.sourceforge.servestream.provider.Media;
@@ -279,54 +280,62 @@ public class MusicUtils {
     		return sEmptyList;
     	}	
     	
+    	ContentResolver contentResolver = context.getContentResolver();
+		ContentValues values = new ContentValues();
+    	
+    	Map<String, Integer> uriList = retrieveAllRows(context);
+    	
     	long [] list = new long[mediaFiles.size()];
     	
     	// process the returned media files
     	for (int i = 0; i < mediaFiles.size(); i++) {
-    	
-    		// Form an array specifying which columns to return. 
-    		String [] projection = new String [] { Media.MediaColumns._ID, Media.MediaColumns.URI };
-
-    		// Get the base URI for the Media Files table in the Media content provider.
-    		Uri mediaFile =  Media.MediaColumns.CONTENT_URI;
-
-    		// Make the query.
-    		Cursor cursor = context.getContentResolver().query(mediaFile, 
-    				projection,
-    				Media.MediaColumns.URI + "= ? ",
-    				new String [] { mediaFiles.get(i).getUrl() },
-    				null);    	
-    	
     		long id = -1;
     	
-    		if (cursor.moveToFirst()) {
-    			System.out.println("File exists");
-    			// the item already exists, retrieve the ID
-    			
-    			int idColumn = cursor.getColumnIndex(Media.MediaColumns._ID);
-    			int uriColumn = cursor.getColumnIndex(Media.MediaColumns.URI);
-    			id = cursor.getInt(idColumn);
-    			System.out.println(id);
-    			System.out.println(cursor.getString(uriColumn));
+    		if (uriList.get(mediaFiles.get(i).getUrl()) != null) {
+    			id = uriList.get(mediaFiles.get(i).getUrl());
     		} else {
-    			System.out.println("File doesn't exist, performing insert!");
     			// the item doesn't exist, insert it
-        	
-        		ContentValues values = new ContentValues();
         		values.put(Media.MediaColumns.URI, mediaFiles.get(i).getUrl());
         		values.put(Media.MediaColumns.TITLE, mediaFiles.get(i).getPlaylistMetadata());
 
-                Uri uri = context.getContentResolver().insert(
+                Uri uri = contentResolver.insert(
                 		Media.MediaColumns.CONTENT_URI, values);
                 
                 id = (int) ContentUris.parseId(uri);
     		}
-    	
-    		cursor.close();
     		
     		list[i] = id;
     	}
     	
     	return list;
+    }
+    
+    private static Map<String, Integer> retrieveAllRows(Context context) {
+    	Map<String, Integer> list = new HashMap<String, Integer>();
+    	
+		// Form an array specifying which columns to return. 
+		String [] projection = new String [] { Media.MediaColumns._ID, Media.MediaColumns.URI };
+
+		// Get the base URI for the Media Files table in the Media content provider.
+		Uri mediaFile =  Media.MediaColumns.CONTENT_URI;
+    	
+		// Make the query.
+		Cursor cursor = context.getContentResolver().query(mediaFile, 
+				projection,
+				null,
+				null,
+				null);    	
+	
+		while (cursor.moveToNext()) {
+			int uriColumn = cursor.getColumnIndex(Media.MediaColumns.URI);
+			int idColumn = cursor.getColumnIndex(Media.MediaColumns._ID);
+			String uri = cursor.getString(uriColumn);
+			int id = cursor.getInt(idColumn);
+			list.put(uri, id);
+		}
+
+		cursor.close();
+		
+		return list;
     }
 }
