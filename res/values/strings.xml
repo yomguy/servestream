@@ -99,13 +99,18 @@
  	<string name="list_sleep_timer_fifty_min">50 minutes</string>
  	<string name="list_sleep_timer_sixty_min">60 minutes</string>
 	
-	<string name="list_edit">Edit</string>
-	<string name="list_delete">Delete</string>
-	<string name="list_stream_save">Save stream</string>
-	<string name="list_share">Share</string>
-	    <!-- Context menu item -->
+ 	<!-- Context menu item -->
     <string name="add_to_playlist">Add to playlist</string>
-	<string name="list_stream_view">View stream URL</string>
+    <!-- Context menu item -->
+	<string name="edit">Edit</string>
+	<!-- Context menu item -->
+	<string name="delete">Delete</string>
+	<!-- Context menu item -->
+	<string name="save">Save</string>
+	<!-- Context menu item -->
+	<string name="share">Share</string>
+	<!-- Context menu item -->
+	<string name="view_url">View URL</string>
 	
 	<!-- Note that the '\n' splits the lines so it's actually "quick-connect box above to connect" -->
 	<string name="list_stream_empty">Use the quick-connect box\nabove to open a media stream.</string>
@@ -484,8 +489,8 @@
     <!-- Revert button when editing an alarm. -->
     <string name="revert">Revert</string>
 
-    <!-- Delete button when editing an alarm. -->
-    <string name="delete">Delete</string>
+    <!-- Delete button when editing an alarm.
+    <string name="delete">Delete</string> -->
 
     <!-- Setting title for changing the alarm volume. -->
     <string name="alarm_volume_title">Alarm volume</string>

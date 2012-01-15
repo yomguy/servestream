@@ -256,7 +256,7 @@ public class BrowserActivity extends ListActivity implements ServiceConnection {
 		menu.setHeaderTitle(stream.getNickname());
 
 		// save the URL
-		MenuItem save = menu.add(R.string.list_stream_save);
+		MenuItem save = menu.add(R.string.save);
 		save.setOnMenuItemClickListener(new OnMenuItemClickListener() {
 			public boolean onMenuItemClick(MenuItem arg0) {
 				// prompt user to make sure they really want this
@@ -273,7 +273,7 @@ public class BrowserActivity extends ListActivity implements ServiceConnection {
 		});
 	
 		// view the URL
-		MenuItem view = menu.add(R.string.list_stream_view);
+		MenuItem view = menu.add(R.string.view_url);
 		view.setOnMenuItemClickListener(new OnMenuItemClickListener() {
 			public boolean onMenuItemClick(MenuItem arg0) {
 				// display the URL
@@ -302,7 +302,7 @@ public class BrowserActivity extends ListActivity implements ServiceConnection {
 		});
 		
 		// share the URL
-		MenuItem share = menu.add(R.string.list_share);
+		MenuItem share = menu.add(R.string.share);
 		share.setOnMenuItemClickListener(new OnMenuItemClickListener() {
 			public boolean onMenuItemClick(MenuItem item) {
 				String url = stream.getUri().toString();
