@@ -470,7 +470,7 @@ public class URLListActivity extends ListActivity implements ServiceConnection {
 		menu.setHeaderTitle(stream.getNickname());
 
 		// edit the URL
-		MenuItem edit = menu.add(R.string.list_edit);
+		MenuItem edit = menu.add(R.string.edit);
 		edit.setOnMenuItemClickListener(new OnMenuItemClickListener() {
 			public boolean onMenuItemClick(MenuItem arg0) {
 				Intent intent = new Intent(URLListActivity.this, StreamEditorActivity.class);
@@ -481,7 +481,7 @@ public class URLListActivity extends ListActivity implements ServiceConnection {
 		});
 		
 		// delete the URL
-		MenuItem delete = menu.add(R.string.list_delete);
+		MenuItem delete = menu.add(R.string.delete);
 		delete.setOnMenuItemClickListener(new OnMenuItemClickListener() {
 			public boolean onMenuItemClick(MenuItem item) {
 				// prompt user to make sure they really want this
@@ -512,7 +512,7 @@ public class URLListActivity extends ListActivity implements ServiceConnection {
 		});
 		
 		// share the URL
-		MenuItem share = menu.add(R.string.list_share);
+		MenuItem share = menu.add(R.string.share);
 		share.setOnMenuItemClickListener(new OnMenuItemClickListener() {
 			public boolean onMenuItemClick(MenuItem item) {
 				String url = stream.getUri().toString();
