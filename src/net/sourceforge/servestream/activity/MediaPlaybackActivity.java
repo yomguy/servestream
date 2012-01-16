@@ -1077,7 +1077,7 @@ public class MediaPlaybackActivity extends Activity implements SurfaceHolder.Cal
                     new AlertDialog.Builder(MediaPlaybackActivity.this)
                             .setTitle(R.string.service_start_error_title)
                             .setMessage(R.string.service_start_error_msg)
-                            .setPositiveButton(R.string.service_start_error_button,
+                            .setPositiveButton(android.R.string.ok,
                                     new DialogInterface.OnClickListener() {
                                         public void onClick(DialogInterface dialog, int whichButton) {
                                             finish();

@@ -45,11 +45,9 @@
 
 	<string name="cannot_play_media_title">Cannot play media file</string>
 	<string name="cannot_play_media_message">Sorry, this media file cannot be played.</string>
-	<string name="cannot_play_media_pos">OK</string>
 
 	<string name="delete_message">Are you sure you want to delete \'%1$s\'?</string>
 	<string name="delete_pos">Yes, delete</string>
-	<string name="delete_neg">Cancel</string>
 
     <!--
     This string is used as the format string in a String.format call,
@@ -76,7 +74,6 @@
 
 	<string name="invalid_playlist_title">Cannot play playlist file</string>
 	<string name="invalid_playlist_message">Sorry, the selected playlist file has no valid entries.</string>
-	<string name="invalid_playlist_pos">OK</string>
 
 	<string name="invalid_url_message">Enter a valid URL</string>
 
@@ -84,11 +81,8 @@
 
 	<string name="save_message">Are you sure you want to save \'%1$s\'?</string>
 	<string name="save_pos">Yes, save</string>
-	<string name="save_neg">Cancel</string>
 
 	<string name="share_signature">%1$s \n\n\n\nSent using %2$s</string>
-	
-	<string name="view_pos">OK</string>
 	
 	<!-- Default sleep timer selection -->
  	<string name="list_sleep_timer_off">Off</string>
@@ -213,7 +207,6 @@
     <!-- Dialog box message -->
     <string name="service_start_error_msg">Sorry, the media could not be played.</string>
     <!-- Dialog box button -->
-    <string name="service_start_error_button">OK</string>
 
     <!-- Toast after turning sleep timer off -->
     <string name="sleep_timer_on_notif">Sleep timer is set for</string>
@@ -281,7 +274,6 @@
 
 	<!-- Message to display when a user attempts to scan a URL that is unsupported -->
 	<string name="unsupported_scanned_intent_message">The scanned QR code did not return a supported URL</string>
-	<string name="unsupported_pos">OK</string>
 	
 	<!-- Dialog title when a new version of ServeStream is detected. -->
 	<string name="upgrade">"New version"</string>

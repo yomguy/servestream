@@ -267,7 +267,7 @@ public class BrowserActivity extends ListActivity implements ServiceConnection {
                             saveStream(stream);
 						}
 						})
-					.setNegativeButton(R.string.save_neg, null).create().show();
+					.setNegativeButton(android.R.string.cancel, null).create().show();
 				return true;
 			}
 		});
@@ -279,7 +279,7 @@ public class BrowserActivity extends ListActivity implements ServiceConnection {
 				// display the URL
 				new AlertDialog.Builder(BrowserActivity.this)
 					.setMessage(streamURL)
-					.setPositiveButton(R.string.view_pos, new DialogInterface.OnClickListener() {
+					.setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
 						public void onClick(DialogInterface dialog, int which) {
                             return;
 						}
