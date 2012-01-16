@@ -430,7 +430,7 @@ public class URLListActivity extends ListActivity implements ServiceConnection {
 	    	builder = new AlertDialog.Builder(this);
 	    	builder.setMessage(R.string.unsupported_scanned_intent_message)
 	    	       .setCancelable(true)
-	    	       .setPositiveButton(R.string.unsupported_pos, new DialogInterface.OnClickListener() {
+	    	       .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
 	    	           public void onClick(DialogInterface dialog, int id) {
 	    	                dialog.cancel();
 	    	           }
@@ -451,7 +451,7 @@ public class URLListActivity extends ListActivity implements ServiceConnection {
 		}
     	
         MenuInflater inflater = getMenuInflater();
-        inflater.inflate(R.menu.stream_list_menu, menu);
+        inflater.inflate(R.menu.url_list_menu, menu);
         return true;
     }
 	
@@ -497,7 +497,7 @@ public class URLListActivity extends ListActivity implements ServiceConnection {
 							mHandler.sendEmptyMessage(MESSAGE_UPDATE_LIST);
 						}
 						})
-					.setNegativeButton(R.string.delete_neg, null).create().show();
+					.setNegativeButton(android.R.string.cancel, null).create().show();
 				return true;
 			}
 		});
