@@ -343,8 +343,6 @@ public class MusicUtils {
 			mediaFiles.add(mediaFile);
 		}
     	
-		System.out.println("=====> Getting files from media store");
-		
         return addFilesToMediaStore(context, mediaFiles);
     }
     
