@@ -642,8 +642,13 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
             notifyChange(META_CHANGED);
         } else {
     		if (mPreferences.getBoolean(PreferenceConstants.RETRIEVE_METADATA, false)) {
-    			MetadataRetriever.retrieve(MediaPlaybackService.this, list, mPlayPos);
-    			System.out.println("Getting some metadata!");
+    			int playPos = 0;
+    			
+    			if (mPlayPos > 0) {
+    				playPos = mPlayPos;
+    			}
+    			
+    			MetadataRetriever.retrieve(MediaPlaybackService.this, list, playPos);
         	}
         }
     }
