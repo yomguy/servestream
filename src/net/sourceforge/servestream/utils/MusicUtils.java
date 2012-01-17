@@ -162,7 +162,11 @@ public class MusicUtils {
     }
     
     public static void addToCurrentPlaylist(Context context, long [] list) {
-        if (sService == null) {
+        if (list.length == 0 || sService == null) {
+            Log.d("MusicUtils", "attempt to play empty song list");
+            // Don't try to play empty playlists. Nothing good will come of it.
+            String message = context.getString(R.string.emptyplaylist, list.length);
+            Toast.makeText(context, message, Toast.LENGTH_SHORT).show();
             return;
         }
         try {
