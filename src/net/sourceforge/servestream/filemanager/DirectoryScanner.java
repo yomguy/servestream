@@ -24,7 +24,7 @@ import java.util.List;
 import net.sourceforge.servestream.R;
 import net.sourceforge.servestream.activity.BrowserActivity;
 import net.sourceforge.servestream.dbutils.Stream;
-import net.sourceforge.servestream.utils.StreamParser;
+import net.sourceforge.servestream.utils.WebpageParser;
 import net.sourceforge.servestream.utils.URLUtils;
 
 import android.content.Context;
@@ -66,17 +66,16 @@ public class DirectoryScanner extends Thread {
 	public void run() {
 		Log.v(TAG, "Scanning directory " + currentDirectory);
 		
-		ArrayList<Stream> files = null;
+		List<Stream> files = null;
 		
-		StreamParser streamParser = null;
+		WebpageParser webpageParser;
 		try {
-			streamParser = new StreamParser(currentDirectory.getURL());
-		} catch (MalformedURLException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
+			webpageParser = new WebpageParser(currentDirectory.getURL());
+			webpageParser.parse();
+			files = webpageParser.getParsedLinks();
+		} catch (MalformedURLException e) {
+			e.printStackTrace();
 		}
-		streamParser.getListing();
-		files = streamParser.getParsedLinks();
 		
 		int totalCount = 0;
 		

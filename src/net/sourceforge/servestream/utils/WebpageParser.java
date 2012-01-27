@@ -18,6 +18,7 @@
 package net.sourceforge.servestream.utils;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
@@ -34,35 +35,45 @@ import org.jsoup.select.Elements;
 
 import android.util.Log;
 
-public class StreamParser {
-	public final static String TAG = StreamParser.class.getName();
+public class WebpageParser {
+	private static final String TAG = WebpageParser.class.getName();
 	
-	URL mBaseURL = null;
-	ArrayList<Stream> mParsedLinks = null;
+	private static final String REQUEST_METHOD = "GET";
+	
+	private URL mURL = null;
+	private ArrayList<Stream> mParsedLinks = null;
     
 	/**
 	 * Default constructor
 	 */
-	public StreamParser(URL url) throws MalformedURLException {
-		mBaseURL = url;
+	public WebpageParser(URL url) {
+		mURL = url;
 		mParsedLinks = new ArrayList<Stream>();
 	}
     
-    public void getListing() {
-    	
+    public void parse() {
         int linkCount = 0;
 		HttpURLConnection conn = null;
         StringBuffer html = new StringBuffer();
         String line = null;
         BufferedReader reader = null;
+        String link = null;
         
         try {
-        	conn = URLUtils.getConnection(mBaseURL);
+        	if (mURL == null) {
+        		return;
+        	}
+        	
+        	conn = URLUtils.getConnection(mURL);
+        	
+        	if (conn == null) {
+        		return;
+        	}
         	
         	conn.setRequestProperty("User-Agent", URLUtils.USER_AGENT);
     		conn.setConnectTimeout(6000);
     		conn.setReadTimeout(6000);
-		    conn.setRequestMethod("GET");
+		    conn.setRequestMethod(REQUEST_METHOD);
 		    
 		    // Start the query
 		    reader = new BufferedReader(new InputStreamReader(conn.getInputStream()));
@@ -78,10 +89,9 @@ public class StreamParser {
 		    for (int i = 0; i < links.size(); i++) {
 		    	Stream stream = null;
 		    	
-		    	try {
-		    		
-		    		links.get(i).setBaseUri(mBaseURL.toString());
-		    		String link = links.get(i).attr("abs:href");
+		    	try {		    		
+		    		links.get(i).setBaseUri(mURL.toString());
+		    		link = links.get(i).attr("abs:href");
 
 		    		stream = new Stream(URLDecoder.decode(link, "UTF-8"));
 		    		stream.setNickname(links.get(i).text());
@@ -90,13 +100,10 @@ public class StreamParser {
 			    	mParsedLinks.add(linkCount, stream);
 			        linkCount++;
 		    	} catch (MalformedURLException ex) {
-		    		ex.printStackTrace();
-		    		Log.v(TAG, "BAD URL");
+		    		Log.v(TAG, "Malformed URL: " + link);
 		    	}
-		    }		    
-
+		    }
         } catch (Exception ex) {
-        	ex.printStackTrace();
         } finally {
         	Utils.closeBufferedReader(reader);
         	Utils.closeHttpConnection(conn);
@@ -109,7 +116,7 @@ public class StreamParser {
      * @param index The position of a link object in the list
      * @return Stream A link from the list of parsed links
      */
-    public Stream getParsedLinks(Integer index) {
+    public Stream getParsedLinks(int index) {
     	return mParsedLinks.get(index);
     }
     
@@ -118,8 +125,7 @@ public class StreamParser {
      * 
      * @return ArrayList List of parsed links
      */
-    public ArrayList<Stream> getParsedLinks() {
+    public List<Stream> getParsedLinks() {
     	return mParsedLinks;
     }
-	
 }
