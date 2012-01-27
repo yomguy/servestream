@@ -52,7 +52,7 @@ public class StreamParser {
     	
         int linkCount = 0;
 		HttpURLConnection conn = null;
-        String html = "";
+        StringBuffer html = new StringBuffer();
         String line = null;
         BufferedReader reader = null;
         
@@ -69,10 +69,10 @@ public class StreamParser {
 		    conn.connect();
 		    
 		    while ((line = reader.readLine()) != null) {
-                html = html + line;
+		    	html = html.append(line);
             }
             
-		    Document doc = Jsoup.parse(html);
+		    Document doc = Jsoup.parse(html.toString());
 		    Elements links = doc.select("a[href]");
 
 		    for (int i = 0; i < links.size(); i++) {
