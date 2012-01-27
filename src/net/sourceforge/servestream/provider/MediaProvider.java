@@ -30,6 +30,7 @@ import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.database.sqlite.SQLiteQueryBuilder;
+import android.database.sqlite.SQLiteStatement;
 import android.net.Uri;
 import android.text.TextUtils;
 import android.util.Log;
@@ -200,6 +201,80 @@ public class MediaProvider extends ContentProvider {
         throw new SQLException("Failed to insert row into " + uri);
     }
 
+    @Override
+    public int bulkInsert(Uri uri, ContentValues[] values) {
+    	// Validate the requested uri
+    	if (sUriMatcher.match(uri) != MEDIA) {
+    		throw new IllegalArgumentException("Unknown URI " + uri);
+    	}
+    	
+    	int numInserted = 0;
+    	
+        SQLiteDatabase db = mOpenHelper.getWritableDatabase();
+        db.beginTransaction();
+        	        
+        try {
+        	//standard SQL insert statement, that can be reused
+            SQLiteStatement insert = 
+            		db.compileStatement("insert into " + MEDIA_TABLE_NAME 
+            				+ " (" + MediaColumns.URI + ","
+        	                + MediaColumns.TITLE + ","
+        	                + MediaColumns.ALBUM + ","
+        	                + MediaColumns.ARTIST + ","
+        	                + MediaColumns.DURATION + ","
+        	                + MediaColumns.TRACK + ","
+        	                + MediaColumns.YEAR + ")"
+        	                + " values " + "(?,?,?,?,?,?,?)");
+        	
+        	for (ContentValues value : values) {
+        		// Make sure that the fields are all set
+                if (value.containsKey(MediaColumns.URI) == false) {
+                	value.put(MediaColumns.URI, Media.UNKNOWN_STRING);
+                }
+                
+                if (value.containsKey(MediaColumns.TITLE) == false) {
+                	value.put(MediaColumns.TITLE, Media.UNKNOWN_STRING);
+                }
+                
+                if (value.containsKey(MediaColumns.ALBUM) == false) {
+                	value.put(MediaColumns.ALBUM, Media.UNKNOWN_STRING);
+                }
+                
+                if (value.containsKey(MediaColumns.ARTIST) == false) {
+                	value.put(MediaColumns.ARTIST, Media.UNKNOWN_STRING);
+                }
+                
+                if (value.containsKey(MediaColumns.DURATION) == false) {
+                	value.put(MediaColumns.DURATION, Media.UNKNOWN_INTEGER);
+                }
+                
+                if (value.containsKey(MediaColumns.TRACK) == false) {
+                	value.put(MediaColumns.TRACK, Media.UNKNOWN_STRING);
+                }
+                
+                if (value.containsKey(MediaColumns.YEAR) == false) {
+                	value.put(MediaColumns.YEAR, Media.UNKNOWN_INTEGER);
+                }
+        		
+                insert.bindString(1, value.getAsString(MediaColumns.URI));
+        	    insert.bindString(2, value.getAsString(MediaColumns.TITLE));
+        	    insert.bindString(3, value.getAsString(MediaColumns.ALBUM));
+        	    insert.bindString(4, value.getAsString(MediaColumns.ARTIST));
+        	    insert.bindLong(5, value.getAsInteger(MediaColumns.DURATION));
+        	    insert.bindString(6, value.getAsString(MediaColumns.TRACK));
+        	    insert.bindLong(7, value.getAsInteger(MediaColumns.YEAR));
+        	    insert.execute();
+        	    numInserted++;
+        	}
+            
+        	db.setTransactionSuccessful();
+        } finally {
+        	db.endTransaction();
+        }
+        
+        return numInserted;
+    }
+    
     @Override
     public int delete(Uri uri, String where, String[] whereArgs) {
         SQLiteDatabase db = mOpenHelper.getWritableDatabase();
