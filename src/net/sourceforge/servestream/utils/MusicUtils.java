@@ -37,7 +37,6 @@ import android.app.Activity;
 import android.app.Service;
 import android.content.ComponentName;
 import android.content.ContentResolver;
-import android.content.ContentUris;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.ContextWrapper;
@@ -355,8 +354,9 @@ public class MusicUtils {
     		return sEmptyList;
     	}	
     	
+    	List<ContentValues> contentValues = new ArrayList<ContentValues>();
+    	
     	ContentResolver contentResolver = context.getContentResolver();
-		ContentValues values = new ContentValues();
     	
     	Map<String, Integer> uriList = retrieveAllRows(context);
     	
@@ -368,18 +368,37 @@ public class MusicUtils {
     	
     		if (uriList.get(mediaFiles.get(i).getUrl()) != null) {
     			id = uriList.get(mediaFiles.get(i).getUrl());
-    		} else {
-    			// the item doesn't exist, insert it
-        		values.put(Media.MediaColumns.URI, mediaFiles.get(i).getUrl());
-        		values.put(Media.MediaColumns.TITLE, mediaFiles.get(i).getPlaylistMetadata());
+        		list[i] = id;
+    		} else {    			
+    			// the item doesn't exist, lets put it into the list to be inserted
+    			ContentValues value = new ContentValues();
+        		value.put(Media.MediaColumns.URI, mediaFiles.get(i).getUrl());
+        		
+        		if (mediaFiles.get(i).getPlaylistMetadata() != null) {
+        			value.put(Media.MediaColumns.TITLE, mediaFiles.get(i).getPlaylistMetadata());
+        		}
 
-                Uri uri = contentResolver.insert(
-                		Media.MediaColumns.CONTENT_URI, values);
-                
-                id = (int) ContentUris.parseId(uri);
+        		contentValues.add(value);
     		}
+    	}
+    	
+    	if (contentValues.size() > 0) {
+    		ContentValues [] values = new ContentValues[contentValues.size()];
+    		values = contentValues.toArray(values);
     		
-    		list[i] = id;
+    		int numInserted = contentResolver.bulkInsert(Media.MediaColumns.CONTENT_URI, values);
+    	
+    		if (numInserted > 0) {
+    			/*uriList = retrieveAllRows(context);
+    		
+    			for (int i = 0; i < mediaFiles.size(); i++) {
+    				if (uriList.get(mediaFiles.get(i).getUrl()) != null) {
+    					int id = uriList.get(mediaFiles.get(i).getUrl());
+    					list[i] = id;
+    				}
+    			}*/
+    			list = addFilesToMediaStore(context, mediaFiles);
+    		}
     	}
     	
     	return list;
