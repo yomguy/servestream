@@ -994,6 +994,25 @@ public class MediaPlaybackActivity extends Activity implements SurfaceHolder.Cal
         }
     }
     
+    private void setSeekControls() {
+    	if (mService == null) {
+    		return;
+    	}
+    	
+    	try {
+			if (mService.duration() > 0) {
+				mProgress.setEnabled(true);
+				mSeekBackwardButton.setEnabled(true);
+				mSeekForwardButton.setEnabled(true);
+			} else {
+				mProgress.setEnabled(false);
+				mSeekBackwardButton.setEnabled(false);
+				mSeekForwardButton.setEnabled(false);
+			}
+		} catch (RemoteException e) {
+		}	
+    }
+    
     private TextView mCurrentTime;
     private TextView mTotalTime;
     private TextView mArtistName;
@@ -1101,6 +1120,7 @@ public class MediaPlaybackActivity extends Activity implements SurfaceHolder.Cal
                 // redraw the artist/title info and
                 // set new max for progress bar
                 updateTrackInfo();
+                setSeekControls();
                 setPauseButtonImage();
                 queueNextRefresh(1);
         		
