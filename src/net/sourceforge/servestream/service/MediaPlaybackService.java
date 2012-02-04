@@ -85,12 +85,6 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
     public static final int REPEAT_ALL = 2;
 
     public static final int SLEEP_TIMER_OFF = 0;
-    public static final int SLEEP_TIMER_TEN_MIN = 1;
-    public static final int SLEEP_TIMER_TWENTY_MIN = 2;
-    public static final int SLEEP_TIMER_THIRTY_MIN = 3;
-    public static final int SLEEP_TIMER_FOURTY_MIN = 4;
-    public static final int SLEEP_TIMER_FIFTY_MIN = 5;
-    public static final int SLEEP_TIMER_SIXTY_MIN = 6;
     
     public static final String PLAYSTATE_CHANGED = "net.sourceforge.servestream.playstatechanged";
     public static final String META_CHANGED = "net.sourceforge.servestream.metachanged";
@@ -1211,36 +1205,16 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
         return mRepeatMode;
     }
     
-    public void setSleepTimerMode(int sleepmode) {
+    public void setSleepTimerMode(int minutes) {
     	synchronized(this) {
-    		mSleepTimerMode = sleepmode;
-    		
     		mSleepTimerHandler.removeCallbacksAndMessages(null);
-    		Message msg = mSleepTimerHandler.obtainMessage();
     	
-    		switch (mSleepTimerMode) {
-    			case SLEEP_TIMER_TEN_MIN:
-    				mSleepTimerHandler.sendMessageDelayed(msg, 600000);
-    				break;
-    			case SLEEP_TIMER_TWENTY_MIN:
-    				mSleepTimerHandler.sendMessageDelayed(msg, 1200000);
-    				break;
-    			case SLEEP_TIMER_THIRTY_MIN:
-    				mSleepTimerHandler.sendMessageDelayed(msg, 1800000);
-    				break;
-    			case SLEEP_TIMER_FOURTY_MIN:
-    				mSleepTimerHandler.sendMessageDelayed(msg, 2400000);
-    				break;
-    			case SLEEP_TIMER_FIFTY_MIN:
-    				mSleepTimerHandler.sendMessageDelayed(msg, 3000000);
-    				break;
-    			case SLEEP_TIMER_SIXTY_MIN:
-    				mSleepTimerHandler.sendMessageDelayed(msg, 3600000);
-    				break;
-    			default:
-    				Log.v(TAG, "Invalid sleep mode selected");
-    				break;
+    		if (minutes != SLEEP_TIMER_OFF) {
+    			Message msg = mSleepTimerHandler.obtainMessage();
+    			mSleepTimerHandler.sendMessageDelayed(msg, minutes * 60000);
     		}
+    		
+    		mSleepTimerMode = minutes;
     	}
     }
     

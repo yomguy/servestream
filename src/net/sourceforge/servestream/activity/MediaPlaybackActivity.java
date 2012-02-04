@@ -79,6 +79,8 @@ public class MediaPlaybackActivity extends Activity implements SurfaceHolder.Cal
 {
     private static final String TAG = MediaPlaybackActivity.class.getName();
 
+    private static final int CHANGE_SLEEP_TIMER_MINUTES = 1;
+    
     private int mParentActivityState = VISIBLE;
     private static int VISIBLE = 1;
     private static int GONE = 2;
@@ -380,19 +382,18 @@ public class MediaPlaybackActivity extends Activity implements SurfaceHolder.Cal
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-    	try {
-    		switch(item.getItemId()) {
-    		    case (R.id.menu_item_shuffle):
-    		    	toggleShuffle();
-    		    	break;
-    		    case (R.id.menu_item_repeat):
-    		    	cycleRepeat();
-    		        break;
-        		case (R.id.menu_item_now_playing):
-        			startActivity(new Intent(MediaPlaybackActivity.this, NowPlayingActivity.class));
-        			break;
-        		case (R.id.menu_item_sleep_timer): {
-        			final String [] sleepTimerModes = getSleepTimerModes();
+    	switch(item.getItemId()) {
+    		case (R.id.menu_item_shuffle):
+    		    toggleShuffle();
+    		    break;
+    		case (R.id.menu_item_repeat):
+    		    cycleRepeat();
+    		    break;
+        	case (R.id.menu_item_now_playing):
+        		startActivity(new Intent(MediaPlaybackActivity.this, NowPlayingActivity.class));
+        		break;
+        	case (R.id.menu_item_sleep_timer): {
+/*        			final String [] sleepTimerModes = getSleepTimerModes();
         			int sleepTimerMode = 0;
 					sleepTimerMode = mService.getSleepTimerMode();
 					AlertDialog.Builder builder = new AlertDialog.Builder(this);
@@ -411,17 +412,14 @@ public class MediaPlaybackActivity extends Activity implements SurfaceHolder.Cal
 								e.printStackTrace();
 							}
 						}
-					}).show();
-					return true;
-				}
-        		case (R.id.menu_item_settings):
-        			startActivity(new Intent(MediaPlaybackActivity.this, SettingsActivity.class));
-        			break;
-         	}
-         	
-		} catch (RemoteException ex) {
-			ex.printStackTrace();
-		}
+					}).show();*/
+                startActivityForResult(new Intent(this, MinuteSelector.class), CHANGE_SLEEP_TIMER_MINUTES);
+				return true;
+			}
+        	case (R.id.menu_item_settings):
+        		startActivity(new Intent(MediaPlaybackActivity.this, SettingsActivity.class));
+        		break;
+        }
          	
 		return false;
     }
@@ -880,14 +878,6 @@ public class MediaPlaybackActivity extends Activity implements SurfaceHolder.Cal
         mToast.show();
     }
     
-    private void showToast(String message) {
-        if (mToast == null) {
-            mToast = Toast.makeText(this, "", Toast.LENGTH_SHORT);
-        }
-        mToast.setText(message);
-        mToast.show();
-    }
-
     private void startPlayback() {
 
         if(mService == null)
@@ -1188,19 +1178,5 @@ public class MediaPlaybackActivity extends Activity implements SurfaceHolder.Cal
         } catch (RemoteException ex) {
             finish();
         }
-    }
-    
-    public String [] getSleepTimerModes() {
-    	String [] sleepModes = new String[7];
-    	
-    	sleepModes[0] = getString(R.string.list_sleep_timer_off);
-        sleepModes[1] = getString(R.string.list_sleep_timer_ten_min);
-        sleepModes[2] = getString(R.string.list_sleep_timer_twenty_min);
-        sleepModes[3] = getString(R.string.list_sleep_timer_thirty_min);
-        sleepModes[4] = getString(R.string.list_sleep_timer_fourty_min);
-        sleepModes[5] = getString(R.string.list_sleep_timer_fifty_min);
-        sleepModes[6] = getString(R.string.list_sleep_timer_sixty_min);
-    	
-    	return sleepModes;
     }
 }
