@@ -84,15 +84,6 @@
 
 	<string name="share_signature">%1$s \n\n\n\nSent using %2$s</string>
 	
-	<!-- Default sleep timer selection -->
- 	<string name="list_sleep_timer_off">Off</string>
- 	<string name="list_sleep_timer_ten_min">10 minutes</string>
- 	<string name="list_sleep_timer_twenty_min">20 minutes</string>
- 	<string name="list_sleep_timer_thirty_min">30 minutes</string>
- 	<string name="list_sleep_timer_fourty_min">40 minutes</string>
- 	<string name="list_sleep_timer_fifty_min">50 minutes</string>
- 	<string name="list_sleep_timer_sixty_min">60 minutes</string>
-	
  	<!-- Context menu item -->
     <string name="add_to_playlist">Add to playlist</string>
     <!-- Context menu item -->
@@ -131,6 +122,13 @@
     <!-- Title of sleep timer menu entry -->
     <string name="menu_sleep_timer">Sleep Timer</string>
 
+    <!-- Button name in minute picker -->
+    <string name="minute_picker_cancel">Off</string>
+    <!-- Button name in minute picker -->
+    <string name="minute_picker_set">Set</string>
+    <!-- Title of minute picker -->
+    <string name="minute_picker_title">Sleep time</string>
+    
 	<!-- Used to display the album and artist in the notification bar -->
 	<string name="notification_artist_album" msgid="2128095771677061443">"<xliff:g id="ALBUM">%2$s</xliff:g>" - "<xliff:g id="ARTIST">%1$s</xliff:g>"</string>
 
