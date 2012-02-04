@@ -113,7 +113,7 @@ public class MinuteSelector extends Activity implements ServiceConnection
     	for (int i = 0; i < MAX_ARRAY_VALUE; i++) {
     		if (i == 0) {
     			minutes[i] = getResources().getString(R.string.minute_picker_cancel);
-    		} else if (i == 0) {
+    		} else if (i == 1) {
     			minutes[i] = getResources().getString(R.string.minute);
     		} else if (i % 60 == 0 && i > 60) {
     			minutes[i] = getResources().getString(R.string.hours, String.valueOf(i / 60));
