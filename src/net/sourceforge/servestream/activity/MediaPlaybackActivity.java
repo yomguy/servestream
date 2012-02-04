@@ -79,8 +79,6 @@ public class MediaPlaybackActivity extends Activity implements SurfaceHolder.Cal
 {
     private static final String TAG = MediaPlaybackActivity.class.getName();
 
-    private static final int CHANGE_SLEEP_TIMER_MINUTES = 1;
-    
     private int mParentActivityState = VISIBLE;
     private static int VISIBLE = 1;
     private static int GONE = 2;
@@ -392,30 +390,9 @@ public class MediaPlaybackActivity extends Activity implements SurfaceHolder.Cal
         	case (R.id.menu_item_now_playing):
         		startActivity(new Intent(MediaPlaybackActivity.this, NowPlayingActivity.class));
         		break;
-        	case (R.id.menu_item_sleep_timer): {
-/*        			final String [] sleepTimerModes = getSleepTimerModes();
-        			int sleepTimerMode = 0;
-					sleepTimerMode = mService.getSleepTimerMode();
-					AlertDialog.Builder builder = new AlertDialog.Builder(this);
-					builder.setTitle(R.string.menu_sleep_timer);
-					builder.setSingleChoiceItems(sleepTimerModes, sleepTimerMode, new DialogInterface.OnClickListener() {
-						public void onClick(DialogInterface dialog, int item) {
-							try {
-								mService.setSleepTimerMode(item);
-								if (item == MediaPlaybackService.SLEEP_TIMER_OFF) {
-									showToast(R.string.sleep_timer_off_notif);
-								} else {
-								    showToast(getString(R.string.sleep_timer_on_notif) + " " + sleepTimerModes[mService.getSleepTimerMode()]);
-								}
-								dialog.dismiss();
-							} catch (RemoteException e) {
-								e.printStackTrace();
-							}
-						}
-					}).show();*/
-                startActivityForResult(new Intent(this, MinuteSelector.class), CHANGE_SLEEP_TIMER_MINUTES);
-				return true;
-			}
+        	case (R.id.menu_item_sleep_timer):
+                startActivity(new Intent(this, MinuteSelector.class));
+        		break;
         	case (R.id.menu_item_settings):
         		startActivity(new Intent(MediaPlaybackActivity.this, SettingsActivity.class));
         		break;
