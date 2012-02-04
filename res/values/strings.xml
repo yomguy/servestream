@@ -304,18 +304,11 @@
 	
 	<!-- Begin Alarm Code Strings -->
 	
-    <!-- -->
-    <!-- Label shown on launcher icon -->
-    <string name="app_label">Clock</string>
-
     <!-- Title for AlarmClock activity -->
     <string name="alarm_list_title">Alarms</string>
 
     <!-- Menu item on Alarm Clock screen: Add alarm -->
     <string name="add_alarm">Add alarm</string>
-
-    <!-- Menu item on Alarm Clock screen: Desk clock -->
-    <string name="menu_desk_clock">Desk clock</string>
 
     <!-- Menu item on Alarm Clock screen: Edit alarm -->
     <string name="menu_edit_alarm">Edit alarm</string>
@@ -331,12 +324,6 @@
 
     <!-- Delete alarm confirmation dialog message. -->
     <string name="delete_alarm_confirm">This alarm will be deleted.</string>
-
-    <!-- Menu item on Alarm Clock screen: Show clock -->
-    <string name="show_clock">Show clock</string>
-
-    <!-- Menu item on Alarm Clock screen: Hide clock -->
-    <string name="hide_clock">Hide clock</string>
 
     <!-- Setting label on Set alarm screen: Label -->
     <string name="label">Label</string>
@@ -430,57 +417,11 @@
          this character, i.e. "Mon, Tue, Wed" -->
     <string name="day_concat">", "</string>
 
-    <!-- Appears at the top of the Clock Picker screen: Tell user to
-         select a clock to display -->
-    <string name="clock_instructions">Select a clock to display.</string>
-
-    <!-- Label for analog clock gadget, shown in list of all gadgets -->
-    <string name="analog_gadget">Analog clock</string>
-
-    <!-- Menu item title for general Alarm Clock Settings -->
-    <string name="settings">Settings</string>
-
-    <!-- Setting title for whether the alarm should play in silent mode.
-         Usually, silent mode only affects the ringer, but this setting
-         will make the alarms respect silent mode too. -->
-    <string name="alarm_in_silent_mode_title">Alarm in silent mode</string>
-
-    <!-- Setting summary for whether the alarm should play in silent mode. -->
-    <string name="alarm_in_silent_mode_summary">Play alarm even when the phone is in silent mode</string>
-
-    <!-- Setting title for changing the snooze duration. -->
-    <string name="snooze_duration_title">Snooze duration</string>
-
-    <!-- Entries listed in the ListPreference when invoking the snooze duration
-         preference. -->
-    <string-array name="snooze_duration_entries">
-      <item>5 minutes</item>
-      <item>10 minutes</item>
-      <item>15 minutes</item>
-      <item>20 minutes</item>
-      <item>25 minutes</item>
-      <item>30 minutes</item>
-    </string-array>
-
-    <!-- Values that are retrieved from the ListPreference. These must match
-         the snooze_duration_entries above. -->
-    <string-array name="snooze_duration_values">
-      <item>5</item>
-      <item>10</item>
-      <item>15</item>
-      <item>20</item>
-      <item>25</item>
-      <item>30</item>
-    </string-array>
-
     <!-- Done button when editing an alarm. -->
     <string name="done">Done</string>
 
     <!-- Revert button when editing an alarm. -->
     <string name="revert">Revert</string>
-
-    <!-- Delete button when editing an alarm.
-    <string name="delete">Delete</string> -->
 
     <!-- Setting title for changing the alarm volume. -->
     <string name="alarm_volume_title">Alarm volume</string>
@@ -499,47 +440,6 @@
 
     <!-- Text to display in the notification when the alarm has been snoozed -->
     <string name="alarm_notify_snooze_text">Alarm set for <xliff:g id="time">%s</xliff:g>. Select to cancel.</string>
-
-    <!-- Title of the setting to change the volume/camera button behavior. -->
-    <string name="volume_button_setting_title">Volume and Camera</string>
-
-    <!-- Dialog title of the volume and power setting. -->
-    <string name="volume_button_dialog_title">Button effect</string>
-
-    <!-- The summary of the side button setting. -->
-    <string name="volume_button_setting_summary">Set what these buttons do when pressed during an alarm</string>
-
-    <!-- Entries listed in the setting for the side-button action. -->
-    <string-array name="volume_button_setting_entries">
-      <item>None</item>
-      <item>Snooze</item>
-      <item>Dismiss</item>
-    </string-array>
-
-    <!-- Values for the side-button setting. -->
-    <string-array name="volume_button_setting_values">
-      <item>0</item>
-      <item>1</item>
-      <item>2</item>
-    </string-array>
-
-    <!-- Accessibility labels for Clock activity buttons --><skip/>
-    <string name="alarm_button_description">Alarms</string>
-    <string name="gallery_button_description">Gallery</string>
-    <string name="music_button_description">Music</string>
-    <string name="nightmode_button_description">Dim</string>
-    <string name="home_button_description">Launcher</string>
-    <string name="desk_clock_button_description">Clock Display</string>
-
-    <!-- A short representation of charging information, e.g "34%" -->
-    <string name="battery_charging_level"><xliff:g id="number">%d</xliff:g><xliff:g id="percent">%%</xliff:g></string>
-
-    <!-- What to show the user if the weather widget exists but fails to
-         respond. This is a sign of an error; if the weather widget is not
-         present on the device, we show nothing at all. -->
-    <string name="weather_fetch_failure">Weather information currently unavailable.</string>
-
-    <string name="menu_item_dock_settings" msgid="9161438664257429372">Dock settings</string>
 
     <string name="alarm_klaxon_service_desc">Sound playback service for alarms set in DeskClock.</string>
 
