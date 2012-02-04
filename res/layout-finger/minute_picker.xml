@@ -48,8 +48,7 @@
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:padding="6dip"
-        android:background="#ffffff" >
+        android:padding="6dip" >
 
         <Button android:id="@+id/set"
             android:layout_width="120dip"
