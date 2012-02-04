@@ -64,7 +64,6 @@ public class MinuteSelector extends Activity implements ServiceConnection
 			public void onClick(View v) {
                 int pos = mMinutes.getCurrentSelectedPos();
                 setSleepTimer(pos);
-                setResult(RESULT_OK);
                 finish();
 			}
 		});
@@ -72,7 +71,6 @@ public class MinuteSelector extends Activity implements ServiceConnection
         
         ((Button) findViewById(R.id.cancel)).setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
-                setResult(RESULT_CANCELED);
                 finish();
             }
         });
