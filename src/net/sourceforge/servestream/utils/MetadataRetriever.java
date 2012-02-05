@@ -22,6 +22,8 @@ import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.Iterator;
+import java.util.Set;
 
 import net.sourceforge.servestream.provider.Media;
 import net.sourceforge.servestream.service.MediaPlaybackService;
@@ -29,8 +31,13 @@ import net.sourceforge.servestream.service.MediaPlaybackService;
 import org.apache.tika.exception.TikaException;
 import org.apache.tika.metadata.Metadata;
 import org.apache.tika.metadata.XMPDM;
+import org.apache.tika.mime.MediaType;
+import org.apache.tika.parser.AbstractParser;
 import org.apache.tika.parser.ParseContext;
+import org.apache.tika.parser.flac.FlacParser;
 import org.apache.tika.parser.mp3.Mp3Parser;
+import org.apache.tika.parser.ogg.OggParser;
+import org.apache.tika.parser.vorbis.VorbisParser;
 import org.apache.tika.sax.BodyContentHandler;
 import org.xml.sax.SAXException;
 
@@ -41,8 +48,6 @@ import android.net.Uri;
 import android.os.AsyncTask;
 
 public class MetadataRetriever {
-	
-	private static final String MP3_CONTENT_TYPE = "audio/mpeg";
 	
 	// This class cannot be instantiated
 	private MetadataRetriever() {
@@ -158,9 +163,13 @@ public class MetadataRetriever {
 				return null;
 			}
 			
-			if (contentType.equalsIgnoreCase(MP3_CONTENT_TYPE)) {
-				metadata = retrieveMP3metadata(inputStream);
+			AbstractParser parser = detectParser(contentType);
+			
+			if (parser == null) {
+				return null;
 			}
+			
+			metadata = retrieveMetadata(inputStream, parser);
 		} catch (MalformedURLException e) {
 			e.printStackTrace();
 		} catch (IOException e) {
@@ -176,12 +185,46 @@ public class MetadataRetriever {
 		return metadata;
 	}
 	
-	private static Metadata retrieveMP3metadata(InputStream inputStream) throws IOException, SAXException, TikaException {
+	private static AbstractParser detectParser(String contentType) {
+		AbstractParser parser = null;
+		
+		ParseContext parseContext = new ParseContext();
+		
+		FlacParser flacParser = new FlacParser();
 		Mp3Parser mp3Parser = new Mp3Parser();
+		OggParser oggParser = new OggParser();
+		VorbisParser vorbisParser = new VorbisParser();
+		
+		if (contains(flacParser.getSupportedTypes(parseContext), contentType)) {
+			parser = flacParser;
+		} else if (contains(mp3Parser.getSupportedTypes(parseContext), contentType)) {
+			parser = mp3Parser;
+		} else if (contains(oggParser.getSupportedTypes(parseContext), contentType)) {
+			parser = oggParser;
+		} else if (contains(vorbisParser.getSupportedTypes(parseContext), contentType)) {
+			parser = vorbisParser;
+		}
+		
+		return parser;
+	}
+	
+	private static boolean contains(Set<MediaType> types, String contentType) {
+		Iterator<MediaType> iterator = types.iterator();
+		
+		while (iterator.hasNext()) {
+			if (iterator.next().getBaseType().toString().equalsIgnoreCase(contentType)) {
+				return true;
+			}
+		}
+		
+		return false;
+	}
+	
+	private static Metadata retrieveMetadata(InputStream inputStream, AbstractParser parser) throws IOException, SAXException, TikaException {
 		BodyContentHandler handler = new BodyContentHandler();
 	    Metadata metadata = new Metadata();
 		
-		mp3Parser.parse(inputStream, handler, metadata, new ParseContext());
+		parser.parse(inputStream, handler, metadata, new ParseContext());
 		
 		return metadata;
 	}
