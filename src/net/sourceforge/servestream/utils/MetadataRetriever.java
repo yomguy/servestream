@@ -189,6 +189,14 @@ public class MetadataRetriever {
 	private static int updateMetadata(Context context, long id, Metadata metadata) {
 		int rows = 0;
 		
+		// if we didn't obtain at least the title, album or artist then don't store
+		// the metadata since it's pretty useless
+		if (metadata.get(Metadata.TITLE) == null && 
+				metadata.get(XMPDM.ALBUM) == null && 
+				metadata.get(XMPDM.ARTIST) == null) {
+			return 0;
+		}
+		
 		// Form an array specifying which columns to return. 
 		ContentValues values = new ContentValues();
 		values.put(Media.MediaColumns.TITLE, validateAttribute(metadata.get(Metadata.TITLE)));
