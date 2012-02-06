@@ -133,7 +133,6 @@ public class MinuteSelector extends Activity implements ServiceConnection
         toast.show();
     }
 
-	@Override
 	public void onServiceConnected(ComponentName name, IBinder service) {
 		try {
 			if (mPos != -1) {
@@ -145,7 +144,6 @@ public class MinuteSelector extends Activity implements ServiceConnection
 		}
 	}
 
-	@Override
 	public void onServiceDisconnected(ComponentName name) {
 		finish();		
 	}
