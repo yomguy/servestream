@@ -191,8 +191,8 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
                     }
                     break;
                 case PLAYER_PREPARED:
-                    Intent i = new Intent(STOP_DIALOG);
-                    sendBroadcast(i);
+                	removeStickyBroadcast(new Intent(START_DIALOG));
+                    sendBroadcast(new Intent(STOP_DIALOG));
                     play();
                     notifyChange(META_CHANGED);
                     notifyChange(PLAYBACK_STARTED);
@@ -814,8 +814,7 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
             
             //TODO: add back in cursor code?
             
-            Intent i = new Intent(START_DIALOG);
-            sendBroadcast(i);
+            sendStickyBroadcast(new Intent(START_DIALOG));
             
             int uriColumn = mCursor.getColumnIndex(Media.MediaColumns.URI);
             mFileToPlay = mCursor.getString(uriColumn);
