@@ -132,7 +132,7 @@ public class URLListActivity extends ListActivity implements ServiceConnection {
 	public void onCreate(Bundle icicle) {
 		super.onCreate(icicle);
 		
-		setContentView(R.layout.act_streamlist);
+		setContentView(R.layout.act_urllist);
 
 		this.setTitle(String.format("%s: %s",
 				getResources().getText(R.string.app_name),
