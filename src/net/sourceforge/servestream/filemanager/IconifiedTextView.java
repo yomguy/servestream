@@ -37,7 +37,7 @@ public class IconifiedTextView extends LinearLayout {
 		// inflate rating
 		LayoutInflater inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 		
-		inflater.inflate(R.layout.item_webpagebrowser, this, true);
+		inflater.inflate(R.layout.item_browser, this, true);
 		
 		mIcon = (ImageView) findViewById(R.id.icon);
 		mText = (TextView) findViewById(R.id.text);
