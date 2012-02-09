@@ -112,7 +112,7 @@ public class BrowserActivity extends ListActivity implements ServiceConnection {
     public void onCreate(Bundle icicle) { 
     	super.onCreate(icicle); 
 
-        setContentView(R.layout.act_webpagebrowser);
+        setContentView(R.layout.act_browser);
     	
 		this.setTitle(String.format("%s: %s",
 				getResources().getText(R.string.app_name),
