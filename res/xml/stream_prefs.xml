@@ -44,6 +44,7 @@
 		<EditTextPreference
 			android:key="password"
 			android:title="@string/streampref_password_title"
+			android:inputType="textPassword"	
 			android:singleLine="true"
 			/>
 
