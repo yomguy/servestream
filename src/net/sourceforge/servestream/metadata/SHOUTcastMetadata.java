@@ -255,7 +255,7 @@ public class SHOUTcastMetadata extends BroadcastReceiver {
      * 
      * @param metaString The metadata to parse.
      */
-	private void parseMetadata(String metadataString) {
+	private void parseMetadata(String metadataString) {		
 		String streamTitle = null;
 		Map<String, String> metadata = new HashMap<String, String>();
 		String[] metaParts = metadataString.split(";");
@@ -279,10 +279,15 @@ public class SHOUTcastMetadata extends BroadcastReceiver {
 			}	
 		}
 		
-		try {
+		// check if the stream title contain a "-" character. This is usually done
+		// to indicate "artist - title". If not, don't try to parse up the string
+		// just store it
+		if (streamTitle.indexOf("-") != -1) {
 			add(ARTIST, streamTitle.substring(0, streamTitle.indexOf("-")).trim());
 			add(TITLE, streamTitle.substring(streamTitle.indexOf("-") + 1).trim());
-		} catch (Exception ex) {
+		} else {
+			add(ARTIST, streamTitle.trim());
+			add(TITLE, "");
 		}
 	}
 	
