@@ -107,7 +107,7 @@
         <activity android:name=".activity.MediaPlaybackActivity"
                 android:configChanges="keyboardHidden|orientation"
                 android:taskAffinity=""
-                android:launchMode="singleTask"
+                android:launchMode="singleTop"
                 android:clearTaskOnLaunch="true"
                 android:excludeFromRecents="true"
                 android:exported="true" >
