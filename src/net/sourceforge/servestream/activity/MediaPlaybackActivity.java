@@ -865,6 +865,9 @@ public class MediaPlaybackActivity extends Activity implements SurfaceHolder.Cal
         
         if (action != null && action.equals(MediaPlaybackService.PREPARE_VIDEO)) {
         	try {
+		    	MultiPlayer mp = mService.getMediaPlayer();
+		    	mp.setDisplay(holder);
+		        holder.setFixedSize(mDisplayWidth, mDisplayHeight);
 				mService.setDataSource(false);
 			} catch (RemoteException e) {
 				e.printStackTrace();
@@ -882,15 +885,6 @@ public class MediaPlaybackActivity extends Activity implements SurfaceHolder.Cal
     private ServiceConnection osc = new ServiceConnection() {
             public void onServiceConnected(ComponentName classname, IBinder obj) {
                 mService = IMediaPlaybackService.Stub.asInterface(obj);
-                
-		    	MultiPlayer mp = null;
-				try {
-					mp = mService.getMediaPlayer();
-				} catch (RemoteException e) {
-					e.printStackTrace();
-				}
-		    	mp.setDisplay(holder);
-		        holder.setFixedSize(mDisplayWidth, mDisplayHeight);
                 
                 startPlayback();
                 try {

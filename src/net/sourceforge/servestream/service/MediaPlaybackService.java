@@ -827,7 +827,7 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
             	mIsStreaming = true;
                 Intent intent = new Intent(this, MediaPlaybackActivity.class);
                 intent.setAction(PREPARE_VIDEO);
-                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_SINGLE_TOP);
                 startActivity(intent);
             } else { 
             	if (mPreferences.getBoolean(PreferenceConstants.PROGRESSIVE_DOWNLOAD, false)) {
