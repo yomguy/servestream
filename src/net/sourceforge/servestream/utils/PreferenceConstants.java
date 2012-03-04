@@ -35,7 +35,7 @@ package net.sourceforge.servestream.utils;
 
 import android.os.Build;
 
-public class PreferenceConstants {
+public final class PreferenceConstants {
 	public static final boolean PRE_ECLAIR = (Integer.parseInt(Build.VERSION.SDK) <= 4);
 	public static final boolean PRE_FROYO = PRE_ECLAIR ? true :
 		(Integer.parseInt(Build.VERSION.SDK) <= 7);
@@ -55,6 +55,8 @@ public class PreferenceConstants {
 	public static final String WAKELOCK = "wakelock";
 	
 	public static final String WIFI_LOCK = "wifilock";
+	
+	public static final String HEADPHONE_PAUSE = "headphonepause";
 	
 	public static final String RETRIEVE_METADATA = "retrievemetadata";
 	

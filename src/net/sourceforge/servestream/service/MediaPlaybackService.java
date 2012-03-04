@@ -476,10 +476,16 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
                 } else {
                     play();
                 }
-            } else if (CMDPAUSE.equals(cmd) || PAUSE_ACTION.equals(action)) {
+            } else if (PAUSE_ACTION.equals(action)) {
                 pause();
                 mPausedByTransientLossOfFocus = false;
                 mPausedByConnectivityReceiver = false;
+            } else if (CMDPAUSE.equals(cmd)) {
+            	if (mPreferences.getBoolean(PreferenceConstants.HEADPHONE_PAUSE, true)) {
+            		pause();
+                    mPausedByTransientLossOfFocus = false;
+                    mPausedByConnectivityReceiver = false;
+      	        }
             } else if (CMDSTOP.equals(cmd)) {
                 pause();
                 mPausedByTransientLossOfFocus = false;
