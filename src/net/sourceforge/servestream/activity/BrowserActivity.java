@@ -41,6 +41,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.media.AudioManager;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
@@ -118,6 +119,8 @@ public class BrowserActivity extends ListActivity implements ServiceConnection {
 				getResources().getText(R.string.app_name),
 				getResources().getText(R.string.title_stream_browse)));  
     	
+        setVolumeControlStream(AudioManager.STREAM_MUSIC);
+		
 		try {
 			Log.v(TAG, getIntent().getData().toString());
 			mStepsBack = 0;

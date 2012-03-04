@@ -123,6 +123,7 @@ public class MediaPlaybackActivity extends Activity implements SurfaceHolder.Cal
     public void onCreate(Bundle icicle)
     {
         super.onCreate(icicle);
+        
         setVolumeControlStream(AudioManager.STREAM_MUSIC);
 
         if (Build.VERSION.SDK_INT < 11) {
