@@ -37,6 +37,7 @@ import android.content.ServiceConnection;
 import android.database.AbstractCursor;
 import android.database.CharArrayBuffer;
 import android.database.Cursor;
+import android.media.AudioManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.IBinder;
@@ -95,6 +96,8 @@ public class NowPlayingActivity extends ListActivity implements View.OnCreateCon
 				getResources().getText(R.string.app_name),
 				getResources().getText(R.string.title_now_playing))); 
 
+        setVolumeControlStream(AudioManager.STREAM_MUSIC);
+		
         mTrackList = getListView();
         mTrackList.setOnCreateContextMenuListener(this);
         mTrackList.setCacheColorHint(0);

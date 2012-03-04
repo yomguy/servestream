@@ -48,6 +48,7 @@ import android.content.Intent;
 import android.content.Intent.ShortcutIconResource;
 import android.content.ServiceConnection;
 import android.content.SharedPreferences;
+import android.media.AudioManager;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -137,6 +138,8 @@ public class URLListActivity extends ListActivity implements ServiceConnection {
 		this.setTitle(String.format("%s: %s",
 				getResources().getText(R.string.app_name),
 				getResources().getText(R.string.title_url_list)));
+		
+		setVolumeControlStream(AudioManager.STREAM_MUSIC);
 		
 		mPreferences = PreferenceManager.getDefaultSharedPreferences(this);
 		
