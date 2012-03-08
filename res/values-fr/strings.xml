@@ -72,6 +72,10 @@
 	<string name="find_pos">Oui</string>
 	<string name="find_neg">Non</string>
 
+	<string name="rate_application">"Voulez-vous évaluer cette demande dans le marché Android? Les commentaires sont appréciés."</string>
+	<string name="rate_pos">"Oui, prends-moi sur le marché"</string>
+	<string name="rate_neg">"Non, et ne pas demander à nouveau"</string>
+	
 	<string name="invalid_playlist_title">Impossible de lire la liste</string>
 	<string name="invalid_playlist_message">Désolé, la liste sélectionnée ne contient pas d\'entrée valide.</string>
 
