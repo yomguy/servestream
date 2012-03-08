@@ -119,58 +119,52 @@
            	android:layout_below="@+id/artistname"
 		    android:background="@drawable/semi_transparent_background" />
 
-		<RelativeLayout
+		<LinearLayout
+		    android:orientation="vertical"
 			android:layout_width="fill_parent"
 			android:layout_height="86dip"
 			android:layout_alignParentBottom="true"
 			android:background="@drawable/semi_transparent_background"
 			>
 
-			<Button android:id="@+id/previous_button"
-					android:layout_width="wrap_content"
-					android:layout_height="wrap_content"
-					android:layout_toLeftOf="@+id/seek_backward_button"
-					android:layout_alignParentTop="true"
-					android:background="@drawable/previous_button"
-					/>
-
-			<net.sourceforge.servestream.button.RepeatingImageButton android:id="@+id/seek_backward_button"
-					android:layout_width="wrap_content"
-					android:layout_height="wrap_content"
-					android:layout_toLeftOf="@+id/play_pause_button"
-					android:layout_alignParentTop="true"
-					android:background="@+drawable/seek_backward_button"
-					/>
-
-			<Button android:id="@+id/play_pause_button"
-					android:layout_width="wrap_content"
-					android:layout_height="wrap_content"
-            		android:layout_centerHorizontal="true"
-					android:layout_alignParentTop="true"
-					android:background="@+drawable/pause_button"
-					/>
+		    <LinearLayout
+		    	android:orientation="horizontal"
+				android:layout_width="fill_parent"
+				android:layout_height="wrap_content"
+				android:gravity="center_horizontal"
+				android:background="@drawable/semi_transparent_background"
+				>
 			
-			<net.sourceforge.servestream.button.RepeatingImageButton android:id="@+id/seek_forward_button"
-					android:layout_width="wrap_content"
-					android:layout_height="wrap_content"
-					android:layout_toRightOf="@+id/play_pause_button"
-					android:layout_alignParentTop="true"
-					android:background="@+drawable/seek_forward_button"
-					/>
+				<net.sourceforge.servestream.button.RepeatingImageButton android:id="@+id/previous_button"
+						android:layout_width="wrap_content"
+						android:layout_height="wrap_content"
+						android:background="@+drawable/previous_button"
+						/>
+
+				<Button android:id="@+id/stop_button"
+						android:layout_width="wrap_content"
+						android:layout_height="wrap_content"
+						android:background="@+drawable/stop_button"
+						/>
 			
-			<Button android:id="@+id/next_button"
-					android:layout_width="wrap_content"
-					android:layout_height="wrap_content"
-					android:layout_toRightOf="@+id/seek_forward_button"
-					android:layout_alignParentTop="true"
-					android:background="@drawable/next_button"
-					/>
+				<Button android:id="@+id/play_pause_button"
+						android:layout_width="wrap_content"
+						android:layout_height="wrap_content"
+						android:background="@+drawable/pause_button"
+						/>
+			
+				<net.sourceforge.servestream.button.RepeatingImageButton android:id="@+id/next_button"
+						android:layout_width="wrap_content"
+						android:layout_height="wrap_content"
+						android:background="@+drawable/next_button"
+						/>
         
-        		<RelativeLayout
+			</LinearLayout>
+			
+		    <RelativeLayout
 					android:layout_width="fill_parent"
 					android:layout_height="fill_parent"
 					android:paddingBottom="4dip"
-					android:layout_below="@+id/previous_button"
 					android:background="@drawable/transparent_background"
 					>
             
@@ -212,9 +206,9 @@
             			  	  android:layout_alignTop="@+id/position_text"
             			  	  />
             
-            	</RelativeLayout>
-
-		</RelativeLayout>
+        	</RelativeLayout>
+		    	
+		</LinearLayout>
 		
 	</RelativeLayout>
 

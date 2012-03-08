@@ -893,6 +893,8 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
                 mIsSupposedToBePlaying = true;
                 notifyChange(PLAYSTATE_CHANGED);
             }
+        } else {
+        	openCurrent();
         }
     }
     
