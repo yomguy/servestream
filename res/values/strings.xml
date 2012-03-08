@@ -72,6 +72,10 @@
 	<string name="find_pos">Yes</string>
 	<string name="find_neg">No</string>
 
+	<string name="rate_application">Would you like to rate this application in the Android market? Feedback is appreciated.</string>
+	<string name="rate_pos">"Yes, take me to the market"</string>
+	<string name="rate_neg">"No, and don\'t ask again"</string>
+	
 	<string name="invalid_playlist_title">Cannot play playlist file</string>
 	<string name="invalid_playlist_message">Sorry, the selected playlist file has no valid entries.</string>
 

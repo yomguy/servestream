@@ -64,6 +64,8 @@ public final class PreferenceConstants {
 	
 	public static final String SEND_SCROBBLER_INFO = "sendscrobblerinfo";
 	
+	public static final String RATE_APPLICATION_FLAG = "rateapplicationflag";
+	
 	/* Backup identifiers */
 	public static final String BACKUP_PREF_KEY = "prefs";
 }

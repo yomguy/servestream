@@ -96,11 +96,10 @@ public class MediaPlaybackActivity extends Activity implements SurfaceHolder.Cal
     private long mStartSeekPos = 0;
     private long mLastSeekEventTime;
     private IMediaPlaybackService mService = null;
-    private Button mPrevButton;
-    private RepeatingImageButton mSeekBackwardButton;
+    private RepeatingImageButton mPrevButton;
+    private Button mStopButton;
     private Button mPauseButton;
-    private Button mNextButton;
-    private RepeatingImageButton mSeekForwardButton;
+    private RepeatingImageButton mNextButton;
     private Button mRepeatButton;
     private Button mShuffleButton;
     private Toast mToast;
@@ -148,17 +147,16 @@ public class MediaPlaybackActivity extends Activity implements SurfaceHolder.Cal
         mCurrentTime = (TextView) findViewById(R.id.position_text);
         mTotalTime = (TextView) findViewById(R.id.duration_text);
         mProgress = (ProgressBar) findViewById(android.R.id.progress);
-        mPrevButton = (Button) findViewById(R.id.previous_button);
-        mPrevButton.setOnClickListener(mPrevListener); 
-        mSeekBackwardButton = (RepeatingImageButton) findViewById(R.id.seek_backward_button);
-        mSeekBackwardButton.setRepeatListener(mRewListener, 260);
+        mPrevButton = (RepeatingImageButton) findViewById(R.id.previous_button);
+        mPrevButton.setOnClickListener(mPrevListener);
+        mPrevButton.setRepeatListener(mRewListener, 260);
+        mStopButton = (Button) findViewById(R.id.stop_button);
+        mStopButton.setOnClickListener(mStopListener);
         mPauseButton = (Button) findViewById(R.id.play_pause_button);
         mPauseButton.setOnClickListener(mPauseListener);
-        mSeekForwardButton = (RepeatingImageButton) findViewById(R.id.seek_forward_button);
-        mSeekForwardButton.setRepeatListener(mFfwdListener, 260);
-        mNextButton = (Button) findViewById(R.id.next_button);
+        mNextButton = (RepeatingImageButton) findViewById(R.id.next_button);
         mNextButton.setOnClickListener(mNextListener);
-        
+        mNextButton.setRepeatListener(mFfwdListener, 260);
         mShuffleButton = (Button) findViewById(R.id.shuffle_button);
         mShuffleButton.setOnClickListener(mShuffleListener);
         mRepeatButton = (Button) findViewById(R.id.repeat_button);
@@ -274,6 +272,12 @@ public class MediaPlaybackActivity extends Activity implements SurfaceHolder.Cal
         }
     };
 
+    private View.OnClickListener mStopListener = new View.OnClickListener() {
+		public void onClick(View v) {
+			doStop();
+		}
+	};
+    
     private View.OnClickListener mPauseListener = new View.OnClickListener() {
         public void onClick(View v) {
             doPauseResume();
@@ -783,6 +787,17 @@ public class MediaPlaybackActivity extends Activity implements SurfaceHolder.Cal
         }
     }
     
+    private void doStop() {
+    	try {
+    		if(mService != null) {
+    			mService.stop();
+    			refreshNow();
+    			setPauseButtonImage();
+    		}
+    	} catch (RemoteException ex) {
+    	}
+    }
+    
     private void doPauseResume() {
         try {
             if(mService != null) {
@@ -964,12 +979,12 @@ public class MediaPlaybackActivity extends Activity implements SurfaceHolder.Cal
     	try {
 			if (mService.duration() > 0) {
 				mProgress.setEnabled(true);
-				mSeekBackwardButton.setEnabled(true);
-				mSeekForwardButton.setEnabled(true);
+            	mPrevButton.setRepeatListener(mRewListener, 260);
+            	mNextButton.setRepeatListener(mFfwdListener, 260);
 			} else {
 				mProgress.setEnabled(false);
-				mSeekBackwardButton.setEnabled(false);
-				mSeekForwardButton.setEnabled(false);
+    			mPrevButton.setRepeatListener(null, -1);
+    			mNextButton.setRepeatListener(null, -1);
 			}
 		} catch (RemoteException e) {
 		}	
@@ -1004,14 +1019,14 @@ public class MediaPlaybackActivity extends Activity implements SurfaceHolder.Cal
         try {
         	if (!mService.isStreaming()) {
         		if (!mService.isCompleteFileAvailable()) {
-        			mSeekBackwardButton.setEnabled(false);
-        			mSeekForwardButton.setEnabled(false);
+        			mPrevButton.setRepeatListener(null, -1);
+        			mNextButton.setRepeatListener(null, -1);
         			mProgress.setEnabled(false);
         		} else {
         			mDuration = mService.getCompleteFileDuration();
                 	mTotalTime.setText(MusicUtils.makeTimeString(this, mDuration / 1000));
-                	mSeekBackwardButton.setEnabled(true);
-                	mSeekForwardButton.setEnabled(true);
+                	mPrevButton.setRepeatListener(mRewListener, 260);
+                	mNextButton.setRepeatListener(mFfwdListener, 260);
                 	mProgress.setEnabled(true);
         		}
         	}
