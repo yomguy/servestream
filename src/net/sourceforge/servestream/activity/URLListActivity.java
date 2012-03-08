@@ -46,6 +46,7 @@ import android.content.DialogInterface;
 import android.content.DialogInterface.OnCancelListener;
 import android.content.Intent;
 import android.content.Intent.ShortcutIconResource;
+import android.content.SharedPreferences.Editor;
 import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.media.AudioManager;
@@ -96,6 +97,7 @@ public class URLListActivity extends ListActivity implements ServiceConnection {
     private final static int DETERMINE_INTENT_TASK = 1;
 	private final static int MISSING_BARCODE_SCANNER = 2;
 	private final static int UNSUPPORTED_SCANNED_INTENT = 3;
+	private final static int RATE_APPLICATION = 4;
 	
 	private TextView mQuickconnect = null;
 	private Button mGoButton = null;
@@ -170,6 +172,23 @@ public class URLListActivity extends ListActivity implements ServiceConnection {
 		
 		// start thread to check for new version
 		new UpdateHelper(this);
+		
+		// see if the user wants to rate the application after 5 uses
+		if (getIntent().getType() == null &&
+				getIntent().getData() == null &&
+				getIntent().getExtras() == null) {
+			int rateApplicationFlag = mPreferences.getInt(PreferenceConstants.RATE_APPLICATION_FLAG, 0);
+			System.out.println("FUCK!");
+			if (rateApplicationFlag != -1) {
+				rateApplicationFlag++;
+				Editor ed = mPreferences.edit();
+				ed.putInt(PreferenceConstants.RATE_APPLICATION_FLAG, rateApplicationFlag);
+				ed.commit();
+				if (rateApplicationFlag == 5) {
+					showDialog(RATE_APPLICATION);
+				}
+			}
+		}
 		
 		// connect with streams database and populate list
 		mStreamdb = new StreamDatabase(this);
@@ -434,6 +453,35 @@ public class URLListActivity extends ListActivity implements ServiceConnection {
 	    	builder.setMessage(R.string.unsupported_scanned_intent_message)
 	    	       .setCancelable(true)
 	    	       .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
+	    	           public void onClick(DialogInterface dialog, int id) {
+	    	                dialog.cancel();
+	    	           }
+	    	       });
+	    	alertDialog = builder.create();
+	    	return alertDialog;
+	    case RATE_APPLICATION:
+	        Editor ed = mPreferences.edit();
+	        ed.putInt(PreferenceConstants.RATE_APPLICATION_FLAG, -1);
+	        ed.commit();
+	    	builder = new AlertDialog.Builder(this);
+	    	builder.setMessage(R.string.rate_application)
+	    	       .setCancelable(true)
+	    	       .setPositiveButton(R.string.rate_pos, new DialogInterface.OnClickListener() {
+	    	           public void onClick(DialogInterface dialog, int id) {
+	    	        	   try {
+	    	        		   Intent intent = new Intent(Intent.ACTION_VIEW);
+	    	        		   intent.setData(Uri.parse("market://details?id=net.sourceforge.servestream"));
+	    	        		   startActivity(intent);
+	    	        	   } catch (ActivityNotFoundException ex ) {
+	    	        		   // the market couldn't be opening or the application couldn't be found
+	    	        		   // lets take the user to the project's webpage instead.
+	    	        		   Intent intent = new Intent(Intent.ACTION_VIEW);
+	    	        		   intent.setData(Uri.parse("http://sourceforge.net/projects/servestream/"));
+	    	        		   startActivity(intent);
+	    	        	   }
+	    	           }
+	    	       })
+	    	       .setNegativeButton(R.string.rate_neg, new DialogInterface.OnClickListener() {
 	    	           public void onClick(DialogInterface dialog, int id) {
 	    	                dialog.cancel();
 	    	           }
