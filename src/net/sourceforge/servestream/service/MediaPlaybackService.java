@@ -18,6 +18,7 @@
 package net.sourceforge.servestream.service;
 
 import android.app.Notification;
+import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
 import android.appwidget.AppWidgetManager;
@@ -97,7 +98,7 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
     public static final String PLAYER_CLOSED = "net.sourceforge.servestream.playerclosed";
     public static final String PREPARE_VIDEO = "net.sourceforge.servestream.preparevideo";    
     
-    public static final String SERVICECMD = "net.sourceforge.servestream.MediaPlaybackServicecommand";
+    public static final String SERVICECMD = "net.sourceforge.servestream.mediaservicecommand";
     public static final String CMDNAME = "command";
     public static final String CMDTOGGLEPAUSE = "togglepause";
     public static final String CMDSTOP = "stop";
@@ -105,9 +106,9 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
     public static final String CMDPREVIOUS = "previous";
     public static final String CMDNEXT = "next";
 
-    public static final String TOGGLEPAUSE_ACTION = "net.sourceforge.servestream.MediaPlaybackServicecommand.togglepause";
-    public static final String PAUSE_ACTION = "net.sourceforge.servestream.MediaPlaybackServicecommand.pause";
-    public static final String NEXT_ACTION = "net.sourceforge.servestream.MediaPlaybackServicecommand.next";
+    public static final String TOGGLEPAUSE_ACTION = "net.sourceforge.servestream.mediaservicecommand.togglepause";
+    public static final String PAUSE_ACTION = "net.sourceforge.servestream.mediaservicecommand.pause";
+    public static final String NEXT_ACTION = "net.sourceforge.servestream.mediaservicecommand.next";
 
     public static final int TRACK_ENDED = 1;
     public static final int SERVER_DIED = 2;
@@ -864,30 +865,7 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
     		
             mPlayer.start();
 
-            String trackName = getTrackName();
-        	if (trackName == null || trackName.equals(Media.UNKNOWN_STRING)) {
-        			trackName = getMediaUri();
-        	}
-        	
-            String artist = getArtistName();
-        	if (artist == null || artist.equals(Media.UNKNOWN_STRING)) {
-        		artist = getString(R.string.unknown_artist_name);
-        	}
-                
-        	String album = getAlbumName();
-            if (album == null || album.equals(Media.UNKNOWN_STRING)) {
-                album = getString(R.string.unknown_album_name);
-            }
-            
-    		Notification status = new Notification(
-    				R.drawable.notification_icon, null,
-    				System.currentTimeMillis());
-            status.flags |= Notification.FLAG_ONGOING_EVENT;
-            PendingIntent contentIntent = PendingIntent.getActivity(this, 1,
-                    new Intent(this, MediaPlaybackActivity.class), 0);
-    		status.setLatestEventInfo(getApplicationContext(), trackName,
-    				getString(R.string.notification_artist_album, artist, album), contentIntent);
-            startForeground(PLAYBACKSERVICE_STATUS, status);
+            startForeground(PLAYBACKSERVICE_STATUS, buildNotification());
             
             if (!mIsSupposedToBePlaying) {
                 mIsSupposedToBePlaying = true;
@@ -1618,7 +1596,38 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
         	mSimpleLastfmScrobblerManager.scrobble(i);
         	
             notifyChange(META_CHANGED);
+            
+    		NotificationManager mManager = (NotificationManager) this.getSystemService(Context.NOTIFICATION_SERVICE);
+            mManager.notify(PLAYBACKSERVICE_STATUS, buildNotification());
         }
+    }
+    
+    private Notification buildNotification() {
+        String trackName = getTrackName();
+    	if (trackName == null || trackName.equals(Media.UNKNOWN_STRING)) {
+    			trackName = getMediaUri();
+    	}
+    	
+        String artist = getArtistName();
+    	if (artist == null || artist.equals(Media.UNKNOWN_STRING)) {
+    		artist = getString(R.string.unknown_artist_name);
+    	}
+            
+    	String album = getAlbumName();
+        if (album == null || album.equals(Media.UNKNOWN_STRING)) {
+            album = getString(R.string.unknown_album_name);
+        }
+        
+		Notification status = new Notification(
+				R.drawable.notification_icon, null,
+				System.currentTimeMillis());
+        status.flags |= Notification.FLAG_ONGOING_EVENT;
+        PendingIntent contentIntent = PendingIntent.getActivity(this, 1,
+                new Intent(this, MediaPlaybackActivity.class), 0);
+		status.setLatestEventInfo(getApplicationContext(), trackName,
+				getString(R.string.notification_artist_album, artist, album), contentIntent);
+		
+		return status;
     }
     
     private void handleError() {
