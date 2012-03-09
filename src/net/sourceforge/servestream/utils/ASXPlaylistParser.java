@@ -58,6 +58,8 @@ public class ASXPlaylistParser extends PlaylistParser {
 	private final String STARTTIME_ELEMENT = "STARTTIME";
 	private final String TITLE_ELEMENT = "TITLE";
 	
+	private final String HREF_ATTRIBUTE = "href";
+	
 	/**
 	 * Default constructor
 	 */
@@ -99,7 +101,6 @@ public class ASXPlaylistParser extends PlaylistParser {
     }
 
 	private void parseXML(String xml) {
-		
 		SAXBuilder builder = new SAXBuilder();
 	    Reader in = new StringReader(xml);
 	    Document doc = null;
@@ -108,22 +109,13 @@ public class ASXPlaylistParser extends PlaylistParser {
 	    try {
 	    	doc = builder.build(in);
 	    	root = doc.getRootElement();
-	    	List<Element> children = new ArrayList<Element>(root.getChildren().size());
-	    	
-	        for (Object o: root.getChildren()) {
-	            children.add((Element) o);
-	        }
+	    	List<Element> children = castList(Element.class, root.getChildren());
 	    	
 	    	for (int i = 0; i < children.size(); i++) {
 	    		String tag = children.get(i).getName();
 	    		
-	    		if (tag != null && tag.equalsIgnoreCase("entry")) {
-	    			Element element = children.get(i);
-	    			List<Element> children2 = new ArrayList<Element>(element.getChildren().size());
-	    			
-	    	        for (Object o: element.getChildren()) {
-	    	            children2.add((Element) o);
-	    	        }
+	    		if (tag != null && tag.equalsIgnoreCase(ENTRY_ELEMENT)) {
+	    			List<Element> children2 = castList(Element.class, children.get(i).getChildren());
 	    			
 	    			buildPlaylistEntry(children2);
 	    		}
@@ -155,7 +147,11 @@ public class ASXPlaylistParser extends PlaylistParser {
     	    } else if (attributeName.equalsIgnoreCase(MOREINFO_ELEMENT)) {
     	    } else if (attributeName.equalsIgnoreCase(PARAM_ELEMENT)) {
     	    } else if (attributeName.equalsIgnoreCase(REF_ELEMENT)) {
-    	    	String href = children.get(i).getAttributeValue("href");
+    	    	String href = children.get(i).getAttributeValue(HREF_ATTRIBUTE);
+    	    	
+    	    	if (href == null) {
+        	    	href = children.get(i).getAttributeValue(HREF_ATTRIBUTE.toUpperCase());
+    	    	}
     	    	
     	    	if (href == null) {
     	    	    href = children.get(i).getValue();
@@ -181,6 +177,16 @@ public class ASXPlaylistParser extends PlaylistParser {
     	mNumberOfFiles = mNumberOfFiles + 1;
     	mediaFile.setTrack(mNumberOfFiles);
     	mPlaylistFiles.add(mediaFile);
+    }
+    
+    private <T> List<T> castList(Class<? extends T> castClass, List<?> c) {
+        List<T> list = new ArrayList<T>(c.size());
+        
+        for(Object o: c) {
+        	list.add(castClass.cast(o));
+        }
+        
+        return list;
     }
 }
 
