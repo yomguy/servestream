@@ -178,7 +178,6 @@ public class URLListActivity extends ListActivity implements ServiceConnection {
 				getIntent().getData() == null &&
 				getIntent().getExtras() == null) {
 			int rateApplicationFlag = mPreferences.getInt(PreferenceConstants.RATE_APPLICATION_FLAG, 0);
-			System.out.println("FUCK!");
 			if (rateApplicationFlag != -1) {
 				rateApplicationFlag++;
 				Editor ed = mPreferences.edit();
