@@ -132,7 +132,7 @@
 				android:layout_width="fill_parent"
 				android:layout_height="wrap_content"
 				android:gravity="center_horizontal"
-				android:background="@drawable/semi_transparent_background"
+				android:background="@drawable/transparent_background"
 				>
 			
 				<net.sourceforge.servestream.button.RepeatingImageButton android:id="@+id/previous_button"
