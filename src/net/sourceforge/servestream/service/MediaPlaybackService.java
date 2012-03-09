@@ -555,7 +555,7 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
     	@Override
     	public void handleMessage(Message msg) {
     		Log.v(TAG, "mSleepTimerHandler called");
-    		pause();
+    		stop();
     		//TODO: is this enough?
     	}
     };
@@ -879,6 +879,8 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
     private void stop(boolean remove_status_icon) {
         if (mPlayer.isInitialized()) {
             mPlayer.stop();
+            // TODO: Modify this code?
+            mDownloadManager.cancelDownload();
         }
         mFileToPlay = null;
         if (mCursor != null) {
