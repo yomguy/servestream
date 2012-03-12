@@ -511,7 +511,7 @@ public class BrowserActivity extends ListActivity implements ServiceConnection {
 			} else {
 				long[] list = null;
 				try {
-					list = MusicUtils.getFilesInPlaylist(BrowserActivity.this, stream.getURL(), contentType);
+					list = MusicUtils.getFilesInPlaylist(BrowserActivity.this, stream.getScrubbedURL(), contentType);
 				} catch (MalformedURLException e) {
 					e.printStackTrace();
 				}

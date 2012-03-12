@@ -321,17 +321,18 @@ public class Stream {
 	 * 
 	 * @return Uri The Uri representing this media stream
 	 */
-	public Uri getUri() {
-		
+	private Uri getUri(boolean scrubUri) {
 		StringBuilder sb = new StringBuilder();
 		sb.append(protocol)
 			.append("://");
 
-		if (!username.equals("")) {
-		    sb.append(username)
-		    .append(":")
-		    .append(password)
-		    .append("@");
+		if (!scrubUri) {
+			if (!username.equals("")) {
+				sb.append(username)
+				.append(":")
+				.append(password)
+				.append("@");
+			}
 		}
 		
 		sb.append(hostname)
@@ -353,22 +354,42 @@ public class Stream {
 	}
 	
 	/**
+	 * Returns a Uri representing the media stream
+	 * 
+	 * @return Uri The Uri representing this media stream
+	 */
+	public Uri getUri() {
+		return getUri(false);
+	}
+	
+	/**
+	 * Returns a Uri representing the media stream
+	 * 
+	 * @return Uri The Uri representing this media stream
+	 */
+	public Uri getScrubbedUri() {
+		return getUri(true);
+	}
+	
+	/**
 	 * Returns a URL representing the media stream
 	 * 
 	 * @return URL The URL representing this media stream
 	 * @throws MalformedURLException 
 	 */
-	public URL getURL() throws MalformedURLException {
+	private URL getURL(boolean scrubURL) throws MalformedURLException {
 		
 		StringBuilder sb = new StringBuilder();
 		sb.append(protocol)
 			.append("://");
 
-		if (!username.equals("")) {
-		    sb.append(username)
-		    .append(":")
-		    .append(password)
-		    .append("@");
+		if (!scrubURL) {
+			if (!username.equals("")) {
+				sb.append(username)
+				.append(":")
+				.append(password)
+				.append("@");
+			}
 		}
 		
 		sb.append(hostname)
@@ -390,23 +411,22 @@ public class Stream {
 	}
 	
 	/**
-	 * Converts invalid URL characters to UTF-8 format. This method is used as a 
-	 * temporary fix to deal with Android's handling of URL's that contain 
-	 * "special characters" such as "[" (Issue 12724).
+	 * Returns a URL representing the media stream
 	 * 
-	 * @param path The path to scrub
-	 * @return The path with invalid characters converted
+	 * @return URL The URL representing this media stream
+	 * @throws MalformedURLException 
 	 */
-	/*private String scrubPath(String path) {
-		String scrubbedPath = null;
-		
-		if (path == null) {
-			return null;
-		}
-		
-		scrubbedPath = path.replace("[", "%5B");
-		scrubbedPath = scrubbedPath.replace("]", "%5D");
-		
-		return scrubbedPath;
-	}*/
+	public URL getURL() throws MalformedURLException {
+		return getURL(false);
+	}
+
+	/**
+	 * Returns a URL representing the media stream
+	 * 
+	 * @return URL The URL representing this media stream
+	 * @throws MalformedURLException 
+	 */
+	public URL getScrubbedURL() throws MalformedURLException {
+		return getURL(true);
+	}
 }
