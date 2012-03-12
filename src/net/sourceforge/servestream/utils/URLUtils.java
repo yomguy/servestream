@@ -62,33 +62,12 @@ public class URLUtils {
 				return;
 			}
 			
-			url = encodeUrl(url);
-			
-		    if (url.getUserInfo() != null) {
-		    	String [] userInfo = url.getUserInfo().split("\\:");
-		    	
-		    	if (userInfo.length == 2) {
-		    		final String username = userInfo[0];
-		    		final String password = userInfo[1];
-		    		Authenticator.setDefault(new Authenticator() {
-		    			protected PasswordAuthentication getPasswordAuthentication() {
-		    				return new PasswordAuthentication(username, password.toCharArray());
-		    			}  
-		    		});
-		    	}
-		    }
-			
-        	if (url.getProtocol().equals("http")) {
-        		conn = (HttpURLConnection) url.openConnection();
-        	} else if (url.getProtocol().equals("https")) {
-        		conn = (HttpsURLConnection) url.openConnection();        		
-        	}
+        	conn = getConnection(url);
 			
         	if (conn == null) {
         		return;
         	}
         	
-        	conn.setRequestProperty("User-Agent", USER_AGENT);
     		conn.setConnectTimeout(6000);
     		conn.setReadTimeout(6000);
 	        conn.setRequestMethod("GET");
@@ -148,18 +127,20 @@ public class URLUtils {
 		url = encodeUrl(url);
 		
     	String userInfo = url.getUserInfo();
-    	
-    	if (userInfo != null && (userInfo.split("\\:").length == 2)) {
-        	final String username = (userInfo.split("\\:")) [0] ;
-        	final String password = (userInfo.split("\\:")) [1] ;
-        	Authenticator.setDefault(new Authenticator() {
-        		protected PasswordAuthentication getPasswordAuthentication() {
-        			return new PasswordAuthentication(username, password.toCharArray()); 
-        		};
-        	});
-    	}
-    	
+
     	try {
+    		if (userInfo != null && (userInfo.split("\\:").length == 2)) {
+    			final String username = (userInfo.split("\\:")) [0] ;
+    			final String password = (userInfo.split("\\:")) [1] ;
+    			Authenticator.setDefault(new Authenticator() {
+    				protected PasswordAuthentication getPasswordAuthentication() {
+    					return new PasswordAuthentication(username, password.toCharArray()); 
+    				};
+    			});
+        	
+    			url = encodeUrl(new URL(url.toString().replace(userInfo + "@", "")));
+    		}
+    	
     		if (url.getProtocol().equalsIgnoreCase(HTTP)) {
     			conn = (HttpURLConnection) url.openConnection();
     		} else if (url.getProtocol().equalsIgnoreCase(HTTPS)) {

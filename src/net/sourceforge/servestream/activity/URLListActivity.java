@@ -812,14 +812,14 @@ public class URLListActivity extends ListActivity implements ServiceConnection {
 				message.arg1 = NO_INTENT;
 			} else if (contentType.contains("text/html")) {
 		        Intent intent = new Intent(URLListActivity.this, BrowserActivity.class);
-				intent.setDataAndType(stream.getUri(), urlUtils.getContentType());
+				intent.setDataAndType(stream.getScrubbedUri(), urlUtils.getContentType());
 				
 				message.arg1 = BROWSE_MEDIA_INTENT;
 				message.obj = intent;
 			} else {
 				long[] list = null;
 				try {
-					list = MusicUtils.getFilesInPlaylist(URLListActivity.this, stream.getURL(), contentType);
+					list = MusicUtils.getFilesInPlaylist(URLListActivity.this, stream.getScrubbedURL(), contentType);
 				} catch (MalformedURLException e) {
 					e.printStackTrace();
 				}
