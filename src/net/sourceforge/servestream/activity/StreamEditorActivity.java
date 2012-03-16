@@ -246,6 +246,11 @@ public class StreamEditorActivity extends PreferenceActivity implements OnShared
 			if(pref instanceof CheckBoxPreference) continue;
 			CharSequence value = this.pref.getString(key, "");
 
+            // mask the password preference
+			if (key.equals("password")) {
+				value = new String(new char[value.length()]).replace("\0", "*");
+			}
+			
 			if (pref instanceof ListPreference) {
 				ListPreference listPref = (ListPreference) pref;
 				int entryIndex = listPref.findIndexOfValue((String) value);
