@@ -58,7 +58,7 @@ public class Stream {
 		
 		URL url = new URL(URLString);
 		
-		this.nickname = url.toString();
+		this.nickname = scrubURL(url);
 		this.protocol = url.getProtocol();
 		
 		if (protocol != null && 
@@ -314,6 +314,16 @@ public class Stream {
 		hash = 31 * hash + (null == reference ? 0 : reference.hashCode());
 
 		return hash;
+	}
+	
+	private String scrubURL(URL url) {
+		if (url.getUserInfo() != null) {
+			String userInfo = url.getUserInfo() + "@";
+			
+			return url.toString().replace(userInfo, "");
+		}
+		
+		return url.toString();
 	}
 	
 	/**
