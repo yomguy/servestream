@@ -107,6 +107,8 @@ public class URLListActivity extends ListActivity implements ServiceConnection {
 	protected StreamDatabase mStreamdb = null;
 	protected LayoutInflater mInflater = null;
 	
+	private boolean mSortedByName = false;
+	
 	private SharedPreferences mPreferences = null;
 	
 	protected boolean mMakingShortcut = false;
@@ -191,6 +193,8 @@ public class URLListActivity extends ListActivity implements ServiceConnection {
 		
 		// connect with streams database and populate list
 		mStreamdb = new StreamDatabase(this);
+		
+		mSortedByName = mPreferences.getBoolean(PreferenceConstants.SORT_BY_NAME, false);
 		
 		ListView list = this.getListView();
 		list.setOnItemClickListener(new OnItemClickListener() {
@@ -374,6 +378,14 @@ public class URLListActivity extends ListActivity implements ServiceConnection {
 	@Override
     public boolean onOptionsItemSelected(MenuItem item) {
     	switch(item.getItemId()) {
+    		case (R.id.menu_item_sort_by_name):
+				mSortedByName = true;
+				updateList();
+    			break;
+    		case (R.id.menu_item_sort_by_date):
+				mSortedByName = false;
+				updateList();
+    			break;
         	case (R.id.menu_item_settings):
         		startActivity(new Intent(URLListActivity.this, SettingsActivity.class));
         		break;
@@ -491,6 +503,21 @@ public class URLListActivity extends ListActivity implements ServiceConnection {
 	        dialog = null;
 	    }
 	    return dialog;
+	}
+	
+	@Override
+	public boolean onPrepareOptionsMenu(Menu menu) {
+		super.onPrepareOptionsMenu(menu);
+
+		// don't offer menus when creating shortcut
+		if (mMakingShortcut) {
+			return true;
+		}
+
+		menu.getItem(0).setVisible(!mSortedByName);
+		menu.getItem(1).setVisible(mSortedByName);
+
+		return true;
 	}
 	
     @Override
@@ -630,13 +657,19 @@ public class URLListActivity extends ListActivity implements ServiceConnection {
 	    mDetermineIntentTask.execute(mRequestedStream);
 	}
 	
-	private void updateList() {		
+	private void updateList() {
+		if (mPreferences.getBoolean(PreferenceConstants.SORT_BY_NAME, false) != mSortedByName) {
+			Editor edit = mPreferences.edit();
+			edit.putBoolean(PreferenceConstants.SORT_BY_NAME, mSortedByName);
+			edit.commit();
+		}
+		
 		ArrayList<Stream> streams = new ArrayList<Stream>();
 
 		if (mStreamdb == null)
 			mStreamdb = new StreamDatabase(this);   
 
-		streams = mStreamdb.getStreams();
+		streams = mStreamdb.getStreams(mSortedByName);
 
 		StreamAdapter adapter = new StreamAdapter(this, streams);
 
