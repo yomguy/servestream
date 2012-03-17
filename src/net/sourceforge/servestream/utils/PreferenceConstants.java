@@ -66,6 +66,8 @@ public final class PreferenceConstants {
 	
 	public static final String RATE_APPLICATION_FLAG = "rateapplicationflag";
 	
+	public static final String SORT_BY_NAME = "sortbyname";
+	
 	/* Backup identifiers */
 	public static final String BACKUP_PREF_KEY = "prefs";
 }

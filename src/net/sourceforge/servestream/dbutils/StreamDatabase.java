@@ -42,6 +42,7 @@ public class StreamDatabase extends SQLiteOpenHelper {
 	public static final Object[] dbLock = new Object[0];
 	
 	public static final String TABLE_STREAMS = "streams";
+	public static final String FIELD_STREAM_ID = "_id";
 	public static final String FIELD_STREAM_NICKNAME = "nickname";	
 	public static final String FIELD_STREAM_PROTOCOL = "protocol";
 	public static final String FIELD_STREAM_USERNAME = "username";
@@ -60,7 +61,7 @@ public class StreamDatabase extends SQLiteOpenHelper {
     
     private static final String STREAM_TABLE_CREATE =
                 "CREATE TABLE " + TABLE_STREAMS + " (" +
-				" _id INTEGER PRIMARY KEY, " +
+				FIELD_STREAM_ID + " INTEGER PRIMARY KEY, " +
 				FIELD_STREAM_NICKNAME + " TEXT, " +
 				FIELD_STREAM_PROTOCOL + " TEXT, " +
 				FIELD_STREAM_USERNAME + " TEXT, " +
@@ -129,14 +130,14 @@ public class StreamDatabase extends SQLiteOpenHelper {
 		synchronized (dbLock) {
 			SQLiteDatabase db = this.getWritableDatabase();
 
-			db.update(TABLE_STREAMS, values, "_id = ?", new String[] { String.valueOf(stream.getId()) });
+			db.update(TABLE_STREAMS, values, FIELD_STREAM_ID + " = ?", new String[] { String.valueOf(stream.getId()) });
 		}
 	}
 	
 	private ArrayList<Stream> createStreamList(Cursor c) {
 		ArrayList<Stream> streamUrls = new ArrayList<Stream>();
 
-		final int COL_ID = c.getColumnIndexOrThrow("_id"),
+		final int COL_ID = c.getColumnIndexOrThrow(FIELD_STREAM_ID),
 			COL_NICKNAME = c.getColumnIndexOrThrow(FIELD_STREAM_NICKNAME),
 			COL_PROTOCOL = c.getColumnIndexOrThrow(FIELD_STREAM_PROTOCOL),
 			COL_USERNAME = c.getColumnIndexOrThrow(FIELD_STREAM_USERNAME),
@@ -174,13 +175,18 @@ public class StreamDatabase extends SQLiteOpenHelper {
 	}
 	
 	public ArrayList<Stream> getStreams() {
-		
+		return getStreams(false);
+	}
+	
+	
+	public ArrayList<Stream> getStreams(boolean sortByName) {
+		String sortField = sortByName ? FIELD_STREAM_NICKNAME : FIELD_STREAM_ID;
 		ArrayList<Stream> streamUrls = new ArrayList<Stream>();
 		
 		synchronized (dbLock) {
 			SQLiteDatabase db = this.getWritableDatabase();
 
-		    Cursor c = db.query(TABLE_STREAMS, null, null, null, null, null, null);
+		    Cursor c = db.query(TABLE_STREAMS, null, null, null, null, null, sortField + " ASC");
 
 		    streamUrls = createStreamList(c);
 
@@ -196,7 +202,7 @@ public class StreamDatabase extends SQLiteOpenHelper {
 
 		synchronized (dbLock) {
 			SQLiteDatabase db = this.getWritableDatabase();
-			db.delete(TABLE_STREAMS, "_id = ?", new String[] { String.valueOf(stream.getId()) });
+			db.delete(TABLE_STREAMS, FIELD_STREAM_ID + " = ?", new String[] { String.valueOf(stream.getId()) });
 		}
 	}
 	
@@ -249,7 +255,7 @@ public class StreamDatabase extends SQLiteOpenHelper {
 			SQLiteDatabase db = getReadableDatabase();
 
 			Cursor c = db.query(TABLE_STREAMS, null,
-					"_id = ?",
+					FIELD_STREAM_ID + " = ?",
 					new String[] { String.valueOf(id) },
 					null, null, null);
 
@@ -274,7 +280,7 @@ public class StreamDatabase extends SQLiteOpenHelper {
 	private ArrayList<Stream> createStreams(Cursor c) {
 		ArrayList<Stream> streamUrls = new ArrayList<Stream>();
 
-		final int COL_ID = c.getColumnIndexOrThrow("_id"),
+		final int COL_ID = c.getColumnIndexOrThrow(FIELD_STREAM_ID),
 			COL_NICKNAME = c.getColumnIndexOrThrow(FIELD_STREAM_NICKNAME),
 			COL_PROTOCOL = c.getColumnIndexOrThrow(FIELD_STREAM_PROTOCOL),
 			COL_USERNAME = c.getColumnIndexOrThrow(FIELD_STREAM_USERNAME),
@@ -365,7 +371,7 @@ public class StreamDatabase extends SQLiteOpenHelper {
 			if (contentValues.size() > 0) {
 				Log.v(TAG, "Replacing null values");
 			    db = this.getWritableDatabase();
-			    db.update(TABLE_STREAMS, contentValues, "_id = ?", new String[] { String.valueOf(stream.getId()) });
+			    db.update(TABLE_STREAMS, contentValues, FIELD_STREAM_ID + " = ?", new String[] { String.valueOf(stream.getId()) });
 			}
 		}
 		
