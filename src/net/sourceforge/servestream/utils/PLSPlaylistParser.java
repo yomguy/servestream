@@ -59,18 +59,23 @@ public class PLSPlaylistParser extends PlaylistParser {
 		    reader = new BufferedReader(new InputStreamReader(conn.getInputStream()));
 		    conn.connect();
 		    
+		    mediaFile = new MediaFile();
+		    processingEntry = false;
+		    
 		    while ((line = reader.readLine()) != null) {
-		    	if (!line.trim().equals("")) {
+		    	if (line.trim().equals("")) {
+		    		if (processingEntry) {
+		    			savePlaylistFile();
+		    		}
+		    		
+		    		mediaFile = new MediaFile();
+		    		processingEntry = false;
+		    	} else {
 			    	String [] parsedLine = line.split("\\=");
 			    	
 			    	if (parsedLine.length == 2) {
                         if (parsedLine[0].trim().contains("File")) {
-                        	if (processingEntry)
-                                savePlaylistFile();
-                        	else
-                        		processingEntry = true;
-                        	
-        		    		mediaFile = new MediaFile();
+                        	processingEntry = true;
         		    		
     		    	    	try {
     							mediaFile.setUrl(URLDecoder.decode(parsedLine[1].trim(), "UTF-8"));
@@ -80,10 +85,15 @@ public class PLSPlaylistParser extends PlaylistParser {
                         } else if (parsedLine[0].trim().contains("Title")) {
                             mediaFile.setPlaylistMetadata(parsedLine[1].trim());
                         } else if (parsedLine[0].trim().contains("Length")) {
-                            savePlaylistFile();
-                        }			
+        		    		if (processingEntry) {
+        		    			savePlaylistFile();
+        		    		}
+        		    		
+        		    		mediaFile = new MediaFile();
+        		    		processingEntry = false;
+                        }
 			    	}
-		    	}           
+		    	}
             }
 		    
 		    // added in case the file doesn't follow the standard pls
