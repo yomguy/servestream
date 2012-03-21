@@ -23,6 +23,8 @@ public class DownloadManager {
 
 	private MediaPlaybackService mMediaPlaybackService = null;
 
+	private long mTotalSizeInBytes = -1;
+	
 	private long mLength = -1;
 	private File mPartialFile = null;
 	private File mCompleteFile = null;
@@ -46,6 +48,7 @@ public class DownloadManager {
 			}
 		}
 
+		mTotalSizeInBytes = -1;
 		mLength = -1;
 		mPartialFile = new File(Utils.getDownloadDirectory(), "mediafile" + id + ".partial.dat");
         mCompleteFile = new File(Utils.getDownloadDirectory(), "mediafile" + id + ".complete.dat");
@@ -83,12 +86,12 @@ public class DownloadManager {
 		return null;
 	}
 	
-	public long getCompleteFileDuration() {
+	private long getFileDuration() {
         long duration = 0;
         
     	MediaPlayer mediaPlayer = new MediaPlayer();
         try {
-			mediaPlayer.setDataSource(getCompleteFile().toString());
+			mediaPlayer.setDataSource(mPartialFile.toString());
 			mediaPlayer.prepare();
 			duration = mediaPlayer.getDuration();
 		} catch (Exception e) {
@@ -109,6 +112,14 @@ public class DownloadManager {
 		return false;
 	}
 	
+	public synchronized double getPercentDownloaded() {
+		if (mCompleteFile != null && mCompleteFile.exists()) {
+			return 1.0;
+		}
+
+		return (double) mPartialFile.length() / (double) mTotalSizeInBytes;
+	}
+	
 	public synchronized boolean isDownloadCancelled() {
 		return mDownloadTask != null && mDownloadTask.isCancelled();
 	}
@@ -123,18 +134,12 @@ public class DownloadManager {
 	/**
 	 * @return the length
 	 */
-	public long getLength() {
-		long length = -1;
-		
-		if (isCompleteFileAvailable()) {
-			if (mLength == -1) {
-				mLength = getCompleteFileDuration();
-			}
-			
-			length = mLength;
+	public long duration() {
+		if (mLength == -1) {
+			return 0;
 		}
 		
-		return length;
+		return mLength;
 	}
 	
 	private class DownloadTask extends AsyncTask<URL, Void, Void> {
@@ -162,8 +167,11 @@ public class DownloadManager {
             	try {
                 	conn = determineRange(url[0], mPartialFile.length());
             
-                	if (conn.getResponseCode() == HttpURLConnection.HTTP_PARTIAL)
-                		appendToFile = true;            		
+                	if (conn.getResponseCode() == HttpURLConnection.HTTP_PARTIAL) {
+                		appendToFile = true;
+                	} else {
+                		mTotalSizeInBytes = conn.getContentLength();
+                	}
             
                 	in = new BufferedInputStream(conn.getInputStream());
                 	out = new FileOutputStream(mPartialFile, appendToFile);
@@ -234,6 +242,9 @@ public class DownloadManager {
 				}
 			}
 			
+			if (mTotalSizeInBytes != -1) {
+				mLength = getFileDuration();
+			}
 			Log.v(TAG, "setDataSource called");
 			mMediaPlaybackService.getMediaPlayer().setDataSource(getPartialFile().getPath(), true);
 			

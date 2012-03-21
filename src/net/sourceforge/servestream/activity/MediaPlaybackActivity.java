@@ -1019,6 +1019,7 @@ public class MediaPlaybackActivity extends Activity implements SurfaceHolder.Cal
         try {
         	if (!mService.isStreaming()) {
         		if (!mService.isCompleteFileAvailable()) {
+                	mProgress.setSecondaryProgress((int) (mService.getPercentDownloaded() * 1000));
         			mPrevButton.setRepeatListener(null, -1);
         			mNextButton.setRepeatListener(null, -1);
         			mProgress.setEnabled(false);
@@ -1154,12 +1155,10 @@ public class MediaPlaybackActivity extends Activity implements SurfaceHolder.Cal
                 
             if (mService.isStreaming()) {
             	mDuration = mService.duration();
+            	mProgress.setSecondaryProgress(0);
             } else {
-            	if (mService.isCompleteFileAvailable()) {
-            		mDuration = mService.getCompleteFileDuration();
-            	} else {
-            		mDuration = 0;
-            	}
+            	mDuration = mService.getCompleteFileDuration();
+            	mProgress.setSecondaryProgress((int) mService.getPercentDownloaded() * 1000);
             }
             mTotalTime.setText(MusicUtils.makeTimeString(this, mDuration / 1000));
         } catch (RemoteException ex) {
