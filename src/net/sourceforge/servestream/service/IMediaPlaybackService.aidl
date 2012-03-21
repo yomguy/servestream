@@ -58,4 +58,5 @@ interface IMediaPlaybackService
     boolean isStreaming();
     boolean isCompleteFileAvailable();
     long getCompleteFileDuration();
+    double getPercentDownloaded();
 }

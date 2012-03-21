@@ -1322,8 +1322,14 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
     
     public long getCompleteFileDuration() {
         synchronized (this) {    	
-            return mDownloadManager.getLength();
+            return mDownloadManager.duration();
         }
+    }
+    
+    public double getPercentDownloaded() {
+    	synchronized (this) {
+    		return mDownloadManager.getPercentDownloaded();
+    	}
     }
     
     /**
@@ -1487,6 +1493,9 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
 		}
 		public long getCompleteFileDuration() throws RemoteException {
 			return mService.get().getCompleteFileDuration();
+		}
+		public double getPercentDownloaded() throws RemoteException {
+			return mService.get().getPercentDownloaded();
 		}
     }
     
