@@ -64,17 +64,13 @@ public class MultiPlayer implements Parcelable {
             }
             Log.v(TAG, "Preparing media plyer");
         } catch (IOException ex) {
-            // TODO: notify the user why the file couldn't be opened
         	Log.v(TAG, "Error initializing");
-        	ex.printStackTrace();
             mIsInitialized = false;
-            return;
+            mHandler.sendMessageDelayed(mHandler.obtainMessage(MediaPlaybackService.PLAYER_ERROR), 2000);
         } catch (IllegalArgumentException ex) {
         	Log.v(TAG, "Error initializing");
-        	ex.printStackTrace();
-            // TODO: notify the user why the file couldn't be opened
             mIsInitialized = false;
-            return;
+            mHandler.sendMessageDelayed(mHandler.obtainMessage(MediaPlaybackService.PLAYER_ERROR), 2000);
         }
     }
         
