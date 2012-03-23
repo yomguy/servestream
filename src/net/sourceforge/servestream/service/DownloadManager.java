@@ -86,12 +86,12 @@ public class DownloadManager {
 		return null;
 	}
 	
-	private long getFileDuration() {
+	public long getCompleteFileDuration() {
         long duration = 0;
         
     	MediaPlayer mediaPlayer = new MediaPlayer();
         try {
-			mediaPlayer.setDataSource(mPartialFile.toString());
+			mediaPlayer.setDataSource(getCompleteFile().toString());
 			mediaPlayer.prepare();
 			duration = mediaPlayer.getDuration();
 		} catch (Exception e) {
@@ -119,7 +119,7 @@ public class DownloadManager {
 
 		return (double) mPartialFile.length() / (double) mTotalSizeInBytes;
 	}
-	
+
 	public synchronized boolean isDownloadCancelled() {
 		return mDownloadTask != null && mDownloadTask.isCancelled();
 	}
@@ -134,12 +134,18 @@ public class DownloadManager {
 	/**
 	 * @return the length
 	 */
-	public long duration() {
-		if (mLength == -1) {
-			return 0;
+	public long getLength() {
+		long length = -1;
+		
+		if (isCompleteFileAvailable()) {
+			if (mLength == -1) {
+				mLength = getCompleteFileDuration();
+			}
+			
+			length = mLength;
 		}
 		
-		return mLength;
+		return length;
 	}
 	
 	private class DownloadTask extends AsyncTask<URL, Void, Void> {
@@ -224,7 +230,7 @@ public class DownloadManager {
         
 	private class PollingAsyncTask extends AsyncTask<Void, Void, Void> {
 		
-		private static final int INITIAL_BUFFER = 81920;
+		int INITIAL_BUFFER = Math.max(100000, 160 * 1024 / 8 * 5);
 	
 	    public PollingAsyncTask() {
 	        super();
@@ -242,9 +248,6 @@ public class DownloadManager {
 				}
 			}
 			
-			if (mTotalSizeInBytes != -1) {
-				mLength = getFileDuration();
-			}
 			Log.v(TAG, "setDataSource called");
 			mMediaPlaybackService.getMediaPlayer().setDataSource(getPartialFile().getPath(), true);
 			

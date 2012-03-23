@@ -1322,7 +1322,7 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
     
     public long getCompleteFileDuration() {
         synchronized (this) {    	
-            return mDownloadManager.duration();
+            return mDownloadManager.getLength();
         }
     }
     

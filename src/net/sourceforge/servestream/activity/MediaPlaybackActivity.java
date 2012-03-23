@@ -1157,8 +1157,11 @@ public class MediaPlaybackActivity extends Activity implements SurfaceHolder.Cal
             	mDuration = mService.duration();
             	mProgress.setSecondaryProgress(0);
             } else {
-            	mDuration = mService.getCompleteFileDuration();
-            	mProgress.setSecondaryProgress((int) mService.getPercentDownloaded() * 1000);
+            	if (mService.isCompleteFileAvailable()) {
+            		mDuration = mService.getCompleteFileDuration();
+            	} else {
+            		mDuration = 0;
+            	}
             }
             mTotalTime.setText(MusicUtils.makeTimeString(this, mDuration / 1000));
         } catch (RemoteException ex) {
