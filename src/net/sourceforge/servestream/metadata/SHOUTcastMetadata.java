@@ -200,8 +200,6 @@ public class SHOUTcastMetadata extends BroadcastReceiver {
 			    return;
     	    }
 
-	    	mContainsMetadata = true;
-	    	
 		    // Read metadata
 		    int b;
 		    int count = 0;
@@ -271,10 +269,10 @@ public class SHOUTcastMetadata extends BroadcastReceiver {
 
 		streamTitle = metadata.get(STREAM_TITLE);
 		
-		if (streamTitle == null) {
+		if (streamTitle == null || streamTitle.trim().equals("")) {
 			streamTitle = metadata.get(STREAM_TITLE_REPLAY);
 			
-			if (streamTitle == null) {
+			if (streamTitle == null || streamTitle.trim().equals("")) {
 				return;
 			}	
 		}
@@ -289,6 +287,8 @@ public class SHOUTcastMetadata extends BroadcastReceiver {
 			add(ARTIST, streamTitle.trim());
 			add(TITLE, "");
 		}
+		
+		mContainsMetadata = true;
 	}
 	
     /**
