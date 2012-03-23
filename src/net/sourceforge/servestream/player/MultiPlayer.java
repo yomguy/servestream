@@ -24,6 +24,7 @@ import android.os.Parcelable;
 import android.util.Log;
 import android.view.SurfaceHolder;
 
+import java.io.File;
 import java.io.IOException;
 
 import net.sourceforge.servestream.utils.URLUtils;
@@ -52,6 +53,13 @@ public class MultiPlayer implements Parcelable {
             mMediaPlayer.setOnCompletionListener(completionListener);
             mMediaPlayer.setOnErrorListener(errorListener);            
             if (isLocalFile) {
+            	File file = new File(path);
+            	if (file.exists()) {
+            		System.out.println("File exists");
+            		System.out.println("File size: " + file.length());
+            	} else {
+            		System.out.println("File does not exist");
+            	}
                 mMediaPlayer.setDataSource(path);
             	mMediaPlayer.prepare();
             } else {
