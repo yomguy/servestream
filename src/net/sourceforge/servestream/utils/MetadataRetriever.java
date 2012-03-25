@@ -171,13 +171,9 @@ public class MetadataRetriever {
 			
 			metadata = retrieveMetadata(inputStream, parser);
 		} catch (MalformedURLException e) {
-			e.printStackTrace();
 		} catch (IOException e) {
-			e.printStackTrace();
 		} catch (SAXException e) {
-			e.printStackTrace();
 		} catch (TikaException e) {
-			e.printStackTrace();
 		} finally {
 			Utils.closeInputStream(inputStream);
 		}
