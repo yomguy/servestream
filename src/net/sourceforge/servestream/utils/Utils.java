@@ -35,8 +35,9 @@ public class Utils {
     public static File getDownloadDirectory() {
         File file = new File(Environment.getExternalStorageDirectory(), DOWNLOAD_DIRECTORY_NAME);
         
-        if (!file.exists() && !file.mkdirs())
+        if (!file.exists() && !file.mkdirs()) {
         	return null;
+        }
         	
     	return file;
     }
@@ -45,11 +46,17 @@ public class Utils {
     	boolean success = true;
     	
     	File file = getDownloadDirectory();
+    	
+    	if (file == null) {
+    		return false;
+    	}
+    	
     	File [] files = file.listFiles();
     	
         for (int i = 0; i < files.length; i++) {
-        	if (!deleteFile(files[i]));
+        	if (!deleteFile(files[i])) {
         		success = false;
+        	}
         }
         
         return success;
