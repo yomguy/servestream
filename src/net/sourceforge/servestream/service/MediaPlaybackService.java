@@ -1642,25 +1642,37 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
     }
     
     private void handleError() {
-    	if (! mPlayer.isInitialized()) {
+    	if (!mPlayer.isInitialized()) {
             Intent i = new Intent(STOP_DIALOG);
             sendBroadcast(i);
             
             stop(true);
-            if (mOpenFailedCounter++ < 10 &&  mPlayListLen > 1) {
-                // beware: this ends up being recursive because next() calls open() again.
-                next(false);
+            mOpenFailedCounter++;
+            
+            if (mPlayListLen > 1 && mOpenFailedCounter == mPlayListLen) {
+            	mOpenFailedCounter = 0;
+                return;
             }
-            if (! mPlayer.isInitialized() && mOpenFailedCounter != 0) {
-                // need to make sure we only shows this once
-                mOpenFailedCounter = 0;
-                if (!mQuietMode) {
-                    Toast.makeText(this, R.string.playback_failed, Toast.LENGTH_SHORT).show();
-                }
-                Log.d(TAG, "Failed to open file for playback");
+            
+            if (mPlayListLen > 1) {
+            	mDelayedPlaybackHandler.sendEmptyMessageDelayed(0, 3000);
             }
+
+            if (!mQuietMode) {
+            	Toast.makeText(this, R.string.playback_failed, Toast.LENGTH_SHORT).show();
+            }
+            
+            Log.d(TAG, "Failed to open file for playback");
         } else {
-            mOpenFailedCounter = 0;
+        	mOpenFailedCounter = 0;
         }
     }
+    
+    private Handler mDelayedPlaybackHandler = new Handler() {
+        @Override
+        public void handleMessage(Message msg) {
+            next(false);
+            notifyChange(META_CHANGED);
+        }
+    };
 }
