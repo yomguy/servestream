@@ -123,7 +123,9 @@ public class MultiPlayer implements Parcelable {
             // and allow the device to go to sleep.
             // This temporary wakelock is released when the RELEASE_WAKELOCK
             // message is processed, but just in case, put a timeout on it.
-            mHandler.sendEmptyMessage(MediaPlaybackService.TRACK_ENDED);
+            if (mIsInitialized) {
+            	mHandler.sendEmptyMessage(MediaPlaybackService.TRACK_ENDED);
+            }
         }
     };
 
