@@ -207,7 +207,7 @@ public class DownloadManager {
         private HttpURLConnection determineRange(URL url, long bytesProcessed) {
         	HttpURLConnection conn = null;
 		
-        	conn = URLUtils.getConnection(null, url);
+        	conn = URLUtils.getConnection(url);
 		
         	if (conn == null) {
         		return null;
