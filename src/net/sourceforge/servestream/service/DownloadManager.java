@@ -207,7 +207,7 @@ public class DownloadManager {
         private HttpURLConnection determineRange(URL url, long bytesProcessed) {
         	HttpURLConnection conn = null;
 		
-        	conn = URLUtils.getConnection(url);
+        	conn = URLUtils.getConnection(null, url);
 		
         	if (conn == null) {
         		return null;
@@ -230,8 +230,9 @@ public class DownloadManager {
         
 	private class PollingAsyncTask extends AsyncTask<Void, Void, Void> {
 		
-		int INITIAL_BUFFER = Math.max(100000, 160 * 1024 / 8 * 5);
-	
+		//int INITIAL_BUFFER = Math.max(100000, 160 * 1024 / 8 * 5);
+		int INITIAL_BUFFER = 81920;
+		
 	    public PollingAsyncTask() {
 	        super();
 	    }
