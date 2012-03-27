@@ -1649,15 +1649,14 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
             stop(true);
             mOpenFailedCounter++;
             
-            if (mPlayListLen > 1 && mOpenFailedCounter == mPlayListLen) {
-            	mOpenFailedCounter = 0;
-                return;
+            if (mPlayListLen > 1) {
+            	if (mOpenFailedCounter == mPlayListLen) {
+            		mOpenFailedCounter = 0;
+            	} else {
+            		mDelayedPlaybackHandler.sendEmptyMessageDelayed(0, 2500);
+            	}
             }
             
-            if (mPlayListLen > 1) {
-            	mDelayedPlaybackHandler.sendEmptyMessageDelayed(0, 3000);
-            }
-
             if (!mQuietMode) {
             	Toast.makeText(this, R.string.playback_failed, Toast.LENGTH_SHORT).show();
             }
