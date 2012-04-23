@@ -17,10 +17,8 @@
 
 package net.sourceforge.servestream.utils;
 
-import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Iterator;
 import java.util.Set;
@@ -28,7 +26,6 @@ import java.util.Set;
 import net.sourceforge.servestream.provider.Media;
 import net.sourceforge.servestream.service.MediaPlaybackService;
 
-import org.apache.tika.exception.TikaException;
 import org.apache.tika.metadata.Metadata;
 import org.apache.tika.metadata.XMPDM;
 import org.apache.tika.mime.MediaType;
@@ -39,7 +36,6 @@ import org.apache.tika.parser.mp3.Mp3Parser;
 import org.apache.tika.parser.ogg.OggParser;
 import org.apache.tika.parser.vorbis.VorbisParser;
 import org.apache.tika.sax.BodyContentHandler;
-import org.xml.sax.SAXException;
 
 import android.content.ContentValues;
 import android.content.Context;
@@ -170,10 +166,7 @@ public class MetadataRetriever {
 			}
 			
 			metadata = retrieveMetadata(inputStream, parser);
-		} catch (MalformedURLException e) {
-		} catch (IOException e) {
-		} catch (SAXException e) {
-		} catch (TikaException e) {
+		} catch (Exception e) {
 		} finally {
 			Utils.closeInputStream(inputStream);
 		}
@@ -216,7 +209,7 @@ public class MetadataRetriever {
 		return false;
 	}
 	
-	private static Metadata retrieveMetadata(InputStream inputStream, AbstractParser parser) throws IOException, SAXException, TikaException {
+	private static Metadata retrieveMetadata(InputStream inputStream, AbstractParser parser) throws Exception {
 		BodyContentHandler handler = new BodyContentHandler();
 	    Metadata metadata = new Metadata();
 		
