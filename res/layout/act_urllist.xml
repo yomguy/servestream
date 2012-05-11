@@ -18,37 +18,42 @@
  */
 -->
 
-<RelativeLayout
-	xmlns:android="http://schemas.android.com/apk/res/android"
-	android:orientation="vertical"
-	android:layout_width="fill_parent"
-	android:layout_height="fill_parent"
-	>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:gravity="center_vertical"
+    >
 
-    <Button android:id="@+id/go_button"
-            android:layout_width="wrap_content"
+    <RelativeLayout
+    	android:layout_width="fill_parent"
+    	android:layout_height="wrap_content"
+        >
+    
+    	<Button android:id="@+id/go_button"
+        	android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/text_go_button"
             android:textSize="14sp"
-            android:layout_alignParentTop="true"
             android:layout_alignParentRight="true"
             />
 
-	<EditText
-		android:id="@+id/front_quickconnect"
-		android:layout_width="fill_parent"
-		android:layout_height="wrap_content"
-		android:hint="http://"
-		android:layout_toLeftOf="@+id/go_button"
-		android:layout_alignTop="@+id/go_button"
-		android:inputType="text"
-		/>
+		<EditText
+			android:id="@+id/front_quickconnect"
+			android:layout_width="fill_parent"
+			android:layout_height="wrap_content"
+			android:hint="http://"
+			android:layout_toLeftOf="@+id/go_button"
+			android:inputType="text"
+			/>
 
+	</RelativeLayout>
+		
 	<ListView
 		android:id="@android:id/list"
 		android:layout_width="fill_parent"
-		android:layout_height="fill_parent"
-		android:layout_below="@+id/go_button"
+		android:layout_height="0dip"
+		android:layout_weight="1"
 		/>
 
 	<TextView
@@ -58,7 +63,8 @@
 		android:text="@string/list_stream_empty"
 		android:textAppearance="?android:attr/textAppearanceMedium"
 		android:gravity="center"
-		android:layout_below="@+id/go_button"
 		/>
 
-</RelativeLayout>
+	<include layout="@layout/nowplaying" />
+	
+</LinearLayout>

@@ -29,6 +29,7 @@ import java.util.Locale;
 import java.util.Map;
 
 import net.sourceforge.servestream.R;
+import net.sourceforge.servestream.activity.MediaPlaybackActivity;
 import net.sourceforge.servestream.dbutils.Stream;
 import net.sourceforge.servestream.provider.Media;
 import net.sourceforge.servestream.service.IMediaPlaybackService;
@@ -49,6 +50,8 @@ import android.os.Handler;
 import android.os.Message;
 import android.os.RemoteException;
 import android.util.Log;
+import android.view.View;
+import android.widget.TextView;
 import android.widget.Toast;
 
 public class MusicUtils {
@@ -325,6 +328,45 @@ public class MusicUtils {
         }
     }
 
+    public static void updateNowPlaying(Activity a) {
+        View nowPlayingView = a.findViewById(R.id.nowplaying);
+        if (nowPlayingView == null) {
+            return;
+        }
+        try {
+            if (true && MusicUtils.sService != null && MusicUtils.sService.getAudioId() != -1) {
+                TextView title = (TextView) nowPlayingView.findViewById(R.id.title);
+                TextView artist = (TextView) nowPlayingView.findViewById(R.id.artist);
+                
+                CharSequence trackName = sService.getTrackName();
+            	CharSequence artistName = sService.getArtistName();
+                
+                if (trackName == null || trackName.equals(Media.UNKNOWN_STRING)) {
+            		title.setText(R.string.widget_one_track_info_unavailable);
+            	} else {
+            		title.setText(trackName);
+            	}
+            		
+            	if (artistName == null || artistName.equals(Media.UNKNOWN_STRING)) {
+            		artistName = sService.getMediaUri();
+            	}
+                
+            	artist.setText(artistName);
+            	
+                nowPlayingView.setVisibility(View.VISIBLE);
+                nowPlayingView.setOnClickListener(new View.OnClickListener() {
+
+                    public void onClick(View v) {
+                        Context c = v.getContext();
+                        c.startActivity(new Intent(c, MediaPlaybackActivity.class));
+                    }});
+                return;
+            }
+        } catch (RemoteException ex) {
+        }
+        nowPlayingView.setVisibility(View.GONE);
+    }
+    
     private final static long [] sEmptyList = new long[0];
     
     public static long [] getFilesInPlaylist(Context context, URL url, String contentType) {
