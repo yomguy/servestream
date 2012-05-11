@@ -23,6 +23,7 @@ import java.net.MalformedURLException;
 import java.net.URLDecoder;
 import java.util.ArrayList;
 
+import net.sourceforge.servestream.service.MediaPlaybackService;
 import net.sourceforge.servestream.utils.MusicUtils;
 import net.sourceforge.servestream.utils.MusicUtils.ServiceToken;
 
@@ -39,10 +40,12 @@ import android.app.Dialog;
 import android.app.ListActivity;
 import android.app.ProgressDialog;
 import android.content.ActivityNotFoundException;
+import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.IntentFilter;
 import android.content.DialogInterface.OnCancelListener;
 import android.content.Intent;
 import android.content.Intent.ShortcutIconResource;
@@ -307,12 +310,19 @@ public class URLListActivity extends ListActivity implements ServiceConnection {
 	public void onResume() {
 		super.onResume();
 		
+        IntentFilter f = new IntentFilter();
+        f.addAction(MediaPlaybackService.META_CHANGED);
+        f.addAction(MediaPlaybackService.QUEUE_CHANGED);
+        registerReceiver(mTrackListListener, f);
+		
 		mActivityVisible = true;
 	}
 	
 	@Override
 	public void onPause() {
 		super.onResume();
+		
+        unregisterReceiver(mTrackListListener);
 		
 		mActivityVisible = false;
 	}
@@ -343,6 +353,13 @@ public class URLListActivity extends ListActivity implements ServiceConnection {
         saveDetermineIntentTask(outState);
     }
 	
+    private BroadcastReceiver mTrackListListener = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            MusicUtils.updateNowPlaying(URLListActivity.this);
+        }
+    };
+    
     private void saveDetermineIntentTask(Bundle outState) {
     	outState.putBoolean(STATE_MAKING_SHORTCUT, mMakingShortcut);
     	
@@ -866,7 +883,7 @@ public class URLListActivity extends ListActivity implements ServiceConnection {
 	}
 
 	public void onServiceConnected(ComponentName arg0, IBinder arg1) {
-		
+		MusicUtils.updateNowPlaying(this);
 	}
 
 	public void onServiceDisconnected(ComponentName arg0) {
