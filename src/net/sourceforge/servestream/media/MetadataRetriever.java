@@ -15,27 +15,10 @@
  * limitations under the License.
  */
 
-package net.sourceforge.servestream.utils;
-
-import java.io.InputStream;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.util.Iterator;
-import java.util.Set;
+package net.sourceforge.servestream.media;
 
 import net.sourceforge.servestream.provider.Media;
 import net.sourceforge.servestream.service.MediaPlaybackService;
-
-import org.apache.tika.metadata.Metadata;
-import org.apache.tika.metadata.XMPDM;
-import org.apache.tika.mime.MediaType;
-import org.apache.tika.parser.AbstractParser;
-import org.apache.tika.parser.ParseContext;
-import org.apache.tika.parser.flac.FlacParser;
-import org.apache.tika.parser.mp3.Mp3Parser;
-import org.apache.tika.parser.ogg.OggParser;
-import org.apache.tika.parser.vorbis.VorbisParser;
-import org.apache.tika.sax.BodyContentHandler;
 
 import android.content.ContentValues;
 import android.content.Context;
@@ -79,23 +62,26 @@ public class MetadataRetriever {
 	    
 		@Override
 		protected Boolean doInBackground(long [] ... list) {
+			MediaMetadataRetriever mmr = new MediaMetadataRetriever();
+			
 			for (int i = 0; i < list[0].length; i++) {
 			
 				String uri = getUri(mContext, list[0][i]);
 			
 				if (uri != null) {
-					Metadata metadata = retrieveMetadata(uri);
+					mmr.setDataSource(uri.toString());
 				
-					if (metadata != null) {
-						updateMetadata(mContext, list[0][i], metadata);
+					updateMetadata(mContext, list[0][i], mmr);
 					
-						if (i == mPosition) {
-							// send a broadcast so our activities can use the updated metadata 
-							((MediaPlaybackService) mContext).updateMetadata();
-						}
+					if (i == mPosition) {
+						// send a broadcast so our activities can use the updated metadata 
+						((MediaPlaybackService) mContext).updateMetadata();
 					}
 				}
 			}
+			
+			mmr.release();
+			
     		return true;
 		}
     }
@@ -126,116 +112,28 @@ public class MetadataRetriever {
 		return uri;
 	}
 	
-	private static Metadata retrieveMetadata(String uri) {
-		Metadata metadata = null;		
-	    String contentType = null;
-	    HttpURLConnection conn = null;
-	    InputStream inputStream = null;	
-	    URL url;
-	    
-	    if (uri == null) {
-	    	return null;
-	    }
-	    
-		try {
-			url = new URL(uri);
-	    		
-			conn = URLUtils.getConnection(url);
-	    	
-			conn.setRequestProperty("User-Agent", URLUtils.USER_AGENT);
-			conn.setConnectTimeout(6000);
-			conn.setReadTimeout(6000);
-			conn.setRequestMethod("GET");
-		    
-			contentType = conn.getContentType();
-	        
-			if (contentType == null) {
-				return null;
-			}
-	    	
-			inputStream = conn.getInputStream();
-			
-			if (inputStream == null) {
-				return null;
-			}
-			
-			AbstractParser parser = detectParser(contentType);
-			
-			if (parser == null) {
-				return null;
-			}
-			
-			metadata = retrieveMetadata(inputStream, parser);
-		} catch (Exception e) {
-		} finally {
-			Utils.closeInputStream(inputStream);
-		}
-		
-		return metadata;
-	}
-	
-	private static AbstractParser detectParser(String contentType) {
-		AbstractParser parser = null;
-		
-		ParseContext parseContext = new ParseContext();
-		
-		FlacParser flacParser = new FlacParser();
-		Mp3Parser mp3Parser = new Mp3Parser();
-		OggParser oggParser = new OggParser();
-		VorbisParser vorbisParser = new VorbisParser();
-		
-		if (contains(flacParser.getSupportedTypes(parseContext), contentType)) {
-			parser = flacParser;
-		} else if (contains(mp3Parser.getSupportedTypes(parseContext), contentType)) {
-			parser = mp3Parser;
-		} else if (contains(oggParser.getSupportedTypes(parseContext), contentType)) {
-			parser = oggParser;
-		} else if (contains(vorbisParser.getSupportedTypes(parseContext), contentType)) {
-			parser = vorbisParser;
-		}
-		
-		return parser;
-	}
-	
-	private static boolean contains(Set<MediaType> types, String contentType) {
-		Iterator<MediaType> iterator = types.iterator();
-		
-		while (iterator.hasNext()) {
-			if (iterator.next().getBaseType().toString().equalsIgnoreCase(contentType)) {
-				return true;
-			}
-		}
-		
-		return false;
-	}
-	
-	private static Metadata retrieveMetadata(InputStream inputStream, AbstractParser parser) throws Exception {
-		BodyContentHandler handler = new BodyContentHandler();
-	    Metadata metadata = new Metadata();
-		
-		parser.parse(inputStream, handler, metadata, new ParseContext());
-		
-		return metadata;
-	}
-	
-	private static int updateMetadata(Context context, long id, Metadata metadata) {
+	private static int updateMetadata(Context context, long id, MediaMetadataRetriever mmr) {
 		int rows = 0;
+		
+		String title =  mmr.extractMetadata("title");
+		String album = mmr.extractMetadata("album");
+		String artist = mmr.extractMetadata("artist");
 		
 		// if we didn't obtain at least the title, album or artist then don't store
 		// the metadata since it's pretty useless
-		if (metadata.get(Metadata.TITLE) == null && 
-				metadata.get(XMPDM.ALBUM) == null && 
-				metadata.get(XMPDM.ARTIST) == null) {
+		if (title == null && 
+				album == null && 
+				artist == null) {
 			return 0;
 		}
 		
 		// Form an array specifying which columns to return. 
 		ContentValues values = new ContentValues();
-		values.put(Media.MediaColumns.TITLE, validateAttribute(metadata.get(Metadata.TITLE)));
-		values.put(Media.MediaColumns.ALBUM, validateAttribute(metadata.get(XMPDM.ALBUM)));
-		values.put(Media.MediaColumns.ARTIST, validateAttribute(metadata.get(XMPDM.ARTIST)));
-		values.put(Media.MediaColumns.TRACK, validateAttribute(metadata.get(XMPDM.TRACK_NUMBER)));
-		values.put(Media.MediaColumns.YEAR, convertToInteger(metadata.get(XMPDM.RELEASE_DATE)));
+		values.put(Media.MediaColumns.TITLE, validateAttribute(title));
+		values.put(Media.MediaColumns.ALBUM, validateAttribute(album));
+		values.put(Media.MediaColumns.ARTIST, validateAttribute(artist));
+		values.put(Media.MediaColumns.TRACK, validateAttribute(mmr.extractMetadata("track")));
+		values.put(Media.MediaColumns.YEAR, convertToInteger(mmr.extractMetadata("date")));
 
 		// Get the base URI for the Media Files table in the Media content provider.
 		Uri mediaFile =  Media.MediaColumns.CONTENT_URI;
