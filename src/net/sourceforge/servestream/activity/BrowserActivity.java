@@ -20,6 +20,7 @@ package net.sourceforge.servestream.activity;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 import net.sourceforge.servestream.R;
@@ -87,7 +88,8 @@ public class BrowserActivity extends ListActivity implements ServiceConnection {
     private TextView mEmptyText;
      
     private DirectoryScanner mDirectoryScanner;
-
+    private HashMap<Integer, Stream> mPreviousDirectory = new HashMap<Integer, Stream>();
+    
 	private InputMethodManager mInputManager = null;
 	private StreamDatabase mStreamdb = null;
 	private Button mHomeButton = null;
@@ -329,7 +331,9 @@ public class BrowserActivity extends ListActivity implements ServiceConnection {
     			handleIntent(message);
     			break;
 			case MESSAGE_PARSE_WEBPAGE:
+				mPreviousDirectory.put(mStepsBack, (Stream) message.obj);
 				mStepsBack++;
+				mPreviousDirectory.put(mStepsBack, null);
 				mDirectory[mStepsBack] = (Stream) message.obj;
 				refreshList();
 				break;
@@ -348,6 +352,8 @@ public class BrowserActivity extends ListActivity implements ServiceConnection {
         setListAdapter(itla);
 	    getListView().requestFocus();
 
+		selectInList(mPreviousDirectory.get(mStepsBack));
+	    
     	mEmptyText.setVisibility(View.VISIBLE);
     	
 		try {
@@ -395,11 +401,24 @@ public class BrowserActivity extends ListActivity implements ServiceConnection {
           
         mDirectoryScanner = new DirectoryScanner(mDirectory[mStepsBack], this, mHandler);
 	    mDirectoryScanner.start();
-    } 
-     
-    /*private void selectInList(Stream selectFile)
-     */
-     
+    }
+
+    private void selectInList(Stream selectLink) {
+    	if (selectLink == null) {
+    		return;
+    	}
+    	
+    	IconifiedTextListAdapter la = (IconifiedTextListAdapter) getListAdapter();
+    	int count = la.getCount();
+    	for (int i = 0; i < count; i++) {
+    		IconifiedText it = (IconifiedText) la.getItem(i);
+    		if (it.getStream().equals(selectLink)) {
+    			getListView().setSelection(i);
+    			break;
+    		}
+    	}
+    }
+    
     private void addAllElements(List<IconifiedText> addTo, List<IconifiedText> addFrom) {
         int size = addFrom.size();
     	for (int i = 0; i < size; i++) {
