@@ -422,6 +422,19 @@ public class URLListActivity extends ListActivity implements ServiceConnection {
             		showDialog(MISSING_BARCODE_SCANNER);
             	}
             	return true;
+            case (R.id.menu_item_donate):
+	        	try {
+	        		Intent intent = new Intent(Intent.ACTION_VIEW);
+	        		intent.setData(Uri.parse("market://details?id=net.sourceforge.donate.servestream"));
+	        		startActivity(intent);
+	        	} catch (ActivityNotFoundException ex ) {
+	        		// the market couldn't be opening or the application couldn't be found
+	        		// lets take the user to the project's webpage instead.
+	        		Intent intent = new Intent(Intent.ACTION_VIEW);
+	        		intent.setData(Uri.parse("http://sourceforge.net/donate/index.php?group_id=361303"));
+	        		startActivity(intent);
+	            }
+            	return true;
     	}
     	
 		return false;
