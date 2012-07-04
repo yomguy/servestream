@@ -25,6 +25,7 @@ import net.sourceforge.servestream.dbutils.Stream;
 import net.sourceforge.servestream.dbutils.StreamDatabase;
 import net.sourceforge.servestream.utils.MusicUtils;
 import net.sourceforge.servestream.utils.URLUtils;
+import net.sourceforge.servestream.utils.Utils;
 import net.sourceforge.servestream.utils.MusicUtils.ServiceToken;
 import android.app.Service;
 import android.content.ComponentName;
@@ -346,7 +347,8 @@ public class AlarmKlaxon extends Service implements ServiceConnection {
 			boolean success = false;
 			
 			try {
-				urlUtils = new URLUtils(stream.getURL());
+				urlUtils = new URLUtils();
+				urlUtils.getURLInformation(stream.getURL(), true);
 				Log.v(TAG, "URI is: " + stream.getURL());
 			} catch (Exception ex) {
 				ex.printStackTrace();
@@ -359,7 +361,7 @@ public class AlarmKlaxon extends Service implements ServiceConnection {
 			
 			if (contentType != null && !contentType.contains("text/html")) {
 				try {
-					long [] list = MusicUtils.getFilesInPlaylist(AlarmKlaxon.this, stream.getURL(), contentType);
+					long [] list = MusicUtils.getFilesInPlaylist(AlarmKlaxon.this, stream.getURL(), contentType, urlUtils.getInputStream());
 					
 					if (list != null && list.length > 0) {
 						MusicUtils.playAll(AlarmKlaxon.this, list, 0, false);
@@ -369,6 +371,8 @@ public class AlarmKlaxon extends Service implements ServiceConnection {
 					e.printStackTrace();
 				}
 			}
+			
+			Utils.closeInputStream(urlUtils.getInputStream());
 			
 			return success;
 		}
