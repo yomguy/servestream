@@ -18,6 +18,7 @@
 package net.sourceforge.servestream.utils;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.Authenticator;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
@@ -44,15 +45,16 @@ public class URLUtils {
 	
 	private int mResponseCode = -1;
 	private String mContentType = "";
+	private InputStream mInputStream = null;
 	
 	/*
 	 * Default constructor
 	 */
-    public URLUtils(URL url) {
-    	getURLInformation(url);
+    public URLUtils() {
+    	
     }
 	
-	private void getURLInformation(URL url) {
+	public void getURLInformation(URL url, boolean keepConnectionAlive) {
 		
 	    HttpURLConnection conn = null;
 	    
@@ -80,12 +82,17 @@ public class URLUtils {
 	        
 	        mContentType = conn.getContentType();
             
+	        if (keepConnectionAlive) {
+	        	mInputStream = conn.getInputStream();
+	        }
 		} catch (IOException ex) {
 			ex.printStackTrace();
 		} catch (IllegalArgumentException ex) {
 		    ex.printStackTrace();
 		} finally {
-			Utils.closeHttpConnection(conn);
+			if (!keepConnectionAlive) {
+				Utils.closeHttpConnection(conn);
+			}
 		}
 		
 	}
@@ -240,5 +247,9 @@ public class URLUtils {
      */
 	public String getContentType() {
 		return mContentType;
+	}
+	
+	public InputStream getInputStream() {
+		return mInputStream;
 	}
 }

@@ -17,9 +17,13 @@
 
 package net.sourceforge.servestream.utils;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.net.URLDecoder;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Formatter;
@@ -28,6 +32,12 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
+import org.xml.sax.SAXException;
+
+import net.sourceforge.jplaylistparser.exception.JPlaylistParserException;
+import net.sourceforge.jplaylistparser.parser.AutoDetectParser;
+import net.sourceforge.jplaylistparser.playlist.Playlist;
+import net.sourceforge.jplaylistparser.playlist.PlaylistEntry;
 import net.sourceforge.servestream.R;
 import net.sourceforge.servestream.activity.MediaPlaybackActivity;
 import net.sourceforge.servestream.dbutils.Stream;
@@ -205,7 +215,8 @@ public class MusicUtils {
 			}
 			
 			try {
-				urlUtils = new URLUtils(url);
+				urlUtils = new URLUtils();
+				urlUtils.getURLInformation(url, true);
 			} catch (Exception ex) {
 				ex.printStackTrace();
 				return null;
@@ -216,8 +227,10 @@ public class MusicUtils {
 		    }
 	
 			if (contentType != null && !contentType.contains("text/html")) {
-				list = MusicUtils.getFilesInPlaylist(mContext, url, contentType);
+				list = MusicUtils.getFilesInPlaylist(mContext, url, contentType, urlUtils.getInputStream());
 			}
+			
+			Utils.closeInputStream(urlUtils.getInputStream());
 			
 	        Message msg = new Message();
 	        msg.obj = list;
@@ -369,30 +382,40 @@ public class MusicUtils {
     
     private final static long [] sEmptyList = new long[0];
     
-    public static long [] getFilesInPlaylist(Context context, URL url, String contentType) {
-    	List<MediaFile> mediaFiles = new ArrayList<MediaFile>();
+    public static long [] getFilesInPlaylist(Context context, URL url, String contentType, InputStream is) {
     	
     	if (url == null) {
     		return sEmptyList;
     	}
     	
-		PlaylistParser playlist = PlaylistParser.getPlaylistParser(url, contentType);
+        AutoDetectParser parser = new AutoDetectParser(); // Should auto-detect!
+        Playlist playlist = new Playlist();
+        
+        try {
+			parser.parse(url.toString(), contentType, is, playlist);
+		} catch (IOException e) {
+			playlist = null;
+		} catch (SAXException e) {
+			playlist = null;
+		} catch (JPlaylistParserException e) {
+			playlist = null;
+		} finally {
+			Utils.closeInputStream(is);
+		}
 			
-		if (playlist != null) {
-			playlist.retrieveAndParsePlaylist();
-			mediaFiles = playlist.getPlaylistFiles();
-		} else {
-			MediaFile mediaFile = new MediaFile();
-			mediaFile.setUrl(url.toString());
-			mediaFile.setTrack(1);
-			mediaFiles.add(mediaFile);
+		if (playlist == null) {
+			playlist = new Playlist();
+			PlaylistEntry playlistEntry = new PlaylistEntry();
+			playlistEntry.set(PlaylistEntry.URI, url.toString());
+			playlistEntry.set(PlaylistEntry.TRACK, "1");
+			playlist.add(playlistEntry);
 		}
     	
-        return addFilesToMediaStore(context, mediaFiles);
+        return addFilesToMediaStore(context, playlist);
     }
     
-    private static long [] addFilesToMediaStore(Context context, List<MediaFile> mediaFiles) {
-    	if (mediaFiles == null) {
+    private static long [] addFilesToMediaStore(Context context, Playlist playlist) {
+    	if (playlist == null || playlist.getPlaylistEntries().size() == 0) {
     		return sEmptyList;
     	}	
     	
@@ -402,22 +425,31 @@ public class MusicUtils {
     	
     	Map<String, Integer> uriList = retrieveAllRows(context);
     	
-    	long [] list = new long[mediaFiles.size()];
+    	long [] list = new long[playlist.getPlaylistEntries().size()];
     	
     	// process the returned media files
-    	for (int i = 0; i < mediaFiles.size(); i++) {
+    	for (int i = 0; i < playlist.getPlaylistEntries().size(); i++) {
     		long id = -1;
     	
-    		if (uriList.get(mediaFiles.get(i).getUrl()) != null) {
-    			id = uriList.get(mediaFiles.get(i).getUrl());
+    		String uri = null;
+    		
+        	try {
+        		uri = URLDecoder.decode(playlist.getPlaylistEntries().get(i).get(PlaylistEntry.URI), "UTF-8");
+    		} catch (UnsupportedEncodingException ex) {
+    			ex.printStackTrace();
+    			uri = playlist.getPlaylistEntries().get(i).get(PlaylistEntry.URI);
+    		}
+    		
+    		if (uriList.get(uri) != null) {
+    			id = uriList.get(uri);
         		list[i] = id;
     		} else {    			
     			// the item doesn't exist, lets put it into the list to be inserted
     			ContentValues value = new ContentValues();
-        		value.put(Media.MediaColumns.URI, mediaFiles.get(i).getUrl());
+        		value.put(Media.MediaColumns.URI, uri);
         		
-        		if (mediaFiles.get(i).getPlaylistMetadata() != null) {
-        			value.put(Media.MediaColumns.TITLE, mediaFiles.get(i).getPlaylistMetadata());
+        		if (playlist.getPlaylistEntries().get(i).get(PlaylistEntry.PLAYLIST_METADATA) != null) {
+        			value.put(Media.MediaColumns.TITLE, playlist.getPlaylistEntries().get(i).get(PlaylistEntry.PLAYLIST_METADATA));
         		}
 
         		contentValues.add(value);
@@ -439,7 +471,7 @@ public class MusicUtils {
     					list[i] = id;
     				}
     			}*/
-    			list = addFilesToMediaStore(context, mediaFiles);
+    			list = addFilesToMediaStore(context, playlist);
     		}
     	}
     	

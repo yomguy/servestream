@@ -31,6 +31,7 @@ import net.sourceforge.servestream.dbutils.StreamDatabase;
 import net.sourceforge.servestream.filemanager.*;
 import net.sourceforge.servestream.utils.MusicUtils;
 import net.sourceforge.servestream.utils.URLUtils;
+import net.sourceforge.servestream.utils.Utils;
 import net.sourceforge.servestream.utils.MusicUtils.ServiceToken;
 
 import android.app.AlertDialog;
@@ -510,7 +511,8 @@ public class BrowserActivity extends ListActivity implements ServiceConnection {
 			Message message = null;
 			
 			try {
-				urlUtils = new URLUtils(stream.getURL());
+				urlUtils = new URLUtils();
+				urlUtils.getURLInformation(stream.getURL(), true);
 				Log.v(TAG, "URI is: " + stream.getURL());
 			} catch (Exception ex) {
 				ex.printStackTrace();
@@ -530,7 +532,7 @@ public class BrowserActivity extends ListActivity implements ServiceConnection {
 			} else {
 				long[] list = null;
 				try {
-					list = MusicUtils.getFilesInPlaylist(BrowserActivity.this, stream.getScrubbedURL(), contentType);
+					list = MusicUtils.getFilesInPlaylist(BrowserActivity.this, stream.getScrubbedURL(), contentType, urlUtils.getInputStream());
 				} catch (MalformedURLException e) {
 					e.printStackTrace();
 				}
@@ -539,6 +541,8 @@ public class BrowserActivity extends ListActivity implements ServiceConnection {
 		        message.arg1 = STREAM_MEDIA_INTENT;
 		        message.obj = list;
 			}
+			
+			Utils.closeInputStream(urlUtils.getInputStream());
 			
 			return message;
 		}	
