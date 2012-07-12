@@ -18,7 +18,7 @@
 package net.sourceforge.servestream.activity;
 
 import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -26,9 +26,11 @@ import java.util.List;
 import net.sourceforge.servestream.R;
 import net.sourceforge.servestream.activity.SettingsActivity;
 import net.sourceforge.servestream.activity.URLListActivity;
-import net.sourceforge.servestream.dbutils.Stream;
+import net.sourceforge.servestream.bean.UriBean;
 import net.sourceforge.servestream.dbutils.StreamDatabase;
 import net.sourceforge.servestream.filemanager.*;
+import net.sourceforge.servestream.transport.AbsTransport;
+import net.sourceforge.servestream.transport.TransportFactory;
 import net.sourceforge.servestream.utils.MusicUtils;
 import net.sourceforge.servestream.utils.URLUtils;
 import net.sourceforge.servestream.utils.Utils;
@@ -44,6 +46,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.media.AudioManager;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
@@ -84,12 +87,12 @@ public class BrowserActivity extends ListActivity implements ServiceConnection {
     private List<IconifiedText> mListFiles = new ArrayList<IconifiedText>();
 
     private int mStepsBack;
-    private Stream [] mDirectory = null;
+    private UriBean [] mDirectory = null;
 
     private TextView mEmptyText;
      
     private DirectoryScanner mDirectoryScanner;
-    private HashMap<Integer, Stream> mPreviousDirectory = new HashMap<Integer, Stream>();
+    private HashMap<Integer, UriBean> mPreviousDirectory = new HashMap<Integer, UriBean>();
     
 	private InputMethodManager mInputManager = null;
 	private StreamDatabase mStreamdb = null;
@@ -127,8 +130,9 @@ public class BrowserActivity extends ListActivity implements ServiceConnection {
 		try {
 			Log.v(TAG, getIntent().getData().toString());
 			mStepsBack = 0;
-			mDirectory = new Stream[1000];
-			mDirectory[mStepsBack] = new Stream(getIntent().getData().toString());
+			mDirectory = new UriBean[1000];
+			Uri uri = TransportFactory.getUri(getIntent().getData().toString());
+			mDirectory[mStepsBack] = TransportFactory.getTransport(uri.getScheme()).createUri(uri);
 		} catch (Exception ex) {
 			ex.printStackTrace();
 		}
@@ -171,15 +175,10 @@ public class BrowserActivity extends ListActivity implements ServiceConnection {
 		
 		// if the current URL exists in the stream database
 		// update its timestamp
-		try {
-		    Stream stream = mStreamdb.findStream(mDirectory[mStepsBack]);
+		UriBean uri = TransportFactory.findUri(mStreamdb, mDirectory[mStepsBack].getUri());
 		
-		    if (stream != null) {
-			    mStreamdb.touchHost(stream);
-		    }
-		}
-		catch (Exception ex) {
-		    ex.printStackTrace();
+		if (uri != null) {
+	        mStreamdb.touchUri(uri);
 		}
 	}
     
@@ -253,13 +252,13 @@ public class BrowserActivity extends ListActivity implements ServiceConnection {
 		final AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo) menuInfo;
 		final IconifiedTextListAdapter adapter = (IconifiedTextListAdapter) getListAdapter();
         IconifiedText it = (IconifiedText) adapter.getItem(info.position);
-		final Stream stream = it.getStream();
+		final UriBean uri = it.getUri();
 		
 		try {
-			final String streamURL = stream.getURL().toString();
+			final String streamURL = uri.getUri().toString();
 		
 		// set the menu title to the name attribute of the URL link
-		menu.setHeaderTitle(stream.getNickname());
+		menu.setHeaderTitle(uri.getNickname());
 
 		// save the URL
 		MenuItem save = menu.add(R.string.save);
@@ -270,7 +269,7 @@ public class BrowserActivity extends ListActivity implements ServiceConnection {
 					.setMessage(getString(R.string.save_message, streamURL))
 					.setPositiveButton(R.string.save_pos, new DialogInterface.OnClickListener() {
 						public void onClick(DialogInterface dialog, int which) {
-                            saveStream(stream);
+                            saveUri(uri);
 						}
 						})
 					.setNegativeButton(android.R.string.cancel, null).create().show();
@@ -302,7 +301,7 @@ public class BrowserActivity extends ListActivity implements ServiceConnection {
 		MenuItem add = menu.add(R.string.add_to_playlist);
 		add.setOnMenuItemClickListener(new OnMenuItemClickListener() {
 			public boolean onMenuItemClick(MenuItem item) {
-				MusicUtils.addToCurrentPlaylistFromURL(BrowserActivity.this, mQueueHandler, stream);
+				MusicUtils.addToCurrentPlaylistFromURL(BrowserActivity.this, mQueueHandler, uri);
 				return true;
 			}
 		});
@@ -311,7 +310,7 @@ public class BrowserActivity extends ListActivity implements ServiceConnection {
 		MenuItem share = menu.add(R.string.share);
 		share.setOnMenuItemClickListener(new OnMenuItemClickListener() {
 			public boolean onMenuItemClick(MenuItem item) {
-				String url = stream.getUri().toString();
+				String url = uri.getUri().toString();
 				String appName = getString(R.string.app_name);
 				
 				Intent intent = new Intent(Intent.ACTION_SEND);
@@ -332,10 +331,10 @@ public class BrowserActivity extends ListActivity implements ServiceConnection {
     			handleIntent(message);
     			break;
 			case MESSAGE_PARSE_WEBPAGE:
-				mPreviousDirectory.put(mStepsBack, (Stream) message.obj);
+				mPreviousDirectory.put(mStepsBack, (UriBean) message.obj);
 				mStepsBack++;
 				mPreviousDirectory.put(mStepsBack, null);
-				mDirectory[mStepsBack] = (Stream) message.obj;
+				mDirectory[mStepsBack] = (UriBean) message.obj;
 				refreshList();
 				break;
     	}
@@ -375,9 +374,9 @@ public class BrowserActivity extends ListActivity implements ServiceConnection {
     	}
     }
      
-    private void browseTo(Stream url) {
+    private void browseTo(UriBean uri) {
 	    showDialog(DETERMINE_INTENT_TASK);
-        new DetermineIntentAsyncTask().execute(url);
+        new DetermineIntentAsyncTask().execute(uri);
     }
 
     private void refreshList() {
@@ -404,8 +403,8 @@ public class BrowserActivity extends ListActivity implements ServiceConnection {
 	    mDirectoryScanner.start();
     }
 
-    private void selectInList(Stream selectLink) {
-    	if (selectLink == null) {
+    private void selectInList(UriBean uri) {
+    	if (uri == null) {
     		return;
     	}
     	
@@ -413,7 +412,7 @@ public class BrowserActivity extends ListActivity implements ServiceConnection {
     	int count = la.getCount();
     	for (int i = 0; i < count; i++) {
     		IconifiedText it = (IconifiedText) la.getItem(i);
-    		if (it.getStream().equals(selectLink)) {
+    		if (it.getUri().equals(uri)) {
     			getListView().setSelection(i);
     			break;
     		}
@@ -438,7 +437,7 @@ public class BrowserActivity extends ListActivity implements ServiceConnection {
         }
         
         IconifiedText text = (IconifiedText) adapter.getItem(position);
-        browseTo(text.getStream());
+        browseTo(text.getUri());
     }
 	
 	@Override
@@ -461,11 +460,9 @@ public class BrowserActivity extends ListActivity implements ServiceConnection {
 	 * 
 	 * @param targetStream The stream URL to add to the database
 	 */
-	private void saveStream(Stream targetStream) {
-		Stream stream = mStreamdb.findStream(targetStream);
-		
-		if (stream == null) {
-			mStreamdb.saveStream(targetStream);
+	private void saveUri(UriBean targetUri) {
+		if (targetUri == null) {
+			mStreamdb.saveUri(targetUri);
 		}
 	}
 	
@@ -489,15 +486,15 @@ public class BrowserActivity extends ListActivity implements ServiceConnection {
 		Toast.makeText(this, R.string.url_not_opened_message, Toast.LENGTH_SHORT).show();
 	}
     
-	public class DetermineIntentAsyncTask extends AsyncTask<Stream, Void, Message> {
+	public class DetermineIntentAsyncTask extends AsyncTask<UriBean, Void, Message> {
 		
 	    public DetermineIntentAsyncTask() {
 	        super();
 	    }
 	    
 		@Override
-		protected Message doInBackground(Stream... stream) {
-		    return handleURL(stream[0]);
+		protected Message doInBackground(UriBean... uri) {
+		    return handleURL(uri[0]);
 		}
 		
 		@Override
@@ -505,15 +502,26 @@ public class BrowserActivity extends ListActivity implements ServiceConnection {
 			message.sendToTarget();
 		}
 
-		private Message handleURL(Stream stream) {
+		private Message handleURL(UriBean uri) {
 			String contentType = null;
 			URLUtils urlUtils = null;
 			Message message = null;
 			
+			AbsTransport transport = TransportFactory.getTransport(uri.getProtocol());
+			transport.setUri(uri);
+			
+			if (!transport.usesNetwork()) {
+				long[] list = null;
+				list = MusicUtils.getFilesInPlaylist(BrowserActivity.this, uri.getScrubbedUri().toString(), contentType, null);
+				
+				message = mHandler.obtainMessage(URLListActivity.MESSAGE_HANDLE_INTENT);
+		        message.arg1 = STREAM_MEDIA_INTENT;
+		        message.obj = list;
+			} else {
 			try {
+				URL url = new URL(uri.getUri().toString());
 				urlUtils = new URLUtils();
-				urlUtils.getURLInformation(stream.getURL(), true);
-				Log.v(TAG, "URI is: " + stream.getURL());
+				urlUtils.getURLInformation(url, true);
 			} catch (Exception ex) {
 				ex.printStackTrace();
 				return null;
@@ -528,14 +536,10 @@ public class BrowserActivity extends ListActivity implements ServiceConnection {
 				message.arg1 = NO_INTENT;
 			} else if (contentType.contains("text/html")) {
 				message = mHandler.obtainMessage(BrowserActivity.MESSAGE_PARSE_WEBPAGE);
-				message.obj = stream;
+				message.obj = uri;
 			} else {
 				long[] list = null;
-				try {
-					list = MusicUtils.getFilesInPlaylist(BrowserActivity.this, stream.getScrubbedURL(), contentType, urlUtils.getInputStream());
-				} catch (MalformedURLException e) {
-					e.printStackTrace();
-				}
+				list = MusicUtils.getFilesInPlaylist(BrowserActivity.this, uri.getScrubbedUri().toString(), contentType, urlUtils.getInputStream());
 				
 				message = mHandler.obtainMessage(URLListActivity.MESSAGE_HANDLE_INTENT);
 		        message.arg1 = STREAM_MEDIA_INTENT;
@@ -543,6 +547,7 @@ public class BrowserActivity extends ListActivity implements ServiceConnection {
 			}
 			
 			Utils.closeInputStream(urlUtils.getInputStream());
+			}
 			
 			return message;
 		}	

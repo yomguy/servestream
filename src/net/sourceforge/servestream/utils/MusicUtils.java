@@ -40,7 +40,7 @@ import net.sourceforge.jplaylistparser.playlist.Playlist;
 import net.sourceforge.jplaylistparser.playlist.PlaylistEntry;
 import net.sourceforge.servestream.R;
 import net.sourceforge.servestream.activity.MediaPlaybackActivity;
-import net.sourceforge.servestream.dbutils.Stream;
+import net.sourceforge.servestream.bean.UriBean;
 import net.sourceforge.servestream.provider.Media;
 import net.sourceforge.servestream.service.IMediaPlaybackService;
 import net.sourceforge.servestream.service.MediaPlaybackService;
@@ -166,9 +166,9 @@ public class MusicUtils {
         }
     }
     
-    public static AddToCurrentPlaylistAsyncTask addToCurrentPlaylistFromURL(Context context, Handler handler, Stream stream) {
+    public static AddToCurrentPlaylistAsyncTask addToCurrentPlaylistFromURL(Context context, Handler handler, UriBean uri) {
     	AddToCurrentPlaylistAsyncTask playlistTask = new AddToCurrentPlaylistAsyncTask(context, handler);
-    	playlistTask.execute(stream);
+    	playlistTask.execute(uri);
     	
     	return playlistTask;
     }
@@ -190,7 +190,7 @@ public class MusicUtils {
         }
     }
     
-    public static class AddToCurrentPlaylistAsyncTask extends AsyncTask<Stream, Void, Void> {
+    public static class AddToCurrentPlaylistAsyncTask extends AsyncTask<UriBean, Void, Void> {
 		
     	Context mContext = null;
     	Handler mHandler = null;
@@ -202,14 +202,14 @@ public class MusicUtils {
 	    }
 
 		@Override
-		protected Void doInBackground(Stream... stream) {
+		protected Void doInBackground(UriBean... uri) {
 			String contentType = null;
 			URLUtils urlUtils = null;
 			URL url = null;
 			long [] list = new long[0];
 			
 			try {
-				url = stream[0].getURL();
+				url = new URL(uri[0].getUri().toString());
 			} catch (MalformedURLException e) {
 				e.printStackTrace();
 			}
@@ -227,7 +227,7 @@ public class MusicUtils {
 		    }
 	
 			if (contentType != null && !contentType.contains("text/html")) {
-				list = MusicUtils.getFilesInPlaylist(mContext, url, contentType, urlUtils.getInputStream());
+				list = MusicUtils.getFilesInPlaylist(mContext, url.toString(), contentType, urlUtils.getInputStream());
 			}
 			
 			Utils.closeInputStream(urlUtils.getInputStream());
@@ -382,9 +382,9 @@ public class MusicUtils {
     
     private final static long [] sEmptyList = new long[0];
     
-    public static long [] getFilesInPlaylist(Context context, URL url, String contentType, InputStream is) {
+    public static long [] getFilesInPlaylist(Context context, String uri, String contentType, InputStream is) {
     	
-    	if (url == null) {
+    	if (uri == null) {
     		return sEmptyList;
     	}
     	
@@ -392,7 +392,7 @@ public class MusicUtils {
         Playlist playlist = new Playlist();
         
         try {
-			parser.parse(url.toString(), contentType, is, playlist);
+			parser.parse(uri, contentType, is, playlist);
 		} catch (IOException e) {
 			playlist = null;
 		} catch (SAXException e) {
@@ -406,7 +406,7 @@ public class MusicUtils {
 		if (playlist == null) {
 			playlist = new Playlist();
 			PlaylistEntry playlistEntry = new PlaylistEntry();
-			playlistEntry.set(PlaylistEntry.URI, url.toString());
+			playlistEntry.set(PlaylistEntry.URI, uri);
 			playlistEntry.set(PlaylistEntry.TRACK, "1");
 			playlist.add(playlistEntry);
 		}

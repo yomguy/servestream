@@ -18,11 +18,13 @@
 package net.sourceforge.servestream.alarm;
 
 import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
+import java.net.URL;
 
 import net.sourceforge.servestream.R;
-import net.sourceforge.servestream.dbutils.Stream;
+import net.sourceforge.servestream.bean.UriBean;
 import net.sourceforge.servestream.dbutils.StreamDatabase;
+import net.sourceforge.servestream.transport.AbsTransport;
+import net.sourceforge.servestream.transport.TransportFactory;
 import net.sourceforge.servestream.utils.MusicUtils;
 import net.sourceforge.servestream.utils.URLUtils;
 import net.sourceforge.servestream.utils.Utils;
@@ -178,12 +180,12 @@ public class AlarmKlaxon extends Service implements ServiceConnection {
 
         if (!alarm.silent) {
         	StreamDatabase streamdb = new StreamDatabase(this);
-        	Stream stream = streamdb.findStream(alarm.alert);
+        	UriBean uri = streamdb.findUri(alarm.alert);
         	streamdb.close();
         	
         	Uri alert = null;
-        	if (stream != null)
-        		alert = stream.getUri();
+        	if (uri != null)
+        		alert = uri.getUri();
 
             // Fall back on the default alarm if the database does not have an
             // alarm stored.
@@ -223,7 +225,7 @@ public class AlarmKlaxon extends Service implements ServiceConnection {
                             R.raw.in_call_alarm);
                     startAlarm(mMediaPlayer);
                 } else {                	
-                	new AlarmAsyncTask().execute(alert.toString());
+                	new AlarmAsyncTask().execute(uri);
                 }
             } catch (Exception ex) {
             	useFallbackSound();
@@ -315,23 +317,15 @@ public class AlarmKlaxon extends Service implements ServiceConnection {
         mHandler.removeMessages(KILLER);
     }
     
-    public class AlarmAsyncTask extends AsyncTask<String, Void, Boolean> {
+    public class AlarmAsyncTask extends AsyncTask<UriBean, Void, Boolean> {
 		
 	    public AlarmAsyncTask() {
 	        super();
 	    }
 	    
 		@Override
-		protected Boolean doInBackground(String... uri) {
-			Stream stream = null;
-			
-    		try {
-				stream = new Stream(uri[0]);				
-			} catch (MalformedURLException ex) {
-				ex.printStackTrace();
-			}
-			
-			return handleURL(stream);
+		protected Boolean doInBackground(UriBean... uri) {
+			return handleURL(uri[0]);
 		}
 
 		@Override
@@ -341,15 +335,26 @@ public class AlarmKlaxon extends Service implements ServiceConnection {
 			}
 		}
 		
-		private boolean handleURL(Stream stream) {
+		private boolean handleURL(UriBean uri) {
 			String contentType = null;
 			URLUtils urlUtils = null;
 			boolean success = false;
 			
+			AbsTransport transport = TransportFactory.getTransport(uri.getProtocol());
+			transport.setUri(uri);
+			
+			if (!transport.usesNetwork()) {
+				long [] list = MusicUtils.getFilesInPlaylist(AlarmKlaxon.this, uri.getUri().toString(), contentType, null);
+				
+				if (list != null && list.length > 0) {
+					MusicUtils.playAll(AlarmKlaxon.this, list, 0, false);
+					success = true;
+				}
+			} else {
 			try {
+				URL url = new URL(uri.getUri().toString());
 				urlUtils = new URLUtils();
-				urlUtils.getURLInformation(stream.getURL(), true);
-				Log.v(TAG, "URI is: " + stream.getURL());
+				urlUtils.getURLInformation(url, true);
 			} catch (Exception ex) {
 				ex.printStackTrace();
 				return false;
@@ -360,19 +365,16 @@ public class AlarmKlaxon extends Service implements ServiceConnection {
 		    }
 			
 			if (contentType != null && !contentType.contains("text/html")) {
-				try {
-					long [] list = MusicUtils.getFilesInPlaylist(AlarmKlaxon.this, stream.getURL(), contentType, urlUtils.getInputStream());
+				long [] list = MusicUtils.getFilesInPlaylist(AlarmKlaxon.this, uri.getUri().toString(), contentType, urlUtils.getInputStream());
 					
-					if (list != null && list.length > 0) {
-						MusicUtils.playAll(AlarmKlaxon.this, list, 0, false);
-						success = true;
-					}
-				} catch (MalformedURLException e) {
-					e.printStackTrace();
+				if (list != null && list.length > 0) {
+					MusicUtils.playAll(AlarmKlaxon.this, list, 0, false);
+					success = true;
 				}
 			}
 			
 			Utils.closeInputStream(urlUtils.getInputStream());
+			}
 			
 			return success;
 		}

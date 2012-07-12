@@ -19,17 +19,20 @@ package net.sourceforge.servestream.activity;
 
 import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
+import java.net.URL;
 import java.net.URLDecoder;
 import java.util.ArrayList;
+import java.util.List;
 
 import net.sourceforge.servestream.service.MediaPlaybackService;
+import net.sourceforge.servestream.transport.AbsTransport;
+import net.sourceforge.servestream.transport.TransportFactory;
 import net.sourceforge.servestream.utils.MusicUtils;
 import net.sourceforge.servestream.utils.MusicUtils.ServiceToken;
 
 import net.sourceforge.servestream.R;
 import net.sourceforge.servestream.alarm.Alarm;
-import net.sourceforge.servestream.dbutils.Stream;
+import net.sourceforge.servestream.bean.UriBean;
 import net.sourceforge.servestream.dbutils.StreamDatabase;
 import net.sourceforge.servestream.utils.PreferenceConstants;
 import net.sourceforge.servestream.utils.URLUtils;
@@ -106,8 +109,6 @@ public class URLListActivity extends ListActivity implements ServiceConnection {
 	private TextView mQuickconnect = null;
 	private Button mGoButton = null;
 	
-	private Stream mRequestedStream = null;
-	
 	protected StreamDatabase mStreamdb = null;
 	protected LayoutInflater mInflater = null;
 	
@@ -172,7 +173,7 @@ public class URLListActivity extends ListActivity implements ServiceConnection {
 				if(keyCode != KeyEvent.KEYCODE_ENTER)
 					return false;
 			    
-			    return handleUrl(true);
+			    return processUri(mQuickconnect.getText().toString());
 			}
 		});
 		
@@ -204,11 +205,11 @@ public class URLListActivity extends ListActivity implements ServiceConnection {
 		list.setOnItemClickListener(new OnItemClickListener() {
 			public synchronized void onItemClick(AdapterView<?> parent, View view, int position, long id) {
 
-				mRequestedStream = (Stream) parent.getAdapter().getItem(position);
+				UriBean uriBean = (UriBean) parent.getAdapter().getItem(position);
 				
 				if (mMakingShortcut) {
 					Intent contents = new Intent(Intent.ACTION_VIEW);
-					contents.setType("net.sourceforge.servestream/" + mRequestedStream.getUri());
+					contents.setType("net.sourceforge.servestream/" + uriBean.getUri());
 					contents.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
 					
 					// create shortcut if requested
@@ -216,13 +217,13 @@ public class URLListActivity extends ListActivity implements ServiceConnection {
 
 					Intent intent = new Intent();
 					intent.putExtra(Intent.EXTRA_SHORTCUT_INTENT, contents);
-					intent.putExtra(Intent.EXTRA_SHORTCUT_NAME, mRequestedStream.getNickname());
+					intent.putExtra(Intent.EXTRA_SHORTCUT_NAME, uriBean.getNickname());
 					intent.putExtra(Intent.EXTRA_SHORTCUT_ICON_RESOURCE, icon);
 
 					setResult(RESULT_OK, intent);
 					finish();
 				} else {
-					handleUrl(false);
+					processUri(uriBean.getUri().toString());
 				}
 			}
 		});
@@ -234,7 +235,7 @@ public class URLListActivity extends ListActivity implements ServiceConnection {
 		mGoButton.setOnClickListener(new OnClickListener() {
 
 			public void onClick(View arg0) {
-				handleUrl(true);
+				processUri(mQuickconnect.getText().toString());
 			}
 		});
 		
@@ -253,12 +254,7 @@ public class URLListActivity extends ListActivity implements ServiceConnection {
 		if ((contentType = intent.getType()) != null) {
 			if (contentType.contains("net.sourceforge.servestream/")) {
 				intentUri = intent.getType().toString().replace("net.sourceforge.servestream/", "");
-				try {
-					mRequestedStream = new Stream(intentUri);
-					determineIntent();
-				} catch (MalformedURLException ex) {
-				}
-				
+				processUri(intentUri);
 				setIntent(new Intent());
 				return;
 			}
@@ -278,7 +274,7 @@ public class URLListActivity extends ListActivity implements ServiceConnection {
 			try {
 				intentUri = URLDecoder.decode(intentUri, "UTF-8");
 				mQuickconnect.setText(intentUri);
-				handleUrl(true);
+				processUri(intentUri);
 			} catch (UnsupportedEncodingException e) {
 				e.printStackTrace();
 			}
@@ -366,7 +362,7 @@ public class URLListActivity extends ListActivity implements ServiceConnection {
     	
         final DetermineIntentAsyncTask task = mDetermineIntentTask;
         if (task != null && task.getStatus() != AsyncTask.Status.FINISHED) {
-            final String uri = mRequestedStream.getUri().toString();
+            final String uri = task.getUri().toString();
             task.cancel(true);
 			try {
 				removeDialog(DETERMINE_INTENT_TASK);
@@ -385,11 +381,7 @@ public class URLListActivity extends ListActivity implements ServiceConnection {
     private void restoreDetermineIntentTask(Bundle savedInstanceState) {
         if (savedInstanceState.getBoolean(STATE_DETERMINE_INTENT_IN_PROGRESS)) {
             final String uri = savedInstanceState.getString(STATE_DETERMINE_INTENT_STREAM);
-            try {
-				mRequestedStream = new Stream(uri);
-				determineIntent();
-			} catch (MalformedURLException e) {
-			}
+            processUri(uri);
         }
     }
     
@@ -572,17 +564,17 @@ public class URLListActivity extends ListActivity implements ServiceConnection {
 		
 		// create menu to handle editing, deleting and sharing of URLs
 		AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo) menuInfo;
-		final Stream stream = (Stream) this.getListView().getItemAtPosition(info.position);
+		final UriBean uri = (UriBean) this.getListView().getItemAtPosition(info.position);
 
 		// set the menu to the name of the URL
-		menu.setHeaderTitle(stream.getNickname());
+		menu.setHeaderTitle(uri.getNickname());
 
 		// edit the URL
 		MenuItem edit = menu.add(R.string.edit);
 		edit.setOnMenuItemClickListener(new OnMenuItemClickListener() {
 			public boolean onMenuItemClick(MenuItem arg0) {
 				Intent intent = new Intent(URLListActivity.this, StreamEditorActivity.class);
-				intent.putExtra(Intent.EXTRA_TITLE, stream.getId());
+				intent.putExtra(Intent.EXTRA_TITLE, uri.getId());
 				URLListActivity.this.startActivity(intent);
 				return true;
 			}
@@ -594,14 +586,14 @@ public class URLListActivity extends ListActivity implements ServiceConnection {
 			public boolean onMenuItemClick(MenuItem item) {
 				// prompt user to make sure they really want this
 				new AlertDialog.Builder(URLListActivity.this)
-					.setMessage(getString(R.string.delete_message, stream.getNickname()))
+					.setMessage(getString(R.string.delete_message, uri.getNickname()))
 					.setPositiveButton(R.string.delete_pos, new DialogInterface.OnClickListener() {
 						public void onClick(DialogInterface dialog, int which) {
-							mStreamdb.deleteStream(stream);
+							mStreamdb.deleteUri(uri);
 							ContentResolver resolver = getContentResolver();
 							resolver.update(
 									Alarm.Columns.CONTENT_URI,
-									null, null, new String[] { String.valueOf(stream.getId()) });
+									null, null, new String[] { String.valueOf(uri.getId()) });
 							mHandler.sendEmptyMessage(MESSAGE_UPDATE_LIST);
 						}
 						})
@@ -614,7 +606,7 @@ public class URLListActivity extends ListActivity implements ServiceConnection {
 		MenuItem add = menu.add(R.string.add_to_playlist);
 		add.setOnMenuItemClickListener(new OnMenuItemClickListener() {
 			public boolean onMenuItemClick(MenuItem item) {
-				MusicUtils.addToCurrentPlaylistFromURL(URLListActivity.this, mQueueHandler, stream);
+				MusicUtils.addToCurrentPlaylistFromURL(URLListActivity.this, mQueueHandler, uri);
 				return true;
 			}
 		});
@@ -623,7 +615,7 @@ public class URLListActivity extends ListActivity implements ServiceConnection {
 		MenuItem share = menu.add(R.string.share);
 		share.setOnMenuItemClickListener(new OnMenuItemClickListener() {
 			public boolean onMenuItemClick(MenuItem item) {
-				String url = stream.getUri().toString();
+				String url = uri.getUri().toString();
 				String appName = getString(R.string.app_name);
 				
 				Intent intent = new Intent(Intent.ACTION_SEND);
@@ -643,15 +635,7 @@ public class URLListActivity extends ListActivity implements ServiceConnection {
 	            // Handle successful scan
 	            Log.v(TAG, contents.toString());
 	            Log.v(TAG, format.toString());
-	            
-	            try {
-					Stream stream = new Stream(contents);
-			        mQuickconnect.setText(URLDecoder.decode(stream.getURL().toString(), "UTF-8"));
-				} catch (MalformedURLException ex) {
-					showDialog(UNSUPPORTED_SCANNED_INTENT);
-				} catch (UnsupportedEncodingException ex) {
-					showDialog(UNSUPPORTED_SCANNED_INTENT);
-				}
+			    mQuickconnect.setText(contents);
 	        } else if (resultCode == RESULT_CANCELED) {
 	            // Handle cancel
 	        }
@@ -669,23 +653,33 @@ public class URLListActivity extends ListActivity implements ServiceConnection {
 		}
 	}
 	
-	private boolean handleUrl(boolean validateUrl) {		
+	private boolean processUri(String input) {
 		hideKeyboard();
 		
-		if (validateUrl) {
-			if (!isValidStream())
-				return false;
+		Uri uri = TransportFactory.getUri(input);
+
+		if (uri == null) {
+			mQuickconnect.setError(getString(R.string.invalid_url_message));
+			return false;
+		}
+
+		UriBean uriBean = TransportFactory.findUri(mStreamdb, uri);
+		if (uriBean == null) {
+			uriBean = TransportFactory.getTransport(uri.getScheme()).createUri(uri);
+			
+			AbsTransport transport = TransportFactory.getTransport(uriBean.getProtocol());
+			transport.setUri(uriBean);
+			
+			if (mPreferences.getBoolean(PreferenceConstants.AUTOSAVE, true) && transport.shouldSave()) {
+				mStreamdb.saveUri(uriBean);
+			}
 		}
 		
-		determineIntent();
-		
-		return true;
-	}
-	
-	private void determineIntent() {
 	    showDialog(DETERMINE_INTENT_TASK);
 	    mDetermineIntentTask = new DetermineIntentAsyncTask();
-	    mDetermineIntentTask.execute(mRequestedStream);
+	    mDetermineIntentTask.execute(uriBean);
+		
+		return true;
 	}
 	
 	private void updateList() {
@@ -695,31 +689,32 @@ public class URLListActivity extends ListActivity implements ServiceConnection {
 			edit.commit();
 		}
 		
-		ArrayList<Stream> streams = new ArrayList<Stream>();
+		List<UriBean> uris = new ArrayList<UriBean>();
 
-		if (mStreamdb == null)
+		if (mStreamdb == null) {
 			mStreamdb = new StreamDatabase(this);   
+		}
 
-		streams = mStreamdb.getStreams(mSortedByName);
+		uris = mStreamdb.getUris(mSortedByName);
 
-		StreamAdapter adapter = new StreamAdapter(this, streams);
+		UriAdapter adapter = new UriAdapter(this, uris);
 
 		this.setListAdapter(adapter);
 	}
 	
-	class StreamAdapter extends ArrayAdapter<Stream> {
+	class UriAdapter extends ArrayAdapter<UriBean> {
 		
-		private ArrayList<Stream> streams;
+		private List<UriBean> uris;
 
 		class ViewHolder {
 			public TextView nickname;
 			public TextView caption;
 		}
 
-		public StreamAdapter(Context context, ArrayList<Stream> streams) {
-			super(context, R.layout.item_stream, streams);
+		public UriAdapter(Context context, List<UriBean> uris) {
+			super(context, R.layout.item_stream, uris);
 
-			this.streams = streams;
+			this.uris = uris;
 		}
 
 		@Override
@@ -738,9 +733,9 @@ public class URLListActivity extends ListActivity implements ServiceConnection {
 			} else
 				holder = (ViewHolder) convertView.getTag();
 
-			Stream stream = streams.get(position);
+			UriBean uri = uris.get(position);
 
-			holder.nickname.setText(stream.getNickname());
+			holder.nickname.setText(uri.getNickname());
 
 			Context context = convertView.getContext();
 
@@ -750,8 +745,8 @@ public class URLListActivity extends ListActivity implements ServiceConnection {
 			long now = System.currentTimeMillis() / 1000;
 
 			String lastConnect = context.getString(R.string.bind_never);
-			if (stream.getLastConnect() > 0) {
-				int minutes = (int)((now - stream.getLastConnect()) / 60);
+			if (uri.getLastConnect() > 0) {
+				int minutes = (int)((now - uri.getLastConnect()) / 60);
 				if (minutes >= 60) {
 					int hours = (minutes / 60);
 					if (hours >= 24) {
@@ -769,33 +764,6 @@ public class URLListActivity extends ListActivity implements ServiceConnection {
 		}
 	}
 	
-	private boolean isValidStream() {
-		String inputStream = mQuickconnect.getText().toString();	
-		
-		try {
-			mRequestedStream = new Stream(inputStream);
-		} catch (Exception ex) {
-			mQuickconnect.setError(getString(R.string.invalid_url_message));
-            return false;
-		}
-		
-		return true;
-	}
-	
-	/**
-	 * Saves a stream to the stream database
-	 */
-	private void saveStream() {
-		if (mStreamdb == null)
-			return;
-		
-		Stream stream = mStreamdb.findStream(mRequestedStream);
-		
-		if (stream == null) {
-			mStreamdb.saveStream(mRequestedStream);
-		}
-	}
-	
 	private void handleIntent(Message message) {
 		try {
 			removeDialog(DETERMINE_INTENT_TASK);
@@ -807,15 +775,14 @@ public class URLListActivity extends ListActivity implements ServiceConnection {
 		        MusicUtils.playAll(URLListActivity.this, (long []) message.obj, 0);
 		        
 				if (mPreferences.getBoolean(PreferenceConstants.AUTOSAVE, true)) {
-				    saveStream();
-					mStreamdb.touchHost(mRequestedStream);
+					// TODO: fix this
+					//mStreamdb.touchUri(mRequestedStream);
 				}
 				break;
 			case BROWSE_MEDIA_INTENT:
 				URLListActivity.this.startActivity((Intent) message.obj);
 				
 				if (mPreferences.getBoolean(PreferenceConstants.AUTOSAVE, true)) {
-				    saveStream();
 				}
 				break;
 			case NO_INTENT:
@@ -839,15 +806,18 @@ public class URLListActivity extends ListActivity implements ServiceConnection {
 		}
 	}
 
-	public class DetermineIntentAsyncTask extends AsyncTask<Stream, Void, Message> {
+	public class DetermineIntentAsyncTask extends AsyncTask<UriBean, Void, Message> {
+		
+		private Uri mUri = null;
 		
 	    public DetermineIntentAsyncTask() {
 	        super();
 	    }
 	    
 		@Override
-		protected Message doInBackground(Stream... stream) {
-		    return handleURL(stream[0]);
+		protected Message doInBackground(UriBean... uri) {
+			mUri = uri[0].getUri();
+		    return handleURL(uri[0]);
 		}
 		
 		@Override
@@ -855,47 +825,59 @@ public class URLListActivity extends ListActivity implements ServiceConnection {
 			message.sendToTarget();
 		}
 
-		private Message handleURL(Stream stream) {
+		private Message handleURL(UriBean uri) {
 			String contentType = null;
 			URLUtils urlUtils = null;
 			Message message = mHandler.obtainMessage(URLListActivity.MESSAGE_HANDLE_INTENT);
 			
-			try {
-				urlUtils = new URLUtils();
-				urlUtils.getURLInformation(stream.getURL(), true);
-				Log.v(TAG, "URI is: " + stream.getURL());
-			} catch (Exception ex) {
-				ex.printStackTrace();
-				return null;
-			}
+			AbsTransport transport = TransportFactory.getTransport(uri.getProtocol());
+			transport.setUri(uri);
 			
-			if (urlUtils.getResponseCode() == HttpURLConnection.HTTP_OK) {			
-				contentType = urlUtils.getContentType();
-		    }
+			if (!transport.usesNetwork()) {
+				long[] list = null;
+				list = MusicUtils.getFilesInPlaylist(URLListActivity.this, uri.getScrubbedUri().toString(), contentType, null);
+				
+		        message.arg1 = STREAM_MEDIA_INTENT;
+		        message.obj = list;
+			} else {
+				try {
+					URL url = new URL(uri.getUri().toString());
+					urlUtils = new URLUtils();
+					urlUtils.getURLInformation(url, true);
+					Log.v(TAG, "URI is: " + url);
+				} catch (Exception ex) {
+					ex.printStackTrace();
+					return null;
+				}
+			
+				if (urlUtils.getResponseCode() == HttpURLConnection.HTTP_OK) {			
+					contentType = urlUtils.getContentType();
+				}
 			
 			if (contentType == null) {
-				message.arg1 = NO_INTENT;
+					message.arg1 = NO_INTENT;
 			} else if (contentType.contains("text/html")) {
 		        Intent intent = new Intent(URLListActivity.this, BrowserActivity.class);
-				intent.setDataAndType(stream.getScrubbedUri(), urlUtils.getContentType());
+				intent.setDataAndType(uri.getScrubbedUri(), urlUtils.getContentType());
 				
 				message.arg1 = BROWSE_MEDIA_INTENT;
 				message.obj = intent;
 			} else {
 				long[] list = null;
-				try {
-					list = MusicUtils.getFilesInPlaylist(URLListActivity.this, stream.getScrubbedURL(), contentType, urlUtils.getInputStream());
-				} catch (MalformedURLException e) {
-					e.printStackTrace();
-				}
+				list = MusicUtils.getFilesInPlaylist(URLListActivity.this, uri.getScrubbedUri().toString(), contentType, urlUtils.getInputStream());
 				
 		        message.arg1 = STREAM_MEDIA_INTENT;
 		        message.obj = list;
 			}
 			
 			Utils.closeInputStream(urlUtils.getInputStream());
+			}
 			
 			return message;
+		}
+		
+		public Uri getUri() {
+			return mUri;
 		}
 	}
 
