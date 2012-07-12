@@ -90,6 +90,14 @@
 				<data android:mimeType="audio/*" />
 				<data android:mimeType="video/*"/>
 			</intent-filter>
+			<intent-filter>
+        		<action android:name="android.intent.action.VIEW" />
+        		<category android:name="android.intent.category.DEFAULT" />
+        		<data android:scheme="file" />
+        		<data android:mimeType="audio/x-mpegurl" />
+        		<data android:mimeType="audio/x-scpls" />
+        		<data android:mimeType="video/x-ms-asf" />
+    		</intent-filter>			
 		</activity>
 
 		<activity android:name=".activity.BrowserActivity" android:configChanges="keyboardHidden|orientation" />
