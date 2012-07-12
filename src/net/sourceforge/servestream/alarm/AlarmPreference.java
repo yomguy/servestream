@@ -17,10 +17,10 @@
 
 package net.sourceforge.servestream.alarm;
 
-import java.util.ArrayList;
+import java.util.List;
 
 import net.sourceforge.servestream.R;
-import net.sourceforge.servestream.dbutils.Stream;
+import net.sourceforge.servestream.bean.UriBean;
 import net.sourceforge.servestream.dbutils.StreamDatabase;
 import android.app.AlertDialog;
 import android.content.Context;
@@ -50,22 +50,22 @@ public class AlarmPreference extends ListPreference {
 		// connect with streams database and populate list
 		mStreamdb = new StreamDatabase(getContext());
 		
-		ArrayList<Stream> streams = mStreamdb.getStreams();
+		List<UriBean> uris = mStreamdb.getUris();
 
 		mStreamdb.close();
 		
-		String [] entries = new String[(streams.size() + 1)];
-		String [] entryValues = new String[(streams.size() + 1)];
-		mIds = new int[streams.size() + 1];
+		String [] entries = new String[(uris.size() + 1)];
+		String [] entryValues = new String[(uris.size() + 1)];
+		mIds = new int[uris.size() + 1];
 		
 		entries[0] = getContext().getString(R.string.silent_alarm_summary);
 		entryValues[0] = String.valueOf("0");
 		mIds[0] = 0;
 		
-		for (int i = 0; i < streams.size(); i++) {
-			entries[i + 1] = streams.get(i).getNickname();
+		for (int i = 0; i < uris.size(); i++) {
+			entries[i + 1] = uris.get(i).getNickname();
 			entryValues[i + 1] = String.valueOf(i + 1);
-			mIds[i + 1] = (int) streams.get(i).getId();
+			mIds[i + 1] = (int) uris.get(i).getId();
 		}
 		
         setEntries(entries);

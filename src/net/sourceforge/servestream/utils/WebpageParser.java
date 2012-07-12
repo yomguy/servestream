@@ -23,32 +23,31 @@ import java.util.List;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
 import java.net.URL;
-import java.net.URLDecoder;
 
-import net.sourceforge.servestream.dbutils.Stream;
+import net.sourceforge.servestream.bean.UriBean;
+import net.sourceforge.servestream.transport.TransportFactory;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.select.Elements;
 
-import android.util.Log;
+import android.net.Uri;
 
 public class WebpageParser {
-	private static final String TAG = WebpageParser.class.getName();
+	//private static final String TAG = WebpageParser.class.getName();
 	
 	private static final String REQUEST_METHOD = "GET";
 	
 	private URL mURL = null;
-	private ArrayList<Stream> mParsedLinks = null;
+	private List<UriBean> mParsedLinks = null;
     
 	/**
 	 * Default constructor
 	 */
 	public WebpageParser(URL url) {
 		mURL = url;
-		mParsedLinks = new ArrayList<Stream>();
+		mParsedLinks = new ArrayList<UriBean>();
 	}
     
     public void parse() {
@@ -87,20 +86,20 @@ public class WebpageParser {
 		    Elements links = doc.select("a[href]");
 
 		    for (int i = 0; i < links.size(); i++) {
-		    	Stream stream = null;
+		    	UriBean uriBean = null;
 		    	
-		    	try {		    		
-		    		links.get(i).setBaseUri(mURL.toString());
-		    		link = links.get(i).attr("abs:href");
+		    	links.get(i).setBaseUri(mURL.toString());
+		    	link = links.get(i).attr("abs:href");
 
-		    		stream = new Stream(URLDecoder.decode(link, "UTF-8"));
-		    		stream.setNickname(links.get(i).text());
-			    	stream.setContentType(URLUtils.getContentType(link));
+		    	Uri uri = TransportFactory.getUri(link);
+
+		    	if (uri != null) {
+			    	uriBean = TransportFactory.getTransport(uri.getScheme()).createUri(uri);
+			    	uriBean.setNickname(links.get(i).text());
+			    	uriBean.setContentType(URLUtils.getContentType(link));
 		    	
-			    	mParsedLinks.add(linkCount, stream);
-			        linkCount++;
-		    	} catch (MalformedURLException ex) {
-		    		Log.v(TAG, "Malformed URL: " + link);
+			    	mParsedLinks.add(linkCount, uriBean);
+			    	linkCount++;
 		    	}
 		    }
         } catch (Exception ex) {
@@ -116,7 +115,7 @@ public class WebpageParser {
      * @param index The position of a link object in the list
      * @return Stream A link from the list of parsed links
      */
-    public Stream getParsedLinks(int index) {
+    public UriBean getParsedLinks(int index) {
     	return mParsedLinks.get(index);
     }
     
@@ -125,7 +124,7 @@ public class WebpageParser {
      * 
      * @return ArrayList List of parsed links
      */
-    public List<Stream> getParsedLinks() {
+    public List<UriBean> getParsedLinks() {
     	return mParsedLinks;
     }
 }

@@ -119,7 +119,14 @@ public class StreamEditorActivity extends PreferenceActivity implements OnShared
 
 			public android.content.SharedPreferences.Editor putString(String key, String value) {
 				//Log.d(this.getClass().toString(), String.format("Editor.putString(key=%s, value=%s)", key, value));
-				update.put(key, value);
+				
+				if (value != null && value.equals("")) {
+					value = null;
+					update.put(key, value);
+				} else {
+					update.put(key, value);
+				}
+				
 				return this;
 			}
 
@@ -247,7 +254,7 @@ public class StreamEditorActivity extends PreferenceActivity implements OnShared
 			CharSequence value = this.pref.getString(key, "");
 
             // mask the password preference
-			if (key.equals("password")) {
+			if (key.equals("password") && value != null) {
 				value = new String(new char[value.length()]).replace("\0", "*");
 			}
 			

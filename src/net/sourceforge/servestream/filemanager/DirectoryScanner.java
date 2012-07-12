@@ -18,12 +18,13 @@
 package net.sourceforge.servestream.filemanager;
 
 import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
 import net.sourceforge.servestream.R;
 import net.sourceforge.servestream.activity.BrowserActivity;
-import net.sourceforge.servestream.dbutils.Stream;
+import net.sourceforge.servestream.bean.UriBean;
 import net.sourceforge.servestream.utils.WebpageParser;
 import net.sourceforge.servestream.utils.URLUtils;
 
@@ -44,13 +45,13 @@ import android.util.Log;
 public class DirectoryScanner extends Thread {
 	private final static String TAG = DirectoryScanner.class.getName();
 	
-	private Stream currentDirectory;
+	private UriBean currentDirectory;
 	public boolean cancel;
 
 	private Context context;
 	private Handler handler;
 
-	public DirectoryScanner(Stream directory, Context context, Handler handler) {
+	public DirectoryScanner(UriBean directory, Context context, Handler handler) {
 		super("Directory Scanner");
 		currentDirectory = directory;
 		this.context = context;
@@ -66,13 +67,14 @@ public class DirectoryScanner extends Thread {
 	public void run() {
 		Log.v(TAG, "Scanning directory " + currentDirectory);
 		
-		List<Stream> files = null;
+		List<UriBean> uris = null;
 		
 		WebpageParser webpageParser;
 		try {
-			webpageParser = new WebpageParser(currentDirectory.getURL());
+			URL url = new URL(currentDirectory.getUri().toString());
+			webpageParser = new WebpageParser(url);
 			webpageParser.parse();
-			files = webpageParser.getParsedLinks();
+			uris = webpageParser.getParsedLinks();
 		} catch (MalformedURLException e) {
 			e.printStackTrace();
 		}
@@ -85,11 +87,11 @@ public class DirectoryScanner extends Thread {
 			return;
 		}
 		
-		if (files == null) {
+		if (uris == null) {
 			Log.v(TAG, "Returned null - inaccessible directory?");
 			totalCount = 0;
 		} else {
-			totalCount = files.size();
+			totalCount = uris.size();
 		}
 		
 		Log.v(TAG, "Counting files... (total count=" + totalCount + ")");
@@ -103,8 +105,8 @@ public class DirectoryScanner extends Thread {
 
 		Drawable currentIcon = null; 
 		
-		if (files != null) {
-			for (Stream currentFile : files){ 
+		if (uris != null) {
+			for (UriBean currentFile : uris){ 
 				if (cancel) {
 					// Abort!
 					Log.v(TAG, "Scan aborted while checking files");
@@ -152,11 +154,11 @@ public class DirectoryScanner extends Thread {
 		clearData();
 	}
 
-	private boolean isDirectory(Stream stream) {
-		if (stream.getContentType() == null)
+	private boolean isDirectory(UriBean uri) {
+		if (uri.getContentType() == null)
 			return false;
 		
-		return stream.getContentType().contains("text/");
+		return uri.getContentType().contains("text/");
 	}
 	
 	/**

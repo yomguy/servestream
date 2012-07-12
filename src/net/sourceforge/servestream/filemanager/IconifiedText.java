@@ -17,22 +17,22 @@
 
 package net.sourceforge.servestream.filemanager;
 
-import net.sourceforge.servestream.dbutils.Stream;
+import net.sourceforge.servestream.bean.UriBean;
 import android.graphics.drawable.Drawable; 
 
 public class IconifiedText { 
     
     private String mText = ""; 
     private String mInfo = "";
-    private Stream mStream = null;
+    private UriBean mUri = null;
     private Drawable mIcon; 
     private boolean mSelectable = true; 
     private boolean mSelected; 
 
-    public IconifiedText(String text, String info, Stream stream, Drawable icon) { 
+    public IconifiedText(String text, String info, UriBean uri, Drawable icon) { 
         mText = text; 
         mInfo = info;
-        mStream = stream;
+        mUri = uri;
         mIcon = icon;
     } 
       
@@ -68,12 +68,12 @@ public class IconifiedText {
     	mInfo = info; 
     }
 
-	public Stream getStream() {
-		return mStream;
+	public UriBean getUri() {
+		return mUri;
     }
 
-	public void setStream(Stream stream) {
-		mStream = stream;
+	public void setUri(UriBean uri) {
+		mUri = uri;
     }
    
     public void setIcon(Drawable icon) { 

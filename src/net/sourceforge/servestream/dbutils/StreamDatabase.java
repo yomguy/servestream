@@ -18,9 +18,12 @@
 package net.sourceforge.servestream.dbutils;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
+
+import net.sourceforge.servestream.bean.UriBean;
 
 import android.content.ContentValues;
 import android.content.Context;
@@ -30,12 +33,6 @@ import android.database.sqlite.SQLiteException;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
 
-/**
- * Contains information about various SSH hosts, include public hostkey if known
- * from previous sessions.
- *
- * @author jsharkey
- */
 public class StreamDatabase extends SQLiteOpenHelper {
 	public final static String TAG = StreamDatabase.class.getName();
 
@@ -121,7 +118,7 @@ public class StreamDatabase extends SQLiteOpenHelper {
 	 * 
 	 * @param stream Nickname field of stream to update
 	 */
-	public void touchHost(Stream stream) {
+	public void touchUri(UriBean uri) {
 		long now = System.currentTimeMillis() / 1000;
 
 		ContentValues values = new ContentValues();
@@ -130,12 +127,12 @@ public class StreamDatabase extends SQLiteOpenHelper {
 		synchronized (dbLock) {
 			SQLiteDatabase db = this.getWritableDatabase();
 
-			db.update(TABLE_STREAMS, values, FIELD_STREAM_ID + " = ?", new String[] { String.valueOf(stream.getId()) });
+			db.update(TABLE_STREAMS, values, FIELD_STREAM_ID + " = ?", new String[] { String.valueOf(uri.getId()) });
 		}
 	}
 	
-	private ArrayList<Stream> createStreamList(Cursor c) {
-		ArrayList<Stream> streamUrls = new ArrayList<Stream>();
+	private List<UriBean> createUriBeans(Cursor c) {
+		List<UriBean> uris = new ArrayList<UriBean>();
 
 		final int COL_ID = c.getColumnIndexOrThrow(FIELD_STREAM_ID),
 			COL_NICKNAME = c.getColumnIndexOrThrow(FIELD_STREAM_NICKNAME),
@@ -147,71 +144,69 @@ public class StreamDatabase extends SQLiteOpenHelper {
 			COL_PATH = c.getColumnIndexOrThrow(FIELD_STREAM_PATH),
 			COL_QUERY = c.getColumnIndexOrThrow(FIELD_STREAM_QUERY),
 			COL_REFERENCE = c.getColumnIndexOrThrow(FIELD_STREAM_REFERENCE),
-			COL_LASTCONNECT = c.getColumnIndexOrThrow(FIELD_STREAM_LASTCONNECT),
-		    COL_COLOR = c.getColumnIndexOrThrow(FIELD_STREAM_COLOR),
-		    COL_FONTSIZE = c.getColumnIndexOrThrow(FIELD_STREAM_FONTSIZE);
+			COL_LASTCONNECT = c.getColumnIndexOrThrow(FIELD_STREAM_LASTCONNECT);
 
 		while (c.moveToNext()) {
-			Stream stream = new Stream();
+			UriBean uri = new UriBean();
 
-			stream.setID(c.getLong(COL_ID));
-			stream.setNickname(c.getString(COL_NICKNAME));
-			stream.setProtocol(c.getString(COL_PROTOCOL));
-			stream.setUsername(c.getString(COL_USERNAME));
-			stream.setPassword(c.getString(COL_PASSWORD));
-			stream.setHostname(c.getString(COL_HOST));
-			stream.setPort(c.getString(COL_PORT));
-			stream.setPath(c.getString(COL_PATH));
-			stream.setQuery(c.getString(COL_QUERY));
-			stream.setReference(c.getString(COL_REFERENCE));
-			stream.setLastConnect(c.getLong(COL_LASTCONNECT));
-			stream.setColor(c.getString(COL_COLOR));
-			stream.setFontSize(c.getLong(COL_FONTSIZE));
+			uri.setId(c.getLong(COL_ID));
+			uri.setNickname(c.getString(COL_NICKNAME));
+			uri.setProtocol(c.getString(COL_PROTOCOL));
+			uri.setUsername(c.getString(COL_USERNAME));
+			uri.setPassword(c.getString(COL_PASSWORD));
+			uri.setHostname(c.getString(COL_HOST));
+			uri.setPort(Integer.valueOf(c.getString(COL_PORT)));
+			uri.setPath(c.getString(COL_PATH));
+			uri.setQuery(c.getString(COL_QUERY));
+			uri.setReference(c.getString(COL_REFERENCE));
+			uri.setLastConnect(c.getLong(COL_LASTCONNECT));
 
-			streamUrls.add(stream);
+			uris.add(uri);
 		}
 
-		return streamUrls;
+		return uris;
 	}
 	
-	public ArrayList<Stream> getStreams() {
-		return getStreams(false);
+	public List<UriBean> getUris() {
+		return getUris(false);
 	}
 	
 	
-	public ArrayList<Stream> getStreams(boolean sortByName) {
+	public List<UriBean> getUris(boolean sortByName) {
 		String sortField = sortByName ? FIELD_STREAM_NICKNAME : FIELD_STREAM_ID;
-		ArrayList<Stream> streamUrls = new ArrayList<Stream>();
+		List<UriBean> uris = new ArrayList<UriBean>();
 		
 		synchronized (dbLock) {
 			SQLiteDatabase db = this.getWritableDatabase();
 
 		    Cursor c = db.query(TABLE_STREAMS, null, null, null, null, null, sortField + " ASC");
 
-		    streamUrls = createStreamList(c);
+		    uris = createUriBeans(c);
 
 		    c.close();
 		}
 
-		return streamUrls;
+		return uris;
 	}
 	
-	public void deleteStream(Stream stream) {
-		if (stream.getId() < 0)
+	public void deleteUri(UriBean uri) {
+		if (uri.getId() < 0) {
 			return;
+		}
 
 		synchronized (dbLock) {
 			SQLiteDatabase db = this.getWritableDatabase();
-			db.delete(TABLE_STREAMS, FIELD_STREAM_ID + " = ?", new String[] { String.valueOf(stream.getId()) });
+			db.delete(TABLE_STREAMS, FIELD_STREAM_ID + " = ?", new String[] { String.valueOf(uri.getId()) });
 		}
 	}
 	
-	public Stream findStream(Stream stream) {
-		StringBuilder selectionBuilder = new StringBuilder();
-
-		ArrayList<String> selectionValuesList = new ArrayList<String>();
+	public UriBean findUri(Map<String, String> selection) {
+		StringBuffer sb = new StringBuffer();
+		sb.append("SELECT * from ")
+		.append(TABLE_STREAMS)
+		.append(" where ");
 		
-		HashMap<String, String> selection = getSelectionArgs(stream);
+		ArrayList<String> selectionValuesList = new ArrayList<String>();
 		
 		Iterator<Entry<String, String>> i = selection.entrySet().iterator();
 		int n = 0;
@@ -220,36 +215,37 @@ public class StreamDatabase extends SQLiteOpenHelper {
 			Entry<String, String> entry = i.next();
 			
 			if (n++ > 0)
-				selectionBuilder.append(" AND ");
+				sb.append(" AND ");
 
-			selectionBuilder.append(entry.getKey())
-				.append(" = ?");
+			sb.append(entry.getKey());
 
-			selectionValuesList.add(entry.getValue());
+			if (entry.getValue() == null) {
+				sb.append(" IS NULL");
+			} else {
+				selectionValuesList.add(entry.getValue());
+				sb.append(" = ?");
+			}
 		}
 
 		String selectionValues[] = new String[selectionValuesList.size()];
 		selectionValuesList.toArray(selectionValues);
 		selectionValuesList = null;
 
-		Stream returnedStream;
+		UriBean uri;
 
 		synchronized (dbLock) {
 			SQLiteDatabase db = getReadableDatabase();
 
-			Cursor c = db.query(TABLE_STREAMS, null,
-					selectionBuilder.toString(),
-					selectionValues,
-					null, null, null);
-
-			returnedStream = getFirstStream(c);
+	    	Cursor c = db.rawQuery(sb.toString(), selectionValues);
+			
+			uri = getFirstUriBean(c);
 		}
 
-		return returnedStream;
+		return uri;
 	}
 	
-	public Stream findStream(int id) {
-		Stream returnedStream;
+	public UriBean findUri(int id) {
+		UriBean uri;
 		
 		synchronized (dbLock) {
 			SQLiteDatabase db = getReadableDatabase();
@@ -259,140 +255,36 @@ public class StreamDatabase extends SQLiteOpenHelper {
 					new String[] { String.valueOf(id) },
 					null, null, null);
 
-			returnedStream = getFirstStream(c);
+			uri = getFirstUriBean(c);
 		}
 
-		return returnedStream;
+		return uri;
 	}
 	
-	private Stream getFirstStream(Cursor c) {
-		Stream stream = null;
+	private UriBean getFirstUriBean(Cursor c) {
+		UriBean uri = null;
 
-		ArrayList<Stream> streamUrls = createStreams(c);
-		if (streamUrls.size() > 0)
-			stream = streamUrls.get(0);
+		List<UriBean> uris = createUriBeans(c);
+		if (uris.size() > 0)
+			uri = uris.get(0);
 
 		c.close();
 
-		return stream;
+		return uri;
 	}
 	
-	private ArrayList<Stream> createStreams(Cursor c) {
-		ArrayList<Stream> streamUrls = new ArrayList<Stream>();
-
-		final int COL_ID = c.getColumnIndexOrThrow(FIELD_STREAM_ID),
-			COL_NICKNAME = c.getColumnIndexOrThrow(FIELD_STREAM_NICKNAME),
-			COL_PROTOCOL = c.getColumnIndexOrThrow(FIELD_STREAM_PROTOCOL),
-			COL_USERNAME = c.getColumnIndexOrThrow(FIELD_STREAM_USERNAME),
-			COL_PASSWORD = c.getColumnIndexOrThrow(FIELD_STREAM_PASSWORD),
-			COL_HOSTNAME = c.getColumnIndexOrThrow(FIELD_STREAM_HOSTNAME),
-			COL_PORT = c.getColumnIndexOrThrow(FIELD_STREAM_PORT),
-			COL_PATH = c.getColumnIndexOrThrow(FIELD_STREAM_PATH),
-			COL_QUERY = c.getColumnIndexOrThrow(FIELD_STREAM_QUERY),
-			COL_REFERENCE = c.getColumnIndexOrThrow(FIELD_STREAM_REFERENCE),
-			COL_LASTCONNECT = c.getColumnIndexOrThrow(FIELD_STREAM_LASTCONNECT),
-		    COL_COLOR = c.getColumnIndexOrThrow(FIELD_STREAM_COLOR),
-		    COL_FONTSIZE = c.getColumnIndexOrThrow(FIELD_STREAM_FONTSIZE);
-
-		while (c.moveToNext()) {
-			Stream stream = new Stream();
-
-			stream.setID(c.getLong(COL_ID));
-			stream.setNickname(c.getString(COL_NICKNAME));
-			stream.setProtocol(c.getString(COL_PROTOCOL));
-			stream.setUsername(c.getString(COL_USERNAME));
-			stream.setPassword(c.getString(COL_PASSWORD));
-			stream.setHostname(c.getString(COL_HOSTNAME));
-			stream.setPort(c.getString(COL_PORT));
-			stream.setPath(c.getString(COL_PATH));
-			stream.setQuery(c.getString(COL_QUERY));
-			stream.setReference(c.getString(COL_REFERENCE));
-			stream.setLastConnect(c.getLong(COL_LASTCONNECT));
-			stream.setColor(c.getString(COL_COLOR));
-			stream.setFontSize(c.getLong(COL_FONTSIZE));
-
-			streamUrls.add(stream);
-		}
-
-		return streamUrls;
-	}
-	
-	public Stream saveStream(Stream stream) {
+	public UriBean saveUri(UriBean uri) {
 		long id;
 
-		SQLiteDatabase db = null;
-		ContentValues contentValues = null;
-		
 		synchronized (dbLock) {
-			db = this.getWritableDatabase();
+			SQLiteDatabase db = this.getWritableDatabase();
 
-			contentValues = new ContentValues();
-			contentValues.put(FIELD_STREAM_NICKNAME, stream.getNickname());
-			contentValues.put(FIELD_STREAM_PROTOCOL, stream.getProtocol());
-			contentValues.put(FIELD_STREAM_USERNAME, stream.getUsername());
-			contentValues.put(FIELD_STREAM_PASSWORD, stream.getPassword());
-			contentValues.put(FIELD_STREAM_HOSTNAME, stream.getHostname());
-			contentValues.put(FIELD_STREAM_PORT, stream.getPort());
-			contentValues.put(FIELD_STREAM_PATH, stream.getPath());
-			contentValues.put(FIELD_STREAM_QUERY, stream.getQuery());
-			contentValues.put(FIELD_STREAM_REFERENCE, stream.getReference());
-			contentValues.put(FIELD_STREAM_LASTCONNECT, stream.getLastConnect());
-			contentValues.put(FIELD_STREAM_COLOR, stream.getColor());
-			contentValues.put(FIELD_STREAM_FONTSIZE, stream.getFontSize());
-			id = db.insert(TABLE_STREAMS, null, contentValues);
+			id = db.insert(TABLE_STREAMS, null, uri.getValues());
 		}
 
-		stream.setID(id);
+		uri.setId(id);
 		
-		synchronized (dbLock) {
-			db = null;
-			contentValues = new ContentValues();
-			
-			if (stream.getUsername() != null) {
-			    if (stream.getUsername().equals(""))
-				    contentValues.put(FIELD_STREAM_USERNAME, "");
-			}
-			
-			if (stream.getPassword() != null) {
-			    if (stream.getPassword().equals(""))
-				    contentValues.put(FIELD_STREAM_PASSWORD, "");
-			}
-			
-			if (stream.getQuery() != null) {
-			    if (stream.getQuery().equals(""))
-				    contentValues.put(FIELD_STREAM_QUERY, "");
-			}
-
-			if (stream.getReference() != null) {
-			    if (stream.getReference().equals(""))
-				    contentValues.put(FIELD_STREAM_REFERENCE, "");
-			}
-			
-			if (contentValues.size() > 0) {
-				Log.v(TAG, "Replacing null values");
-			    db = this.getWritableDatabase();
-			    db.update(TABLE_STREAMS, contentValues, FIELD_STREAM_ID + " = ?", new String[] { String.valueOf(stream.getId()) });
-			}
-		}
-		
-        Log.v("TAG", "Stream wrote to database");
-		return stream;
+        Log.v("TAG", "Uri wrote to database");
+		return uri;
 	}
-	
-	public HashMap<String, String> getSelectionArgs(Stream stream) {
-		HashMap<String, String> selection = new HashMap<String, String>();
-		
-		//selection.put(FIELD_STREAM_NICKNAME, stream.getNickname());
-		selection.put(FIELD_STREAM_PROTOCOL, stream.getProtocol());
-		selection.put(FIELD_STREAM_USERNAME, stream.getUsername());
-		selection.put(FIELD_STREAM_PASSWORD, stream.getPassword());
-		selection.put(FIELD_STREAM_HOSTNAME, stream.getHostname());
-		selection.put(FIELD_STREAM_PORT, stream.getPort());
-		selection.put(FIELD_STREAM_PATH, stream.getPath());
-		selection.put(FIELD_STREAM_QUERY, stream.getQuery());
-		selection.put(FIELD_STREAM_REFERENCE, stream.getReference());
-		
-		return selection;
-	}
-
 }
