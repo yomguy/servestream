@@ -1,7 +1,7 @@
 /*
- * ConnectBot: simple, powerful, open-source SSH client for Android
- * Copyright 2007 Kenny Root, Jeffrey Sharkey
- *
+ * ServeStream: A HTTP stream browser/player for Android
+ * Copyright 2012 William Seemann
+ * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -22,7 +22,7 @@ import net.sourceforge.servestream.dbutils.StreamDatabase;
 import android.content.ContentValues;
 import android.net.Uri;
 
-public class UriBean extends AbstractBean {
+public class UriBean {
 	public static final String BEAN_NAME = "uri";
 
 	/* Database fields */
@@ -43,17 +43,8 @@ public class UriBean extends AbstractBean {
 
 	}
 
-	@Override
 	public String getBeanName() {
 		return BEAN_NAME;
-	}
-
-	public UriBean(String nickname, String protocol, String username, String hostname, int port) {
-		this.nickname = nickname;
-		this.protocol = protocol;
-		this.username = username;
-		this.hostname = hostname;
-		this.port = port;
 	}
 
 	public void setId(long id) {
@@ -138,7 +129,6 @@ public class UriBean extends AbstractBean {
 		return description;
 	}
 
-	@Override
 	public ContentValues getValues() {
 		ContentValues values = new ContentValues();
 
@@ -316,5 +306,4 @@ public class UriBean extends AbstractBean {
 		
 		return Uri.parse(sb.toString());
 	}
-	
 }
