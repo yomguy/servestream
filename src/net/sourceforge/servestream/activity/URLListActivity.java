@@ -1,6 +1,6 @@
 /*
  * ServeStream: A HTTP stream browser/player for Android
- * Copyright 2010 William Seemann
+ * Copyright 2012 William Seemann
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -424,7 +424,7 @@ public class URLListActivity extends ListActivity implements ServiceConnection {
 	        		// the market couldn't be opening or the application couldn't be found
 	        		// lets take the user to the project's webpage instead.
 	        		Intent intent = new Intent(Intent.ACTION_VIEW);
-	        		intent.setData(Uri.parse("http://sourceforge.net/donate/index.php?group_id=361303"));
+	        		intent.setData(Uri.parse("https://sourceforge.net/p/servestream/donate/"));
 	        		startActivity(intent);
 	            }
             	return true;
