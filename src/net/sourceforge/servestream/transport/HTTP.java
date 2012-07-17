@@ -229,6 +229,12 @@ public class HTTP extends AbsTransport {
 	}
 
 	@Override
+	public String getContentType() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+	
+	@Override
 	public boolean usesNetwork() {
 	    return true;
 	}
