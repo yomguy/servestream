@@ -1,6 +1,6 @@
 /*
  * ServeStream: A HTTP stream browser/player for Android
- * Copyright 2010 William Seemann
+ * Copyright 2012 William Seemann
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,6 +27,7 @@ import net.sourceforge.servestream.dbutils.StreamDatabase;
 import net.sourceforge.servestream.utils.Utils;
 
 import android.net.Uri;
+import android.webkit.MimeTypeMap;
 
 public class File extends AbsTransport {
 	
@@ -102,6 +103,19 @@ public class File extends AbsTransport {
 		return host;
 	}
 
+	@Override
+	public String getContentType() {
+		String extension = Utils.getExtension(uri.toString());
+		
+		String mimeType = (MimeTypeMap.getSingleton()).getMimeTypeFromExtension(extension);
+		
+		if (mimeType == null) {
+			return "";
+		} else {
+			return mimeType;
+		}
+	}
+	
 	@Override
 	public boolean usesNetwork() {
 	    return false;

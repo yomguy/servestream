@@ -1,6 +1,6 @@
 /*
  * ServeStream: A HTTP stream browser/player for Android
- * Copyright 2010 William Seemann
+ * Copyright 2012 William Seemann
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,6 @@
 
 package net.sourceforge.servestream.transport;
 
-import java.io.IOException;
 import java.io.InputStream;
 import java.util.Map;
 
@@ -93,6 +92,8 @@ public abstract class AbsTransport {
 	 */
 	public abstract UriBean createUri(Uri uri);
 
+	public abstract String getContentType();
+	
 	/**
 	 * @return
 	 */
