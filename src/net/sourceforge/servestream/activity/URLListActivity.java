@@ -18,8 +18,6 @@
 package net.sourceforge.servestream.activity;
 
 import java.io.UnsupportedEncodingException;
-import java.net.HttpURLConnection;
-import java.net.URL;
 import java.net.URLDecoder;
 import java.util.ArrayList;
 import java.util.List;
@@ -35,9 +33,7 @@ import net.sourceforge.servestream.alarm.Alarm;
 import net.sourceforge.servestream.bean.UriBean;
 import net.sourceforge.servestream.dbutils.StreamDatabase;
 import net.sourceforge.servestream.utils.PreferenceConstants;
-import net.sourceforge.servestream.utils.URLUtils;
 import net.sourceforge.servestream.utils.UpdateHelper;
-import net.sourceforge.servestream.utils.Utils;
 
 import android.app.AlertDialog;
 import android.app.Dialog;
@@ -826,52 +822,30 @@ public class URLListActivity extends ListActivity implements ServiceConnection {
 		}
 
 		private Message handleURL(UriBean uri) {
-			String contentType = null;
-			URLUtils urlUtils = null;
 			Message message = mHandler.obtainMessage(URLListActivity.MESSAGE_HANDLE_INTENT);
 			
 			AbsTransport transport = TransportFactory.getTransport(uri.getProtocol());
 			transport.setUri(uri);
 			
-			if (!transport.usesNetwork()) {
-				long[] list = null;
-				list = MusicUtils.getFilesInPlaylist(URLListActivity.this, uri.getScrubbedUri().toString(), contentType, null);
-				
-		        message.arg1 = STREAM_MEDIA_INTENT;
-		        message.obj = list;
-			} else {
-				try {
-					URL url = new URL(uri.getUri().toString());
-					urlUtils = new URLUtils();
-					urlUtils.getURLInformation(url, true);
-					Log.v(TAG, "URI is: " + url);
-				} catch (Exception ex) {
-					ex.printStackTrace();
-					return null;
-				}
+			transport.connect();
 			
-				if (urlUtils.getResponseCode() == HttpURLConnection.HTTP_OK) {			
-					contentType = urlUtils.getContentType();
-				}
-			
-			if (contentType == null) {
+			if (transport.getContentType() == null) {
 					message.arg1 = NO_INTENT;
-			} else if (contentType.contains("text/html")) {
+			} else if (transport.getContentType().contains("text/html")) {
 		        Intent intent = new Intent(URLListActivity.this, BrowserActivity.class);
-				intent.setDataAndType(uri.getScrubbedUri(), urlUtils.getContentType());
+				intent.setDataAndType(uri.getScrubbedUri(), transport.getContentType());
 				
 				message.arg1 = BROWSE_MEDIA_INTENT;
 				message.obj = intent;
 			} else {
 				long[] list = null;
-				list = MusicUtils.getFilesInPlaylist(URLListActivity.this, uri.getScrubbedUri().toString(), contentType, urlUtils.getInputStream());
+				list = MusicUtils.getFilesInPlaylist(URLListActivity.this, uri.getScrubbedUri().toString(), transport.getContentType(), transport.getConnection());
 				
 		        message.arg1 = STREAM_MEDIA_INTENT;
 		        message.obj = list;
 			}
 			
-			Utils.closeInputStream(urlUtils.getInputStream());
-			}
+			transport.close();
 			
 			return message;
 		}
