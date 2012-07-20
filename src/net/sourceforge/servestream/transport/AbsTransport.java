@@ -63,10 +63,6 @@ public abstract class AbsTransport {
 	 */
 	public abstract void close();
 
-	public Map<String,String> getOptions() {
-		return null;
-	}
-
 	public void setUri(UriBean uri) {
 		this.uri = uri;
 	}
