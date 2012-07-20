@@ -71,7 +71,10 @@ public abstract class AbsTransport {
 		this.uri = uri;
 	}
 
-	public abstract InputStream getConnection();	
+	public abstract InputStream getConnection();
+	
+	public abstract boolean exists();
+	
 	public abstract boolean isConnected();
 
 	/**

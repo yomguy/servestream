@@ -72,13 +72,20 @@ public class File extends AbsTransport {
 	}
 
 	@Override
-	public boolean isConnected() {
-		return is != null;
+	public boolean exists() {
+		java.io.File file = new java.io.File(uri.getUri().toString());
+		
+		return file.exists();
 	}
-
+	
 	@Override
 	public InputStream getConnection() {
 		return is;
+	}
+	
+	@Override
+	public boolean isConnected() {
+		return is != null;
 	}
 	
 	@Override

@@ -17,15 +17,20 @@
 
 package net.sourceforge.servestream.transport;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
+import java.net.Authenticator;
+import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
+import java.net.PasswordAuthentication;
 import java.net.URL;
 import java.net.URLDecoder;
 import java.util.Map;
 
 import net.sourceforge.servestream.bean.UriBean;
 import net.sourceforge.servestream.dbutils.StreamDatabase;
+import net.sourceforge.servestream.utils.Utils;
 
 import android.net.Uri;
 
@@ -33,6 +38,11 @@ public class HTTP extends AbsTransport {
 
 	private static final String PROTOCOL = "http";
 	private static final int DEFAULT_PORT = 80;
+	
+	private HttpURLConnection conn = null;
+	private InputStream is = null;
+	private int mResponseCode = -1;
+	private String mContentType = null;
 	
 	public HTTP() {
 		super();
@@ -144,19 +154,58 @@ public class HTTP extends AbsTransport {
 	
 	@Override
 	public void connect() {
-		// TODO Auto-generated method stub
+		URL url = null;
+
+    	try {
+			url = new URL(Uri.encode(uri.getUri().toString()));
 		
+    		String userInfo = url.getUserInfo();
+    		
+    		if (userInfo != null && (userInfo.split("\\:").length == 2)) {
+    			final String username = (userInfo.split("\\:"))[0] ;
+    			final String password = (userInfo.split("\\:"))[1] ;
+    			Authenticator.setDefault(new Authenticator() {
+    				protected PasswordAuthentication getPasswordAuthentication() {
+    					return new PasswordAuthentication(username, password.toCharArray()); 
+    				};
+    			});
+        	
+    			url = new URL(uri.getScrubbedUri().toString());
+    				//encodeUrl(new URL(uri.getScrubbedUri().toString()));
+    		}
+
+    		conn = (HttpURLConnection) url.openConnection();        	
+    		conn.setConnectTimeout(6000);
+    		conn.setReadTimeout(6000);
+	        conn.setRequestMethod("GET");
+    		conn.setRequestProperty("User-Agent", "ServeStream");
+    		
+	        mResponseCode = conn.getResponseCode();
+		    
+	        if (mResponseCode == -1) {
+	        	mResponseCode = HttpURLConnection.HTTP_OK;
+	        }
+	        
+	        mContentType = conn.getContentType();
+	        is = conn.getInputStream();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 	}
 
 	@Override
 	public void close() {
-		// TODO Auto-generated method stub
-		
+		Utils.closeInputStream(is);
+		Utils.closeHttpConnection(conn);		
 	}
 
 	@Override
+	public boolean exists() {
+		return true;
+	}
+	
+	@Override
 	public boolean isConnected() {
-		// TODO Auto-generated method stub
 		return false;
 	}
 
@@ -230,8 +279,7 @@ public class HTTP extends AbsTransport {
 
 	@Override
 	public String getContentType() {
-		// TODO Auto-generated method stub
-		return null;
+		return mContentType;
 	}
 	
 	@Override
