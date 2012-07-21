@@ -157,7 +157,7 @@ public class HTTP extends AbsTransport {
 		URL url = null;
 
     	try {
-			url = new URL(Uri.encode(uri.getUri().toString()));
+			url = new URL(uri.getUri().toString());
 		
     		String userInfo = url.getUserInfo();
     		
@@ -216,7 +216,6 @@ public class HTTP extends AbsTransport {
 
 	@Override
 	public void getSelectionArgs(Uri uri, Map<String, String> selection) {
-		selection.put(StreamDatabase.FIELD_STREAM_NICKNAME, getUri(uri.toString(), true).toString());
 		selection.put(StreamDatabase.FIELD_STREAM_PROTOCOL, PROTOCOL);
 		
 		if (uri.getUserInfo() != null) {
@@ -294,7 +293,6 @@ public class HTTP extends AbsTransport {
 
 	@Override
 	public InputStream getConnection() {
-		// TODO Auto-generated method stub
-		return null;
+		return is;
 	}
 }
