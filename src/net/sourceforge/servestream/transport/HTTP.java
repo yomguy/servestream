@@ -206,7 +206,7 @@ public class HTTP extends AbsTransport {
 	
 	@Override
 	public boolean isConnected() {
-		return false;
+		return is != null;
 	}
 
 	@Override
