@@ -57,7 +57,7 @@ public class File extends AbsTransport {
 	
 	@Override
 	public void connect() {
-		java.io.File file = new java.io.File(uri.getUri().toString());
+		java.io.File file = new java.io.File(uri.getUri().toString().replace(PROTOCOL + "://", ""));
 		
 		try {
 			is = new FileInputStream(file);
@@ -73,7 +73,7 @@ public class File extends AbsTransport {
 
 	@Override
 	public boolean exists() {
-		java.io.File file = new java.io.File(uri.getUri().toString());
+		java.io.File file = new java.io.File(uri.getUri().toString().replace(PROTOCOL + "://", ""));
 		
 		return file.exists();
 	}
@@ -112,7 +112,7 @@ public class File extends AbsTransport {
 
 	@Override
 	public String getContentType() {
-		String extension = Utils.getExtension(uri.toString());
+		String extension = Utils.getExtension(uri.getUri().toString());
 		
 		String mimeType = (MimeTypeMap.getSingleton()).getMimeTypeFromExtension(extension);
 		
