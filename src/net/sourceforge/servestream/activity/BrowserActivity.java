@@ -461,7 +461,7 @@ public class BrowserActivity extends ListActivity implements ServiceConnection {
 	 * @param targetStream The stream URL to add to the database
 	 */
 	private void saveUri(UriBean targetUri) {
-		if (targetUri == null) {
+		if (targetUri != null) {
 			mStreamdb.saveUri(targetUri);
 		}
 	}
