@@ -158,6 +158,14 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
     private SimpleLastfmScrobblerManager mSimpleLastfmScrobblerManager;
     private boolean mIsStreaming = true;
     
+    // our RemoteControlClient object, which will use remote control APIs available in
+    // SDK level >= 14, if they're available.
+    private RemoteControlClientCompat mRemoteControlClientCompat;
+    
+    // The component name of MusicIntentReceiver, for use with media button and remote control
+    // APIs
+    private ComponentName mMediaButtonReceiverComponent;
+    
     private ServeStreamAppWidgetOneProvider mAppWidgetProvider = ServeStreamAppWidgetOneProvider.getInstance();
     
     // interval after which we stop the service when idle
@@ -335,8 +343,7 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
 		mSimpleLastfmScrobblerManager = new SimpleLastfmScrobblerManager(this, sendScrobblerInfo);
 		
         mAudioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
-        mAudioManager.registerMediaButtonEventReceiver(new ComponentName(getPackageName(),
-                MediaButtonIntentReceiver.class.getName()));
+        mMediaButtonReceiverComponent = new ComponentName(this, MediaButtonIntentReceiver.class);
         
         mStreamdb = new StreamDatabase(this);
         
@@ -858,9 +865,47 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
     public void play() {
         mAudioManager.requestAudioFocus(mAudioFocusListener, AudioManager.STREAM_MUSIC,
                 AudioManager.AUDIOFOCUS_GAIN);
-        mAudioManager.registerMediaButtonEventReceiver(new ComponentName(this.getPackageName(),
-                MediaButtonIntentReceiver.class.getName()));
-    	
+        MediaButtonHelper.registerMediaButtonEventReceiverCompat(
+                mAudioManager, mMediaButtonReceiverComponent);
+        
+        // Use the remote control APIs (if available) to set the playback state
+        if (mRemoteControlClientCompat == null) {
+            Intent intent = new Intent(Intent.ACTION_MEDIA_BUTTON);
+            intent.setComponent(mMediaButtonReceiverComponent);
+            mRemoteControlClientCompat = new RemoteControlClientCompat(
+                    PendingIntent.getBroadcast(this /*context*/,
+                            0 /*requestCode, ignored*/, intent /*intent*/, 0 /*flags*/));
+            RemoteControlHelper.registerRemoteControlClient(mAudioManager,
+                    mRemoteControlClientCompat);
+        }
+
+        mRemoteControlClientCompat.setPlaybackState(
+                RemoteControlClientCompat.PLAYSTATE_PLAYING);
+
+        mRemoteControlClientCompat.setTransportControlFlags(
+        		RemoteControlClientCompat.FLAG_KEY_MEDIA_PLAY |
+        		RemoteControlClientCompat.FLAG_KEY_MEDIA_PAUSE |
+        		RemoteControlClientCompat.FLAG_KEY_MEDIA_NEXT |
+        		RemoteControlClientCompat.FLAG_KEY_MEDIA_STOP);
+
+        // Update the remote controls
+        mRemoteControlClientCompat.editMetadata(true)
+                .putString(2, getArtistName())
+                .putString(1, getAlbumName())
+                .putString(7, getTrackName())
+                //.putLong(MediaMetadataRetriever.METADATA_KEY_DURATION,
+                //        playingItem.getDuration())
+                //.putBitmap(
+                //        RemoteControlClientCompat.MetadataEditorCompat.METADATA_KEY_ARTWORK,
+                //        mDummyAlbumArt)
+                .apply();
+        
+        // Tell any remote controls that our playback state is 'playing'.
+        if (mRemoteControlClientCompat != null) {
+            mRemoteControlClientCompat
+                    .setPlaybackState(RemoteControlClientCompat.PLAYSTATE_PLAYING);
+        }
+        
     	if (mPlayer.isInitialized()) {
     		
             mPlayer.start();
@@ -895,6 +940,12 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
         if (remove_status_icon) {
             mIsSupposedToBePlaying = false;
         }
+        
+        // Tell any remote controls that our playback state is 'paused'.
+        if (mRemoteControlClientCompat != null) {
+            mRemoteControlClientCompat
+                    .setPlaybackState(RemoteControlClientCompat.PLAYSTATE_STOPPED);
+        }
     }
 
     /**
@@ -915,6 +966,12 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
                 mIsSupposedToBePlaying = false;
                 notifyChange(PLAYSTATE_CHANGED);
                 stopForeground(true);
+                
+                // Tell any remote controls that our playback state is 'paused'.
+                if (mRemoteControlClientCompat != null) {
+                    mRemoteControlClientCompat
+                            .setPlaybackState(RemoteControlClientCompat.PLAYSTATE_PAUSED);
+                }
             }
         }
     }
