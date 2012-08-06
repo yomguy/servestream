@@ -25,6 +25,8 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 
+import javax.net.ssl.HttpsURLConnection;
+
 import net.sourceforge.servestream.bean.UriBean;
 import net.sourceforge.servestream.transport.TransportFactory;
 
@@ -63,13 +65,13 @@ public class WebpageParser {
         		return;
         	}
         	
-        	conn = URLUtils.getConnection(mURL);
-        	
-        	if (conn == null) {
-        		return;
-        	}
-        	
-        	conn.setRequestProperty("User-Agent", URLUtils.USER_AGENT);
+    		if (mURL.getProtocol().equalsIgnoreCase("http")) {
+    			conn = (HttpURLConnection) mURL.openConnection();
+    		} else if (mURL.getProtocol().equalsIgnoreCase("https")) {
+    			conn = (HttpsURLConnection) mURL.openConnection();        		
+    		}
+    	
+    		conn.setRequestProperty("User-Agent", URLUtils.USER_AGENT);
     		conn.setConnectTimeout(6000);
     		conn.setReadTimeout(6000);
 		    conn.setRequestMethod(REQUEST_METHOD);

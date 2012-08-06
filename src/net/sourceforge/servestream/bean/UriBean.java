@@ -17,8 +17,10 @@
 
 package net.sourceforge.servestream.bean;
 
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
+import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URL;
 
 import net.sourceforge.servestream.dbutils.StreamDatabase;
 
@@ -310,103 +312,44 @@ public class UriBean {
 	}
 	
 	/**
-	 * @return URI identifying this HostBean
+	 * @return URL identifying this HostBean
 	 */
-	public Uri getEncodedAndScrubbedUri() {
-		StringBuilder sb = new StringBuilder();
+	public URL getScrubbedURL() {
+		URI encodedUri = null;
+		Uri uri = getScrubbedUri();
 		
-		sb.append(protocol)
-			.append("://");
-
-		if (hostname != null) {
-			sb.append(hostname)
-				.append(':');
+		try {
+			encodedUri = new URI(uri.getScheme(), uri.getUserInfo(), uri.getHost(), uri.getPort(), uri.getPath(), uri.getQuery(), uri.getFragment());
+		} catch (URISyntaxException e) {
 		}
 		
-		if (port != -2) {
-			sb.append(port);
+		URL url = null;		
+		try {
+			url = encodedUri.toURL();
+		} catch (MalformedURLException e) {
+			e.printStackTrace();
 		}
 		
-		if (path != null) {
-			sb.append(encode(path));
-		}
-		
-		if (query != null) {
-			sb.append("?")
-				.append(encode(query));
-		}
-		
-		if (reference != null) {
-			sb.append("#")
-				.append(encode(reference));
-		}
-		
-		Log.i("Encoded URI ==>", sb.toString());
-		return Uri.parse(sb.toString());
+		return url;		
 	}
 	
-	public Uri getEncodedUri() {
-		StringBuilder sb = new StringBuilder();
+	public URL getURL() {
+		URI encodedUri = null;
+		Uri uri = getUri();
 		
-		sb.append(protocol)
-			.append("://");
-
-		if (username != null && password != null) {
-			sb.append(encode(username))
-				.append(":")
-				.append(encode(password))
-				.append('@');
-		}
-
-		if (hostname != null) {
-			sb.append(hostname)
-				.append(':');
+		try {
+			encodedUri = new URI(uri.getScheme(), uri.getUserInfo(), uri.getHost(), uri.getPort(), uri.getPath(), uri.getQuery(), uri.getFragment());
+		} catch (URISyntaxException e) {
 		}
 		
-		if (port != -2) {
-			sb.append(port);
+		URL url = null;
+		
+		try {
+			url = encodedUri.toURL();
+		} catch (MalformedURLException e) {
+			e.printStackTrace();
 		}
 		
-		if (path != null) {
-			sb.append(encode(path));
-		}
-		
-		if (query != null) {
-			sb.append("?")
-				.append(encode(query));
-		}
-		
-		if (reference != null) {
-			sb.append("#")
-				.append(encode(reference));
-		}
-		
-		Log.i("Encoded URI ==>", sb.toString());
-		return Uri.parse(sb.toString());
-	}
-	
-	private String encode(String stringToEncode) {
-		String encodedPath = "";
-		
-		if (stringToEncode.trim().equals("/")) {
-			return stringToEncode;
-		}
-		
-		String [] pathParts = path.split("\\/");
-	
-		if (pathParts.length > 0) {				
-			for (int i = 0; i < pathParts.length; i++) {
-				if (!pathParts[i].trim().equals("")) {
-					encodedPath = encodedPath + '/' + URLEncoder.encode(pathParts[i]);
-				}
-			}
-		} else {
-			try {
-				encodedPath = URLEncoder.encode(path, "UTF-8");
-			} catch (UnsupportedEncodingException e) {
-			}
-		}
-		
-		return encodedPath;
+		return url;
 	}
 }
