@@ -83,16 +83,15 @@ import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.AdapterView.OnItemClickListener;
 
-public class URLListActivity extends ListActivity implements ServiceConnection {
+import net.sourceforge.servestream.utils.DetermineActionTask;
+
+public class URLListActivity extends ListActivity implements ServiceConnection,
+				DetermineActionTask.MusicRetrieverPreparedListener {
+	
 	public final static String TAG = URLListActivity.class.getName();	
 	
  	private static final int MESSAGE_UPDATE_LIST = 1;
-    public static final int MESSAGE_HANDLE_INTENT = 2;
 
-    private static final int NO_INTENT = -1;
-    private static final int STREAM_MEDIA_INTENT = 1;    
-    private static final int BROWSE_MEDIA_INTENT = 2;
-    
     private static final String STATE_DETERMINE_INTENT_IN_PROGRESS = "net.sourceforge.servestream.inprogress";
     private static final String STATE_DETERMINE_INTENT_STREAM = "net.sourceforge.servestream.stream";
     private static final String STATE_MAKING_SHORTCUT = "net.sourceforge.servestream.makingshortcut";
@@ -116,10 +115,10 @@ public class URLListActivity extends ListActivity implements ServiceConnection {
 	
 	private boolean mActivityVisible = true;
 	
-	private DetermineIntentAsyncTask mDetermineIntentTask = null;
-	
     private ServiceToken mToken;
 	
+    private DetermineActionTask mDetermineActionTask;
+    
 	protected Handler mHandler = new Handler() {
 		@Override
 		public void handleMessage(Message msg) {
@@ -356,7 +355,7 @@ public class URLListActivity extends ListActivity implements ServiceConnection {
     private void saveDetermineIntentTask(Bundle outState) {
     	outState.putBoolean(STATE_MAKING_SHORTCUT, mMakingShortcut);
     	
-        final DetermineIntentAsyncTask task = mDetermineIntentTask;
+        final DetermineActionTask task = mDetermineActionTask;
         if (task != null && task.getStatus() != AsyncTask.Status.FINISHED) {
             final String uri = task.getUri().toString();
             task.cancel(true);
@@ -370,7 +369,7 @@ public class URLListActivity extends ListActivity implements ServiceConnection {
                 outState.putString(STATE_DETERMINE_INTENT_STREAM, uri);
             }
 
-            mDetermineIntentTask = null;
+            mDetermineActionTask = null;
         }
     }
     
@@ -441,9 +440,9 @@ public class URLListActivity extends ListActivity implements ServiceConnection {
 	    	progressDialog.setOnCancelListener(new OnCancelListener() {
 
 				public void onCancel(DialogInterface dialog) {
-					if (mDetermineIntentTask != null) {
-						mDetermineIntentTask.cancel(true);
-						mDetermineIntentTask = null;
+					if (mDetermineActionTask != null) {
+						mDetermineActionTask.cancel(true);
+						mDetermineActionTask = null;
 						try {
 							removeDialog(DETERMINE_INTENT_TASK);
 						} catch (Exception ex) {
@@ -643,9 +642,6 @@ public class URLListActivity extends ListActivity implements ServiceConnection {
 			case MESSAGE_UPDATE_LIST:
 				updateList();
 				break;
-			case MESSAGE_HANDLE_INTENT:
-				handleIntent(message);
-				break;
 		}
 	}
 	
@@ -665,15 +661,14 @@ public class URLListActivity extends ListActivity implements ServiceConnection {
 			
 			AbsTransport transport = TransportFactory.getTransport(uriBean.getProtocol());
 			transport.setUri(uriBean);
-			
 			if (mPreferences.getBoolean(PreferenceConstants.AUTOSAVE, true) && transport.shouldSave()) {
 				mStreamdb.saveUri(uriBean);
 			}
 		}
 		
 	    showDialog(DETERMINE_INTENT_TASK);
-	    mDetermineIntentTask = new DetermineIntentAsyncTask();
-	    mDetermineIntentTask.execute(uriBean);
+	    mDetermineActionTask = new DetermineActionTask(this, uriBean, this);
+	    mDetermineActionTask.execute();
 		
 		return true;
 	}
@@ -760,33 +755,6 @@ public class URLListActivity extends ListActivity implements ServiceConnection {
 		}
 	}
 	
-	private void handleIntent(Message message) {
-		try {
-			removeDialog(DETERMINE_INTENT_TASK);
-		} catch (Exception ex) {
-		}
-		
-		switch (message.arg1) {
-			case STREAM_MEDIA_INTENT:
-		        MusicUtils.playAll(URLListActivity.this, (long []) message.obj, 0);
-		        
-				if (mPreferences.getBoolean(PreferenceConstants.AUTOSAVE, true)) {
-					// TODO: fix this
-					//mStreamdb.touchUri(mRequestedStream);
-				}
-				break;
-			case BROWSE_MEDIA_INTENT:
-				URLListActivity.this.startActivity((Intent) message.obj);
-				
-				if (mPreferences.getBoolean(PreferenceConstants.AUTOSAVE, true)) {
-				}
-				break;
-			case NO_INTENT:
-				URLListActivity.this.showUrlNotOpenedToast();
-				break;
-		}
-	}
-	
 	/**
 	 * Hides the keyboard
 	 */
@@ -801,65 +769,38 @@ public class URLListActivity extends ListActivity implements ServiceConnection {
 			Toast.makeText(this, R.string.url_not_opened_message, Toast.LENGTH_SHORT).show();
 		}
 	}
-
-	public class DetermineIntentAsyncTask extends AsyncTask<UriBean, Void, Message> {
-		
-		private Uri mUri = null;
-		
-	    public DetermineIntentAsyncTask() {
-	        super();
-	    }
-	    
-		@Override
-		protected Message doInBackground(UriBean... uri) {
-			mUri = uri[0].getUri();
-		    return handleURL(uri[0]);
-		}
-		
-		@Override
-		protected void onPostExecute(Message message) {
-			message.sendToTarget();
-		}
-
-		private Message handleURL(UriBean uri) {
-			Message message = mHandler.obtainMessage(URLListActivity.MESSAGE_HANDLE_INTENT);
-			
-			AbsTransport transport = TransportFactory.getTransport(uri.getProtocol());
-			transport.setUri(uri);
-			
-			transport.connect();
-			
-			if (transport.getContentType() == null) {
-					message.arg1 = NO_INTENT;
-			} else if (transport.getContentType().contains("text/html")) {
-		        Intent intent = new Intent(URLListActivity.this, BrowserActivity.class);
-				intent.setDataAndType(uri.getScrubbedUri(), transport.getContentType());
-				
-				message.arg1 = BROWSE_MEDIA_INTENT;
-				message.obj = intent;
-			} else {
-				long[] list = null;
-				list = MusicUtils.getFilesInPlaylist(URLListActivity.this, uri.getScrubbedUri().toString(), transport.getContentType(), transport.getConnection());
-				
-		        message.arg1 = STREAM_MEDIA_INTENT;
-		        message.obj = list;
-			}
-			
-			transport.close();
-			
-			return message;
-		}
-		
-		public Uri getUri() {
-			return mUri;
-		}
-	}
-
+	
 	public void onServiceConnected(ComponentName arg0, IBinder arg1) {
 		MusicUtils.updateNowPlaying(this);
 	}
 
 	public void onServiceDisconnected(ComponentName arg0) {
 		finish();
+	}
+	
+	public void onMusicRetrieverPrepared(String action, UriBean uri, long[] list) {
+		try {
+			removeDialog(DETERMINE_INTENT_TASK);
+		} catch (Exception ex) {
+		}
+		
+		if (action.equals(DetermineActionTask.URL_ACTION_UNDETERMINED)) {
+			showUrlNotOpenedToast();
+		} else if (action.equals(DetermineActionTask.URL_ACTION_BROWSE)) {
+			if (mPreferences.getBoolean(PreferenceConstants.AUTOSAVE, true)) {
+				mStreamdb.touchUri(uri);
+			}
+			
+			Intent intent = new Intent(URLListActivity.this, BrowserActivity.class);
+			intent.setData(uri.getScrubbedUri());
+			
+			URLListActivity.this.startActivity(intent);			
+		} else if (action.equals(DetermineActionTask.URL_ACTION_PLAY)) {
+			if (mPreferences.getBoolean(PreferenceConstants.AUTOSAVE, true)) {
+				mStreamdb.touchUri(uri);
+			}
+			
+			MusicUtils.playAll(URLListActivity.this, list, 0);        
+		}
 	}
 }

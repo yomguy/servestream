@@ -153,44 +153,39 @@ public class HTTP extends AbsTransport {
 	}
 	
 	@Override
-	public void connect() {
+	public void connect() throws IOException {
 		URL url = null;
 
-    	try {
-			url = new URL(uri.getUri().toString());
+		url = new URL(uri.getEncodedUri().toString());
 		
-    		String userInfo = url.getUserInfo();
+    	String userInfo = url.getUserInfo();
     		
-    		if (userInfo != null && (userInfo.split("\\:").length == 2)) {
-    			final String username = (userInfo.split("\\:"))[0] ;
-    			final String password = (userInfo.split("\\:"))[1] ;
-    			Authenticator.setDefault(new Authenticator() {
-    				protected PasswordAuthentication getPasswordAuthentication() {
-    					return new PasswordAuthentication(username, password.toCharArray()); 
-    				};
-    			});
+    	if (userInfo != null && (userInfo.split("\\:").length == 2)) {
+    		final String username = (userInfo.split("\\:"))[0] ;
+    		final String password = (userInfo.split("\\:"))[1] ;
+    		Authenticator.setDefault(new Authenticator() {
+    			protected PasswordAuthentication getPasswordAuthentication() {
+    				return new PasswordAuthentication(username, password.toCharArray()); 
+    			};
+    		});
         	
-    			url = new URL(uri.getScrubbedUri().toString());
-    				//encodeUrl(new URL(uri.getScrubbedUri().toString()));
-    		}
+    		url = new URL(uri.getEncodedAndScrubbedUri().toString());
+    	}
 
-    		conn = (HttpURLConnection) url.openConnection();        	
-    		conn.setConnectTimeout(6000);
-    		conn.setReadTimeout(6000);
-	        conn.setRequestMethod("GET");
-    		conn.setRequestProperty("User-Agent", "ServeStream");
+    	conn = (HttpURLConnection) url.openConnection();        	
+    	conn.setConnectTimeout(6000);
+    	conn.setReadTimeout(6000);
+	    conn.setRequestMethod("GET");
+    	conn.setRequestProperty("User-Agent", "ServeStream");
     		
-	        mResponseCode = conn.getResponseCode();
+	    mResponseCode = conn.getResponseCode();
 		    
-	        if (mResponseCode == -1) {
-	        	mResponseCode = HttpURLConnection.HTTP_OK;
-	        }
+	    if (mResponseCode == -1) {
+	        mResponseCode = HttpURLConnection.HTTP_OK;
+	    }
 	        
-	        mContentType = conn.getContentType();
-	        is = conn.getInputStream();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
+	    mContentType = conn.getContentType();
+	    is = conn.getInputStream();
 	}
 
 	@Override

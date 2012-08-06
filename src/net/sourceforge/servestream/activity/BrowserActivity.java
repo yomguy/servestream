@@ -1,6 +1,6 @@
 /*
  * ServeStream: A HTTP stream browser/player for Android
- * Copyright 2010 William Seemann
+ * Copyright 2012 William Seemann
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,8 +17,6 @@
 
 package net.sourceforge.servestream.activity;
 
-import java.net.HttpURLConnection;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -29,11 +27,9 @@ import net.sourceforge.servestream.activity.URLListActivity;
 import net.sourceforge.servestream.bean.UriBean;
 import net.sourceforge.servestream.dbutils.StreamDatabase;
 import net.sourceforge.servestream.filemanager.*;
-import net.sourceforge.servestream.transport.AbsTransport;
 import net.sourceforge.servestream.transport.TransportFactory;
+import net.sourceforge.servestream.utils.DetermineActionTask;
 import net.sourceforge.servestream.utils.MusicUtils;
-import net.sourceforge.servestream.utils.URLUtils;
-import net.sourceforge.servestream.utils.Utils;
 import net.sourceforge.servestream.utils.MusicUtils.ServiceToken;
 
 import android.app.AlertDialog;
@@ -47,7 +43,6 @@ import android.content.Intent;
 import android.content.ServiceConnection;
 import android.media.AudioManager;
 import android.net.Uri;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
@@ -68,16 +63,14 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-public class BrowserActivity extends ListActivity implements ServiceConnection { 
+public class BrowserActivity extends ListActivity implements ServiceConnection,
+				DetermineActionTask.MusicRetrieverPreparedListener {
+
 	private final static String TAG = BrowserActivity.class.getName();
 
  	public static final int MESSAGE_SHOW_DIRECTORY_CONTENTS = 1;
-    public static final int MESSAGE_HANDLE_INTENT = 2;
-    public static final int MESSAGE_PARSE_WEBPAGE = 3;
+    public static final int MESSAGE_PARSE_WEBPAGE = 2;
 	
-    private static final int NO_INTENT = -1;
-    private static final int STREAM_MEDIA_INTENT = 1;
-    
     private final static int DETERMINE_INTENT_TASK = 1;
     
 	/** Contains directories and files together */
@@ -327,9 +320,6 @@ public class BrowserActivity extends ListActivity implements ServiceConnection {
     		case MESSAGE_SHOW_DIRECTORY_CONTENTS:
     			showDirectoryContents((DirectoryContents) message.obj);
     			break;
-    		case MESSAGE_HANDLE_INTENT:
-    			handleIntent(message);
-    			break;
 			case MESSAGE_PARSE_WEBPAGE:
 				mPreviousDirectory.put(mStepsBack, (UriBean) message.obj);
 				mStepsBack++;
@@ -376,7 +366,7 @@ public class BrowserActivity extends ListActivity implements ServiceConnection {
      
     private void browseTo(UriBean uri) {
 	    showDialog(DETERMINE_INTENT_TASK);
-        new DetermineIntentAsyncTask().execute(uri);
+        new DetermineActionTask(this, uri, this).execute();
     }
 
     private void refreshList() {
@@ -466,98 +456,37 @@ public class BrowserActivity extends ListActivity implements ServiceConnection {
 		}
 	}
 	
-	private void handleIntent(Message message) {
-		try {
-			removeDialog(DETERMINE_INTENT_TASK);
-		} catch (Exception ex) {
-		}
-		
-		switch (message.arg1) {
-			case STREAM_MEDIA_INTENT:
-		        MusicUtils.playAll(BrowserActivity.this, (long []) message.obj, 0);
-				break;
-			case NO_INTENT:
-				BrowserActivity.this.showUrlNotOpenedToast();
-				break;
-		}
-	}
-	
 	private void showUrlNotOpenedToast() {
 		Toast.makeText(this, R.string.url_not_opened_message, Toast.LENGTH_SHORT).show();
 	}
-    
-	public class DetermineIntentAsyncTask extends AsyncTask<UriBean, Void, Message> {
-		
-	    public DetermineIntentAsyncTask() {
-	        super();
-	    }
-	    
-		@Override
-		protected Message doInBackground(UriBean... uri) {
-		    return handleURL(uri[0]);
-		}
-		
-		@Override
-		protected void onPostExecute(Message message) {
-			message.sendToTarget();
-		}
-
-		private Message handleURL(UriBean uri) {
-			String contentType = null;
-			URLUtils urlUtils = null;
-			Message message = null;
-			
-			AbsTransport transport = TransportFactory.getTransport(uri.getProtocol());
-			transport.setUri(uri);
-			
-			if (!transport.usesNetwork()) {
-				long[] list = null;
-				list = MusicUtils.getFilesInPlaylist(BrowserActivity.this, uri.getScrubbedUri().toString(), contentType, null);
-				
-				message = mHandler.obtainMessage(URLListActivity.MESSAGE_HANDLE_INTENT);
-		        message.arg1 = STREAM_MEDIA_INTENT;
-		        message.obj = list;
-			} else {
-			try {
-				URL url = new URL(uri.getUri().toString());
-				urlUtils = new URLUtils();
-				urlUtils.getURLInformation(url, true);
-			} catch (Exception ex) {
-				ex.printStackTrace();
-				return null;
-			}
-			
-			if (urlUtils.getResponseCode() == HttpURLConnection.HTTP_OK) {			
-				contentType = urlUtils.getContentType();
-		    }
-			
-			if (contentType == null) {
-				message = mHandler.obtainMessage(URLListActivity.MESSAGE_HANDLE_INTENT);
-				message.arg1 = NO_INTENT;
-			} else if (contentType.contains("text/html")) {
-				message = mHandler.obtainMessage(BrowserActivity.MESSAGE_PARSE_WEBPAGE);
-				message.obj = uri;
-			} else {
-				long[] list = null;
-				list = MusicUtils.getFilesInPlaylist(BrowserActivity.this, uri.getScrubbedUri().toString(), contentType, urlUtils.getInputStream());
-				
-				message = mHandler.obtainMessage(URLListActivity.MESSAGE_HANDLE_INTENT);
-		        message.arg1 = STREAM_MEDIA_INTENT;
-		        message.obj = list;
-			}
-			
-			Utils.closeInputStream(urlUtils.getInputStream());
-			}
-			
-			return message;
-		}	
-	}
-
+	
 	public void onServiceConnected(ComponentName arg0, IBinder arg1) {
 		
 	}
 
 	public void onServiceDisconnected(ComponentName arg0) {
 		
+	}
+	
+	public void onMusicRetrieverPrepared(String action, UriBean uri, long[] list) {
+		if (action.equals(DetermineActionTask.URL_ACTION_UNDETERMINED)) {
+			try {
+				removeDialog(DETERMINE_INTENT_TASK);
+			} catch (Exception ex) {
+			}
+			showUrlNotOpenedToast();
+		} else if (action.equals(DetermineActionTask.URL_ACTION_BROWSE)) {
+			mPreviousDirectory.put(mStepsBack, uri);
+			mStepsBack++;
+			mPreviousDirectory.put(mStepsBack, null);
+			mDirectory[mStepsBack] = uri;
+			refreshList();
+		} else if (action.equals(DetermineActionTask.URL_ACTION_PLAY)) {
+			try {
+				removeDialog(DETERMINE_INTENT_TASK);
+			} catch (Exception ex) {
+			}
+			MusicUtils.playAll(BrowserActivity.this, list, 0);        
+		}
 	}
 }

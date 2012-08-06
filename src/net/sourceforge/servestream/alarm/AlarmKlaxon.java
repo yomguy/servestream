@@ -17,17 +17,11 @@
 
 package net.sourceforge.servestream.alarm;
 
-import java.net.HttpURLConnection;
-import java.net.URL;
-
 import net.sourceforge.servestream.R;
 import net.sourceforge.servestream.bean.UriBean;
 import net.sourceforge.servestream.dbutils.StreamDatabase;
-import net.sourceforge.servestream.transport.AbsTransport;
-import net.sourceforge.servestream.transport.TransportFactory;
+import net.sourceforge.servestream.utils.DetermineActionTask;
 import net.sourceforge.servestream.utils.MusicUtils;
-import net.sourceforge.servestream.utils.URLUtils;
-import net.sourceforge.servestream.utils.Utils;
 import net.sourceforge.servestream.utils.MusicUtils.ServiceToken;
 import android.app.Service;
 import android.content.ComponentName;
@@ -42,7 +36,6 @@ import android.media.MediaPlayer.OnErrorListener;
 import android.media.MediaPlayer.OnPreparedListener;
 import android.media.RingtoneManager;
 import android.net.Uri;
-import android.os.AsyncTask;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
@@ -55,7 +48,9 @@ import android.util.Log;
  * Manages alarms and vibe. Runs as a service so that it can continue to play
  * if another activity overrides the AlarmAlert dialog.
  */
-public class AlarmKlaxon extends Service implements ServiceConnection {
+public class AlarmKlaxon extends Service implements ServiceConnection, 
+				DetermineActionTask.MusicRetrieverPreparedListener {
+
 	private static final String TAG = AlarmKlaxon.class.getName();
 	
     /** Play alarm up to 20 minutes before silencing */
@@ -225,7 +220,7 @@ public class AlarmKlaxon extends Service implements ServiceConnection {
                             R.raw.in_call_alarm);
                     startAlarm(mMediaPlayer);
                 } else {                	
-                	new AlarmAsyncTask().execute(uri);
+                	new DetermineActionTask(this, uri, this).execute();
                 }
             } catch (Exception ex) {
             	useFallbackSound();
@@ -317,69 +312,6 @@ public class AlarmKlaxon extends Service implements ServiceConnection {
         mHandler.removeMessages(KILLER);
     }
     
-    public class AlarmAsyncTask extends AsyncTask<UriBean, Void, Boolean> {
-		
-	    public AlarmAsyncTask() {
-	        super();
-	    }
-	    
-		@Override
-		protected Boolean doInBackground(UriBean... uri) {
-			return handleURL(uri[0]);
-		}
-
-		@Override
-		protected void onPostExecute(Boolean success) {
-			if (!success) {
-				mHandler.sendEmptyMessage(FALLBACK);
-			}
-		}
-		
-		private boolean handleURL(UriBean uri) {
-			String contentType = null;
-			URLUtils urlUtils = null;
-			boolean success = false;
-			
-			AbsTransport transport = TransportFactory.getTransport(uri.getProtocol());
-			transport.setUri(uri);
-			
-			if (!transport.usesNetwork()) {
-				long [] list = MusicUtils.getFilesInPlaylist(AlarmKlaxon.this, uri.getUri().toString(), contentType, null);
-				
-				if (list != null && list.length > 0) {
-					MusicUtils.playAll(AlarmKlaxon.this, list, 0, false);
-					success = true;
-				}
-			} else {
-			try {
-				URL url = new URL(uri.getUri().toString());
-				urlUtils = new URLUtils();
-				urlUtils.getURLInformation(url, true);
-			} catch (Exception ex) {
-				ex.printStackTrace();
-				return false;
-			}
-			
-			if (urlUtils.getResponseCode() == HttpURLConnection.HTTP_OK) {			
-				contentType = urlUtils.getContentType();
-		    }
-			
-			if (contentType != null && !contentType.contains("text/html")) {
-				long [] list = MusicUtils.getFilesInPlaylist(AlarmKlaxon.this, uri.getUri().toString(), contentType, urlUtils.getInputStream());
-					
-				if (list != null && list.length > 0) {
-					MusicUtils.playAll(AlarmKlaxon.this, list, 0, false);
-					success = true;
-				}
-			}
-			
-			Utils.closeInputStream(urlUtils.getInputStream());
-			}
-			
-			return success;
-		}
-    }
-
     /**
      * Starts the fallback alarm sound
      */
@@ -409,5 +341,13 @@ public class AlarmKlaxon extends Service implements ServiceConnection {
 
 	public void onServiceDisconnected(ComponentName name) {
 				
+	}
+
+	public void onMusicRetrieverPrepared(String action, UriBean uri, long[] list) {
+		if (action.equals(DetermineActionTask.URL_ACTION_PLAY)) {
+			MusicUtils.playAll(AlarmKlaxon.this, list, 0);        
+		} else {
+			mHandler.sendEmptyMessage(FALLBACK);
+		}
 	}
 }

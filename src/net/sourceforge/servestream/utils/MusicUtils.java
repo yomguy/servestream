@@ -209,7 +209,7 @@ public class MusicUtils {
 			long [] list = new long[0];
 			
 			try {
-				url = new URL(uri[0].getUri().toString());
+				url = new URL(uri[0].getEncodedUri().toString());
 			} catch (MalformedURLException e) {
 				e.printStackTrace();
 			}
