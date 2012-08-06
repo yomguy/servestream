@@ -17,30 +17,45 @@
 
 package net.sourceforge.servestream.transport;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
+import java.net.Authenticator;
+import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
+import java.net.PasswordAuthentication;
 import java.net.URL;
 import java.net.URLDecoder;
 import java.util.Map;
 
 import net.sourceforge.servestream.bean.UriBean;
 import net.sourceforge.servestream.dbutils.StreamDatabase;
+import net.sourceforge.servestream.utils.Utils;
 
 import android.net.Uri;
 
-public class HTTPS extends HTTP {
+public class HTTPS extends AbsTransport {
 
 	private static final String PROTOCOL = "https";
 	private static final int DEFAULT_PORT = 443;
+	
+	private HttpURLConnection conn = null;
+	private InputStream is = null;
+	private int mResponseCode = -1;
+	private String mContentType = null;
 	
 	public HTTPS() {
 		super();
 	}
 	
+	public HTTPS(UriBean uri) {
+		super(uri);
+	}
+	
 	public static String getProtocolName() {
 		return PROTOCOL;
 	}
-	
+
 	/**
 	 * Encode the current transport into a URI that can be passed via intent calls.
 	 * @return URI to host
@@ -138,13 +153,64 @@ public class HTTPS extends HTTP {
 	}
 	
 	@Override
-	public int getDefaultPort() {
-		return DEFAULT_PORT;
+	public void connect() throws IOException {
+		URL url = null;
+
+		url = new URL(uri.getEncodedUri().toString());
+		
+    	String userInfo = url.getUserInfo();
+    		
+    	if (userInfo != null && (userInfo.split("\\:").length == 2)) {
+    		final String username = (userInfo.split("\\:"))[0] ;
+    		final String password = (userInfo.split("\\:"))[1] ;
+    		Authenticator.setDefault(new Authenticator() {
+    			protected PasswordAuthentication getPasswordAuthentication() {
+    				return new PasswordAuthentication(username, password.toCharArray()); 
+    			};
+    		});
+        	
+    		url = new URL(uri.getEncodedAndScrubbedUri().toString());
+    	}
+
+    	conn = (HttpURLConnection) url.openConnection();        	
+    	conn.setConnectTimeout(6000);
+    	conn.setReadTimeout(6000);
+	    conn.setRequestMethod("GET");
+    	conn.setRequestProperty("User-Agent", "ServeStream");
+    		
+	    mResponseCode = conn.getResponseCode();
+		    
+	    if (mResponseCode == -1) {
+	        mResponseCode = HttpURLConnection.HTTP_OK;
+	    }
+	        
+	    mContentType = conn.getContentType();
+	    is = conn.getInputStream();
+	}
+
+	@Override
+	public void close() {
+		Utils.closeInputStream(is);
+		Utils.closeHttpConnection(conn);		
+	}
+
+	@Override
+	public boolean exists() {
+		return true;
 	}
 	
 	@Override
+	public boolean isConnected() {
+		return is != null;
+	}
+
+	@Override
+	public int getDefaultPort() {
+		return DEFAULT_PORT;
+	}
+
+	@Override
 	public void getSelectionArgs(Uri uri, Map<String, String> selection) {
-		selection.put(StreamDatabase.FIELD_STREAM_NICKNAME, getUri(uri.toString(), true).toString());
 		selection.put(StreamDatabase.FIELD_STREAM_PROTOCOL, PROTOCOL);
 		
 		if (uri.getUserInfo() != null) {
@@ -206,7 +272,22 @@ public class HTTPS extends HTTP {
 	}
 
 	@Override
+	public String getContentType() {
+		return mContentType;
+	}
+	
+	@Override
 	public boolean usesNetwork() {
 	    return true;
+	}
+	
+	@Override
+	public boolean shouldSave() {
+	    return true;
+	}
+
+	@Override
+	public InputStream getConnection() {
+		return is;
 	}
 }

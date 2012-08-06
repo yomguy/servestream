@@ -70,9 +70,9 @@ public class TransportFactory {
 			scheme = File.getProtocolName();
 		}
 		
-		Log.d("TransportFactory", String.format(
-				"Attempting to discover URI for scheme=%s on input=%s", scheme,
-				input));
+		//Log.d("TransportFactory", String.format(
+		//		"Attempting to discover URI for scheme=%s on input=%s", scheme,
+		//		input));
 		if (HTTP.getProtocolName().equals(scheme))
 			return HTTP.getUri(input);
 		else if (HTTPS.getProtocolName().equals(scheme))

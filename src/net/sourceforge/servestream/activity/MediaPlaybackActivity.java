@@ -348,6 +348,9 @@ public class MediaPlaybackActivity extends Activity implements SurfaceHolder.Cal
         
         mParentActivityState = VISIBLE;
         
+		mMediaControls.startAnimation(media_controls_fade_in);
+		mMediaControls.setVisibility(View.VISIBLE);
+        
         //updateTrackInfo();
         //setPauseButtonImage();
     }

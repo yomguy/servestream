@@ -17,6 +17,7 @@
 
 package net.sourceforge.servestream.transport;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.Map;
 
@@ -55,7 +56,7 @@ public abstract class AbsTransport {
 	 * session is started, must call back to {@link TerminalBridge#onConnected()}.
 	 * After that call a session may be opened.
 	 */
-	public abstract void connect();
+	public abstract void connect() throws IOException;
 
 	/**
 	 * Closes the connection to the terminal. Note that the resulting failure to read
