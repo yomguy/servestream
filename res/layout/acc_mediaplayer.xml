@@ -37,13 +37,18 @@
 		android:layout_alignParentTop="true"
 		>
 
-		<RelativeLayout android:id="@+id/media_info"
-						android:layout_width="fill_parent"
-						android:layout_height="wrap_content"
-						android:paddingTop="6dip"
-						android:layout_alignParentTop="true"
-						android:background="@drawable/semi_transparent_background"
-						>
+	   	<LinearLayout
+        	android:layout_width="fill_parent" 
+        	android:layout_height="fill_parent"
+        	android:orientation="vertical"
+        	>
+	    
+			<RelativeLayout android:id="@+id/media_info"
+				android:layout_width="fill_parent"
+				android:layout_height="wrap_content"
+				android:paddingTop="6dip"
+				android:background="@drawable/semi_transparent_background"
+				>
 		
 				<Button android:id="@+id/shuffle_button"
 						android:layout_width="wrap_content"
@@ -90,35 +95,42 @@
 		
 		</RelativeLayout>
         
-        <TextView android:id="@+id/trackname"
-            android:layout_width="fill_parent"
-            android:layout_height="wrap_content"
-            android:textSize="14sp"
-            android:gravity="center"
-           	android:layout_below="@+id/media_info"
-		    android:background="@drawable/semi_transparent_background" />
+		<LinearLayout
+        	android:layout_width="fill_parent" 
+        	android:layout_height="fill_parent"
+        	android:orientation="vertical"
+        	>
+        
+        	<TextView android:id="@+id/trackname"
+            	android:layout_width="fill_parent"
+            	android:layout_height="wrap_content"
+            	android:textSize="14sp"
+            	android:gravity="center"
+		    	android:background="@drawable/semi_transparent_background" />
 		    
-        <TextView android:id="@+id/artistname"
-            android:layout_width="fill_parent"
-            android:layout_height="wrap_content"
-            android:textSize="18sp"
-            android:singleLine="true"
-            android:ellipsize="end"
-            android:textStyle="bold"
-            android:gravity="center"
-           	android:layout_below="@+id/trackname"
-		    android:background="@drawable/semi_transparent_background" />
+        	<TextView android:id="@+id/artistname"
+            	android:layout_width="fill_parent"
+            	android:layout_height="wrap_content"
+            	android:textSize="18sp"
+            	android:singleLine="true"
+            	android:ellipsize="end"
+            	android:textStyle="bold"
+            	android:gravity="center"
+		    	android:background="@drawable/semi_transparent_background" />
 		    
-		<TextView android:id="@+id/albumname"
-            android:layout_width="fill_parent"
-            android:layout_height="wrap_content"
-            android:textSize="14sp"
-            android:singleLine="true"
-            android:ellipsize="end"
-            android:gravity="center"
-           	android:layout_below="@+id/artistname"
-		    android:background="@drawable/semi_transparent_background" />
+			<TextView android:id="@+id/albumname"
+            	android:layout_width="fill_parent"
+            	android:layout_height="wrap_content"
+            	android:textSize="14sp"
+            	android:singleLine="true"
+            	android:ellipsize="end"
+            	android:gravity="center"
+		    	android:background="@drawable/semi_transparent_background" />
 
+		</LinearLayout>
+		
+    	</LinearLayout>
+		
 		<LinearLayout
 		    android:orientation="vertical"
 			android:layout_width="fill_parent"
