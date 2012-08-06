@@ -156,7 +156,7 @@ public class HTTPS extends AbsTransport {
 	public void connect() throws IOException {
 		URL url = null;
 
-		url = new URL(uri.getEncodedUri().toString());
+		url = uri.getURL();
 		
     	String userInfo = url.getUserInfo();
     		
@@ -169,7 +169,7 @@ public class HTTPS extends AbsTransport {
     			};
     		});
         	
-    		url = new URL(uri.getEncodedAndScrubbedUri().toString());
+    		url = uri.getScrubbedURL();
     	}
 
     	conn = (HttpURLConnection) url.openConnection();        	

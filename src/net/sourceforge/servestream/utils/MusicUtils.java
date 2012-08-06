@@ -21,7 +21,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLDecoder;
 import java.util.ArrayList;
@@ -208,11 +207,7 @@ public class MusicUtils {
 			URL url = null;
 			long [] list = new long[0];
 			
-			try {
-				url = new URL(uri[0].getEncodedUri().toString());
-			} catch (MalformedURLException e) {
-				e.printStackTrace();
-			}
+			url = uri[0].getURL();
 			
 			try {
 				urlUtils = new URLUtils();

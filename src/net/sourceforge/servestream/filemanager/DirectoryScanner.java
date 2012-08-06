@@ -17,7 +17,6 @@
 
 package net.sourceforge.servestream.filemanager;
 
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
@@ -65,19 +64,15 @@ public class DirectoryScanner extends Thread {
 	}
 
 	public void run() {
-		Log.v(TAG, "Scanning directory " + currentDirectory);
+		Log.v(TAG, "Scanning directory " + currentDirectory.getUri().toString());
 		
 		List<UriBean> uris = null;
 		
 		WebpageParser webpageParser;
-		try {
-			URL url = new URL(currentDirectory.getUri().toString());
-			webpageParser = new WebpageParser(url);
-			webpageParser.parse();
-			uris = webpageParser.getParsedLinks();
-		} catch (MalformedURLException e) {
-			e.printStackTrace();
-		}
+		URL url = currentDirectory.getURL();
+		webpageParser = new WebpageParser(url);
+		webpageParser.parse();
+		uris = webpageParser.getParsedLinks();
 		
 		int totalCount = 0;
 		
