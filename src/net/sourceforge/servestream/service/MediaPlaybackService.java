@@ -1690,8 +1690,9 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
 				R.drawable.notification_icon, null,
 				System.currentTimeMillis());
         status.flags |= Notification.FLAG_ONGOING_EVENT;
-        PendingIntent contentIntent = PendingIntent.getActivity(this, 1,
-                new Intent(this, MediaPlaybackActivity.class), 0);
+        PendingIntent contentIntent = PendingIntent.getActivity(this, 0,
+                new Intent(this, MediaPlaybackActivity.class)
+                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK), 0);
 		status.setLatestEventInfo(getApplicationContext(), trackName,
 				getString(R.string.notification_artist_album, artist, album), contentIntent);
 		
