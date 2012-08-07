@@ -21,6 +21,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.Authenticator;
+import javax.net.ssl.HttpsURLConnection;
+
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.PasswordAuthentication;
@@ -39,7 +41,7 @@ public class HTTPS extends AbsTransport {
 	private static final String PROTOCOL = "https";
 	private static final int DEFAULT_PORT = 443;
 	
-	private HttpURLConnection conn = null;
+	private HttpsURLConnection conn = null;
 	private InputStream is = null;
 	private int mResponseCode = -1;
 	private String mContentType = null;
@@ -172,7 +174,7 @@ public class HTTPS extends AbsTransport {
     		url = uri.getScrubbedURL();
     	}
 
-    	conn = (HttpURLConnection) url.openConnection();        	
+    	conn = (HttpsURLConnection) url.openConnection();        	
     	conn.setConnectTimeout(6000);
     	conn.setReadTimeout(6000);
 	    conn.setRequestMethod("GET");
