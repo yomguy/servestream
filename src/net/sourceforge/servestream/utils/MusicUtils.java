@@ -20,8 +20,6 @@ package net.sourceforge.servestream.utils;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
-import java.net.HttpURLConnection;
-import java.net.URL;
 import java.net.URLDecoder;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -43,6 +41,8 @@ import net.sourceforge.servestream.bean.UriBean;
 import net.sourceforge.servestream.provider.Media;
 import net.sourceforge.servestream.service.IMediaPlaybackService;
 import net.sourceforge.servestream.service.MediaPlaybackService;
+import net.sourceforge.servestream.transport.AbsTransport;
+import net.sourceforge.servestream.transport.TransportFactory;
 import android.app.Activity;
 import android.app.Service;
 import android.content.ComponentName;
@@ -165,9 +165,9 @@ public class MusicUtils {
         }
     }
     
-    public static AddToCurrentPlaylistAsyncTask addToCurrentPlaylistFromURL(Context context, Handler handler, UriBean uri) {
-    	AddToCurrentPlaylistAsyncTask playlistTask = new AddToCurrentPlaylistAsyncTask(context, handler);
-    	playlistTask.execute(uri);
+    public static AddToCurrentPlaylistAsyncTask addToCurrentPlaylistFromURL(Context context, UriBean uri, Handler handler) {
+    	AddToCurrentPlaylistAsyncTask playlistTask = new AddToCurrentPlaylistAsyncTask(context, uri, handler);
+    	playlistTask.execute();
     	
     	return playlistTask;
     }
@@ -189,43 +189,37 @@ public class MusicUtils {
         }
     }
     
-    public static class AddToCurrentPlaylistAsyncTask extends AsyncTask<UriBean, Void, Void> {
+    public static class AddToCurrentPlaylistAsyncTask extends AsyncTask<Void, Void, Void> {
 		
     	Context mContext = null;
+    	private UriBean mUri;
     	Handler mHandler = null;
     	
-	    public AddToCurrentPlaylistAsyncTask(Context context, Handler handler) {
+	    public AddToCurrentPlaylistAsyncTask(Context context, UriBean uri, Handler handler) {
 	        super();
 	        mContext = context;
+	        mUri = uri;
 	        mHandler = handler;
 	    }
 
 		@Override
-		protected Void doInBackground(UriBean... uri) {
-			String contentType = null;
-			URLUtils urlUtils = null;
-			URL url = null;
+		protected Void doInBackground(Void... arg0) {
 			long [] list = new long[0];
 			
-			url = uri[0].getURL();
+			AbsTransport transport = TransportFactory.getTransport(mUri.getProtocol());
+			transport.setUri(mUri);
 			
-			try {
-				urlUtils = new URLUtils();
-				urlUtils.getURLInformation(url, true);
-			} catch (Exception ex) {
-				ex.printStackTrace();
-				return null;
+			try { 
+				transport.connect();
+			
+				if (transport.getContentType() != null && !transport.getContentType().contains("text/html")) {
+					list = MusicUtils.getFilesInPlaylist(mContext, mUri.getScrubbedUri().toString(), transport.getContentType(), transport.getConnection());
+				}
+			} catch (Exception e) {
+				e.printStackTrace();
+			} finally {
+				transport.close();
 			}
-			
-			if (urlUtils.getResponseCode() == HttpURLConnection.HTTP_OK) {			
-				contentType = urlUtils.getContentType();
-		    }
-	
-			if (contentType != null && !contentType.contains("text/html")) {
-				list = MusicUtils.getFilesInPlaylist(mContext, url.toString(), contentType, urlUtils.getInputStream());
-			}
-			
-			Utils.closeInputStream(urlUtils.getInputStream());
 			
 	        Message msg = new Message();
 	        msg.obj = list;

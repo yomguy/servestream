@@ -26,7 +26,6 @@ import net.sourceforge.servestream.dbutils.StreamDatabase;
 
 import android.content.ContentValues;
 import android.net.Uri;
-import android.util.Log;
 
 public class UriBean {
 	public static final String BEAN_NAME = "uri";
@@ -247,7 +246,7 @@ public class UriBean {
 		if (username != null && password != null) {
 			sb.append(Uri.encode(username))
 				.append(":")
-				.append("password")
+				.append(password)
 				.append('@');
 		}
 
