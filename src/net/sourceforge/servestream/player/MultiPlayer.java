@@ -56,7 +56,7 @@ public class MultiPlayer implements Parcelable {
             	mMediaPlayer.prepare();
             } else {
             	try {
-                    mMediaPlayer.setDataSource(URLUtils.encodeUrl(path));
+                    mMediaPlayer.setDataSource(URLUtils.encodeURL(path));
             		mMediaPlayer.prepareAsync();
             	} catch (IllegalStateException e) {
             		//setDataSource(path, isLocalFile);
