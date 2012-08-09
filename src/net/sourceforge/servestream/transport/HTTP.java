@@ -156,13 +156,10 @@ public class HTTP extends AbsTransport {
 	public void connect() throws IOException {
 		URL url = null;
 
-		url = uri.getURL();
-		
-    	String userInfo = url.getUserInfo();
+    	final String username = uri.getUsername();
+    	final String password = uri.getPassword();
     		
-    	if (userInfo != null && (userInfo.split("\\:").length == 2)) {
-    		final String username = (userInfo.split("\\:"))[0] ;
-    		final String password = (userInfo.split("\\:"))[1] ;
+    	if (username != null && password != null) {
     		Authenticator.setDefault(new Authenticator() {
     			protected PasswordAuthentication getPasswordAuthentication() {
     				return new PasswordAuthentication(username, password.toCharArray()); 
@@ -170,6 +167,8 @@ public class HTTP extends AbsTransport {
     		});
         	
     		url = uri.getScrubbedURL();
+    	} else {
+    		url = uri.getURL();
     	}
 
     	conn = (HttpURLConnection) url.openConnection();        	
