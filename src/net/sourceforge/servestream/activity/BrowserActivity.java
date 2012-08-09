@@ -294,7 +294,7 @@ public class BrowserActivity extends ListActivity implements ServiceConnection,
 		MenuItem add = menu.add(R.string.add_to_playlist);
 		add.setOnMenuItemClickListener(new OnMenuItemClickListener() {
 			public boolean onMenuItemClick(MenuItem item) {
-				MusicUtils.addToCurrentPlaylistFromURL(BrowserActivity.this, mQueueHandler, uri);
+				MusicUtils.addToCurrentPlaylistFromURL(BrowserActivity.this, uri, mQueueHandler);
 				return true;
 			}
 		});

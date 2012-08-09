@@ -71,7 +71,7 @@ public class WebpageParser {
     			conn = (HttpsURLConnection) mURL.openConnection();        		
     		}
     	
-    		conn.setRequestProperty("User-Agent", URLUtils.USER_AGENT);
+    		conn.setRequestProperty("User-Agent", "ServeStream");
     		conn.setConnectTimeout(6000);
     		conn.setReadTimeout(6000);
 		    conn.setRequestMethod(REQUEST_METHOD);

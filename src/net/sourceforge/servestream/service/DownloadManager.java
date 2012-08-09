@@ -8,8 +8,9 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 
+import javax.net.ssl.HttpsURLConnection;
+
 import net.sourceforge.servestream.provider.Media;
-import net.sourceforge.servestream.utils.URLUtils;
 import net.sourceforge.servestream.utils.Utils;
 import android.content.Context;
 import android.database.Cursor;
@@ -207,17 +208,21 @@ public class DownloadManager {
         private HttpURLConnection determineRange(URL url, long bytesProcessed) {
         	HttpURLConnection conn = null;
 		
-        	conn = URLUtils.getConnection(url);
-		
-        	if (conn == null) {
-        		return null;
-        	}
-		
-        	conn.setConnectTimeout(6000);
-        	conn.setReadTimeout(6000);
-        	conn.setRequestProperty("Range", "bytes=" + bytesProcessed + "-");
-		
         	try {
+        		if (url.getProtocol().equalsIgnoreCase("http")) {
+        			conn = (HttpURLConnection) url.openConnection();
+        		} else if (url.getProtocol().equalsIgnoreCase("https")) {
+        			conn = (HttpsURLConnection) url.openConnection();        		
+        		}
+    	
+        		if (conn == null) {
+        			return null;
+        		}
+		
+        		conn.setRequestProperty("User-Agent", "ServeStream");
+        		conn.setConnectTimeout(6000);
+        		conn.setReadTimeout(6000);
+        		conn.setRequestProperty("Range", "bytes=" + bytesProcessed + "-");
         		conn.setRequestMethod("GET");
         		conn.connect();
         	} catch (IOException e) {

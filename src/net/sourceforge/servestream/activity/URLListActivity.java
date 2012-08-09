@@ -601,7 +601,7 @@ public class URLListActivity extends ListActivity implements ServiceConnection,
 		MenuItem add = menu.add(R.string.add_to_playlist);
 		add.setOnMenuItemClickListener(new OnMenuItemClickListener() {
 			public boolean onMenuItemClick(MenuItem item) {
-				MusicUtils.addToCurrentPlaylistFromURL(URLListActivity.this, mQueueHandler, uri);
+				MusicUtils.addToCurrentPlaylistFromURL(URLListActivity.this, uri, mQueueHandler);
 				return true;
 			}
 		});

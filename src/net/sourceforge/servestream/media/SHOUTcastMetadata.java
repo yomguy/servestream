@@ -23,14 +23,17 @@
 package net.sourceforge.servestream.media;
 
 import java.io.InputStream;
+import java.net.Authenticator;
 import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
+import java.net.PasswordAuthentication;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import javax.net.ssl.HttpsURLConnection;
 
 import android.content.BroadcastReceiver;
 import android.content.ContentValues;
@@ -42,7 +45,8 @@ import android.net.Uri;
 import android.os.AsyncTask;
 import android.util.Log;
 
-import net.sourceforge.servestream.utils.URLUtils;
+import net.sourceforge.servestream.transport.TransportFactory;
+import net.sourceforge.servestream.bean.UriBean;
 import net.sourceforge.servestream.provider.Media;
 import net.sourceforge.servestream.service.MediaPlaybackService;
 import net.sourceforge.servestream.utils.Utils;
@@ -62,7 +66,7 @@ public class SHOUTcastMetadata extends BroadcastReceiver {
     private Map<String, String> mMetadata = null;
     
     private long mId = -1;
-	private URL mUrl = null;
+	private UriBean mUri = null;
 	private boolean mContainsMetadata = false;	
 	
 	private PollingAsyncTask mPollingAsyncTask = null;
@@ -133,15 +137,17 @@ public class SHOUTcastMetadata extends BroadcastReceiver {
 	 * @param id The id to generate a URL for.
 	 */
 	private void changeUrl(long id) {
-		String uri = getUri(mMediaPlaybackService, id);
+		Uri uri = TransportFactory.getUri(getUri(mMediaPlaybackService, id));
+
+		if (uri == null) {
+			return;
+		}
+
+		UriBean uriBean = TransportFactory.getTransport(uri.getScheme()).createUri(uri);
 		
-		if (uri != null) {
-			try {
-				mUrl = new URL(uri);
-				mId = id;
-			} catch (MalformedURLException e) {
-				e.printStackTrace();
-			}			
+		if (uriBean != null) {
+			mUri = uriBean;
+			mId = id;
 		}
 	}
     
@@ -149,20 +155,41 @@ public class SHOUTcastMetadata extends BroadcastReceiver {
      * Establishes a connection to the specified Url and, if available, obtains and
      * parses the SHOUTcast metadata returned.
      */
-    private void retrieveMetadata(URL url) {
+    private void retrieveMetadata() {
+    	URL url = null;
     	int metaDataOffset = 0;
     	HttpURLConnection conn = null;
     	InputStream stream = null;
     	int bytesRead = 0;
     	mContainsMetadata = false;
 	  
-    	if (url == null) {
+    	if (mUri == null) {
     		return;
     	}
     	
     	try {
-    		conn = URLUtils.getConnection(mUrl);
-      
+        	final String username = mUri.getUsername();
+        	final String password = mUri.getPassword();
+        		
+        	if (username != null && password != null) {
+        		Authenticator.setDefault(new Authenticator() {
+        			protected PasswordAuthentication getPasswordAuthentication() {
+        				return new PasswordAuthentication(username, password.toCharArray()); 
+        			};
+        		});
+            	
+        		url = mUri.getScrubbedURL();
+        	} else {
+        		url = mUri.getURL();
+        	}
+    	
+    		if (url.getProtocol().equalsIgnoreCase("http")) {
+    			conn = (HttpURLConnection) url.openConnection();
+    		} else if (url.getProtocol().equalsIgnoreCase("https")) {
+    			conn = (HttpsURLConnection) url.openConnection();        		
+    		}
+    	
+    		conn.setRequestProperty("User-Agent", "ServeStream");
     	    conn.setRequestProperty("Icy-MetaData", "1");
     	    conn.setRequestProperty("Connection", "close");
     	    conn.setRequestProperty("Accept", null);
@@ -380,7 +407,7 @@ public class SHOUTcastMetadata extends BroadcastReceiver {
 			Log.v(TAG, "Starting polling thread");
 			try {
 				while (retries < 2 && !isCancelled()) {
-					retrieveMetadata(mUrl);
+					retrieveMetadata();
 					metadataFound = mContainsMetadata;
 					retries++;
 					
