@@ -22,6 +22,6 @@
 	<!-- DO NOT MANUALLY UPDATE VERSION!!!
 	  Updating is update by the ant task "update-version" in build.xml
 	-->
-	<string name="msg_version">ServeStream (v0.4.9)</string>
+	<string name="msg_version">ServeStream (v0.4.10)</string>
 
 </resources>
