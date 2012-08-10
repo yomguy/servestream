@@ -62,6 +62,12 @@ public class TransportFactory {
 			return null;
 		}
 		
+		// ensure the URI has a scheme since this is necessary to determine
+		// the transport type
+		if (uri.getScheme() == null) {
+			return null;
+		}
+		
 		if (uri.getScheme().equals(HTTP.getProtocolName())) {
 			scheme = HTTP.getProtocolName();
 		} else if (uri.getScheme().equals(HTTPS.getProtocolName())) {
