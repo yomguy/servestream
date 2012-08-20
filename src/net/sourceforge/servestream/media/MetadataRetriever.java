@@ -115,9 +115,12 @@ public class MetadataRetriever {
 	private static int updateMetadata(Context context, long id, MediaMetadataRetriever mmr) {
 		int rows = 0;
 		
-		String title =  mmr.extractMetadata("title");
-		String album = mmr.extractMetadata("album");
-		String artist = mmr.extractMetadata("artist");
+		String title =  mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_TITLE);
+		String album = mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ALBUM);
+		String artist = mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ARTIST);
+		String duration = mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION);
+		
+		System.out.println("Duration: " + duration);
 		
 		// if we didn't obtain at least the title, album or artist then don't store
 		// the metadata since it's pretty useless
@@ -132,6 +135,7 @@ public class MetadataRetriever {
 		values.put(Media.MediaColumns.TITLE, validateAttribute(title));
 		values.put(Media.MediaColumns.ALBUM, validateAttribute(album));
 		values.put(Media.MediaColumns.ARTIST, validateAttribute(artist));
+		values.put(Media.MediaColumns.DURATION, convertToInteger(duration));
 		values.put(Media.MediaColumns.TRACK, validateAttribute(mmr.extractMetadata("track")));
 		values.put(Media.MediaColumns.YEAR, convertToInteger(mmr.extractMetadata("date")));
 

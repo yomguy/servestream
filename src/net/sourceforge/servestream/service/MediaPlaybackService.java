@@ -893,8 +893,7 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
                 .putString(2, getArtistName())
                 .putString(1, getAlbumName())
                 .putString(7, getTrackName())
-                //.putLong(MediaMetadataRetriever.METADATA_KEY_DURATION,
-                //        playingItem.getDuration())
+                .putLong(9, getDuration())
                 //.putBitmap(
                 //        RemoteControlClientCompat.MetadataEditorCompat.METADATA_KEY_ARTWORK,
                 //        mDummyAlbumArt)
@@ -1365,6 +1364,16 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
         }
     }
     
+    public int getDuration() {
+    	synchronized(this) {
+    		if (mCursor == null) {
+    		    return -1;
+    		}
+    		
+    		return mCursor.getInt(mCursor.getColumnIndexOrThrow(Media.MediaColumns.DURATION));
+    	}
+    }
+    
     public boolean isStreaming() {
         synchronized (this) {    	
         	return mIsStreaming;
@@ -1653,6 +1662,19 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
         	tempCursor = mCursor;
         	tempCursor.close();
         	mCursor = cursor;
+        	
+            if (mRemoteControlClientCompat != null) {
+            	// Update the remote controls
+            	mRemoteControlClientCompat.editMetadata(true)
+                    	.putString(2, getArtistName())
+                    	.putString(1, getAlbumName())
+                    	.putString(7, getTrackName())
+                    	.putLong(9, getDuration())
+                    	//.putBitmap(
+                    	//        RemoteControlClientCompat.MetadataEditorCompat.METADATA_KEY_ARTWORK,
+                    	//        mDummyAlbumArt)
+                    	.apply();
+            }
         	
             Intent i = new Intent(PLAYSTATE_CHANGED);
             i.putExtra("id", Long.valueOf(getAudioId()));
