@@ -80,6 +80,7 @@ public class MediaPlaybackActivity extends Activity implements SurfaceHolder.Cal
     private static final String TAG = MediaPlaybackActivity.class.getName();
 
     private int mParentActivityState = VISIBLE;
+    private boolean mInitialCreation = true;
     private static int VISIBLE = 1;
     private static int GONE = 2;
     
@@ -184,7 +185,7 @@ public class MediaPlaybackActivity extends Activity implements SurfaceHolder.Cal
 		media_controls_fade_out = AnimationUtils.loadAnimation(this, R.anim.media_controls_fade_out);
 
 		mMediaControls = (RelativeLayout) findViewById(R.id.media_controls);
-		mMediaControls.setVisibility(View.GONE);
+		mMediaControls.setVisibility(View.VISIBLE);
     }
     
 	/* (non-Javadoc)
@@ -348,11 +349,20 @@ public class MediaPlaybackActivity extends Activity implements SurfaceHolder.Cal
         
         mParentActivityState = VISIBLE;
         
-		mMediaControls.startAnimation(media_controls_fade_in);
-		mMediaControls.setVisibility(View.VISIBLE);
-        
-        //updateTrackInfo();
-        //setPauseButtonImage();
+		if (!mInitialCreation) {
+			if (mService == null && mToken == null) {
+				// connect with manager service to find all bridges
+				// when connected it will insert all views
+				mToken = MusicUtils.bindToService(this, osc);
+				if (mToken == null) {
+					// something went wrong
+					mHandler.sendEmptyMessage(QUIT);
+				}
+			}
+			
+	        updateTrackInfo();
+	        setPauseButtonImage();
+		}
     }
 
     @Override
@@ -660,11 +670,10 @@ public class MediaPlaybackActivity extends Activity implements SurfaceHolder.Cal
         if (mToken == null) {
             // something went wrong
             mHandler.sendEmptyMessage(QUIT);
-        }		
+        }
 	}
 
 	public void surfaceDestroyed(SurfaceHolder arg0) {
-
 	}
     
     @Override
@@ -903,6 +912,7 @@ public class MediaPlaybackActivity extends Activity implements SurfaceHolder.Cal
 
     private ServiceConnection osc = new ServiceConnection() {
             public void onServiceConnected(ComponentName classname, IBinder obj) {
+            	mInitialCreation = false;
                 mService = IMediaPlaybackService.Stub.asInterface(obj);
                 
                 startPlayback();
