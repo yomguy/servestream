@@ -145,6 +145,8 @@ public class URLListActivity extends ListActivity implements ServiceConnection,
 		
 		setVolumeControlStream(AudioManager.STREAM_MUSIC);
 		
+        mToken = MusicUtils.bindToService(this, this);		
+		
 		mPreferences = PreferenceManager.getDefaultSharedPreferences(this);
 		
 		// If the intent is a request to create a shortcut, we'll do that and exit
@@ -290,12 +292,11 @@ public class URLListActivity extends ListActivity implements ServiceConnection,
 	public void onStart() {
 		super.onStart();
 		
-        mToken = MusicUtils.bindToService(this, this);
-		
 		updateList();
 		
-		if(mStreamdb == null)
+		if(mStreamdb == null) {
 			mStreamdb = new StreamDatabase(this);
+		}
 	}
 	
 	@Override
@@ -320,9 +321,9 @@ public class URLListActivity extends ListActivity implements ServiceConnection,
 	}
 	
 	@Override
-	public void onStop() {
-		super.onStop();
-		
+	public void onDestroy() {
+		super.onDestroy();
+
 		if(mStreamdb != null) {
 			mStreamdb.close();
 			mStreamdb = null;
