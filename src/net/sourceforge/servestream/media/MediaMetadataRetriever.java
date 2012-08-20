@@ -1,6 +1,6 @@
 /*
  * ServeStream: A HTTP stream browser/player for Android
- * Copyright 2010 William Seemann
+ * Copyright 2012 William Seemann
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,17 +17,7 @@
 
 package net.sourceforge.servestream.media;
 
-import android.content.ContentResolver;
-import android.content.Context;
-import android.content.res.AssetFileDescriptor;
 import android.graphics.Bitmap;
-import android.net.Uri;
-
-import java.io.FileDescriptor;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-
-import java.util.Map;
 
 /**
  * MediaMetadataRetriever class provides a unified interface for retrieving
@@ -37,7 +27,7 @@ public class MediaMetadataRetriever
 {
     static {
         System.loadLibrary("media1_jni");
-        nativeInit();
+        native_init();
     }
 
     // The field below is accessed by native methods
@@ -57,123 +47,16 @@ public class MediaMetadataRetriever
      * @param path The path of the input media file.
      * @throws IllegalArgumentException If the path is invalid.
      */
-    public native int setDataSource(String path);
-
-    /**
-     * Sets the data source (URI) to use. Call this
-     * method before the rest of the methods in this class. This method may be
-     * time-consuming.
-     *
-     * @param uri The URI of the input media.
-     * @param headers the headers to be sent together with the request for the data
-     * @throws IllegalArgumentException If the URI is invalid.
-     */
-    public void setDataSource(String uri,  Map<String, String> headers)
-            throws IllegalArgumentException {
-        int i = 0;
-        String[] keys = new String[headers.size()];
-        String[] values = new String[headers.size()];
-        for (Map.Entry<String, String> entry: headers.entrySet()) {
-            keys[i] = entry.getKey();
-            values[i] = entry.getValue();
-            ++i;
-        }
-        _setDataSource(uri, keys, values);
+    public void setDataSource(String path) throws IllegalArgumentException {
+    	if (path == null) {
+    		throw new IllegalArgumentException();
+    	}
+    	
+    	_setDataSource(path);
     }
 
-    private native void _setDataSource(
-        String uri, String[] keys, String[] values)
-        throws IllegalArgumentException;
-
-    /**
-     * Sets the data source (FileDescriptor) to use.  It is the caller's
-     * responsibility to close the file descriptor. It is safe to do so as soon
-     * as this call returns. Call this method before the rest of the methods in
-     * this class. This method may be time-consuming.
-     * 
-     * @param fd the FileDescriptor for the file you want to play
-     * @param offset the offset into the file where the data to be played starts,
-     * in bytes. It must be non-negative
-     * @param length the length in bytes of the data to be played. It must be
-     * non-negative.
-     * @throws IllegalArgumentException if the arguments are invalid
-     */
-    public native void setDataSource(FileDescriptor fd, long offset, long length)
-            throws IllegalArgumentException;
+    public native int _setDataSource(String path);
     
-    /**
-     * Sets the data source (FileDescriptor) to use. It is the caller's
-     * responsibility to close the file descriptor. It is safe to do so as soon
-     * as this call returns. Call this method before the rest of the methods in
-     * this class. This method may be time-consuming.
-     * 
-     * @param fd the FileDescriptor for the file you want to play
-     * @throws IllegalArgumentException if the FileDescriptor is invalid
-     */
-    public void setDataSource(FileDescriptor fd)
-            throws IllegalArgumentException {
-        // intentionally less than LONG_MAX
-        setDataSource(fd, 0, 0x7ffffffffffffffL);
-    }
-    
-    /**
-     * Sets the data source as a content Uri. Call this method before 
-     * the rest of the methods in this class. This method may be time-consuming.
-     * 
-     * @param context the Context to use when resolving the Uri
-     * @param uri the Content URI of the data you want to play
-     * @throws IllegalArgumentException if the Uri is invalid
-     * @throws SecurityException if the Uri cannot be used due to lack of
-     * permission.
-     */
-    public void setDataSource(Context context, Uri uri)
-        throws IllegalArgumentException, SecurityException {
-        if (uri == null) {
-            throw new IllegalArgumentException();
-        }
-        
-        String scheme = uri.getScheme();
-        if(scheme == null || scheme.equals("file")) {
-            setDataSource(uri.getPath());
-            return;
-        }
-
-        AssetFileDescriptor fd = null;
-        try {
-            ContentResolver resolver = context.getContentResolver();
-            try {
-                fd = resolver.openAssetFileDescriptor(uri, "r");
-            } catch(FileNotFoundException e) {
-                throw new IllegalArgumentException();
-            }
-            if (fd == null) {
-                throw new IllegalArgumentException();
-            }
-            FileDescriptor descriptor = fd.getFileDescriptor();
-            if (!descriptor.valid()) {
-                throw new IllegalArgumentException();
-            }
-            // Note: using getDeclaredLength so that our behavior is the same
-            // as previous versions when the content provider is returning
-            // a full file.
-            if (fd.getDeclaredLength() < 0) {
-                setDataSource(descriptor);
-            } else {
-                setDataSource(descriptor, fd.getStartOffset(), fd.getDeclaredLength());
-            }
-            return;
-        } catch (SecurityException ex) {
-        } finally {
-            try {
-                if (fd != null) {
-                    fd.close();
-                }
-            } catch(IOException ioEx) {
-            }
-        }
-        setDataSource(uri.toString());
-    }
-
     /**
      * Call this method after setDataSource(). This method retrieves the 
      * meta data value associated with the keyCode.
@@ -181,7 +64,7 @@ public class MediaMetadataRetriever
      * The keyCode currently supported is listed below as METADATA_XXX
      * constants. With any other value, it returns a null pointer.
      * 
-     * @param keyCode One of the constants listed below at the end of the class.
+     * @param key One of the constants listed below at the end of the class.
      * @return The meta data value associate with the given keyCode on success; 
      * null on failure.
      */
@@ -288,8 +171,8 @@ public class MediaMetadataRetriever
      * allocated internally.
      */
     public native void release();
-    private native void native_setup();
-    private static native void nativeInit();
+    //private native void native_setup();
+    private static native void native_init();
 
     //private native final void native_finalize();
 
@@ -307,9 +190,6 @@ public class MediaMetadataRetriever
      * frame at a specified location.
      *
      * @see #getFrameAtTime(long, int)
-     */
-    /* Do not change these option values without updating their counterparts
-     * in include/media/stagefright/MediaSource.h!
      */
     /**
      * This option is used with {@link #getFrameAtTime(long, int)} to retrieve
@@ -344,126 +224,97 @@ public class MediaMetadataRetriever
      */
     public static final int OPTION_CLOSEST          = 0x03;
 
-    /*
-     * Do not change these metadata key values without updating their
-     * counterparts in include/media/mediametadataretriever.h!
-     */
     /**
-     * The metadata key to retrieve the numberic string describing the
-     * order of the audio data source on its original recording.
+     * The metadata key to retrieve the name of the set this work belongs to.
      */
-    public static final int METADATA_KEY_CD_TRACK_NUMBER = 0;
+    public static final String METADATA_KEY_ALBUM = "album";
     /**
-     * The metadata key to retrieve the information about the album title
-     * of the data source.
+     * The metadata key to retrieve the main creator of the set/album, if different 
+     * from artist. e.g. "Various Artists" for compilation albums.
      */
-    public static final int METADATA_KEY_ALBUM           = 1;
+    public static final String METADATA_KEY_ALBUM_ARTIST = "album_artist";
     /**
-     * The metadata key to retrieve the information about the artist of
-     * the data source.
+     * The metadata key to retrieve the main creator of the work.
      */
-    public static final int METADATA_KEY_ARTIST          = 2;
+    public static final String METADATA_KEY_ARTIST = "artist";
     /**
-     * The metadata key to retrieve the information about the author of
-     * the data source.
+     * The metadata key to retrieve the any additional description of the file.
      */
-    public static final int METADATA_KEY_AUTHOR          = 3;
+    public static final String METADATA_KEY_COMMENT = "comment";
     /**
-     * The metadata key to retrieve the information about the composer of
-     * the data source.
+     * The metadata key to retrieve the who composed the work, if different from artist.
      */
-    public static final int METADATA_KEY_COMPOSER        = 4;
+    public static final String METADATA_KEY_COMPOSER = "composer";
     /**
-     * The metadata key to retrieve the date when the data source was created
-     * or modified.
+     * The metadata key to retrieve the name of copyright holder.
      */
-    public static final int METADATA_KEY_DATE            = 5;
+    public static final String METADATA_KEY_COPYRIGHT = "copyright";
     /**
-     * The metadata key to retrieve the content type or genre of the data
-     * source.
+     * The metadata key to retrieve the date when the file was created, preferably in ISO 8601.
      */
-    public static final int METADATA_KEY_GENRE           = 6;
+    public static final String METADATA_KEY_CREATION_TIME = "creation_time";
     /**
-     * The metadata key to retrieve the data source title.
+     * The metadata key to retrieve the date when the work was created, preferably in ISO 8601.
      */
-    public static final int METADATA_KEY_TITLE           = 7;
+    public static final String METADATA_KEY_DATE = "date";
     /**
-     * The metadata key to retrieve the year when the data source was created
-     * or modified.
+     * The metadata key to retrieve the number of a subset, e.g. disc in a multi-disc collection.
      */
-    public static final int METADATA_KEY_YEAR            = 8;
+    public static final String METADATA_KEY_DISC = "disc";
     /**
-     * The metadata key to retrieve the playback duration of the data source.
+     * The metadata key to retrieve the name/settings of the software/hardware that produced the file.
      */
-    public static final int METADATA_KEY_DURATION        = 9;
+    public static final String METADATA_KEY_ENCODER = "encoder";
     /**
-     * The metadata key to retrieve the number of tracks, such as audio, video,
-     * text, in the data source, such as a mp4 or 3gpp file.
+     * The metadata key to retrieve the person/group who created the file.
      */
-    public static final int METADATA_KEY_NUM_TRACKS      = 10;
+    public static final String METADATA_KEY_ENCODED_BY = "encoded_by";
     /**
-     * The metadata key to retrieve the information of the writer (such as
-     * lyricist) of the data source.
+     * The metadata key to retrieve the original name of the file.
      */
-    public static final int METADATA_KEY_WRITER          = 11;
+    public static final String METADATA_KEY_FILENAME = "filename";
     /**
-     * The metadata key to retrieve the mime type of the data source. Some
-     * example mime types include: "video/mp4", "audio/mp4", "audio/amr-wb",
-     * etc.
+     * The metadata key to retrieve the genre of the work.
      */
-    public static final int METADATA_KEY_MIMETYPE        = 12;
+    public static final String METADATA_KEY_GENRE = "genre";
     /**
-     * The metadata key to retrieve the information about the performers or
-     * artist associated with the data source.
+     * The metadata key to retrieve the main language in which the work is performed, preferably
+     * in ISO 639-2 format. Multiple languages can be specified by separating them with commas.
      */
-    public static final int METADATA_KEY_ALBUMARTIST     = 13;
+    public static final String METADATA_KEY_LANGUAGE = "language";
     /**
-     * The metadata key to retrieve the numberic string that describes which
-     * part of a set the audio data source comes from.
+     * The metadata key to retrieve the artist who performed the work, if different from artist.
+     * E.g for "Also sprach Zarathustra", artist would be "Richard Strauss" and performer "London 
+     * Philharmonic Orchestra".
      */
-    public static final int METADATA_KEY_DISC_NUMBER     = 14;
+    public static final String METADATA_KEY_PERFORMER = "performer";
     /**
-     * The metadata key to retrieve the music album compilation status.
+     * The metadata key to retrieve the name of the label/publisher.
      */
-    public static final int METADATA_KEY_COMPILATION     = 15;
+    public static final String METADATA_KEY_PUBLISHER = "publisher";
     /**
-     * If this key exists the media contains audio content.
+     * The metadata key to retrieve the name of the service in broadcasting (channel name).
      */
-    public static final int METADATA_KEY_HAS_AUDIO       = 16;
+    public static final String METADATA_KEY_SERVICE_NAME = "service_name";
     /**
-     * If this key exists the media contains video content.
+     * The metadata key to retrieve the name of the service provider in broadcasting.
      */
-    public static final int METADATA_KEY_HAS_VIDEO       = 17;
+    public static final String METADATA_KEY_SERVICE_PROVIDER = "service_provider";
     /**
-     * If the media contains video, this key retrieves its width.
+     * The metadata key to retrieve the name of the work.
      */
-    public static final int METADATA_KEY_VIDEO_WIDTH     = 18;
+    public static final String METADATA_KEY_TITLE = "title";
     /**
-     * If the media contains video, this key retrieves its height.
+     * The metadata key to retrieve the number of this work in the set, can be in form current/total.
      */
-    public static final int METADATA_KEY_VIDEO_HEIGHT    = 19;
+    public static final String METADATA_KEY_TRACK = "track";
     /**
-     * This key retrieves the average bitrate (in bits/sec), if available.
+     * The metadata key to retrieve the total bitrate of the bitrate variant that the current stream 
+     * is part of.
      */
-    public static final int METADATA_KEY_BITRATE         = 20;
+    public static final String METADATA_KEY_VARIANT_BITRATE = "bitrate";
     /**
-     * This key retrieves the language code of text tracks, if available.
-     * If multiple text tracks present, the return value will look like:
-     * "eng:chi"
-     * @hide
+     * The metadata key to retrieve the duration of the work in milliseconds.
      */
-    public static final int METADATA_KEY_TIMED_TEXT_LANGUAGES      = 21;
-    /**
-     * If this key exists the media is drm-protected.
-     * @hide
-     */
-    public static final int METADATA_KEY_IS_DRM          = 22;
-    /**
-     * This key retrieves the location information, if available.
-     * The location should be specified according to ISO-6709 standard, under
-     * a mp4/3gp box "@xyz". Location with longitude of -90 degrees and latitude
-     * of 180 degrees will be retrieved as "-90.0000+180.0000", for instance.
-     */
-    public static final int METADATA_KEY_LOCATION        = 23;
-    // Add more here...
+    public static final String METADATA_KEY_DURATION = "duration";
 }
