@@ -136,8 +136,6 @@ public class MetadataRetriever {
 		values.put(Media.MediaColumns.ALBUM, validateAttribute(album));
 		values.put(Media.MediaColumns.ARTIST, validateAttribute(artist));
 		values.put(Media.MediaColumns.DURATION, convertToInteger(duration));
-		values.put(Media.MediaColumns.TRACK, validateAttribute(mmr.extractMetadata("track")));
-		values.put(Media.MediaColumns.YEAR, convertToInteger(mmr.extractMetadata("date")));
 
 		// Get the base URI for the Media Files table in the Media content provider.
 		Uri mediaFile =  Media.MediaColumns.CONTENT_URI;
