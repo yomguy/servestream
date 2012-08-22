@@ -599,7 +599,7 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
         i.putExtra("track", getTrackName());
         i.putExtra("duration", Long.valueOf(duration()));
         i.putExtra("playing", isPlaying());
-        sendBroadcast(i);
+        sendStickyBroadcast(i);
         
         // Share this notification directly with our widgets
         mAppWidgetProvider.notifyChange(this, what);
