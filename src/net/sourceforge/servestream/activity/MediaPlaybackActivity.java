@@ -350,7 +350,7 @@ public class MediaPlaybackActivity extends Activity implements SurfaceHolder.Cal
         mParentActivityState = VISIBLE;
         
 		if (!mInitialCreation) {
-			if (mService == null && mToken == null) {
+			if (mService == null) { //&& mToken == null) {
 				// connect with manager service to find all bridges
 				// when connected it will insert all views
 				mToken = MusicUtils.bindToService(this, osc);
