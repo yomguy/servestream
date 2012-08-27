@@ -101,10 +101,15 @@
 	<!-- Context menu item -->
 	<string name="view_url">Voir l\'URL</string>
 	
+	<string name="restore">Restaurer</string>
+	<string name="backup_message">Sauvegarde effectuée avec succès</string>
+	<string name="restore_message">De récupération avec succès</string>	
+	
 	<!-- Note that the '\n' splits the lines so it's actually "quick-connect box above to connect" -->
 	<string name="list_stream_empty">Utiliser la boîte de connexion rapide\nau-dessus pour ouvrir un média.</string>
 
-	<string name="list_menu_donate">Donner</string>	
+	<string name="list_menu_backup">Sauvegarde</string>
+	<string name="list_menu_donate">Donner</string>
     <string name="list_menu_help">Aide</string>
     <string name="list_menu_now_playing">En cours de lecture</string>
 	<string name="list_menu_refresh">Rafraichir</string>
