@@ -32,6 +32,7 @@ import net.sourceforge.servestream.R;
 import net.sourceforge.servestream.alarm.Alarm;
 import net.sourceforge.servestream.bean.UriBean;
 import net.sourceforge.servestream.dbutils.StreamDatabase;
+import net.sourceforge.servestream.utils.BackupUtils;
 import net.sourceforge.servestream.utils.PreferenceConstants;
 import net.sourceforge.servestream.utils.UpdateHelper;
 
@@ -411,6 +412,9 @@ public class URLListActivity extends ListActivity implements ServiceConnection,
             		showDialog(MISSING_BARCODE_SCANNER);
             	}
             	return true;
+            case (R.id.menu_item_backup):
+            	BackupUtils.showBackupDialog(this);
+            	return true;
             case (R.id.menu_item_donate):
 	        	try {
 	        		Intent intent = new Intent(Intent.ACTION_VIEW);
@@ -674,7 +678,7 @@ public class URLListActivity extends ListActivity implements ServiceConnection,
 		return true;
 	}
 	
-	private void updateList() {
+	public void updateList() {
 		if (mPreferences.getBoolean(PreferenceConstants.SORT_BY_NAME, false) != mSortedByName) {
 			Editor edit = mPreferences.edit();
 			edit.putBoolean(PreferenceConstants.SORT_BY_NAME, mSortedByName);
