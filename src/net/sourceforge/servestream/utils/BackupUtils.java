@@ -28,21 +28,60 @@ import java.util.List;
 import java.util.Map.Entry;
 import java.util.Set;
 
+import net.sourceforge.servestream.R;
+import net.sourceforge.servestream.activity.URLListActivity;
 import net.sourceforge.servestream.bean.UriBean;
 import net.sourceforge.servestream.dbutils.StreamDatabase;
 import net.sourceforge.servestream.transport.TransportFactory;
 
 import org.xmlpull.v1.XmlSerializer;
 
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.util.Xml;
+import android.widget.Toast;
 
 public class BackupUtils {
 
+	private static final String BACKUP_FILE = "backup.xml";
+	
 	private static final String ROOT_ELEMENT_TAG_NAME = "backup";
 	private static final String BACKUP_ENCODING = "UTF-8";
 	
-	public static void backup(Context context) {
+	public static void showBackupDialog(final Context context) {
+    	AlertDialog.Builder builder;
+    	AlertDialog alertDialog;
+    	
+    	File backupFile = new File(context.getCacheDir(), BACKUP_FILE);
+
+    	CharSequence[] items;
+    	
+    	if (backupFile.exists()) {
+    		items = new CharSequence[2];
+    	    items[0] = context.getString(R.string.list_menu_backup);
+    		items[1] = context.getString(R.string.restore);
+    	} else {
+    		items = new CharSequence[1];
+    		items[0] = context.getString(R.string.restore);
+    	}
+
+    	builder = new AlertDialog.Builder(context);
+    		builder.setItems(items, new DialogInterface.OnClickListener() {
+    			public void onClick(DialogInterface dialog, int item) {
+    				if (item == 0) {
+    					backup(context);
+    				} else if (item == 1) {
+    					restore(context, BACKUP_FILE);
+    					((URLListActivity) context).updateList();
+    				}
+    			}
+    		});
+    	alertDialog = builder.create();
+    	alertDialog.show();
+	}
+	
+	private static void backup(Context context) {
 		BufferedWriter out = null;
 		
 		StreamDatabase streamdb = new StreamDatabase(context);
@@ -53,7 +92,7 @@ public class BackupUtils {
 		
 		File backupDir = context.getCacheDir();
 		
-		File backupFile = new File(backupDir, "1234" + ".xml");
+		File backupFile = new File(backupDir, BACKUP_FILE);
 		try {
 			out = new BufferedWriter(new FileWriter(backupFile));
 			out.write(xml);
@@ -67,9 +106,11 @@ public class BackupUtils {
 			} catch (IOException e) {
 			}
 		}
+		
+		Toast.makeText(context, context.getString(R.string.backup_message), Toast.LENGTH_SHORT).show();
 	}
 	
-	public static boolean recover(Context context, String fileName) {
+	private static void restore(Context context, String fileName) {
 		StreamDatabase streamdb = new StreamDatabase(context);
 		
 		File backupFile = new File(context.getCacheDir(), fileName);
@@ -81,15 +122,12 @@ public class BackupUtils {
 		for (int i = 0; i < uris.size(); i++) {
 			if (TransportFactory.findUri(streamdb, uris.get(i).getUri()) == null) {
 				streamdb.saveUri(uris.get(i));
-				System.out.println("Recovered Files");
-			} else {
-				System.out.println("File exists");
 			}
 		}
 		
 		streamdb.close();
 		
-		return true;
+		Toast.makeText(context, R.string.restore_message, Toast.LENGTH_SHORT).show();
 	}
 	
 	private static String writeXml(List<UriBean> uris) {
