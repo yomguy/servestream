@@ -37,6 +37,9 @@
     <item android:id="@+id/menu_item_scan"
         android:title="@string/list_menu_scan"
         android:icon="@drawable/ic_menu_scan"/>
+    <item android:id="@+id/menu_item_backup"
+        android:title="@string/list_menu_backup"
+        android:icon="@android:drawable/ic_menu_revert"/>
     <item android:id="@+id/menu_item_donate"
         android:title="@string/list_menu_donate"
         android:icon="@android:drawable/ic_menu_send"/>
