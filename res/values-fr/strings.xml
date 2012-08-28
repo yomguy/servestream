@@ -101,6 +101,7 @@
 	<!-- Context menu item -->
 	<string name="view_url">Voir l\'URL</string>
 	
+	<string name="recovery_options">Options de récupération</string>
 	<string name="restore">Restaurer</string>
 	<string name="backup_message">Sauvegarde effectuée avec succès</string>
 	<string name="restore_message">De récupération avec succès</string>	
