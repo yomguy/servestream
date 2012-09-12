@@ -34,6 +34,7 @@ public class TransportFactory {
 		HTTP.getProtocolName(),
 		HTTPS.getProtocolName(),
 		File.getProtocolName(),
+		RTSP.getProtocolName()
 	};
 
 	/**
@@ -47,6 +48,8 @@ public class TransportFactory {
 			return new HTTPS();
 		} else if (File.getProtocolName().equals(protocol)) {
 			return new File();
+		} else if (RTSP.getProtocolName().equals(protocol)) {
+			return new RTSP();
 		} else {
 			return null;
 		}
@@ -74,6 +77,8 @@ public class TransportFactory {
 			scheme = HTTPS.getProtocolName();
 		} else if (uri.getScheme().equals(File.getProtocolName())) {
 			scheme = File.getProtocolName();
+		} else if (uri.getScheme().equals(RTSP.getProtocolName())) {
+			scheme = RTSP.getProtocolName();
 		}
 		
 		//Log.d("TransportFactory", String.format(
@@ -86,6 +91,8 @@ public class TransportFactory {
 		else if (File.getProtocolName().equals(scheme)) {
 			Log.d("TransportFactory", "Got to the local parsing area");
 			return File.getUri(input);
+		} else if (RTSP.getProtocolName().equals(scheme)) {
+			return RTSP.getUri(input);
 		} else
 			return null;
 	}
