@@ -1,0 +1,14 @@
+prefix=/home/wseemann/Desktop/po/finalNewFfmpeg11.1/ffmpeg/build/ffmpeg/armeabi
+exec_prefix=${prefix}
+libdir=${prefix}/lib
+includedir=${prefix}/include
+
+Name: libavdevice
+Description: FFmpeg device handling library
+Version: 54.0.100
+Requires: 
+Requires.private: libavformat = 54.6.100
+Conflicts:
+Libs: -L${libdir} -lavdevice 
+Libs.private: -lm -lz
+Cflags: -I${includedir}
