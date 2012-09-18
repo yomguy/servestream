@@ -1,7 +1,7 @@
 /*
  * ServeStream: A HTTP stream browser/player for Android
  * Copyright 2012 William Seemann
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -17,21 +17,16 @@
 
 #include <stdio.h>
 #include <jni.h>
+#include <string.h>
+#include <strings.h>
 #include <android/log.h>
-//#include <string.h>
-//#include <strings.h>
 #include <libavformat/avformat.h>
-#include <libavdevice/avdevice.h>
+#include <libavutil/dict.h>
 
 #define AV_DICT_IGNORE_SUFFIX   2
 const char DURATION[] = "duration";
 
-typedef struct {
-    char *key;
-    char *value;
-} AVDictionaryEntry;
-
-static AVMetadata *metadata = NULL;
+static AVDictionary *metadata = NULL;
 static long int duration = 0;
 
 JNIEXPORT void JNICALL
@@ -46,10 +41,10 @@ long int getDuration(AVFormatContext *fmt_ctx) {
 	int i = 0;
 	int audioStream = -1;
 
-	if (av_find_stream_info(fmt_ctx) >= 0) {
+	if (avformat_find_stream_info(fmt_ctx, NULL) >= 0) {
 		// Find the first audio stream
 		for (i = 0; i < fmt_ctx->nb_streams; i++) {
-			if (fmt_ctx->streams[i]->codec->codec_type==CODEC_TYPE_AUDIO) {
+			if (fmt_ctx->streams[i]->codec->codec_type == AVMEDIA_TYPE_AUDIO) {
 				audioStream = i;
 				break;
 			}
@@ -84,7 +79,7 @@ Java_net_sourceforge_servestream_media_MediaMetadataRetriever__1setDataSource(JN
 
     //__android_log_write(ANDROID_LOG_INFO, "Java_net_sourceforge_servestream_media_MediaMetadataRetriever", path);
 
-    if (av_open_input_file(&fmt_ctx, path, NULL, 0, NULL)) {
+    if (avformat_open_input(&fmt_ctx, path, NULL, NULL)) {
 	    __android_log_write(ANDROID_LOG_INFO, "Java_net_sourceforge_servestream_media_MediaMetadataRetriever", "Metadata could not be retrieved");
         av_free(fmt_ctx);
     	fmt_ctx = NULL;
@@ -95,7 +90,7 @@ Java_net_sourceforge_servestream_media_MediaMetadataRetriever__1setDataSource(JN
     duration = getDuration(fmt_ctx);
 
 	__android_log_write(ANDROID_LOG_INFO, "Java_net_sourceforge_servestream_media_MediaMetadataRetriever", "Found metadata");
-	//AVMetadataTag *tag = NULL;
+	//AVDictionaryEntry *tag = NULL;
 	//while ((tag = av_metadata_get(metadata, "", tag, AV_DICT_IGNORE_SUFFIX))) {
     //	__android_log_write(ANDROID_LOG_INFO, "Java_net_sourceforge_servestream_media_MediaMetadataRetriever", tag->key);
     //	__android_log_write(ANDROID_LOG_INFO, "Java_net_sourceforge_servestream_media_MediaMetadataRetriever", tag->value);
@@ -109,7 +104,7 @@ JNIEXPORT jstring JNICALL
 Java_net_sourceforge_servestream_media_MediaMetadataRetriever_extractMetadata(JNIEnv * env, jclass obj, jstring jkey) {
 	//__android_log_write(ANDROID_LOG_INFO, "Java_net_sourceforge_servestream_media_MediaMetadataRetriever", "extractMetadata called");
 
-	AVMetadataTag *tag = NULL;
+	AVDictionaryEntry *tag = NULL;
     const char * key;
 
     key = (*env)->GetStringUTFChars(env, jkey, NULL) ;
@@ -124,7 +119,7 @@ Java_net_sourceforge_servestream_media_MediaMetadataRetriever_extractMetadata(JN
     	jstring jstrBuf = (*env)->NewStringUTF(env, stringDuration);
     	return jstrBuf;
 	} else {
-	    tag = av_metadata_get(metadata, key, NULL, AV_DICT_IGNORE_SUFFIX);
+	    tag = av_dict_get(metadata, key, NULL, AV_DICT_IGNORE_SUFFIX);
 
 	    if (tag) {
 	    	jstring jstrBuf = (*env)->NewStringUTF(env, tag->value);
@@ -142,5 +137,7 @@ Java_net_sourceforge_servestream_media_MediaMetadataRetriever_release(JNIEnv * e
     if (metadata) {
         metadata = NULL;
         //av_free(metadata);
+        //av_dict_free(&metadata);
     }
 }
+
