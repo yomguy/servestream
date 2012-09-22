@@ -1,0 +1,14 @@
+prefix=/home/wseemann/Desktop/po/finalNewFfmpeg11.1/build/ffmpeg/x86
+exec_prefix=${prefix}
+libdir=${prefix}/lib
+includedir=${prefix}/include
+
+Name: libavcodec
+Description: FFmpeg codec library
+Version: 54.23.100
+Requires: 
+Requires.private: libavutil = 51.54.100
+Conflicts:
+Libs: -L${libdir} -lavcodec 
+Libs.private: -lm -lz
+Cflags: -I${includedir}
