@@ -412,9 +412,6 @@ public class URLListActivity extends ListActivity implements ServiceConnection,
             		showDialog(MISSING_BARCODE_SCANNER);
             	}
             	return true;
-            case (R.id.menu_item_backup):
-            	BackupUtils.showBackupDialog(this);
-            	return true;
             case (R.id.menu_item_donate):
 	        	try {
 	        		Intent intent = new Intent(Intent.ACTION_VIEW);
