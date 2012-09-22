@@ -1,0 +1,159 @@
+install prefix            /home/wseemann/Desktop/po/finalNewFfmpeg11.1/build/ffmpeg/armeabi
+source path               .
+C compiler                arm-linux-androideabi-gcc
+ARCH                      arm (generic)
+big-endian                no
+runtime cpu detection     no
+ARMv5TE enabled           yes
+ARMv6 enabled             no
+ARMv6T2 enabled           no
+ARM VFP enabled           no
+NEON enabled              no
+debug symbols             yes
+strip symbols             yes
+optimize for size         yes
+optimizations             yes
+static                    yes
+shared                    yes
+postprocessing support    no
+new filter support        no
+network support           yes
+threading support         pthreads
+safe bitstream reader     yes
+SDL support               no
+libdxva2 enabled          no
+libva enabled             no
+libvdpau enabled          no
+AVISynth enabled          no
+frei0r enabled            no
+gnutls enabled            no
+libaacplus enabled        no
+libass enabled            no
+libcdio support           no
+libcelt enabled           no
+libdc1394 support         no
+libfaac enabled           no
+libgsm enabled            no
+libmodplug enabled        no
+libmp3lame enabled        no
+libnut enabled            no
+libopencore-amrnb support no
+libopencore-amrwb support no
+libopencv support         no
+libopenjpeg enabled       no
+libpulse enabled          no
+librtmp enabled           no
+libschroedinger enabled   no
+libspeex enabled          no
+libstagefright-h264 enabled    no
+libtheora enabled         no
+libutvideo enabled        no
+libv4l2 enabled           no
+libvo-aacenc support      no
+libvo-amrwbenc support    no
+libvorbis enabled         no
+libvpx enabled            no
+libx264 enabled           no
+libxavs enabled           no
+libxvid enabled           no
+openal enabled            no
+openssl enabled           no
+zlib enabled              yes
+bzlib enabled             no
+
+Enabled decoders:
+mp3
+
+Enabled encoders:
+
+Enabled hwaccels:
+
+Enabled parsers:
+aac			dvdsub			mpegvideo
+aac_latm		flac			png
+ac3			gsm			pnm
+adx			h261			rv30
+cavsvideo		h263			rv40
+cook			h264			vc1
+dca			mjpeg			vorbis
+dirac			mlp			vp3
+dnxhd			mpeg4video		vp8
+dvbsub			mpegaudio
+
+Enabled demuxers:
+aac			iff			pcm_u24be
+ac3			image2			pcm_u24le
+act			image2pipe		pcm_u32be
+adf			ingenient		pcm_u32le
+adx			ipmovie			pcm_u8
+aea			iss			pmp
+aiff			iv8			pva
+amr			ivf			qcp
+anm			jacosub			r3d
+apc			jv			rawvideo
+ape			latm			rl2
+asf			lmlm4			rm
+ass			loas			roq
+au			lxf			rpl
+avi			m4v			rso
+avs			matroska		rtp
+bethsoftvid		mgsts			rtsp
+bfi			microdvd		sap
+bink			mjpeg			sbg
+bintext			mlp			sdp
+bit			mm			segafilm
+bmv			mmf			shorten
+c93			mov			siff
+caf			mp3			smacker
+cavsvideo		mpc			smjpeg
+cdg			mpc8			sol
+cdxl			mpegps			sox
+daud			mpegts			spdif
+dfa			mpegtsraw		srt
+dirac			mpegvideo		str
+dnxhd			msnwc_tcp		swf
+dsicin			mtv			thp
+dts			mvi			tiertexseq
+dv			mxf			tmv
+dxa			mxg			truehd
+ea			nc			tta
+ea_cdata		nsv			tty
+eac3			nut			txd
+ffm			nuv			vc1
+ffmetadata		ogg			vc1t
+filmstrip		oma			vmd
+flac			pcm_alaw		voc
+flic			pcm_f32be		vqf
+flv			pcm_f32le		w64
+fourxm			pcm_f64be		wav
+g722			pcm_f64le		wc3
+g723_1			pcm_mulaw		wsaud
+g729			pcm_s16be		wsvqa
+gsm			pcm_s16le		wtv
+gxf			pcm_s24be		wv
+h261			pcm_s24le		xa
+h263			pcm_s32be		xbin
+h264			pcm_s32le		xmv
+hls			pcm_s8			xwma
+ico			pcm_u16be		yop
+idcin			pcm_u16le		yuv4mpegpipe
+idf
+
+Enabled muxers:
+
+Enabled protocols:
+http			tcp			udp
+rtp
+
+Enabled filters:
+
+Enabled bsfs:
+
+Enabled indevs:
+
+Enabled outdevs:
+
+License: LGPL version 2.1 or later
+Creating config.mak and config.h...
+
+WARNING: arm-linux-androideabi-pkg-config not found, library detection may fail.
