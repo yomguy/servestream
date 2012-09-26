@@ -26,6 +26,7 @@ import android.net.NetworkInfo;
 import android.net.NetworkInfo.State;
 import android.net.wifi.WifiManager;
 import android.net.wifi.WifiManager.WifiLock;
+import android.os.Build;
 import android.util.Log;
 
 /**
@@ -54,7 +55,14 @@ public class ConnectivityReceiver extends BroadcastReceiver {
 				(ConnectivityManager) MediaPlaybackService.getSystemService(Context.CONNECTIVITY_SERVICE);
 
 		final WifiManager wm = (WifiManager) MediaPlaybackService.getSystemService(Context.WIFI_SERVICE);
-		mWifiLock = wm.createWifiLock(TAG);
+		
+		// prevent WIFI throttling when the screen is off
+	    int lockType = WifiManager.WIFI_MODE_FULL;
+	    if (Build.VERSION.SDK_INT >= 12) {
+	    	lockType = 3;
+	    }
+		
+		mWifiLock = wm.createWifiLock(lockType, TAG);
 
 		final NetworkInfo info = cm.getActiveNetworkInfo();
 		if (info != null) {
