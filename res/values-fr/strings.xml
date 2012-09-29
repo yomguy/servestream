@@ -123,11 +123,8 @@
     <string name="list_menu_sort_by_date">Trier par nom</string>   
 	
  	<!-- Frequency for which to check for program updates. -->
- 	<string name="list_update_daily">Tous les jours</string>
  	<!-- Frequency for which to check for program updates. -->
- 	<string name="list_update_weekly">Toutes les semaines</string>
  	<!-- Frequency for which to check for program updates. -->
- 	<string name="list_update_never">Jamais</string>
 
 	<!-- The dialog message when loading a URL -->
 	<string name="loading_message">Chargement en cours. Merci de patienter...</string>
@@ -197,9 +194,7 @@
 	<string name="pref_sendscrobblerinfo_summary">"Activer le support avec Last.fm. \"Simple LastFM Scrobbler\" doit être installé."</string>
 		
 	<!-- Name for the update check preference -->
-	<string name="pref_update_title">Vérification des mises à jour</string>
 	<!-- Summary for the update check preference -->
-	<string name="pref_update_summary">Fréquence de vérification des mises à jour ServeStream</string>
 
 	<!-- Name for the wake lock preference -->
 	<string name="pref_wakelock_title">Ecran toujours actif</string>

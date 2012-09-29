@@ -20,15 +20,6 @@
 
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
 
-	<ListPreference
-		android:key="update"
-		android:title="@string/pref_update_title"
-		android:summary="@string/pref_update_summary"
-		android:entries="@array/list_update"
-		android:entryValues="@array/list_update_values"
-		android:defaultValue="Daily"
-		/>
-
 	<PreferenceCategory
 		android:title="@string/pref_general_settings_category">
 
