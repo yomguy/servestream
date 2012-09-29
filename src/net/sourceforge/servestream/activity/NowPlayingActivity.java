@@ -90,7 +90,7 @@ public class NowPlayingActivity extends ListActivity implements View.OnCreateCon
     {
         super.onCreate(icicle);
         
-        setContentView(R.layout.acc_nowplaying);
+        setContentView(R.layout.now_playing_activity);
         
 		this.setTitle(String.format("%s: %s",
 				getResources().getText(R.string.app_name),
