@@ -32,9 +32,7 @@ import net.sourceforge.servestream.R;
 import net.sourceforge.servestream.alarm.Alarm;
 import net.sourceforge.servestream.bean.UriBean;
 import net.sourceforge.servestream.dbutils.StreamDatabase;
-import net.sourceforge.servestream.utils.BackupUtils;
 import net.sourceforge.servestream.utils.PreferenceConstants;
-import net.sourceforge.servestream.utils.UpdateHelper;
 
 import android.app.AlertDialog;
 import android.app.Dialog;
@@ -174,9 +172,6 @@ public class URLListActivity extends ListActivity implements ServiceConnection,
 			    return processUri(mQuickconnect.getText().toString());
 			}
 		});
-		
-		// start thread to check for new version
-		new UpdateHelper(this);
 		
 		// see if the user wants to rate the application after 5 uses
 		if (getIntent().getType() == null &&
@@ -793,7 +788,7 @@ public class URLListActivity extends ListActivity implements ServiceConnection,
 				mStreamdb.touchUri(uri);
 			}
 			
-			Intent intent = new Intent(URLListActivity.this, BrowserActivity.class);
+			Intent intent = new Intent(URLListActivity.this, BrowseActivity.class);
 			intent.setData(uri.getScrubbedUri());
 			
 			URLListActivity.this.startActivity(intent);			
