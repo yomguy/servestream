@@ -100,7 +100,7 @@
     		</intent-filter>			
 		</activity>
 
-		<activity android:name=".activity.BrowserActivity" android:configChanges="keyboardHidden|orientation" />
+		<activity android:name=".activity.BrowseActivity" android:configChanges="keyboardHidden|orientation" />
 		<activity android:name=".activity.HelpActivity" android:configChanges="keyboardHidden|orientation" />
 		<activity android:name=".activity.HelpTopicActivity" android:configChanges="keyboardHidden|orientation" />
 		<activity android:name=".activity.MinuteSelector" android:theme="@android:style/Theme.Dialog" android:exported="false" />
