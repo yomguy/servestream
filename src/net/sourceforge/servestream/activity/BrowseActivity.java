@@ -63,10 +63,10 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-public class BrowserActivity extends ListActivity implements ServiceConnection,
+public class BrowseActivity extends ListActivity implements ServiceConnection,
 				DetermineActionTask.MusicRetrieverPreparedListener {
 
-	private final static String TAG = BrowserActivity.class.getName();
+	private final static String TAG = BrowseActivity.class.getName();
 
  	public static final int MESSAGE_SHOW_DIRECTORY_CONTENTS = 1;
     public static final int MESSAGE_PARSE_WEBPAGE = 2;
@@ -96,14 +96,14 @@ public class BrowserActivity extends ListActivity implements ServiceConnection,
 	protected Handler mHandler = new Handler() {
 		@Override
 		public void handleMessage(Message msg) {			
-			BrowserActivity.this.handleMessage(msg);
+			BrowseActivity.this.handleMessage(msg);
 		}
 	};
 	
 	protected Handler mQueueHandler = new Handler() {
 		@Override
 		public void handleMessage(Message msg) {
-			MusicUtils.addToCurrentPlaylist(BrowserActivity.this, (long []) msg.obj);
+			MusicUtils.addToCurrentPlaylist(BrowseActivity.this, (long []) msg.obj);
 		}
 	};
 	
@@ -112,7 +112,7 @@ public class BrowserActivity extends ListActivity implements ServiceConnection,
     public void onCreate(Bundle icicle) { 
     	super.onCreate(icicle); 
 
-        setContentView(R.layout.act_browser);
+        setContentView(R.layout.browse_activity);
     	
 		this.setTitle(String.format("%s: %s",
 				getResources().getText(R.string.app_name),
@@ -148,7 +148,7 @@ public class BrowserActivity extends ListActivity implements ServiceConnection,
 		mHomeButton.setOnClickListener(new OnClickListener() {
 
 			public void onClick(View arg0) {
-				BrowserActivity.this.startActivity(new Intent(BrowserActivity.this, URLListActivity.class));
+				BrowseActivity.this.startActivity(new Intent(BrowseActivity.this, URLListActivity.class));
 			}
 		});
 	    
@@ -207,7 +207,7 @@ public class BrowserActivity extends ListActivity implements ServiceConnection,
         		refreshList();
         		break;
         	case (R.id.menu_item_settings):
-        		startActivity(new Intent(BrowserActivity.this, SettingsActivity.class));
+        		startActivity(new Intent(BrowseActivity.this, SettingsActivity.class));
     			break;
     	}
     	
@@ -219,7 +219,7 @@ public class BrowserActivity extends ListActivity implements ServiceConnection,
 	    ProgressDialog progressDialog = null;
 	    switch(id) {
 	    case DETERMINE_INTENT_TASK:
-	    	progressDialog = new ProgressDialog(BrowserActivity.this);
+	    	progressDialog = new ProgressDialog(BrowseActivity.this);
 	    	progressDialog.setMessage(getString(R.string.loading_message));
 	    	progressDialog.setCancelable(true);
 	    	return progressDialog;
@@ -258,7 +258,7 @@ public class BrowserActivity extends ListActivity implements ServiceConnection,
 		save.setOnMenuItemClickListener(new OnMenuItemClickListener() {
 			public boolean onMenuItemClick(MenuItem arg0) {
 				// prompt user to make sure they really want this
-				new AlertDialog.Builder(BrowserActivity.this)
+				new AlertDialog.Builder(BrowseActivity.this)
 					.setMessage(getString(R.string.save_message, streamURL))
 					.setPositiveButton(R.string.save_pos, new DialogInterface.OnClickListener() {
 						public void onClick(DialogInterface dialog, int which) {
@@ -275,7 +275,7 @@ public class BrowserActivity extends ListActivity implements ServiceConnection,
 		view.setOnMenuItemClickListener(new OnMenuItemClickListener() {
 			public boolean onMenuItemClick(MenuItem arg0) {
 				// display the URL
-				new AlertDialog.Builder(BrowserActivity.this)
+				new AlertDialog.Builder(BrowseActivity.this)
 					.setMessage(streamURL)
 					.setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
 						public void onClick(DialogInterface dialog, int which) {
@@ -294,7 +294,7 @@ public class BrowserActivity extends ListActivity implements ServiceConnection,
 		MenuItem add = menu.add(R.string.add_to_playlist);
 		add.setOnMenuItemClickListener(new OnMenuItemClickListener() {
 			public boolean onMenuItemClick(MenuItem item) {
-				MusicUtils.addToCurrentPlaylistFromURL(BrowserActivity.this, uri, mQueueHandler);
+				MusicUtils.addToCurrentPlaylistFromURL(BrowseActivity.this, uri, mQueueHandler);
 				return true;
 			}
 		});
@@ -486,7 +486,7 @@ public class BrowserActivity extends ListActivity implements ServiceConnection,
 				removeDialog(DETERMINE_INTENT_TASK);
 			} catch (Exception ex) {
 			}
-			MusicUtils.playAll(BrowserActivity.this, list, 0);        
+			MusicUtils.playAll(BrowseActivity.this, list, 0);        
 		}
 	}
 }
