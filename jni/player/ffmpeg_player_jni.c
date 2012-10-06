@@ -5,10 +5,22 @@
 
 #define AUDIO_DATA_ID 1
 
+enum media_event_type {
+    MEDIA_NOP               = 0, // interface test message
+    MEDIA_PREPARED          = 1,
+    MEDIA_PLAYBACK_COMPLETE = 2,
+    MEDIA_BUFFERING_UPDATE  = 3,
+    MEDIA_SEEK_COMPLETE     = 4,
+    MEDIA_SET_VIDEO_SIZE    = 5,
+    MEDIA_TIMED_TEXT        = 99,
+    MEDIA_ERROR             = 100,
+    MEDIA_INFO              = 200,
+};
+
 //audio
 int gAudioStreamIdx;
 jbyteArray gAudioFrameRef; //reference to a java variable
-char* gAudioFrameRefBuffer;
+jbyte* gAudioFrameRefBuffer;
 int gAudioFrameRefBufferMaxSize;
 jintArray gAudioFrameDataLengthRef; //reference to a java variable
 int* gAudioFrameDataLengthRefBuffer;
@@ -23,6 +35,8 @@ static int m_channelConfig = 0;
 static AVFormatContext *pFormatCtx;
 static AVCodecContext *pCodecCtx;
 static AVCodec *dec;
+
+static jmethodID post_event;
 
 //static JavaVM * m_vm;
 
@@ -46,9 +60,18 @@ jint JNICALL JNI_OnLoad(JavaVM* vm, void* reserved) {
     return JNI_VERSION_1_6;
 }
 
+void notify(JNIEnv * env, jclass obj, int msg, int ext1, int ext2, int obj1) {
+	jclass cls = (*env)->GetObjectClass(env, obj);
+	(*env)->CallStaticVoidMethod(env, cls, post_event, NULL,
+            msg, ext1, ext2, NULL);
+}
+
 JNIEXPORT void JNICALL
 Java_net_sourceforge_servestream_player_FFmpegPlayer_native_1init(JNIEnv * env, jclass obj) {
     __android_log_write(ANDROID_LOG_INFO, "Java_net_sourceforge_servestream_player_FFmpegPlayer", "native_init()");
+
+    post_event = (*env)->GetStaticMethodID(env, obj, "postEventFromNative",
+                                               "(Ljava/lang/Object;IIILjava/lang/Object;)V");
 
     // Initialize libavformat and register all the muxers, demuxers and protocols.
     avcodec_register_all();
@@ -87,7 +110,7 @@ Java_net_sourceforge_servestream_player_FFmpegPlayer_nativeSetDataSource(JNIEnv*
     return 0;
 }
 
-JNIEXPORT jint JNICALL
+JNIEXPORT void JNICALL
 Java_net_sourceforge_servestream_player_FFmpegPlayer_nativeOpenAudio(JNIEnv* env, jobject obj, jbyteArray audioframe, jintArray audioframelength) {
     __android_log_print(ANDROID_LOG_INFO, "Java_net_sourceforge_servestream_player_FFmpegPlayer", "nativeOpenAudio()");
 
@@ -96,32 +119,37 @@ Java_net_sourceforge_servestream_player_FFmpegPlayer_nativeOpenAudio(JNIEnv* env
 
 	if (gAudioFrameRef) {
 		__android_log_print(ANDROID_LOG_ERROR, "Java_net_sourceforge_servestream_player_FFmpegPlayer", "call nativeCloseAudio() before calling this function");
-	    return -1;
+		notify(env, obj, MEDIA_ERROR, 0, 0, 0);
+		return;
 	}
 
 	if ((*env)->IsSameObject(env, audioframe, NULL)) {
 		__android_log_print(ANDROID_LOG_ERROR, "Java_net_sourceforge_servestream_player_FFmpegPlayer", "invalid arguments");
-	    return -1;
+		notify(env, obj, MEDIA_ERROR, 0, 0, 0);
+		return;
 	}
 
 	//audio frame buffer
 	gAudioFrameRef = (*env)->NewGlobalRef(env, audioframe); //lock the array preventing the garbage collector from destructing it
 	if (gAudioFrameRef == NULL) {
 		__android_log_print(ANDROID_LOG_ERROR, "Java_net_sourceforge_servestream_player_FFmpegPlayer", "NewGlobalRef() for audioframe failed");
-	    return -1;
+		notify(env, obj, MEDIA_ERROR, 0, 0, 0);
+		return;
 	}
 
 	jboolean test;
 	gAudioFrameRefBuffer = (*env)->GetByteArrayElements(env, gAudioFrameRef, &test);
 	if (gAudioFrameRefBuffer == 0 || test == JNI_TRUE) {
 		__android_log_print(ANDROID_LOG_ERROR, "Java_net_sourceforge_servestream_player_FFmpegPlayer", "failed to get audio frame reference or reference copied");
-	    return -1;
+		notify(env, obj, MEDIA_ERROR, 0, 0, 0);
+		return;
 	}
 
 	gAudioFrameRefBufferMaxSize = (*env)->GetArrayLength(env, gAudioFrameRef);
 	if (gAudioFrameRefBufferMaxSize < AVCODEC_MAX_AUDIO_FRAME_SIZE) {
 		__android_log_print(ANDROID_LOG_ERROR, "Java_net_sourceforge_servestream_player_FFmpegPlayer", "failed to read or incorrect buffer length: %d", gAudioFrameRefBufferMaxSize);
-	    return -1;
+		notify(env, obj, MEDIA_ERROR, 0, 0, 0);
+		return;
 	}
 
 	__android_log_print(ANDROID_LOG_INFO, "Java_net_sourceforge_servestream_player_FFmpegPlayer", "buffer length: %d", gAudioFrameRefBufferMaxSize);
@@ -130,19 +158,22 @@ Java_net_sourceforge_servestream_player_FFmpegPlayer_nativeOpenAudio(JNIEnv* env
 	gAudioFrameDataLengthRef = (*env)->NewGlobalRef(env, audioframelength); //lock the variable preventing the garbage collector from destructing it
 	if (gAudioFrameDataLengthRef == NULL) {
 		__android_log_print(ANDROID_LOG_ERROR, "Java_net_sourceforge_servestream_player_FFmpegPlayer", "NewGlobalRef() for audioframelength failed");
-	    return -1;
+		notify(env, obj, MEDIA_ERROR, 0, 0, 0);
+		return;
 	}
 
 	gAudioFrameDataLengthRefBuffer = (*env)->GetIntArrayElements(env, gAudioFrameDataLengthRef, &test);
 	if (gAudioFrameDataLengthRefBuffer == 0 || test == JNI_TRUE) {
 		__android_log_print(ANDROID_LOG_ERROR, "Java_net_sourceforge_servestream_player_FFmpegPlayer", "failed to get audio data length reference or reference copied");
-	    return -1;
+		notify(env, obj, MEDIA_ERROR, 0, 0, 0);
+		return;
 	}
 
 	int audioDataLength = (*env)->GetArrayLength(env, gAudioFrameDataLengthRef);
 	if (audioDataLength != 1) {
 		__android_log_print(ANDROID_LOG_ERROR, "Java_net_sourceforge_servestream_player_FFmpegPlayer", "failed to read or incorrect size of the audio data length reference: %d", audioDataLength);
-	    return -1;
+		notify(env, obj, MEDIA_ERROR, 0, 0, 0);
+		return;
 	}
 
 	__android_log_print(ANDROID_LOG_INFO, "Java_net_sourceforge_servestream_player_FFmpegPlayer", "size of the audio data length reference: %d", audioDataLength);
@@ -157,7 +188,8 @@ Java_net_sourceforge_servestream_player_FFmpegPlayer_nativeOpenAudio(JNIEnv* env
 
     if (audioStreamIndex == -1) {
         __android_log_print(ANDROID_LOG_ERROR, "Java_net_sourceforge_servestream_player_FFmpegPlayer", "audio stream not found");
-    	return -1; // Didn't find an audio stream
+		notify(env, obj, MEDIA_ERROR, 0, 0, 0);
+		return;
     }
 
     // Get a pointer to the codec context for the audio stream
@@ -168,13 +200,15 @@ Java_net_sourceforge_servestream_player_FFmpegPlayer_nativeOpenAudio(JNIEnv* env
 
     if(dec == NULL) {
         __android_log_print(ANDROID_LOG_ERROR, "Java_net_sourceforge_servestream_player_FFmpegPlayer", "avcodec_find_decoder() failed to find audio decoder");
-    	return -1;
+		notify(env, obj, MEDIA_ERROR, 0, 0, 0);
+		return;
     }
 
     // Open the codec
     if (avcodec_open2(pCodecCtx, dec, NULL) < 0) {
     	__android_log_print(ANDROID_LOG_ERROR, "Java_net_sourceforge_servestream_player_FFmpegPlayer", "avcodec_open2() failed");
-    	return -1;
+		notify(env, obj, MEDIA_ERROR, 0, 0, 0);
+		return;
     }
 
     // set the sample rate and channels since these
@@ -185,7 +219,7 @@ Java_net_sourceforge_servestream_player_FFmpegPlayer_nativeOpenAudio(JNIEnv* env
     //all good, set index so that nativeProcess() can now recognise the audio stream
     gAudioStreamIdx = audioStreamIndex;
 
-    return 0;
+	notify(env, obj, MEDIA_PREPARED, 0, 0, 0);
 }
 
 JNIEXPORT void JNICALL
@@ -272,5 +306,32 @@ Java_net_sourceforge_servestream_player_FFmpegPlayer_nativeDecodeFrameFromFile(J
     }
 
     return 0;
+}
+
+JNIEXPORT int JNICALL
+Java_net_sourceforge_servestream_player_FFmpegPlayer_getDuration(JNIEnv* env, jobject obj) {
+	int i = 0;
+	int audioStream = -1;
+
+	// Find the first audio stream
+	for (i = 0; i < pFormatCtx->nb_streams; i++) {
+		if (pFormatCtx->streams[i]->codec->codec_type == AVMEDIA_TYPE_AUDIO) {
+			audioStream = i;
+			break;
+		}
+	}
+
+	if (audioStream != -1) {
+		double divideFactor = (double) 1 / (pFormatCtx->streams[audioStream]->time_base.num / (double) pFormatCtx->streams[audioStream]->time_base.den);
+		int dur = (int) (((double) pFormatCtx->streams[audioStream]->duration / divideFactor) * 1000);
+
+		if (dur == 2147483648) {
+			return 0;
+		} else {
+		     return dur;
+		}
+	}
+
+	return 0;
 }
 
