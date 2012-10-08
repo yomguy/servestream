@@ -27,7 +27,7 @@
 const char DURATION[] = "duration";
 
 static AVDictionary *metadata = NULL;
-static long int duration = 0;
+static int duration = 0;
 
 JNIEXPORT void JNICALL
 Java_net_sourceforge_servestream_media_MediaMetadataRetriever_native_1init(JNIEnv * env, jclass obj) {
@@ -37,32 +37,18 @@ Java_net_sourceforge_servestream_media_MediaMetadataRetriever_native_1init(JNIEn
     av_register_all();
 }
 
-long int getDuration(AVFormatContext *fmt_ctx) {
-	int i = 0;
-	int audioStream = -1;
-
-	if (avformat_find_stream_info(fmt_ctx, NULL) >= 0) {
-		// Find the first audio stream
-		for (i = 0; i < fmt_ctx->nb_streams; i++) {
-			if (fmt_ctx->streams[i]->codec->codec_type == AVMEDIA_TYPE_AUDIO) {
-				audioStream = i;
-				break;
-			}
-		}
-
-		if (audioStream != -1) {
-			double divideFactor = (double) 1 / (fmt_ctx->streams[audioStream]->time_base.num / (double) fmt_ctx->streams[audioStream]->time_base.den);
-		    long int dur = (long int) (((double) fmt_ctx->streams[audioStream]->duration / divideFactor) * 1000);
-
-		    if (dur == 2147483648) {
-		    	return 0;
-		    } else {
-		        return dur;
-		    }
-		}
+int getDuration(AVFormatContext *pFormatCtx) {
+	if (pFormatCtx == NULL) {
+		return 0;
 	}
 
-	return duration;
+	if (pFormatCtx && (pFormatCtx->duration != AV_NOPTS_VALUE)) {
+		int secs;
+		secs = pFormatCtx->duration / AV_TIME_BASE;
+		return (secs * 1000);
+	}
+
+	return 0;
 }
 
 JNIEXPORT void JNICALL
@@ -79,12 +65,19 @@ Java_net_sourceforge_servestream_media_MediaMetadataRetriever__1setDataSource(JN
 
     //__android_log_write(ANDROID_LOG_INFO, "Java_net_sourceforge_servestream_media_MediaMetadataRetriever", path);
 
-    if (avformat_open_input(&fmt_ctx, path, NULL, NULL)) {
+    if (avformat_open_input(&fmt_ctx, path, NULL, NULL) != 0) {
 	    __android_log_write(ANDROID_LOG_INFO, "Java_net_sourceforge_servestream_media_MediaMetadataRetriever", "Metadata could not be retrieved");
         av_free(fmt_ctx);
     	fmt_ctx = NULL;
     	return;
     }
+
+	if (avformat_find_stream_info(fmt_ctx, NULL) < 0) {
+	    __android_log_write(ANDROID_LOG_INFO, "Java_net_sourceforge_servestream_media_MediaMetadataRetriever", "Metadata could not be retrieved");
+        av_free(fmt_ctx);
+    	fmt_ctx = NULL;
+    	return;
+	}
 
     metadata = fmt_ctx->metadata;
     duration = getDuration(fmt_ctx);
@@ -115,7 +108,7 @@ Java_net_sourceforge_servestream_media_MediaMetadataRetriever_extractMetadata(JN
 
 	if (strcmp(key, DURATION) == 0) {
 		char stringDuration[30];
-		sprintf(stringDuration, "%lu", duration);
+		sprintf(stringDuration, "%d", duration); // %i
     	jstring jstrBuf = (*env)->NewStringUTF(env, stringDuration);
     	return jstrBuf;
 	} else {
@@ -140,4 +133,3 @@ Java_net_sourceforge_servestream_media_MediaMetadataRetriever_release(JNIEnv * e
         //av_dict_free(&metadata);
     }
 }
-
