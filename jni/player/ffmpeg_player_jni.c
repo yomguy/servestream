@@ -1,6 +1,7 @@
 #include <jni.h>
-#include <libavformat/avformat.h>
 #include <libavcodec/avcodec.h>
+#include <libavformat/avformat.h>
+#include <libavutil/mathematics.h>
 #include <android/log.h>
 
 #define AUDIO_DATA_ID 1
@@ -31,6 +32,7 @@ typedef int bool;
 
 static int m_sampleRateInHz = 0;
 static int m_channelConfig = 0;
+static int64_t m_currentPosition = -1;
 
 static AVFormatContext *pFormatCtx;
 static AVCodecContext *pCodecCtx;
@@ -269,6 +271,8 @@ Java_net_sourceforge_servestream_player_FFmpegPlayer_nativeClose(JNIEnv* env, jo
 }
 
 int decodeFrameFromPacket(AVPacket* aPacket) {
+	m_currentPosition = aPacket->pts;
+
     if (aPacket->stream_index == gAudioStreamIdx) {
         int dataLength = gAudioFrameRefBufferMaxSize;
         if (avcodec_decode_audio3(pCodecCtx, (int16_t*)gAudioFrameRefBuffer, &dataLength, aPacket) <= 0) {
@@ -309,21 +313,14 @@ Java_net_sourceforge_servestream_player_FFmpegPlayer_nativeDecodeFrameFromFile(J
 }
 
 JNIEXPORT int JNICALL
-Java_net_sourceforge_servestream_player_FFmpegPlayer_getDuration(JNIEnv* env, jobject obj) {
-	int i = 0;
-	int audioStream = -1;
-
-	// Find the first audio stream
-	for (i = 0; i < pFormatCtx->nb_streams; i++) {
-		if (pFormatCtx->streams[i]->codec->codec_type == AVMEDIA_TYPE_AUDIO) {
-			audioStream = i;
-			break;
-		}
+Java_net_sourceforge_servestream_player_FFmpegPlayer_getCurrentPosition(JNIEnv* env, jobject obj) {
+	if (m_currentPosition == -1) {
+		return 0;
 	}
 
-	if (audioStream != -1) {
-		double divideFactor = (double) 1 / (pFormatCtx->streams[audioStream]->time_base.num / (double) pFormatCtx->streams[audioStream]->time_base.den);
-		int dur = (int) (((double) pFormatCtx->streams[audioStream]->duration / divideFactor) * 1000);
+	if (gAudioStreamIdx >= 0) {
+		double divideFactor = (double) 1 / (pFormatCtx->streams[gAudioStreamIdx]->time_base.num / (double) pFormatCtx->streams[gAudioStreamIdx]->time_base.den);
+		int dur = (int) (((double) m_currentPosition / divideFactor) * 1000);
 
 		if (dur == 2147483648) {
 			return 0;
@@ -333,5 +330,36 @@ Java_net_sourceforge_servestream_player_FFmpegPlayer_getDuration(JNIEnv* env, jo
 	}
 
 	return 0;
+}
+
+JNIEXPORT int JNICALL
+Java_net_sourceforge_servestream_player_FFmpegPlayer_getDuration(JNIEnv* env, jobject obj) {
+	if (pFormatCtx == NULL) {
+		return 0;
+	}
+
+	if (pFormatCtx && (pFormatCtx->duration != AV_NOPTS_VALUE)) {
+		int secs;
+		secs = pFormatCtx->duration / AV_TIME_BASE;
+		//us = ic->duration % AV_TIME_BASE;
+		return (secs * 1000);
+	}
+
+	return 0;
+}
+
+JNIEXPORT void JNICALL
+Java_net_sourceforge_servestream_player_FFmpegPlayer__1seekTo(JNIEnv* env, jobject obj, int msec) {
+	int64_t seek_target = 10000 ;// is->seek_pos;
+
+	if (gAudioStreamIdx >= 0) {
+	    seek_target = av_rescale_q(seek_target, AV_TIME_BASE_Q, pFormatCtx->streams[gAudioStreamIdx]->time_base);
+	}
+
+	if(av_seek_frame(pFormatCtx, gAudioStreamIdx, seek_target, AVSEEK_FLAG_BACKWARD) < 0) {
+		__android_log_print(ANDROID_LOG_ERROR, "Java_net_sourceforge_servestream_player_FFmpegPlayer", "error while seeking");
+	} else {
+		__android_log_print(ANDROID_LOG_INFO, "Java_net_sourceforge_servestream_player_FFmpegPlayer", "seek was successful");
+	}
 }
 
