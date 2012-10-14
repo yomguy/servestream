@@ -136,12 +136,6 @@ public class MediaPlaybackActivity extends Activity implements SurfaceHolder.Cal
         PowerManager pm = (PowerManager)getSystemService(Context.POWER_SERVICE);
         mWakeLock = pm.newWakeLock(PowerManager.SCREEN_BRIGHT_WAKE_LOCK, this.getClass().getName());
         mWakeLock.setReferenceCounted(false);
-        
-		// get the phone's display width and height
-		getDisplayMeasurements();
-        
-		// determine fullscreen mode
-		setFullscreenMode(getResources().getConfiguration().orientation);
 		
         setContentView(R.layout.acc_mediaplayer);
 
