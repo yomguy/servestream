@@ -19,9 +19,6 @@
 -->
 <resources>
 	<string name="app_name">ServeStream</string>
-	<!-- DO NOT MANUALLY UPDATE VERSION!!!
-	  Updating is update by the ant task "update-version" in build.xml
-	-->
-	<string name="msg_version">ServeStream (v0.4.12)</string>
+	<string name="msg_version">ServeStream (v0.4.13)</string>
 
 </resources>
