@@ -403,6 +403,22 @@ public class MusicUtils {
         return addFilesToMediaStore(context, playlist);
     }
     
+    public static long [] storeFile(Context context, String uri) {
+    	
+    	if (uri == null) {
+    		return sEmptyList;
+    	}
+    	
+        Playlist playlist = new Playlist();
+		playlist = new Playlist();
+		PlaylistEntry playlistEntry = new PlaylistEntry();
+		playlistEntry.set(PlaylistEntry.URI, uri);
+		playlistEntry.set(PlaylistEntry.TRACK, "1");
+		playlist.add(playlistEntry);
+	
+    	return addFilesToMediaStore(context, playlist);
+	}
+    
     private static long [] addFilesToMediaStore(Context context, Playlist playlist) {
     	if (playlist == null || playlist.getPlaylistEntries().size() == 0) {
     		return sEmptyList;

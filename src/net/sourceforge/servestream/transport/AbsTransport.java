@@ -44,6 +44,11 @@ public abstract class AbsTransport {
 	}
 
 	/**
+	 * @return protocol part of the URI
+	 */
+	protected abstract String getPrivateProtocolName();
+	
+	/**
 	 * Encode the current transport into a URI that can be passed via intent calls.
 	 * @return URI to host
 	 */
@@ -100,4 +105,6 @@ public abstract class AbsTransport {
 	public abstract boolean usesNetwork();
 	
 	public abstract boolean shouldSave();
+	
+	public abstract boolean isPotentialPlaylist();
 }

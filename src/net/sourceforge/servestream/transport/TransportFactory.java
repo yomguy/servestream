@@ -34,7 +34,10 @@ public class TransportFactory {
 		HTTP.getProtocolName(),
 		HTTPS.getProtocolName(),
 		File.getProtocolName(),
-		RTSP.getProtocolName()
+		RTSP.getProtocolName(),
+		MMS.getProtocolName(),
+		MMSH.getProtocolName(),
+		MMST.getProtocolName()
 	};
 
 	/**
@@ -50,6 +53,12 @@ public class TransportFactory {
 			return new File();
 		} else if (RTSP.getProtocolName().equals(protocol)) {
 			return new RTSP();
+		} else if (MMS.getProtocolName().equals(protocol)) {
+			return new MMS();
+		} else if (MMSH.getProtocolName().equals(protocol)) {
+			return new MMSH();
+		} else if (MMST.getProtocolName().equals(protocol)) {
+			return new MMST();
 		} else {
 			return null;
 		}
@@ -79,6 +88,12 @@ public class TransportFactory {
 			scheme = File.getProtocolName();
 		} else if (uri.getScheme().equals(RTSP.getProtocolName())) {
 			scheme = RTSP.getProtocolName();
+		} else if (uri.getScheme().equals(MMS.getProtocolName())) {
+			scheme = MMS.getProtocolName();
+		} else if (uri.getScheme().equals(MMSH.getProtocolName())) {
+			scheme = MMSH.getProtocolName();
+		} else if (uri.getScheme().equals(MMST.getProtocolName())) {
+			scheme = MMST.getProtocolName();
 		}
 		
 		//Log.d("TransportFactory", String.format(
@@ -89,10 +104,15 @@ public class TransportFactory {
 		else if (HTTPS.getProtocolName().equals(scheme))
 			return HTTPS.getUri(input);
 		else if (File.getProtocolName().equals(scheme)) {
-			Log.d("TransportFactory", "Got to the local parsing area");
 			return File.getUri(input);
 		} else if (RTSP.getProtocolName().equals(scheme)) {
 			return RTSP.getUri(input);
+		} else if (MMS.getProtocolName().equals(scheme)) {
+			return MMS.getUri(input);
+		} else if (MMSH.getProtocolName().equals(scheme)) {
+			return MMSH.getUri(input);
+		} else if (MMST.getProtocolName().equals(scheme)) {
+			return MMST.getUri(input);
 		} else
 			return null;
 	}

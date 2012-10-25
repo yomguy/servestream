@@ -47,6 +47,10 @@ public class RTSP extends AbsTransport {
 		return PROTOCOL;
 	}
 
+	protected String getPrivateProtocolName() {
+		return PROTOCOL;
+	}
+	
 	/**
 	 * Encode the current transport into a URI that can be passed via intent calls.
 	 * @return URI to host
@@ -248,5 +252,10 @@ public class RTSP extends AbsTransport {
 	@Override
 	public InputStream getConnection() {
 		return null;
+	}
+	
+	@Override
+	public boolean isPotentialPlaylist() {
+		return false;
 	}
 }
