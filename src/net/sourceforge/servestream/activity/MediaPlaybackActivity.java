@@ -19,7 +19,7 @@ package net.sourceforge.servestream.activity;
 
 import net.sourceforge.servestream.R;
 import net.sourceforge.servestream.button.RepeatingImageButton;
-import net.sourceforge.servestream.player.MultiPlayer;
+import net.sourceforge.servestream.player.AbstractMediaPlayer;
 import net.sourceforge.servestream.provider.Media;
 import net.sourceforge.servestream.service.IMediaPlaybackService;
 import net.sourceforge.servestream.service.MediaPlaybackService;
@@ -887,7 +887,7 @@ public class MediaPlaybackActivity extends Activity implements SurfaceHolder.Cal
         
         if (action != null && action.equals(MediaPlaybackService.PREPARE_VIDEO)) {
         	try {
-		    	MultiPlayer mp = mService.getMediaPlayer();
+        		AbstractMediaPlayer mp = mService.getMediaPlayer();
 		    	mp.setDisplay(holder);
 		        holder.setFixedSize(mDisplayWidth, mDisplayHeight);
 				mService.setDataSource(false);

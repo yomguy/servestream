@@ -17,7 +17,6 @@
 
 package net.sourceforge.servestream.provider;
 
-import net.sourceforge.servestream.player.MultiPlayer;
 import net.sourceforge.servestream.provider.Media.MediaColumns;
 
 import android.content.ContentProvider;
@@ -43,7 +42,7 @@ import java.util.HashMap;
  */
 public class MediaProvider extends ContentProvider {
 	
-    private static final String TAG = MultiPlayer.class.getName();
+    private static final String TAG = MediaProvider.class.getName();
 
     private static final String DATABASE_NAME = "media.db";
     private static final int DATABASE_VERSION = 1;
