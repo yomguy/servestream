@@ -52,7 +52,8 @@ import net.sourceforge.servestream.activity.MediaPlaybackActivity;
 import net.sourceforge.servestream.dbutils.StreamDatabase;
 import net.sourceforge.servestream.media.MetadataRetriever;
 import net.sourceforge.servestream.media.SHOUTcastMetadata;
-import net.sourceforge.servestream.player.MultiPlayer;
+import net.sourceforge.servestream.player.AbstractMediaPlayer;
+import net.sourceforge.servestream.player.NativeMediaPlayer;
 import net.sourceforge.servestream.provider.Media;
 import net.sourceforge.servestream.utils.PreferenceConstants;
 import net.sourceforge.servestream.utils.Utils;
@@ -119,7 +120,7 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
     
     protected StreamDatabase mStreamdb = null;
     
-    private MultiPlayer mPlayer;
+    private AbstractMediaPlayer mPlayer;
     private String mFileToPlay;
     private int mShuffleMode = SHUFFLE_NONE;
     private int mRepeatMode = REPEAT_NONE;
@@ -351,7 +352,7 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
 		tm.listen(mPhoneListener, PhoneStateListener.LISTEN_CALL_STATE);
         
         // Needs to be done in this thread, since otherwise ApplicationContext.getPowerManager() crashes.
-        mPlayer = new MultiPlayer();
+        mPlayer = new NativeMediaPlayer();
         mPlayer.setHandler(mMediaplayerHandler);
         
         reloadSettings();
@@ -567,7 +568,7 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
     	}
     };
     
-    public MultiPlayer getMediaPlayer() {
+    public AbstractMediaPlayer getMediaPlayer() {
     	return mPlayer;
     }
     
@@ -1548,7 +1549,7 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
 		public int getSleepTimerMode() throws RemoteException {
 			return mService.get().getSleepTimerMode();
 		}
-		public MultiPlayer getMediaPlayer() throws RemoteException {
+		public AbstractMediaPlayer getMediaPlayer() throws RemoteException {
 			return mService.get().getMediaPlayer();
 		}
 		public boolean isStreaming() throws RemoteException {

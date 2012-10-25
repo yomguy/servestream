@@ -34,15 +34,15 @@ import net.sourceforge.servestream.service.MediaPlaybackService;
  * Provides a unified interface for dealing with midi files and
  * other media files.
  */
-public class MultiPlayer implements Parcelable {
-	private static final String TAG = MultiPlayer.class.getName();
+public class NativeMediaPlayer extends AbstractMediaPlayer implements Parcelable {
+	private static final String TAG = NativeMediaPlayer.class.getName();
 	
 	private MediaPlayer mMediaPlayer = new MediaPlayer();
     private Handler mHandler;
     private boolean mIsInitialized = false;
 
-    public MultiPlayer() {
-        
+    public NativeMediaPlayer() {
+        super();
     }
 
     public void setDataSource(String path, boolean isLocalFile) {
@@ -178,16 +178,14 @@ public class MultiPlayer implements Parcelable {
 
 	}
 	
-	public static final Parcelable.Creator<MultiPlayer> CREATOR = new
-	Parcelable.Creator<MultiPlayer>() {
-	    public MultiPlayer createFromParcel(Parcel in) {
-	    	Log.v("ParcelableTest","Creating from parcel");
-	    	return new MultiPlayer();
+	public static final Parcelable.Creator<NativeMediaPlayer> CREATOR = new
+	Parcelable.Creator<NativeMediaPlayer>() {
+	    public NativeMediaPlayer createFromParcel(Parcel in) {
+	    	return new NativeMediaPlayer();
 	    }
 
-	    public MultiPlayer[] newArray(int size) {
-	    	return new MultiPlayer[size];
+	    public NativeMediaPlayer[] newArray(int size) {
+	    	return new NativeMediaPlayer[size];
 	    }
 	};
-	
 }
