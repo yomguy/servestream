@@ -58,6 +58,10 @@ public class HTTPS extends AbsTransport {
 		return PROTOCOL;
 	}
 
+	protected String getPrivateProtocolName() {
+		return PROTOCOL;
+	}
+	
 	/**
 	 * Encode the current transport into a URI that can be passed via intent calls.
 	 * @return URI to host
@@ -290,5 +294,10 @@ public class HTTPS extends AbsTransport {
 	@Override
 	public InputStream getConnection() {
 		return is;
+	}
+	
+	@Override
+	public boolean isPotentialPlaylist() {
+		return true;
 	}
 }

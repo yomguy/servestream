@@ -68,7 +68,11 @@ public class DetermineActionTask extends AsyncTask<Void, Void, Void> {
 				mAction = URL_ACTION_BROWSE;
 			} else {
 				mAction = URL_ACTION_PLAY;
-				mList = MusicUtils.getFilesInPlaylist(mContext, getUri().getScrubbedUri().toString(), transport.getContentType(), transport.getConnection());
+				if (transport.isPotentialPlaylist()) {
+					mList = MusicUtils.getFilesInPlaylist(mContext, getUri().getScrubbedUri().toString(), transport.getContentType(), transport.getConnection());
+				} else {
+					mList = MusicUtils.storeFile(mContext, getUri().getScrubbedUri().toString());
+				}
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
