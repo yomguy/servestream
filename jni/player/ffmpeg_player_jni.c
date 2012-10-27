@@ -72,14 +72,11 @@ typedef int bool;
 #define true 1
 #define false 0
 
-static int m_sampleRateInHz = 0;
-static int m_channelConfig = 0;
-static int64_t m_currentPosition = -1;
-
 static AVCodecContext *pCodecCtx;
 static AVCodec *dec;
 
 static jmethodID post_event;
+static jmethodID init_audio_track;
 
 jint JNICALL JNI_OnLoad(JavaVM* vm, void* reserved) {
     __android_log_print(ANDROID_LOG_INFO, "Java_net_sourceforge_servestream_player_FFmpegPlayer", "JNI_OnLoad()");
@@ -110,6 +107,8 @@ Java_net_sourceforge_servestream_player_FFmpegPlayer_native_1init(JNIEnv * env, 
 
     post_event = (*env)->GetStaticMethodID(env, obj, "postEventFromNative",
                                                "(Ljava/lang/Object;IIILjava/lang/Object;)V");
+
+    init_audio_track = (*env)->GetStaticMethodID(env, obj, "initAudioTrack", "(II)V");
 
     global_audio_state = av_mallocz(sizeof(AudioState));
 
@@ -276,8 +275,8 @@ Java_net_sourceforge_servestream_player_FFmpegPlayer_nativeOpenAudio(JNIEnv* env
 
     // set the sample rate and channels since these
     // will be required when creating the AudioTrack object
-    m_sampleRateInHz = pCodecCtx->sample_rate;
-    m_channelConfig = pCodecCtx->channels;
+	jclass cls = (*env)->GetObjectClass(env, obj);
+	(*env)->CallStaticVoidMethod(env, cls, init_audio_track, pCodecCtx->sample_rate, pCodecCtx->channels);
 
 	notify(env, obj, MEDIA_PREPARED, 0, 0, 0);
 }
@@ -331,9 +330,8 @@ Java_net_sourceforge_servestream_player_FFmpegPlayer_nativeClose(JNIEnv* env, jo
 }
 
 int decodeFrameFromPacket(AVPacket* aPacket) {
-	int data_size, n;
+	int n;
 	AVPacket *pkt = aPacket;
-	m_currentPosition = aPacket->pts;
 
     if (aPacket->stream_index == global_audio_state->audioStream) {
         int dataLength = gAudioFrameRefBufferMaxSize;
@@ -346,7 +344,7 @@ int decodeFrameFromPacket(AVPacket* aPacket) {
         // TODO add this call back!
         //*pts_ptr = pts;
         n = 2 * global_audio_state->audio_st->codec->channels;
-        global_audio_state->audio_clock += (double)data_size /
+        global_audio_state->audio_clock += (double)dataLength /
         		(double)(n * global_audio_state->audio_st->codec->sample_rate);
 
         /* if update, update the audio clock w/pts */
