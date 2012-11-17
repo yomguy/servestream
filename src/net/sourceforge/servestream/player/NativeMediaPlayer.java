@@ -1,6 +1,6 @@
 /*
  * ServeStream: A HTTP stream browser/player for Android
- * Copyright 2010 William Seemann
+ * Copyright 2012 William Seemann
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,7 +28,6 @@ import java.io.IOException;
 
 import net.sourceforge.servestream.utils.URLUtils;
 import net.sourceforge.servestream.service.MediaPlaybackService;
-
 
 /**
  * Provides a unified interface for dealing with midi files and
