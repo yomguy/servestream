@@ -17,7 +17,6 @@
 
 package net.sourceforge.servestream.player;
 
-import android.media.MediaPlayer;
 import android.os.Handler;
 import android.os.Parcel;
 import android.os.Parcelable;
@@ -36,7 +35,7 @@ import net.sourceforge.servestream.service.MediaPlaybackService;
 public class FFmpegMediaPlayer extends AbstractMediaPlayer implements Parcelable {
 	private static final String TAG = FFmpegMediaPlayer.class.getName();
 	
-	private MediaPlayer mMediaPlayer = new MediaPlayer();
+	private FFmpegPlayer mMediaPlayer = new FFmpegPlayer();
     private Handler mHandler;
     private boolean mIsInitialized = false;
 
@@ -103,8 +102,8 @@ public class FFmpegMediaPlayer extends AbstractMediaPlayer implements Parcelable
         mHandler = handler;
     }
 
-    MediaPlayer.OnPreparedListener onPreparedListener = new MediaPlayer.OnPreparedListener() {
-		public void onPrepared(MediaPlayer mp) {
+    FFmpegPlayer.OnPreparedListener onPreparedListener = new FFmpegPlayer.OnPreparedListener() {
+		public void onPrepared(FFmpegPlayer mp) {
 			
 			Log.v(TAG, "media player is prepared");
 	        mIsInitialized = true;
@@ -112,8 +111,8 @@ public class FFmpegMediaPlayer extends AbstractMediaPlayer implements Parcelable
 		}
     };
     
-    MediaPlayer.OnCompletionListener completionListener = new MediaPlayer.OnCompletionListener() {
-        public void onCompletion(MediaPlayer mp) {
+    FFmpegPlayer.OnCompletionListener completionListener = new FFmpegPlayer.OnCompletionListener() {
+        public void onCompletion(FFmpegPlayer mp) {
             
         	Log.v(TAG, "onCompletionListener called");
         	
@@ -128,15 +127,15 @@ public class FFmpegMediaPlayer extends AbstractMediaPlayer implements Parcelable
         }
     };
 
-    MediaPlayer.OnErrorListener errorListener = new MediaPlayer.OnErrorListener() {
-        public boolean onError(MediaPlayer mp, int what, int extra) {
+    FFmpegPlayer.OnErrorListener errorListener = new FFmpegPlayer.OnErrorListener() {
+        public boolean onError(FFmpegPlayer mp, int what, int extra) {
         	Log.d(TAG, "Error: " + what + "," + extra);
         	
             switch (what) {
-            case MediaPlayer.MEDIA_ERROR_SERVER_DIED:
+            case FFmpegPlayer.MEDIA_ERROR_SERVER_DIED:
                 mIsInitialized = false;
                 mMediaPlayer.release();
-                mMediaPlayer = new MediaPlayer(); 
+                mMediaPlayer = new FFmpegPlayer(); 
                 mHandler.sendMessageDelayed(mHandler.obtainMessage(MediaPlaybackService.SERVER_DIED), 2000);
                 return true;
             default:
@@ -177,14 +176,14 @@ public class FFmpegMediaPlayer extends AbstractMediaPlayer implements Parcelable
 
 	}
 	
-	public static final Parcelable.Creator<NativeMediaPlayer> CREATOR = new
-	Parcelable.Creator<NativeMediaPlayer>() {
-	    public NativeMediaPlayer createFromParcel(Parcel in) {
-	    	return new NativeMediaPlayer();
+	public static final Parcelable.Creator<FFmpegPlayer> CREATOR = new
+	Parcelable.Creator<FFmpegPlayer>() {
+	    public FFmpegPlayer createFromParcel(Parcel in) {
+	    	return new FFmpegPlayer();
 	    }
 
-	    public NativeMediaPlayer[] newArray(int size) {
-	    	return new NativeMediaPlayer[size];
+	    public FFmpegPlayer[] newArray(int size) {
+	    	return new FFmpegPlayer[size];
 	    }
 	};
 }
