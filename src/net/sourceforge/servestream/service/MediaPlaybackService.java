@@ -53,6 +53,7 @@ import net.sourceforge.servestream.dbutils.StreamDatabase;
 import net.sourceforge.servestream.media.MetadataRetriever;
 import net.sourceforge.servestream.media.SHOUTcastMetadata;
 import net.sourceforge.servestream.player.AbstractMediaPlayer;
+import net.sourceforge.servestream.player.FFmpegMediaPlayer;
 import net.sourceforge.servestream.player.NativeMediaPlayer;
 import net.sourceforge.servestream.provider.Media;
 import net.sourceforge.servestream.utils.PreferenceConstants;
@@ -839,13 +840,22 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
     		mDownloadManager.cancelDownload();
             
             if (playingVideo()) {
+            	mPlayer.release();
+            	mPlayer = new NativeMediaPlayer();
+                mPlayer.setHandler(mMediaplayerHandler);
+            	
             	mIsStreaming = true;
                 Intent intent = new Intent(this, MediaPlaybackActivity.class);
                 intent.setAction(PREPARE_VIDEO);
                 intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_SINGLE_TOP);
                 startActivity(intent);
             } else { 
-            	if (mPreferences.getBoolean(PreferenceConstants.PROGRESSIVE_DOWNLOAD, false)) {
+            	mPlayer.release();
+            	mPlayer = AbstractMediaPlayer.getMediaPlayer(mFileToPlay);
+                mPlayer.setHandler(mMediaplayerHandler);
+            	
+            	if (mPreferences.getBoolean(PreferenceConstants.PROGRESSIVE_DOWNLOAD, false) &&
+            			!(mPlayer instanceof FFmpegMediaPlayer)) {
             		mIsStreaming = false;
             		mDownloadManager.download(mPlayList[mPlayPos]);
             	} else {
