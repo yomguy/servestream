@@ -17,6 +17,13 @@
 
 package net.sourceforge.servestream.player;
 
+import net.sourceforge.servestream.transport.File;
+import net.sourceforge.servestream.transport.HTTP;
+import net.sourceforge.servestream.transport.HTTPS;
+import net.sourceforge.servestream.transport.MMS;
+import net.sourceforge.servestream.transport.MMSH;
+import net.sourceforge.servestream.transport.MMST;
+import net.sourceforge.servestream.transport.RTSP;
 import android.os.Handler;
 import android.os.Parcel;
 import android.os.Parcelable;
@@ -35,6 +42,32 @@ public abstract class AbstractMediaPlayer implements Parcelable {
         
     }
 
+    /**
+     * Detects the appropriate media player depending on the URI of 
+     * a file.
+     * @param uri path to a file.
+     * @return a media player.
+     */
+	public static final AbstractMediaPlayer getMediaPlayer(String uri) {
+		if (uri.startsWith(HTTP.getProtocolName())) {
+			return new NativeMediaPlayer();
+		} else if (uri.startsWith(HTTPS.getProtocolName())) {
+			return new NativeMediaPlayer();
+		} else if (uri.startsWith(File.getProtocolName())) {
+			return new NativeMediaPlayer();
+		} else if (uri.startsWith(RTSP.getProtocolName())) {
+			return new NativeMediaPlayer();
+		} else if (uri.startsWith(MMS.getProtocolName())) {
+			return new FFmpegMediaPlayer();
+		} else if (uri.startsWith(MMSH.getProtocolName())) {
+			return new FFmpegMediaPlayer();
+		} else if (uri.startsWith(MMST.getProtocolName())) {
+			return new FFmpegMediaPlayer();
+		} else {
+			return null;
+		}
+	}
+    
     public abstract void setDataSource(String path, boolean isLocalFile);
         
     public abstract boolean isInitialized();
@@ -43,9 +76,6 @@ public abstract class AbstractMediaPlayer implements Parcelable {
 
     public abstract void stop();
 
-    /**
-     * You CANNOT use this player anymore after calling release()
-     */
     public abstract void release();
         
     public abstract void pause();
