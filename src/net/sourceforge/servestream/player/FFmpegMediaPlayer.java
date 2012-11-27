@@ -25,6 +25,8 @@ import android.view.SurfaceHolder;
 
 import java.io.IOException;
 
+import net.sourceforge.servestream.transport.MMS;
+import net.sourceforge.servestream.transport.MMSH;
 import net.sourceforge.servestream.utils.URLUtils;
 import net.sourceforge.servestream.service.MediaPlaybackService;
 
@@ -54,6 +56,10 @@ public class FFmpegMediaPlayer extends AbstractMediaPlayer implements Parcelable
             	mMediaPlayer.prepare();
             } else {
             	try {
+            		if (path.startsWith(MMS.getProtocolName())) {
+            			path = path.replace(MMS.getProtocolName(), MMSH.getProtocolName());
+            		}
+            		
                     mMediaPlayer.setDataSource(URLUtils.encodeURL(path));
             		mMediaPlayer.prepareAsync();
             	} catch (IllegalStateException e) {
