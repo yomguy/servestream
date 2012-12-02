@@ -19,8 +19,6 @@ package net.sourceforge.servestream.player;
 
 import android.media.MediaPlayer;
 import android.os.Handler;
-import android.os.Parcel;
-import android.os.Parcelable;
 import android.util.Log;
 import android.view.SurfaceHolder;
 
@@ -33,7 +31,7 @@ import net.sourceforge.servestream.service.MediaPlaybackService;
  * Provides a unified interface for dealing with midi files and
  * other media files.
  */
-public class NativeMediaPlayer extends AbstractMediaPlayer implements Parcelable {
+public class NativeMediaPlayer extends AbstractMediaPlayer {
 	private static final String TAG = NativeMediaPlayer.class.getName();
 	
 	private MediaPlayer mMediaPlayer = new MediaPlayer();
@@ -61,7 +59,7 @@ public class NativeMediaPlayer extends AbstractMediaPlayer implements Parcelable
             		//setDataSource(path, isLocalFile);
             	}
             }
-            Log.v(TAG, "Preparing media plyer");
+            Log.v(TAG, "Preparing media player");
         } catch (IOException ex) {
         	Log.v(TAG, "Error initializing");
             mIsInitialized = false;
@@ -78,7 +76,6 @@ public class NativeMediaPlayer extends AbstractMediaPlayer implements Parcelable
     }
 
     public void start() {
-        Log.v(TAG, "MultiPlayer.start called");
         mMediaPlayer.start();
     }
 
@@ -87,9 +84,6 @@ public class NativeMediaPlayer extends AbstractMediaPlayer implements Parcelable
         mIsInitialized = false;
     }
 
-    /**
-     * You CANNOT use this player anymore after calling release()
-     */
     public void release() {
         stop();
         mMediaPlayer.release();
@@ -168,23 +162,4 @@ public class NativeMediaPlayer extends AbstractMediaPlayer implements Parcelable
     public void setDisplay(SurfaceHolder holder) {
     	mMediaPlayer.setDisplay(holder);
     }
-    
-	public int describeContents() {
-		return 0;
-	}
-
-	public void writeToParcel(Parcel dest, int flags) {
-
-	}
-	
-	public static final Parcelable.Creator<NativeMediaPlayer> CREATOR = new
-	Parcelable.Creator<NativeMediaPlayer>() {
-	    public NativeMediaPlayer createFromParcel(Parcel in) {
-	    	return new NativeMediaPlayer();
-	    }
-
-	    public NativeMediaPlayer[] newArray(int size) {
-	    	return new NativeMediaPlayer[size];
-	    }
-	};
 }
