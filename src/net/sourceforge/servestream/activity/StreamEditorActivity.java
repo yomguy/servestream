@@ -120,6 +120,11 @@ public class StreamEditorActivity extends PreferenceActivity implements OnShared
 			public android.content.SharedPreferences.Editor putString(String key, String value) {
 				//Log.d(this.getClass().toString(), String.format("Editor.putString(key=%s, value=%s)", key, value));
 				
+	            // ensure the port is not null
+				if (key.equals("port") && value != null && value.equals("")) {
+					value = "-1";
+				}
+				
 				if (value != null && value.equals("")) {
 					value = null;
 					update.put(key, value);
