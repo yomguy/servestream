@@ -18,8 +18,6 @@
 package net.sourceforge.servestream.player;
 
 import android.os.Handler;
-import android.os.Parcel;
-import android.os.Parcelable;
 import android.util.Log;
 import android.view.SurfaceHolder;
 
@@ -34,7 +32,7 @@ import net.sourceforge.servestream.service.MediaPlaybackService;
  * Provides a unified interface for dealing with midi files and
  * other media files.
  */
-public class FFmpegMediaPlayer extends AbstractMediaPlayer implements Parcelable {
+public class FFmpegMediaPlayer extends AbstractMediaPlayer {
 	private static final String TAG = FFmpegMediaPlayer.class.getName();
 	
 	private FFmpegPlayer mMediaPlayer = new FFmpegPlayer();
@@ -66,7 +64,7 @@ public class FFmpegMediaPlayer extends AbstractMediaPlayer implements Parcelable
             		//setDataSource(path, isLocalFile);
             	}
             }
-            Log.v(TAG, "Preparing media plyer");
+            Log.v(TAG, "Preparing media player");
         } catch (IOException ex) {
         	Log.v(TAG, "Error initializing");
             mIsInitialized = false;
@@ -83,7 +81,6 @@ public class FFmpegMediaPlayer extends AbstractMediaPlayer implements Parcelable
     }
 
     public void start() {
-        Log.v(TAG, "MultiPlayer.start called");
         mMediaPlayer.start();
     }
 
@@ -92,9 +89,6 @@ public class FFmpegMediaPlayer extends AbstractMediaPlayer implements Parcelable
         mIsInitialized = false;
     }
 
-    /**
-     * You CANNOT use this player anymore after calling release()
-     */
     public void release() {
         stop();
         mMediaPlayer.release();
@@ -167,29 +161,10 @@ public class FFmpegMediaPlayer extends AbstractMediaPlayer implements Parcelable
     }
 
     public void setVolume(float vol) {
-        mMediaPlayer.setVolume(vol, vol);
+        //mMediaPlayer.setVolume(vol, vol);
     }
 
     public void setDisplay(SurfaceHolder holder) {
-    	mMediaPlayer.setDisplay(holder);
+    	//mMediaPlayer.setDisplay(holder);
     }
-    
-	public int describeContents() {
-		return 0;
-	}
-
-	public void writeToParcel(Parcel dest, int flags) {
-
-	}
-	
-	public static final Parcelable.Creator<FFmpegPlayer> CREATOR = new
-	Parcelable.Creator<FFmpegPlayer>() {
-	    public FFmpegPlayer createFromParcel(Parcel in) {
-	    	return new FFmpegPlayer();
-	    }
-
-	    public FFmpegPlayer[] newArray(int size) {
-	    	return new FFmpegPlayer[size];
-	    }
-	};
 }
