@@ -15,43 +15,42 @@
  * limitations under the License.
  */
 
+#include <jni.h>
 #include <android/log.h>
+#include <ffmpeg_player.h>
 #include <JNIHelper.h>
 #include <jni_utils.h>
-#include <ffmpeg_player.h>
-#include <jni.h>
 #include <libavcodec/avcodec.h>
 #include <libavformat/avformat.h>
 #include <libavutil/mathematics.h>
 #include <pthread.h>
+#include <stdio.h>
 
 #define AUDIO_DATA_ID 1
 
-#define TAG "FFmpegPlayer"
-
-typedef struct PacketQueue {
-	AVPacketList *first_pkt, *last_pkt;
-	int nb_packets;
-	int size;
-} PacketQueue;
-
 typedef struct AudioState {
 	pthread_t decoder_thread;
+    int abort_request;
+	int paused;
+    int last_paused;
+    int seek_req;
+    int seek_flags;
+    int64_t seek_pos;
+    int64_t seek_rel;
+    int read_pause_return;
 	AVFormatContext *ic;
-	int             audio_stream;
-	double          audio_clock;
-	AVStream        *audio_st;
-
-	char            filename[1024];
-	int             paused;
-	int             stopped;
-	int             quit;
-	int             playstate;
+	int audio_stream;
+	double audio_clock;
+	AVStream *audio_st;
+	char filename[1024];
+	int playstate;
 } AudioState;
 
 /* Since we only have one decoding thread, the Big Struct
    can be global in case we need it. */
 AudioState *global_audio_state;
+
+static pthread_mutex_t *lock;
 
 //audio
 jbyteArray gAudioFrameRef; //reference to a java variable
@@ -129,23 +128,27 @@ void notify(JNIEnv * env, jclass obj, int msg, int ext1, int ext2, int obj1) {
 
 void initClassHelper(JNIEnv *env, const char *path, jobject *objptr) {
 	jclass cls = (*env)->FindClass(env, path);
-	if(!cls) {
+	if (!cls) {
 		return;
 	}
 	jmethodID constr = (*env)->GetMethodID(env, cls, "<init>", "()V");
-	if(!constr) {
+	if (!constr) {
 		return;
 	}
 	jobject obj = (*env)->NewObject(env, cls, constr);
-	if(!obj) {
+	if (!obj) {
 		return;
 	}
 	(*objptr) = (*env)->NewGlobalRef(env, obj);
 }
 
+static int decode_interrupt_cb(void *ctx) {
+	return global_audio_state->abort_request;
+}
+
 JNIEXPORT void JNICALL
 Java_net_sourceforge_servestream_player_FFmpegPlayer_native_1init(JNIEnv * env, jclass obj) {
-    __android_log_write(ANDROID_LOG_INFO, TAG, "native_init()");
+    __android_log_write(ANDROID_LOG_INFO, TAG, "native_init");
 
     initClassHelper(env, kClassPathName, &gClassPathObject);
 
@@ -156,6 +159,8 @@ Java_net_sourceforge_servestream_player_FFmpegPlayer_native_1init(JNIEnv * env, 
     write_audio = (*env)->GetStaticMethodID(env, obj, "nativeWriteCallback", "()V");
     fill_buffer = (*env)->GetStaticMethodID(env, obj, "fillBuffer", "(I)I");
 
+    global_audio_state = av_mallocz(sizeof(AudioState));
+
     // Initialize libavformat and register all the muxers, demuxers and protocols.
     avcodec_register_all();
     av_register_all();
@@ -163,10 +168,10 @@ Java_net_sourceforge_servestream_player_FFmpegPlayer_native_1init(JNIEnv * env, 
 
 JNIEXPORT void JNICALL
 Java_net_sourceforge_servestream_player_FFmpegPlayer_bind_1variables(JNIEnv* env, jobject obj, jbyteArray audioframe, jintArray audioframelength) {
-    __android_log_print(ANDROID_LOG_INFO, TAG, "bind_variables()");
+    __android_log_print(ANDROID_LOG_INFO, TAG, "bind_variables");
 
     if (gAudioFrameRef) {
-    	__android_log_print(ANDROID_LOG_ERROR, TAG, "call nativeCloseAudio() before calling this function");
+    	__android_log_print(ANDROID_LOG_ERROR, TAG, "call nativeCloseAudio before calling this function");
     	notify(env, obj, MEDIA_ERROR, 0, 0, 0);
     	return;
     }
@@ -223,19 +228,17 @@ Java_net_sourceforge_servestream_player_FFmpegPlayer_bind_1variables(JNIEnv* env
     	notify(env, obj, MEDIA_ERROR, 0, 0, 0);
     	return;
     }
-
-    __android_log_print(ANDROID_LOG_INFO, TAG, "size of the audio data length reference: %d", audioDataLength);
 }
 
 JNIEXPORT void JNICALL
 Java_net_sourceforge_servestream_player_FFmpegPlayer__1setDataSource(JNIEnv* env, jobject obj, jstring path) {
-    __android_log_print(ANDROID_LOG_INFO, TAG, "setDataSource()");
+    __android_log_print(ANDROID_LOG_INFO, TAG, "setDataSource");
 
     const char *uri;
 
     if (!path) {
     	jniThrowException(env, "java/lang/IllegalArgumentException", NULL);
-        //global_audio_state->playstate = MEDIA_PLAYER_STATE_ERROR;
+        global_audio_state->playstate = MEDIA_PLAYER_STATE_ERROR;
     	return;
     }
 
@@ -251,14 +254,11 @@ Java_net_sourceforge_servestream_player_FFmpegPlayer__1setDataSource(JNIEnv* env
     uri = (*env)->GetStringUTFChars(env, path, NULL);
     strncpy(global_audio_state->filename, uri, sizeof(global_audio_state->filename));
     (*env)->ReleaseStringUTFChars(env, path, uri);
-
-    __android_log_print(ANDROID_LOG_ERROR, TAG, "setDataSource() succeeded");
 }
 
 void player_prepare(void * data) {
-    __android_log_print(ANDROID_LOG_INFO, TAG, "nativeOpenAudio()");
-
-    AVFormatContext *pFormatCtx = NULL;
+    AVFormatContext *pFormatCtx = avformat_alloc_context();
+    pFormatCtx->interrupt_callback.callback = decode_interrupt_cb;
 	int is_attached;
 	JNIEnv *env;
 	jclass interface_class;
@@ -270,14 +270,15 @@ void player_prepare(void * data) {
     __android_log_print(ANDROID_LOG_INFO, TAG, "opening %s", global_audio_state->filename);
     if (avformat_open_input(&pFormatCtx, global_audio_state->filename, NULL, NULL) != 0) {
         __android_log_print(ANDROID_LOG_ERROR, TAG, "avformat_open_input() failed");
-        jniThrowException(env, "java/io/IOException", NULL);
         global_audio_state->playstate = MEDIA_PLAYER_STATE_ERROR;
+        thread_notify(MEDIA_ERROR, 0, 0, 0);
     	return;
     }
 
     if (avformat_find_stream_info(pFormatCtx, NULL) < 0) {
         __android_log_print(ANDROID_LOG_ERROR, TAG, "Unable to locate stream information");
         global_audio_state->playstate = MEDIA_PLAYER_STATE_ERROR;
+        thread_notify(MEDIA_ERROR, 0, 0, 0);
     	return;
     }
 
@@ -367,14 +368,14 @@ void player_prepare(void * data) {
 
 JNIEXPORT void JNICALL
 Java_net_sourceforge_servestream_player_FFmpegPlayer_prepare(JNIEnv* env, jobject obj) {
-    __android_log_print(ANDROID_LOG_INFO, TAG, "prepare()");
+    __android_log_print(ANDROID_LOG_INFO, TAG, "prepare");
     player_prepare(NULL);
 
 }
 
 JNIEXPORT void JNICALL
 Java_net_sourceforge_servestream_player_FFmpegPlayer_prepareAsync(JNIEnv* env, jobject obj) {
-    __android_log_print(ANDROID_LOG_INFO, TAG, "prepareAsync()");
+    __android_log_print(ANDROID_LOG_INFO, TAG, "prepareAsync");
 
 	pthread_t prepare_thread;
 	pthread_create(&prepare_thread, NULL, (void *) &player_prepare, NULL);
@@ -382,10 +383,10 @@ Java_net_sourceforge_servestream_player_FFmpegPlayer_prepareAsync(JNIEnv* env, j
 
 JNIEXPORT void JNICALL
 Java_net_sourceforge_servestream_player_FFmpegPlayer__1release(JNIEnv* env, jobject obj) {
-    __android_log_print(ANDROID_LOG_INFO, TAG, "release()");
+    __android_log_print(ANDROID_LOG_INFO, TAG, "release");
 
     // global audio state is null, nothing to do
-    if (!global_audio_state) {
+    /*if (!global_audio_state) {
     	return;
     }
 
@@ -407,13 +408,20 @@ Java_net_sourceforge_servestream_player_FFmpegPlayer__1release(JNIEnv* env, jobj
         break;
     default:
         break;
-    }
+    }*/
 }
 
 JNIEXPORT void JNICALL
 Java_net_sourceforge_servestream_player_FFmpegPlayer__1reset(JNIEnv* env, jobject obj) {
-    __android_log_print(ANDROID_LOG_INFO, TAG, "reset()");
+    __android_log_print(ANDROID_LOG_INFO, TAG, "reset");
 
+    pthread_mutex_lock(lock);
+
+    if (global_audio_state) {
+    	global_audio_state->abort_request = 1;
+    	pthread_join(global_audio_state->decoder_thread, NULL);
+    }
+    pthread_mutex_unlock(lock);
 }
 
 int decodeFrameFromPacket(AVPacket *aPacket) {
@@ -450,17 +458,43 @@ void player_decode(void * data) {
 	int ret;
 	int eof = 0;
 
-	global_audio_state->paused = 0;
-	global_audio_state->stopped = 0;
-
 	for (;;) {
 
-		if (global_audio_state->paused || global_audio_state->stopped) {
-			global_audio_state->playstate = MEDIA_PLAYER_PAUSED;
-			return;
+		if (global_audio_state->abort_request) {
+			break;
 		}
 
-		global_audio_state->playstate = MEDIA_PLAYER_STARTED;
+        if (global_audio_state->paused != global_audio_state->last_paused) {
+        	global_audio_state->last_paused = global_audio_state->paused;
+            if (global_audio_state->paused) {
+            	global_audio_state->read_pause_return = av_read_pause(global_audio_state->ic);
+            	global_audio_state->playstate = MEDIA_PLAYER_PAUSED;
+            } else {
+                av_read_play(global_audio_state->ic);
+                global_audio_state->playstate = MEDIA_PLAYER_STARTED;
+            }
+        }
+
+        if (global_audio_state->seek_req) {
+            int64_t seek_target = global_audio_state->seek_pos;
+            int64_t seek_min = global_audio_state->seek_rel > 0 ? seek_target - global_audio_state->seek_rel + 2: INT64_MIN;
+            int64_t seek_max = global_audio_state->seek_rel < 0 ? seek_target - global_audio_state->seek_rel - 2: INT64_MAX;
+
+            ret = avformat_seek_file(global_audio_state->ic, -1, seek_min, seek_target, seek_max, global_audio_state->seek_flags);
+            if (ret < 0) {
+                fprintf(stderr, "%s: error while seeking\n", global_audio_state->ic->filename);
+            } else {
+                if (global_audio_state->audio_stream >= 0) {
+                	avcodec_flush_buffers(global_audio_state->audio_st->codec);
+                }
+            }
+            global_audio_state->seek_req = 0;
+            eof = 0;
+        }
+
+        if (global_audio_state->paused) {
+        	goto sleep;
+        }
 
 		AVPacket packet;
 		memset(&packet, 0, sizeof(packet)); //make sure we can safely free it
@@ -497,6 +531,9 @@ void player_decode(void * data) {
 		if (eof) {
 			break;
 		}
+
+		sleep:
+		    usleep(100);
 	}
 
 	if (eof) {
@@ -507,29 +544,41 @@ void player_decode(void * data) {
 
 JNIEXPORT void JNICALL
 Java_net_sourceforge_servestream_player_FFmpegPlayer__1pause(JNIEnv* env, jobject obj) {
+    __android_log_print(ANDROID_LOG_INFO, TAG, "pause");
+
+    pthread_mutex_lock(lock);
 	global_audio_state->paused = !global_audio_state->paused;
+    pthread_mutex_lock(lock);
 }
 
 JNIEXPORT void JNICALL
 Java_net_sourceforge_servestream_player_FFmpegPlayer__1start(JNIEnv* env, jobject obj) {
-    __android_log_print(ANDROID_LOG_INFO, TAG, "start()");
+    __android_log_print(ANDROID_LOG_INFO, TAG, "start");
 
-    // if the decoder thread is NULL lets start a new one, otherwise
-    // lets resume playback
-	pthread_create(&global_audio_state->decoder_thread, NULL, (void *) &player_decode, NULL);
+    pthread_mutex_lock(lock);
+    if (global_audio_state->playstate == MEDIA_PLAYER_PREPARED ||
+    	global_audio_state->playstate == MEDIA_PLAYER_PLAYBACK_COMPLETE) {
+    	pthread_create(&global_audio_state->decoder_thread, NULL, (void *) &player_decode, NULL);
+	}
+
+    if (global_audio_state->playstate == MEDIA_PLAYER_PAUSED) {
+    	global_audio_state->paused = !global_audio_state->paused;
+    }
+
+    pthread_mutex_unlock(lock);
 }
 
 JNIEXPORT void JNICALL
 Java_net_sourceforge_servestream_player_FFmpegPlayer__1stop(JNIEnv* env, jobject obj) {
-    __android_log_print(ANDROID_LOG_INFO, TAG, "stop()");
+    __android_log_print(ANDROID_LOG_INFO, TAG, "stop");
 
-    global_audio_state->stopped = 1;
+    pthread_mutex_lock(lock);
+    global_audio_state->abort_request = 1;
+    pthread_mutex_unlock(lock);
 }
 
 JNIEXPORT int JNICALL
 Java_net_sourceforge_servestream_player_FFmpegPlayer_getCurrentPosition(JNIEnv* env, jobject obj) {
-    //__android_log_print(ANDROID_LOG_INFO, TAG, "getCurrentPosition(), current position is: %f", global_audio_state->audio_clock);
-
 	return (global_audio_state->audio_clock * 1000);
 }
 
@@ -543,57 +592,51 @@ Java_net_sourceforge_servestream_player_FFmpegPlayer_getDuration(JNIEnv* env, jo
 }
 
 JNIEXPORT void JNICALL
-Java_net_sourceforge_servestream_player_FFmpegPlayer__1seekTo(JNIEnv* env, jobject obj, int msec) {
+Java_net_sourceforge_servestream_player_FFmpegPlayer_seekTo(JNIEnv* env, jobject obj, int msec) {
+    __android_log_print(ANDROID_LOG_INFO, TAG, "seekTo");
 
+    pthread_mutex_lock(lock);
+
+    if (!global_audio_state->seek_req) {
+    	global_audio_state->seek_pos = msec * 1000;
+    	global_audio_state->seek_rel = msec * 1000;
+    	global_audio_state->seek_flags = AVSEEK_FLAG_FRAME;
+        global_audio_state->seek_req = 1;
+    }
+
+    pthread_mutex_unlock(lock);
 }
 
 void JNICALL JNI_OnUnload(JavaVM *vm, void *reserved) {
-	int status;
+	int is_attached;
 	JNIEnv *env;
-	int isAttached = 0;
-	status = (*m_vm)->GetEnv(m_vm, (void**)&env, JNI_VERSION_1_6);
+	jclass interface_class;
 
-	if (status < 0) {
-		status = (*m_vm)->AttachCurrentThread(m_vm, &env, NULL);
-		if (status < 0) {
-			__android_log_print(ANDROID_LOG_DEBUG, TAG, "callback_handler: failed to attach current thread");
-			return;
-		}
-		isAttached = 1;
-	}
+	attach_to_current_thread(m_vm, gClassPathObject, &is_attached, &env, &interface_class);
+	if (is_attached) {
+		if (gAudioFrameRef) {
+			if (gAudioFrameRefBuffer) {
+				(*env)->ReleaseByteArrayElements(env, gAudioFrameRef, gAudioFrameRefBuffer, 0);
+				gAudioFrameRefBuffer = NULL;
+			}
 
-	jclass interfaceClass = (*env)->GetObjectClass(env, gClassPathObject);
-	if (!interfaceClass) {
-		__android_log_print(ANDROID_LOG_DEBUG, TAG, "callback_handler: failed to get class reference");
-		if (isAttached) {
-			(*m_vm)->DetachCurrentThread(m_vm);
-		}
-		return;
-	}
-
-	if (gAudioFrameRef) {
-		if (gAudioFrameRefBuffer) {
-			(*env)->ReleaseByteArrayElements(env, gAudioFrameRef, gAudioFrameRefBuffer, 0);
-			gAudioFrameRefBuffer = NULL;
+			(*env)->DeleteGlobalRef(env, gAudioFrameRef);
+			gAudioFrameRef = NULL;
 		}
 
-		(*env)->DeleteGlobalRef(env, gAudioFrameRef);
-		gAudioFrameRef = NULL;
-	}
+		gAudioFrameRefBufferMaxSize = 0;
 
-	gAudioFrameRefBufferMaxSize = 0;
+		if (gAudioFrameDataLengthRef) {
+			if (gAudioFrameDataLengthRefBuffer) {
+				(*env)->ReleaseIntArrayElements(env, gAudioFrameDataLengthRef, gAudioFrameDataLengthRefBuffer, 0);
+				gAudioFrameDataLengthRefBuffer = NULL;
+			}
 
-	if (gAudioFrameDataLengthRef) {
-		if (gAudioFrameDataLengthRefBuffer) {
-			(*env)->ReleaseIntArrayElements(env, gAudioFrameDataLengthRef, gAudioFrameDataLengthRefBuffer, 0);
-			gAudioFrameDataLengthRefBuffer = NULL;
+			(*env)->DeleteGlobalRef(env, gAudioFrameDataLengthRef);
+			gAudioFrameDataLengthRef = NULL;
 		}
-
-		(*env)->DeleteGlobalRef(env, gAudioFrameDataLengthRef);
-		gAudioFrameDataLengthRef = NULL;
 	}
 
-	if (isAttached) {
-		(*m_vm)->DetachCurrentThread(m_vm);
-	}
+	detach_from_current_thread(m_vm, is_attached);
 }
+

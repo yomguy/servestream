@@ -21,7 +21,9 @@
 #include "jni.h"
 #include "android/log.h"
 
-enum media_event_type {
+#define TAG "FFmpegPlayer"
+
+typedef enum {
     MEDIA_NOP               = 0, // interface test message
     MEDIA_PREPARED          = 1,
     MEDIA_PLAYBACK_COMPLETE = 2,
@@ -31,9 +33,9 @@ enum media_event_type {
     MEDIA_TIMED_TEXT        = 99,
     MEDIA_ERROR             = 100,
     MEDIA_INFO              = 200,
-};
+} media_event_type;
 
-enum media_player_states {
+typedef enum {
     MEDIA_PLAYER_STATE_ERROR        = 0,
     MEDIA_PLAYER_IDLE               = 1 << 0,
     MEDIA_PLAYER_INITIALIZED        = 1 << 1,
@@ -44,7 +46,7 @@ enum media_player_states {
     MEDIA_PLAYER_PAUSED             = 1 << 6,
     MEDIA_PLAYER_STOPPED            = 1 << 7,
     MEDIA_PLAYER_PLAYBACK_COMPLETE  = 1 << 8
-};
+} media_player_states;
 
 #endif /*_FFMPEG_PLAYER_H*/
 

@@ -34,7 +34,7 @@
  *
  * Currently aborts the VM if it can't throw the exception.
  */
-int jniThrowException(C_JNIEnv* env, const char* className, const char* msg);
+int jniThrowException(JNIEnv* env, const char* className, const char* msg);
 
 #endif /*_JNIHELPER_H*/
 
