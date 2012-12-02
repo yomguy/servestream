@@ -902,7 +902,7 @@ public class FFmpegPlayer
     	channelConfig = (channelConfig == 1) ? AudioFormat.CHANNEL_OUT_MONO : 
             AudioFormat.CHANNEL_OUT_STEREO;
     	
-    	mMinBufferSize = AudioTrack.getMinBufferSize(sampleRateInHz, channelConfig, AudioFormat.ENCODING_PCM_16BIT) * 8;
+    	mMinBufferSize = AudioTrack.getMinBufferSize(sampleRateInHz, channelConfig, AudioFormat.ENCODING_PCM_16BIT) * 4;
     	mBytesWritten = 0;
     	
     	Log.i(TAG, "Minimum buffer size set to: " + mMinBufferSize);
@@ -1067,8 +1067,6 @@ public class FFmpegPlayer
      */
     public native boolean isPlaying();
 
-    public native void _seekTo(int msec) throws IllegalStateException;
-    
     /**
      * Seeks to specified time position.
      *
@@ -1076,12 +1074,7 @@ public class FFmpegPlayer
      * @throws IllegalStateException if the internal player engine has not been
      * initialized
      */
-    public void seekTo(int msec) throws IllegalStateException {
-    	if (mAudioTrack != null) {
-    		mAudioTrack.flush();
-    	}
-    	_seekTo(msec);
-    }
+    public native void seekTo(int msec) throws IllegalStateException;
 
     /**
      * Gets the current playback position.
@@ -1161,11 +1154,12 @@ public class FFmpegPlayer
      */
     public void reset() {
         stayAwake(false);
+        _reset();
+        
         if (mAudioTrack != null) {
         	mAudioTrack.release();
         	mAudioTrack = null;
         }
-        _reset();
         // make sure none of the listeners get called anymore
         mEventHandler.removeCallbacksAndMessages(null);
     }
@@ -2235,15 +2229,7 @@ private native void _reset();
 		int len = mAudioFrameBufferDataLength[0];
 		assert(len > 0);
 		assert(len < AVCODEC_MAX_AUDIO_FRAME_SIZE);
-		int rc = mAudioTrack.write(mAudioFrameBuffer, 0, len);
-			
-		/*if (rc == AudioTrack.ERROR_BAD_VALUE) {
-			Log.e(TAG, "mAudioTrack.write(): bad value");
-		} else if (rc == AudioTrack.ERROR_INVALID_OPERATION) {
-			Log.e(TAG, "mAudioTrack.write(): invalid operation");
-		} else if (rc != len) {
-			Log.e(TAG, "mAudioTrack.write(): some data not written");
-		}*/
+		mAudioTrack.write(mAudioFrameBuffer, 0, len);
     }
     
     private static int fillBuffer(int dispatch) {
