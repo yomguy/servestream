@@ -52,12 +52,8 @@ public class NativeMediaPlayer extends AbstractMediaPlayer {
                 mMediaPlayer.setDataSource(path);
             	mMediaPlayer.prepare();
             } else {
-            	try {
-                    mMediaPlayer.setDataSource(URLUtils.encodeURL(path));
-            		mMediaPlayer.prepareAsync();
-            	} catch (IllegalStateException e) {
-            		//setDataSource(path, isLocalFile);
-            	}
+                mMediaPlayer.setDataSource(URLUtils.encodeURL(path));
+            	mMediaPlayer.prepareAsync();
             }
             Log.v(TAG, "Preparing media player");
         } catch (IOException ex) {
@@ -150,9 +146,9 @@ public class NativeMediaPlayer extends AbstractMediaPlayer {
         return mMediaPlayer.getCurrentPosition();
     }
 
-    public long seek(long whereto) {
-        mMediaPlayer.seekTo((int) whereto);
-        return whereto;
+    public long seek(long msec) {
+        mMediaPlayer.seekTo((int) msec);
+        return msec;
     }
 
     public void setVolume(float vol) {
