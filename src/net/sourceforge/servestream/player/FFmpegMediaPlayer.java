@@ -53,16 +53,12 @@ public class FFmpegMediaPlayer extends AbstractMediaPlayer {
                 mMediaPlayer.setDataSource(path);
             	mMediaPlayer.prepare();
             } else {
-            	try {
-            		if (path.startsWith(MMS.getProtocolName())) {
-            			path = path.replace(MMS.getProtocolName(), MMSH.getProtocolName());
-            		}
-            		
-                    mMediaPlayer.setDataSource(URLUtils.encodeURL(path));
-            		mMediaPlayer.prepareAsync();
-            	} catch (IllegalStateException e) {
-            		//setDataSource(path, isLocalFile);
+            	if (path.startsWith(MMS.getProtocolName() + "://")) {
+            		path = path.replace(MMS.getProtocolName(), MMSH.getProtocolName());
             	}
+            		
+                mMediaPlayer.setDataSource(URLUtils.encodeURL(path));
+            	mMediaPlayer.prepareAsync();
             }
             Log.v(TAG, "Preparing media player");
         } catch (IOException ex) {
@@ -155,9 +151,9 @@ public class FFmpegMediaPlayer extends AbstractMediaPlayer {
         return mMediaPlayer.getCurrentPosition();
     }
 
-    public long seek(long whereto) {
-        mMediaPlayer.seekTo((int) whereto);
-        return whereto;
+    public long seek(long msec) {
+        mMediaPlayer.seekTo((int) msec);
+        return msec;
     }
 
     public void setVolume(float vol) {
