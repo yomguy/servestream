@@ -17,6 +17,14 @@
 
 package net.sourceforge.servestream.media;
 
+import java.io.BufferedInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
+
+import android.content.Context;
 import android.graphics.Bitmap;
 
 /**
@@ -158,14 +166,49 @@ public class MediaMetadataRetriever
      * graphic or album/cover art associated associated with the data source. If
      * there are more than one pictures, (any) one of them is returned.
      * 
+     * @param context the Context to use
+     * @return null if no such graphic is found.
+     */
+    public byte[] getEmbeddedPicture(Context context) {
+    	byte [] blob = null;
+    	
+        String path = getEmbeddedPicture(context.getExternalCacheDir() + "/picture.tmp");
+        
+        if (path != null) {
+        	InputStream is;
+        	
+			try {
+				is = new BufferedInputStream(new FileInputStream(path));
+				ByteArrayOutputStream bos = new ByteArrayOutputStream();
+        	
+				while (is.available() > 0) {
+					bos.write(is.read());
+				}
+
+				blob = bos.toByteArray();
+			} catch (FileNotFoundException e) {
+			} catch (IOException e) {
+			}
+        }
+        
+        return blob;
+    }
+
+    private native String getEmbeddedPicture(String path);
+
+    /**
+     * Call this method after setDataSource(). This method finds the optional
+     * graphic or album/cover art associated associated with the data source. If
+     * there are more than one pictures, (any) one of them is returned.
+     * 
      * @return null if no such graphic is found.
      */
     public byte[] getEmbeddedPicture() {
-        return getEmbeddedPicture(EMBEDDED_PICTURE_TYPE_ANY);
+        return _getEmbeddedPicture();
     }
 
-    private native byte[] getEmbeddedPicture(int pictureType);
-
+    private native byte[] _getEmbeddedPicture();
+    
     /**
      * Call it when one is done with the object. This method releases the memory
      * allocated internally.
