@@ -91,7 +91,7 @@ Java_net_sourceforge_servestream_media_MediaMetadataRetriever__1setDataSource(JN
 
 	metadata = NULL;
 	duration = 0;
-	av_init_packet(&album_art);
+	//av_init_packet(&album_art);
 	found_album_art = 0;
 
     AVFormatContext *fmt_ctx = NULL;
@@ -119,7 +119,7 @@ Java_net_sourceforge_servestream_media_MediaMetadataRetriever__1setDataSource(JN
 
     metadata = fmt_ctx->metadata;
     duration = getDuration(fmt_ctx);
-    album_art = getAlbumArt(fmt_ctx);
+    //album_art = getAlbumArt(fmt_ctx);
 
 	__android_log_write(ANDROID_LOG_INFO, TAG, "Found metadata");
 	/*AVDictionaryEntry *tag = NULL;
@@ -222,7 +222,7 @@ JNIEXPORT void JNICALL
 Java_net_sourceforge_servestream_media_MediaMetadataRetriever_release(JNIEnv *env, jclass obj) {
 	__android_log_write(ANDROID_LOG_INFO, TAG, "release");
 
-    av_free_packet(&album_art);
+    //av_free_packet(&album_art);
 
     if (metadata) {
         metadata = NULL;
