@@ -25,8 +25,6 @@ const char *TAG = "Java_net_sourceforge_servestream_media_MediaMetadataRetriever
 const char *DURATION = "duration";
 
 static AVFormatContext *pFormatCtx = NULL;
-static AVPacket album_art;
-static int found_album_art = 0;
 
 // Native function definitions
 JNIEXPORT void JNICALL Java_net_sourceforge_servestream_media_MediaMetadataRetriever_native_1init(JNIEnv *env, jclass obj);
@@ -56,34 +54,6 @@ void getDuration(AVFormatContext *ic, char * value) {
 	sprintf(value, "%d", duration); // %i
 }
 
-AVPacket getAlbumArt(AVFormatContext *pFormatCtx) {
-	int i = 0;
-	AVPacket pkt;
-
-	if (!pFormatCtx) {
-    	goto fail;
-	}
-
-    // read the format headers
-    if (pFormatCtx->iformat->read_header(pFormatCtx) < 0) {
-        __android_log_print(ANDROID_LOG_ERROR, TAG, "Could not read the format header");
-    	goto fail;
-    }
-
-    // find the first attached picture, if available
-    for (i = 0; i < pFormatCtx->nb_streams; i++) {
-        if (pFormatCtx->streams[i]->disposition & AV_DISPOSITION_ATTACHED_PIC) {
-        	__android_log_print(ANDROID_LOG_INFO, TAG, "Found album art");
-        	pkt = pFormatCtx->streams[i]->attached_pic;
-        	found_album_art = 1;
-        }
-    }
-
-    fail:
-
-    return pkt;
-}
-
 JNIEXPORT void JNICALL
 Java_net_sourceforge_servestream_media_MediaMetadataRetriever__1setDataSource(JNIEnv *env, jclass obj, jstring jpath) {
 	//__android_log_write(ANDROID_LOG_INFO, TAG, "setDataSource");
@@ -93,8 +63,6 @@ Java_net_sourceforge_servestream_media_MediaMetadataRetriever__1setDataSource(JN
 	}
 
 	char duration[30] = "0";
-	//av_init_packet(&album_art);
-	found_album_art = 0;
 
     const char *uri;
 
@@ -118,7 +86,6 @@ Java_net_sourceforge_servestream_media_MediaMetadataRetriever__1setDataSource(JN
 
 	getDuration(pFormatCtx, duration);
 	av_dict_set(&pFormatCtx->metadata, DURATION, duration, 0);
-    //album_art = getAlbumArt(fmt_ctx);
 
 	__android_log_write(ANDROID_LOG_INFO, TAG, "Found metadata");
 	/*AVDictionaryEntry *tag = NULL;
@@ -154,60 +121,92 @@ JNIEXPORT jstring JNICALL
 Java_net_sourceforge_servestream_media_MediaMetadataRetriever_getEmbeddedPicture(JNIEnv* env, jobject obj, jstring jpath) {
 	//__android_log_write(ANDROID_LOG_INFO, TAG, "getEmbeddedPicture");
 
-	jstring art_path = NULL;
+	int i = 0;
     const char *path;
 
     path = (*env)->GetStringUTFChars(env, jpath, NULL);
 
-	if (album_art.size > 0) {
-        FILE *picture = fopen(path, "wb");
+	if (!pFormatCtx) {
+		goto fail;
+	}
 
-        if (picture) {
-        	int ret = fwrite(album_art.data, album_art.size, 1, picture);
-        	fclose(picture);
+    // read the format headers
+    if (pFormatCtx->iformat->read_header(pFormatCtx) < 0) {
+        __android_log_print(ANDROID_LOG_ERROR, TAG, "Could not read the format header");
+    	goto fail;
+    }
 
-        	if (ret > 0) {
-        		art_path = (*env)->NewStringUTF(env, path);
-        	}
+    // find the first attached picture, if available
+    for (i = 0; i < pFormatCtx->nb_streams; i++) {
+        if (pFormatCtx->streams[i]->disposition & AV_DISPOSITION_ATTACHED_PIC) {
+        	__android_log_print(ANDROID_LOG_INFO, TAG, "Found album art");
+
+            jbyteArray array = (*env)->NewByteArray(env, pFormatCtx->streams[i]->attached_pic.size);
+            if (!array) {  // OutOfMemoryError exception has already been thrown.
+            	__android_log_print(ANDROID_LOG_ERROR, TAG, "getEmbeddedPicture: OutOfMemoryError is thrown.");
+            } else {
+                FILE *picture = fopen(path, "wb");
+
+                if (picture) {
+                	int ret = fwrite(pFormatCtx->streams[i]->attached_pic.data, pFormatCtx->streams[i]->attached_pic.size, 1, picture);
+                	fclose(picture);
+
+                	if (ret > 0) {
+                        (*env)->ReleaseStringUTFChars(env, jpath, path);
+                		return (*env)->NewStringUTF(env, path);
+                	}
+                }
+            }
         }
     }
 
-    (*env)->ReleaseStringUTFChars(env, jpath, path);
-
-	return art_path;
+	fail:
+	(*env)->ReleaseStringUTFChars(env, jpath, path);
+	return NULL;
 }
 
 JNIEXPORT jbyteArray JNICALL
 Java_net_sourceforge_servestream_media_MediaMetadataRetriever__1getEmbeddedPicture(JNIEnv* env, jobject obj) {
 	//__android_log_write(ANDROID_LOG_INFO, TAG, "getEmbeddedPicture");
+	int i = 0;
 
-	jbyteArray array = NULL;
+	if (!pFormatCtx) {
+		goto fail;
+	}
 
-	if (found_album_art) {
-		int len = album_art.size;
+    // read the format headers
+    if (pFormatCtx->iformat->read_header(pFormatCtx) < 0) {
+        __android_log_print(ANDROID_LOG_ERROR, TAG, "Could not read the format header");
+    	goto fail;
+    }
 
-        array = (*env)->NewByteArray(env, len);
-        if (!array) {  // OutOfMemoryError exception has already been thrown.
-        	__android_log_print(ANDROID_LOG_ERROR, TAG, "getEmbeddedPicture: OutOfMemoryError is thrown.");
-        } else {
-        	jbyte* bytes = (*env)->GetByteArrayElements(env, array, NULL);
-            if (bytes != NULL) {
-            	memcpy(bytes, album_art.data, len);
-                (*env)->ReleaseByteArrayElements(env, array, bytes, 0);
+    // find the first attached picture, if available
+    for (i = 0; i < pFormatCtx->nb_streams; i++) {
+        if (pFormatCtx->streams[i]->disposition & AV_DISPOSITION_ATTACHED_PIC) {
+        	//__android_log_print(ANDROID_LOG_INFO, TAG, "Found album art");
+
+            jbyteArray array = (*env)->NewByteArray(env, pFormatCtx->streams[i]->attached_pic.size);
+            if (!array) {  // OutOfMemoryError exception has already been thrown.
+            	__android_log_print(ANDROID_LOG_ERROR, TAG, "getEmbeddedPicture: OutOfMemoryError is thrown.");
+            } else {
+            	jbyte* bytes = (*env)->GetByteArrayElements(env, array, NULL);
+                if (bytes != NULL) {
+                	memcpy(bytes, pFormatCtx->streams[i]->attached_pic.data, pFormatCtx->streams[i]->attached_pic.size);
+                    (*env)->ReleaseByteArrayElements(env, array, bytes, 0);
+                }
             }
+
+            return array;
         }
     }
 
-	av_init_packet(&album_art);
-
-	return array;
+	fail:
+	return NULL;
 }
 
 JNIEXPORT void JNICALL
 Java_net_sourceforge_servestream_media_MediaMetadataRetriever_release(JNIEnv *env, jclass obj) {
 	//__android_log_write(ANDROID_LOG_INFO, TAG, "release");
-
-    //av_free_packet(&album_art);
 
     if (pFormatCtx) {
         avformat_close_input(&pFormatCtx);
