@@ -28,7 +28,7 @@ static AVFormatContext *pFormatCtx = NULL;
 
 // Native function definitions
 JNIEXPORT void JNICALL Java_net_sourceforge_servestream_media_MediaMetadataRetriever_native_1init(JNIEnv *env, jclass obj);
-JNIEXPORT void JNICALL Java_net_sourceforge_servestream_media_MediaMetadataRetriever__1setDataSource(JNIEnv *env, jclass obj, jstring path);
+JNIEXPORT void JNICALL Java_net_sourceforge_servestream_media_MediaMetadataRetriever_setDataSource(JNIEnv *env, jclass obj, jstring path);
 JNIEXPORT jstring JNICALL Java_net_sourceforge_servestream_media_MediaMetadataRetriever_extractMetadata(JNIEnv *env, jclass obj, jstring jkey);
 JNIEXPORT jstring JNICALL Java_net_sourceforge_servestream_media_MediaMetadataRetriever_getEmbeddedPicture(JNIEnv* env, jobject obj, jstring jpath);
 JNIEXPORT jbyteArray JNICALL Java_net_sourceforge_servestream_media_MediaMetadataRetriever__1getEmbeddedPicture(JNIEnv* env, jobject obj);
@@ -55,7 +55,7 @@ void getDuration(AVFormatContext *ic, char * value) {
 }
 
 JNIEXPORT void JNICALL
-Java_net_sourceforge_servestream_media_MediaMetadataRetriever__1setDataSource(JNIEnv *env, jclass obj, jstring jpath) {
+Java_net_sourceforge_servestream_media_MediaMetadataRetriever_setDataSource(JNIEnv *env, jclass obj, jstring jpath) {
 	//__android_log_write(ANDROID_LOG_INFO, TAG, "setDataSource");
 
 	if (pFormatCtx) {
@@ -141,20 +141,15 @@ Java_net_sourceforge_servestream_media_MediaMetadataRetriever_getEmbeddedPicture
         if (pFormatCtx->streams[i]->disposition & AV_DISPOSITION_ATTACHED_PIC) {
         	__android_log_print(ANDROID_LOG_INFO, TAG, "Found album art");
 
-            jbyteArray array = (*env)->NewByteArray(env, pFormatCtx->streams[i]->attached_pic.size);
-            if (!array) {  // OutOfMemoryError exception has already been thrown.
-            	__android_log_print(ANDROID_LOG_ERROR, TAG, "getEmbeddedPicture: OutOfMemoryError is thrown.");
-            } else {
-                FILE *picture = fopen(path, "wb");
+            FILE *picture = fopen(path, "wb");
 
-                if (picture) {
-                	int ret = fwrite(pFormatCtx->streams[i]->attached_pic.data, pFormatCtx->streams[i]->attached_pic.size, 1, picture);
-                	fclose(picture);
+            if (picture) {
+            	int ret = fwrite(pFormatCtx->streams[i]->attached_pic.data, pFormatCtx->streams[i]->attached_pic.size, 1, picture);
+                fclose(picture);
 
-                	if (ret > 0) {
-                        (*env)->ReleaseStringUTFChars(env, jpath, path);
-                		return (*env)->NewStringUTF(env, path);
-                	}
+                if (ret > 0) {
+                	(*env)->ReleaseStringUTFChars(env, jpath, path);
+                	return jpath;
                 }
             }
         }
