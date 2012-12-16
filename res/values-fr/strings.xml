@@ -183,6 +183,11 @@
 	<!-- Summary for the retrieve metadata preference -->
 	<string name="pref_retrievemetadata_summary">"Lire et afficher les métadonnées (pour les formats compatibles)"</string>
 
+	<!-- Name for the retrieve metadata preference -->
+	<string name="pref_retrievealbumart_title">"Récupérer les pochettes d'album"</string>
+	<!-- Summary for the retrieve metadata preference -->
+	<string name="pref_retrievealbumart_summary">"Afficher et stocker les pochettes d'album intégré"</string>
+	
 	<!-- Name for the retrieve shoutcast metadata preference -->
 	<string name="pref_retrieveshoutcastmetadata_title">"Récupérer les métadonnées SHOUTcast"</string>
 	<!-- Summary for the retrieve shoutcast metadata preference -->
