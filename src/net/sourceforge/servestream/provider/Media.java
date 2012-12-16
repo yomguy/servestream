@@ -107,5 +107,11 @@ public final class Media {
          * <P>Type: INTEGER</P>
          */
         public static final String YEAR = "year";
+        
+        /**
+         * The artwork associated with the media file, if any 
+         * <P>Type: BLOB</P>
+         */
+        public static final String ARTWORK = "artwork";
     }
 }

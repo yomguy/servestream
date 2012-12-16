@@ -56,6 +56,7 @@ import net.sourceforge.servestream.player.AbstractMediaPlayer;
 import net.sourceforge.servestream.player.FFmpegMediaPlayer;
 import net.sourceforge.servestream.player.NativeMediaPlayer;
 import net.sourceforge.servestream.provider.Media;
+import net.sourceforge.servestream.utils.MusicUtils;
 import net.sourceforge.servestream.utils.PreferenceConstants;
 import net.sourceforge.servestream.utils.Utils;
 import net.sourceforge.servestream.widget.ServeStreamAppWidgetOneProvider;
@@ -894,6 +895,7 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
                 RemoteControlClientCompat.PLAYSTATE_PLAYING);
 
         mRemoteControlClientCompat.setTransportControlFlags(
+        		RemoteControlClientCompat.FLAG_KEY_MEDIA_PREVIOUS |
         		RemoteControlClientCompat.FLAG_KEY_MEDIA_PLAY |
         		RemoteControlClientCompat.FLAG_KEY_MEDIA_PAUSE |
         		RemoteControlClientCompat.FLAG_KEY_MEDIA_NEXT |
@@ -905,9 +907,7 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
                 .putString(1, getAlbumName())
                 .putString(7, getTrackName())
                 .putLong(9, getDuration())
-                //.putBitmap(
-                //        RemoteControlClientCompat.MetadataEditorCompat.METADATA_KEY_ARTWORK,
-                //        mDummyAlbumArt)
+                .putBitmap(100, MusicUtils.getCachedBitmapArtwork(this, getTrackId()))
                 .apply();
         
         // Tell any remote controls that our playback state is 'playing'.
@@ -1339,6 +1339,15 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
     	}
     }
     
+    public int getTrackId() {
+    	synchronized(this) {
+            if (mCursor == null) {
+                return -1;
+            }
+            return mCursor.getInt(mCursor.getColumnIndexOrThrow(Media.MediaColumns._ID));
+        }
+    }
+    
     public String getMediaUri() {
         synchronized(this) {
             if (mCursor == null) {
@@ -1498,6 +1507,9 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
         }
         public void next() {
             mService.get().next(true);
+        }
+        public int getTrackId() {
+        	return mService.get().getTrackId();
         }
         public String getMediaUri() {
         	return mService.get().getMediaUri();
@@ -1681,9 +1693,7 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
                     	.putString(1, getAlbumName())
                     	.putString(7, getTrackName())
                     	.putLong(9, getDuration())
-                    	//.putBitmap(
-                    	//        RemoteControlClientCompat.MetadataEditorCompat.METADATA_KEY_ARTWORK,
-                    	//        mDummyAlbumArt)
+                    	.putBitmap(100, MusicUtils.getCachedBitmapArtwork(this, getTrackId()))
                     	.apply();
             }
         	

@@ -1,6 +1,6 @@
 /*
  * ServeStream: A HTTP stream browser/player for Android
- * Copyright 2010 William Seemann
+ * Copyright 2012 William Seemann
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,26 +19,23 @@ package net.sourceforge.servestream.media;
 
 import net.sourceforge.servestream.provider.Media;
 import net.sourceforge.servestream.service.MediaPlaybackService;
+import net.sourceforge.servestream.utils.PreferenceConstants;
 
 import android.content.ContentValues;
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.AsyncTask;
+import android.preference.PreferenceManager;
+import android.util.Log;
 
 public class MetadataRetriever {
+	private static final String TAG = MetadataRetriever.class.getName();
 	
 	// This class cannot be instantiated
 	private MetadataRetriever() {
 		
-	}
-	
-	/*
-	 * Retrieves metadata for an audio file and stores the information in the
-	 * corresponding media table row.
-	 */
-	public static void retrieve(Context context, long id, int position) {
-		//new RetrieveMetadataAsyncTask(context, position).execute(id);
 	}
 	
 	/*
@@ -114,13 +111,25 @@ public class MetadataRetriever {
 	
 	private static int updateMetadata(Context context, long id, MediaMetadataRetriever mmr) {
 		int rows = 0;
+		byte [] artwork = null;
 		
 		String title =  mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_TITLE);
 		String album = mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ALBUM);
 		String artist = mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ARTIST);
 		String duration = mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION);
 		
-		System.out.println("Duration: " + duration);
+		SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
+        
+		// only attempt to retrieve album art if the user has enabled that option
+		if (preferences.getBoolean(PreferenceConstants.RETRIEVE_METADATA, false)) {
+			artwork = mmr.getEmbeddedPicture();
+			
+			if (artwork != null) {				
+				Log.i(TAG, "Found album art");
+			}
+		}
+		
+		Log.i(TAG, "Duration: " + duration);
 		
 		// if we didn't obtain at least the title, album or artist then don't store
 		// the metadata since it's pretty useless
@@ -136,6 +145,7 @@ public class MetadataRetriever {
 		values.put(Media.MediaColumns.ALBUM, validateAttribute(album));
 		values.put(Media.MediaColumns.ARTIST, validateAttribute(artist));
 		values.put(Media.MediaColumns.DURATION, convertToInteger(duration));
+		values.put(Media.MediaColumns.ARTWORK, artwork);
 
 		// Get the base URI for the Media Files table in the Media content provider.
 		Uri mediaFile =  Media.MediaColumns.CONTENT_URI;

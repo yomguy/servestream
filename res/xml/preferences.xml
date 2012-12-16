@@ -2,7 +2,7 @@
 <!--
 /*
  * ServeStream: A HTTP stream browser/player for Android
- * Copyright 2010 William Seemann
+ * Copyright 2012 William Seemann
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,74 +21,72 @@
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
 
 	<PreferenceCategory
-		android:title="@string/pref_general_settings_category">
+		android:title="@string/pref_general_settings_category" >
 
 		<CheckBoxPreference
 			android:key="autosave"
 			android:title="@string/pref_autosave_title"
 			android:summary="@string/pref_autosave_summary"
-			android:defaultValue="true"
-			/>
+			android:defaultValue="true" />
 
 	</PreferenceCategory>
 
 	<PreferenceCategory
-		android:title="@string/pref_playback_category">
+		android:title="@string/pref_playback_category" >
 
 		<CheckBoxPreference
 			android:key="progressivedownload"
 			android:title="@string/pref_progressivedownload_title"
 			android:summary="@string/pref_progressivedownload_summary"
-			android:defaultValue="false"
-			/>
+			android:defaultValue="false" />
 
 		<CheckBoxPreference
 			android:key="wakelock"
 			android:title="@string/pref_wakelock_title"
 			android:summary="@string/pref_wakelock_summary"
-			android:defaultValue="true"
-			/>
+			android:defaultValue="true" />
 			
 		<CheckBoxPreference
 			android:key="wifilock"
 			android:title="@string/pref_wifilock_title"
 			android:summary="@string/pref_wifilock_summary"
-			android:defaultValue="true"
-			/>
+			android:defaultValue="true" />
 			
 		<CheckBoxPreference
 			android:key="headphonepause"
 			android:title="@string/pref_headphonepause_title"
 			android:summary="@string/pref_headphonepause_summary"
-			android:defaultValue="true"
-			/>
+			android:defaultValue="true" />
 
 		<CheckBoxPreference
 			android:key="retrievemetadata"
 			android:title="@string/pref_retrievemetadata_title"
 			android:summary="@string/pref_retrievemetadata_summary"
-			android:defaultValue="false"
-			/>
-
+			android:defaultValue="false" />
+		
+	    <CheckBoxPreference
+			android:key="retrievealbumart"
+			android:title="@string/pref_retrievealbumart_title"
+			android:summary="@string/pref_retrievealbumart_summary"
+			android:defaultValue="false" />
+		
 		<CheckBoxPreference
 			android:key="retrieveshoutcastmetadata"
 			android:title="@string/pref_retrieveshoutcastmetadata_title"
 			android:summary="@string/pref_retrieveshoutcastmetadata_summary"
-			android:defaultValue="false"
-			/>
+			android:defaultValue="false" />
 		
 	</PreferenceCategory>
 
 	<PreferenceCategory
-		android:title="@string/pref_social_media_category">
+		android:title="@string/pref_social_media_category" >
 		
 	    <CheckBoxPreference
 			android:key="sendscrobblerinfo"
 			android:title="@string/pref_sendscrobblerinfo_title"
 			android:summary="@string/pref_sendscrobblerinfo_summary"
-			android:defaultValue="false"
-			/>
-	    
+			android:defaultValue="false" />
+
 	</PreferenceCategory>
 	
 </PreferenceScreen>
