@@ -2,7 +2,7 @@
 <!--
 /*
  * ServeStream: A HTTP stream browser/player for Android
- * Copyright 2010 William Seemann
+ * Copyright 2012 William Seemann
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,10 +18,13 @@
  */
 -->
 
-<selector xmlns:android="http://schemas.android.com/apk/res/android">
-	<item android:state_pressed="true"
-          android:drawable="@drawable/shuffle_disabled" />
-	<item android:state_focused="true"
-          android:drawable="@drawable/shuffle_focused" />
-	<item android:drawable="@drawable/shuffle_disabled" />
-</selector>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:id="@+id/menu_item_sleep_timer"
+        android:title="@string/list_menu_sleep_timer"
+        android:icon="@drawable/ic_menu_sleep_timer"/>
+    <item android:id="@+id/menu_item_settings"
+        android:title="@string/list_menu_settings"
+        android:icon="@android:drawable/ic_menu_preferences"/>
+</menu>
+
+

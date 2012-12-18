@@ -113,6 +113,7 @@
 			android:description="@string/media_service_desc" />
 
         <activity android:name=".activity.MediaPlaybackActivity"
+            	android:screenOrientation="portrait"
                 android:configChanges="keyboardHidden|orientation"
                 android:taskAffinity=""
                 android:launchMode="singleTop"

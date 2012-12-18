@@ -1,6 +1,6 @@
 /*
  * ServeStream: A HTTP stream browser/player for Android
- * Copyright 2010 William Seemann
+ * Copyright 2012 William Seemann
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,6 @@ package net.sourceforge.servestream.activity;
 
 import net.sourceforge.servestream.R;
 import net.sourceforge.servestream.button.RepeatingImageButton;
-import net.sourceforge.servestream.player.AbstractMediaPlayer;
 import net.sourceforge.servestream.provider.Media;
 import net.sourceforge.servestream.service.IMediaPlaybackService;
 import net.sourceforge.servestream.service.MediaPlaybackService;
@@ -41,8 +40,8 @@ import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
 import android.content.res.Configuration;
+import android.graphics.Bitmap;
 import android.media.AudioManager;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
@@ -53,34 +52,26 @@ import android.os.SystemClock;
 import android.os.PowerManager.WakeLock;
 import android.preference.PreferenceManager;
 import android.util.Log;
-import android.view.Display;
 import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
-import android.view.SurfaceHolder;
-import android.view.SurfaceView;
 import android.view.View;
 import android.view.Window;
-import android.view.View.OnLongClickListener;
-import android.view.WindowManager;
-import android.view.animation.Animation;
-import android.view.animation.AnimationUtils;
-import android.widget.Button;
+import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.ProgressBar;
-import android.widget.RelativeLayout;
 import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.SeekBar.OnSeekBarChangeListener;
 
-public class MediaPlaybackActivity extends Activity implements SurfaceHolder.Callback, MusicUtils.Defs,
+public class MediaPlaybackActivity extends Activity implements MusicUtils.Defs,
     OnSharedPreferenceChangeListener
 {
     private static final String TAG = MediaPlaybackActivity.class.getName();
 
     private int mParentActivityState = VISIBLE;
-    private boolean mInitialCreation = true;
     private static int VISIBLE = 1;
     private static int GONE = 2;
     
@@ -89,30 +80,22 @@ public class MediaPlaybackActivity extends Activity implements SurfaceHolder.Cal
     private SharedPreferences mPreferences;
     private WakeLock mWakeLock;
     
-	private Animation media_controls_fade_in, media_controls_fade_out;
-	private RelativeLayout mMediaControls;
-    
     private boolean mSeeking = false;
     private boolean mDeviceHasDpad;
     private long mStartSeekPos = 0;
     private long mLastSeekEventTime;
     private IMediaPlaybackService mService = null;
+    private ImageButton mCloseButton = null;
+    private ImageButton mPlayQueue = null;
     private RepeatingImageButton mPrevButton;
-    private Button mStopButton;
-    private Button mPauseButton;
+    private ImageButton mPauseButton;
     private RepeatingImageButton mNextButton;
-    private Button mRepeatButton;
-    private Button mShuffleButton;
+    private ImageButton mRepeatButton;
+    private ImageButton mShuffleButton;
     private Toast mToast;
     private ServiceToken mToken;
 
     private TextView mTrackNumber;
-    
-    private SurfaceView preview = null;
-    private SurfaceHolder holder;
-    
-	private int mDisplayWidth = 0;
-	private int mDisplayHeight = 0;
     
     public MediaPlaybackActivity()
     {
@@ -123,68 +106,56 @@ public class MediaPlaybackActivity extends Activity implements SurfaceHolder.Cal
     public void onCreate(Bundle icicle)
     {
         super.onCreate(icicle);
-        
         setVolumeControlStream(AudioManager.STREAM_MUSIC);
-
-        if (Build.VERSION.SDK_INT < 11) {
-        	requestWindowFeature(Window.FEATURE_NO_TITLE);
-        }
 
         mPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         mPreferences.registerOnSharedPreferenceChangeListener(this);
         
         PowerManager pm = (PowerManager)getSystemService(Context.POWER_SERVICE);
-        mWakeLock = pm.newWakeLock(PowerManager.SCREEN_BRIGHT_WAKE_LOCK, this.getClass().getName());
+        mWakeLock = pm.newWakeLock(PowerManager.SCREEN_BRIGHT_WAKE_LOCK, TAG);
         mWakeLock.setReferenceCounted(false);
-		
-        setContentView(R.layout.acc_mediaplayer);
+
+        requestWindowFeature(Window.FEATURE_NO_TITLE);
+        setContentView(R.layout.activity_media_player);
 
         mCurrentTime = (TextView) findViewById(R.id.position_text);
         mTotalTime = (TextView) findViewById(R.id.duration_text);
-        mProgress = (ProgressBar) findViewById(android.R.id.progress);
+        mProgress = (ProgressBar) findViewById(R.id.seek_bar);
+        mAlbum = (ImageView) findViewById(R.id.album_art);
+        mTrackName = (TextView) findViewById(R.id.trackname);
+        mArtistAndAlbumName = (TextView) findViewById(R.id.artist_and_album);
+        mTrackNumber = (TextView) findViewById(R.id.track_number_text);
+
+        mCloseButton = (ImageButton) findViewById(R.id.close);
+        mCloseButton.setOnClickListener(mCloseListener);
+        mPlayQueue = (ImageButton) findViewById(R.id.play_queue);
+        mPlayQueue.setOnClickListener(mPlayQueueListener);
+        
         mPrevButton = (RepeatingImageButton) findViewById(R.id.previous_button);
         mPrevButton.setOnClickListener(mPrevListener);
         mPrevButton.setRepeatListener(mRewListener, 260);
-        mStopButton = (Button) findViewById(R.id.stop_button);
-        mStopButton.setOnClickListener(mStopListener);
-        mPauseButton = (Button) findViewById(R.id.play_pause_button);
+        mPauseButton = (ImageButton) findViewById(R.id.play_pause_button);
         mPauseButton.setOnClickListener(mPauseListener);
         mNextButton = (RepeatingImageButton) findViewById(R.id.next_button);
         mNextButton.setOnClickListener(mNextListener);
         mNextButton.setRepeatListener(mFfwdListener, 260);
-        mShuffleButton = (Button) findViewById(R.id.shuffle_button);
-        mShuffleButton.setOnClickListener(mShuffleListener);
-        mRepeatButton = (Button) findViewById(R.id.repeat_button);
-        mRepeatButton.setOnClickListener(mRepeatListener);
-        
         seekmethod = 1;
 
         mDeviceHasDpad = (getResources().getConfiguration().navigation ==
             Configuration.NAVIGATION_DPAD);
         
-	    mTrackNumber = (TextView) findViewById(R.id.track_number_text);
-	    mTrackName = (TextView) findViewById(R.id.trackname);
-	    mArtistName = (TextView) findViewById(R.id.artistname);
-	    mAlbumName = (TextView) findViewById(R.id.albumname);
+        mShuffleButton = (ImageButton) findViewById(R.id.shuffle_button);
+        mShuffleButton.setOnClickListener(mShuffleListener);        
+        mRepeatButton = (ImageButton) findViewById(R.id.repeat_button);
+        mRepeatButton.setOnClickListener(mRepeatListener);
         
-        mProgress = (ProgressBar) findViewById(R.id.seek_bar);
         if (mProgress instanceof SeekBar) {
             SeekBar seeker = (SeekBar) mProgress;
             seeker.setOnSeekBarChangeListener(mSeekListener);
         }
         mProgress.setMax(1000);
-
-		// preload animation for media controller
-		media_controls_fade_in = AnimationUtils.loadAnimation(this, R.anim.media_controls_fade_in);
-		media_controls_fade_out = AnimationUtils.loadAnimation(this, R.anim.media_controls_fade_out);
-
-		mMediaControls = (RelativeLayout) findViewById(R.id.media_controls);
-		mMediaControls.setVisibility(View.VISIBLE);
     }
     
-	/* (non-Javadoc)
-	 * @see android.content.SharedPreferences.OnSharedPreferenceChangeListener#onSharedPreferenceChanged(android.content.SharedPreferences, java.lang.String)
-	 */
 	public void onSharedPreferenceChanged(SharedPreferences sharedPreferences,
 			String key) {
   	    if (key.equals(PreferenceConstants.WAKELOCK)) {
@@ -195,22 +166,6 @@ public class MediaPlaybackActivity extends Activity implements SurfaceHolder.Cal
   	        }
   	    }
   	}
-    
-    int mInitialX = -1;
-    int mLastX = -1;
-    int mTextWidth = 0;
-    int mViewWidth = 0;
-    boolean mDraggingLabel = false;
-    
-    TextView textViewForContainer(View v) {
-        View vv = v.findViewById(R.id.artistname);
-        if (vv != null) return (TextView) vv;
-        vv = v.findViewById(R.id.albumname);
-        if (vv != null) return (TextView) vv;
-        vv = v.findViewById(R.id.trackname);
-        if (vv != null) return (TextView) vv;
-        return null;
-    }
     
     private OnSeekBarChangeListener mSeekListener = new OnSeekBarChangeListener() {
         public void onStartTrackingTouch(SeekBar bar) {
@@ -241,6 +196,56 @@ public class MediaPlaybackActivity extends Activity implements SurfaceHolder.Cal
         }
     };
 
+    private View.OnClickListener mCloseListener = new View.OnClickListener() {
+        public void onClick(View v) {
+        	finish();
+        }
+    };
+    
+    private View.OnClickListener mPlayQueueListener = new View.OnClickListener() {
+        public void onClick(View v) {
+        	startActivity(new Intent(MediaPlaybackActivity.this, NowPlayingActivity.class));
+        }
+    };
+    
+    private View.OnClickListener mShuffleListener = new View.OnClickListener() {
+        public void onClick(View v) {
+            toggleShuffle();
+        }
+    };
+
+    private View.OnClickListener mRepeatListener = new View.OnClickListener() {
+        public void onClick(View v) {
+            cycleRepeat();
+        }
+    };
+
+    private View.OnClickListener mPauseListener = new View.OnClickListener() {
+        public void onClick(View v) {
+            doPauseResume();
+        }
+    };
+    
+    private View.OnClickListener mPrevListener = new View.OnClickListener() {
+        public void onClick(View v) {
+            if (mService == null) return;
+            try {
+                mService.prev();
+            } catch (RemoteException ex) {
+            }
+        }
+    };
+
+    private View.OnClickListener mNextListener = new View.OnClickListener() {
+        public void onClick(View v) {
+            if (mService == null) return;
+            try {
+                mService.next();
+            } catch (RemoteException ex) {
+            }
+        }
+    };
+    
     private RepeatingImageButton.RepeatListener mRewListener =
         new RepeatingImageButton.RepeatListener() {
         public void onRepeat(View v, long howlong, int repcnt) {
@@ -255,162 +260,70 @@ public class MediaPlaybackActivity extends Activity implements SurfaceHolder.Cal
         }
     };
 
-    private View.OnClickListener mShuffleListener = new View.OnClickListener() {
-        public void onClick(View v) {
-            toggleShuffle();
-        }
-    };
-
-    private View.OnClickListener mRepeatListener = new View.OnClickListener() {
-        public void onClick(View v) {
-            cycleRepeat();
-        }
-    };
-
-    private View.OnClickListener mStopListener = new View.OnClickListener() {
-		public void onClick(View v) {
-			doStop();
-		}
-	};
-    
-    private View.OnClickListener mPauseListener = new View.OnClickListener() {
-        public void onClick(View v) {
-            doPauseResume();
-        }
-    };
-    
-    private View.OnClickListener mPrevListener = new View.OnClickListener() {
-        public void onClick(View v) {
-            if (mService == null) return;
-            try {
-    			mMediaControls.startAnimation(media_controls_fade_out);
-    			mMediaControls.setVisibility(View.GONE);
-                mService.prev();
-            } catch (RemoteException ex) {
-            }
-        }
-    };
-
-    private View.OnClickListener mNextListener = new View.OnClickListener() {
-        public void onClick(View v) {
-            if (mService == null) return;
-            try {
-			    mMediaControls.startAnimation(media_controls_fade_out);
-				mMediaControls.setVisibility(View.GONE);
-                mService.next();
-            } catch (RemoteException ex) {
-            }
-        }
-    };
-    
     @Override
     public void onStart() {
         super.onStart();
-        
-		if (mPreferences.getBoolean(PreferenceConstants.WAKELOCK, true))
-			mWakeLock.acquire();
-        
         paused = false;
+        
+		if (mPreferences.getBoolean(PreferenceConstants.WAKELOCK, true)) {
+			mWakeLock.acquire();
+		}
+        
+        mToken = MusicUtils.bindToService(this, osc);
+        if (mToken == null) {
+            // something went wrong
+            mHandler.sendEmptyMessage(QUIT);
+        }
         
         IntentFilter f = new IntentFilter();
         f.addAction(MediaPlaybackService.PLAYSTATE_CHANGED);
         f.addAction(MediaPlaybackService.META_CHANGED);
         f.addAction(MediaPlaybackService.START_DIALOG);
         f.addAction(MediaPlaybackService.STOP_DIALOG);
-        
         registerReceiver(mStatusListener, new IntentFilter(f));
-        
         updateTrackInfo();
         long next = refreshNow();
         queueNextRefresh(next);
-        
-    	if (preview == null) {
-	        makeSurface();
-		    Log.v(TAG, "Surface Made");
-	    }
-    }
-    
-    @Override
-    public void onNewIntent(Intent intent) {
-        setIntent(intent);
     }
     
     @Override
     public void onResume() {
         super.onResume();
-        
-        Log.v(TAG, "onResume called");
-        
         mParentActivityState = VISIBLE;
-        
-		if (!mInitialCreation) {
-			if (mService == null) { //&& mToken == null) {
-				// connect with manager service to find all bridges
-				// when connected it will insert all views
-				mToken = MusicUtils.bindToService(this, osc);
-				if (mToken == null) {
-					// something went wrong
-					mHandler.sendEmptyMessage(QUIT);
-				}
-			}
-			
-	        updateTrackInfo();
-	        setPauseButtonImage();
-		}
+        updateTrackInfo();
+        setPauseButtonImage();
     }
 
     @Override
     public void onPause() {
     	super.onPause();
-    	
-    	Log.v(TAG, "onPause called");
-    	
 		mWakeLock.release();
-    	
     	mParentActivityState = GONE;
-    	
     	removeDialog(PREPARING_MEDIA);
     }
-    
+
     @Override
     public void onStop() {
-    	super.onStop();
-    	
-    	Log.v(TAG, "onStop called");
-    	
         paused = true;
         mHandler.removeMessages(REFRESH);
         unregisterReceiver(mStatusListener);
         MusicUtils.unbindFromService(mToken);
         mService = null;
+        super.onStop();
     }
     
     @Override
-    public void onDestroy() {
-        super.onDestroy();
-    }
-
-    @Override
     public boolean onOptionsItemSelected(MenuItem item) {
     	switch(item.getItemId()) {
-    		case (R.id.menu_item_shuffle):
-    		    toggleShuffle();
-    		    break;
-    		case (R.id.menu_item_repeat):
-    		    cycleRepeat();
-    		    break;
-        	case (R.id.menu_item_now_playing):
-        		startActivity(new Intent(MediaPlaybackActivity.this, NowPlayingActivity.class));
-        		break;
         	case (R.id.menu_item_sleep_timer):
                 startActivity(new Intent(this, MinuteSelector.class));
-        		break;
+        		return true;
         	case (R.id.menu_item_settings):
         		startActivity(new Intent(MediaPlaybackActivity.this, SettingsActivity.class));
-        		break;
+        		return true;
         }
          	
-		return false;
+        return super.onOptionsItemSelected(item);
     }
     
     protected Dialog onCreateDialog(int id) {
@@ -431,51 +344,10 @@ public class MediaPlaybackActivity extends Activity implements SurfaceHolder.Cal
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         MenuInflater inflater = getMenuInflater();
-        inflater.inflate(R.menu.stream_media_menu, menu);
+        inflater.inflate(R.menu.activity_media_playback, menu);
         return true;
     }
 
-    @Override
-   	public void onConfigurationChanged(Configuration newConfig) {
-   		super.onConfigurationChanged(newConfig);
-   		
-   		boolean controlsAreVisible = false;
-   		
-   		if (controlsAreVisible = mMediaControls.isShown()) {
-   			mMediaControls.setVisibility(View.GONE);
-   		}
-   		
-   		// get new window size on orientation change
-   		getDisplayMeasurements();
-   		
-   		setFullscreenMode(newConfig.orientation);
-   	    
-   	    if (holder != null)
-   	    	holder.setFixedSize(mDisplayWidth, mDisplayHeight);
-   	    
-   	    if (controlsAreVisible)
-   	    	mMediaControls.setVisibility(View.VISIBLE);
-   	}
-    
-    private void setFullscreenMode(int orientation) {
-	    if (orientation == Configuration.ORIENTATION_LANDSCAPE) {
-	        getWindow().clearFlags(WindowManager.LayoutParams.FLAG_FORCE_NOT_FULLSCREEN);
-	        getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
-	    } else {
-	        getWindow().clearFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
-	        getWindow().setFlags(WindowManager.LayoutParams.FLAG_FORCE_NOT_FULLSCREEN, WindowManager.LayoutParams.FLAG_FORCE_NOT_FULLSCREEN);
-	    }
-    }
-    
-    /**
-     * Retrieve the phone display width and height
-     */
-    private void getDisplayMeasurements() {
-        Display display = getWindowManager().getDefaultDisplay();
-        mDisplayWidth = display.getWidth();
-        mDisplayHeight = display.getHeight();
-    }
-    
     private final int keyboard[][] = {
         {
             KeyEvent.KEYCODE_Q,
@@ -630,46 +502,6 @@ public class MediaPlaybackActivity extends Activity implements SurfaceHolder.Cal
         return false;
     }
 
-    private void makeSurface() {
-        preview = (SurfaceView) findViewById(R.id.surface_view);
-        preview.setOnLongClickListener(new OnLongClickListener() {
-
-			public boolean onLongClick(View arg0) {
-				if (mMediaControls.isShown()) {
-					mMediaControls.startAnimation(media_controls_fade_out);
-					mMediaControls.setVisibility(View.GONE);
-				} else {
-					mMediaControls.startAnimation(media_controls_fade_in);
-					mMediaControls.setVisibility(View.VISIBLE);
-				}
-				return false;
-			}
-		});
-        
-        holder = preview.getHolder();
-        holder.addCallback(this);
-        holder.setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
-    }
-    
-	public void surfaceChanged(SurfaceHolder arg0, int arg1, int arg2, int arg3) {
-		
-	}
-
-	public void surfaceCreated(SurfaceHolder arg0) {
-        Log.d(TAG, "surfaceCreated called");
-        
-		// connect with manager service to find all bridges
-		// when connected it will insert all views
-        mToken = MusicUtils.bindToService(this, osc);
-        if (mToken == null) {
-            // something went wrong
-            mHandler.sendEmptyMessage(QUIT);
-        }
-	}
-
-	public void surfaceDestroyed(SurfaceHolder arg0) {
-	}
-    
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event)
     {
@@ -793,17 +625,6 @@ public class MediaPlaybackActivity extends Activity implements SurfaceHolder.Cal
         }
     }
     
-    private void doStop() {
-    	try {
-    		if(mService != null) {
-    			mService.stop();
-    			refreshNow();
-    			setPauseButtonImage();
-    		}
-    	} catch (RemoteException ex) {
-    	}
-    }
-    
     private void doPauseResume() {
         try {
             if(mService != null) {
@@ -882,23 +703,6 @@ public class MediaPlaybackActivity extends Activity implements SurfaceHolder.Cal
         if(mService == null)
             return;
 
-        Intent intent = getIntent();
-        String action = intent.getAction();
-        
-        if (action != null && action.equals(MediaPlaybackService.PREPARE_VIDEO)) {
-        	try {
-        		AbstractMediaPlayer mp = mService.getMediaPlayer();
-		    	mp.setDisplay(holder);
-		        holder.setFixedSize(mDisplayWidth, mDisplayHeight);
-				mService.setDataSource(false);
-			} catch (RemoteException e) {
-				e.printStackTrace();
-				Log.d("MediaPlaybackActivity", "couldn't start playback: " + e);
-			}
-			
-			setIntent(new Intent());
-        }
-
         updateTrackInfo();
         long next = refreshNow();
         queueNextRefresh(next);
@@ -906,9 +710,7 @@ public class MediaPlaybackActivity extends Activity implements SurfaceHolder.Cal
 
     private ServiceConnection osc = new ServiceConnection() {
             public void onServiceConnected(ComponentName classname, IBinder obj) {
-            	mInitialCreation = false;
                 mService = IMediaPlaybackService.Stub.asInterface(obj);
-                
                 startPlayback();
                 try {
                     // Assume something is playing when the service says it is,
@@ -939,13 +741,13 @@ public class MediaPlaybackActivity extends Activity implements SurfaceHolder.Cal
         try {
             switch (mService.getRepeatMode()) {
                 case MediaPlaybackService.REPEAT_ALL:
-                    mRepeatButton.setBackgroundResource(R.drawable.repeat_all_button);
+                    mRepeatButton.setImageResource(R.drawable.btn_player_repeat_checked);
                     break;
                 case MediaPlaybackService.REPEAT_CURRENT:
-                    mRepeatButton.setBackgroundResource(R.drawable.repeat_one_button);
+                    mRepeatButton.setImageResource(R.drawable.btn_player_repeat_one_checked);
                     break;
                 default:
-                    mRepeatButton.setBackgroundResource(R.drawable.repeat_disabled_button);
+                    mRepeatButton.setImageResource(R.drawable.btn_player_repeat_normal);
                     break;
             }
         } catch (RemoteException ex) {
@@ -957,10 +759,10 @@ public class MediaPlaybackActivity extends Activity implements SurfaceHolder.Cal
         try {
             switch (mService.getShuffleMode()) {
                 case MediaPlaybackService.SHUFFLE_NONE:
-                    mShuffleButton.setBackgroundResource(R.drawable.shuffle_disabled_button);
+                    mShuffleButton.setImageResource(R.drawable.btn_player_shuffle_normal);
                     break;
                 default:
-                    mShuffleButton.setBackgroundResource(R.drawable.shuffle_button);
+                    mShuffleButton.setImageResource(R.drawable.btn_player_shuffle_checked);
                     break;
             }
         } catch (RemoteException ex) {
@@ -970,9 +772,9 @@ public class MediaPlaybackActivity extends Activity implements SurfaceHolder.Cal
     private void setPauseButtonImage() {
         try {
             if (mService != null && mService.isPlaying()) {
-                mPauseButton.setBackgroundResource(R.drawable.pause_button);
+                mPauseButton.setImageResource(R.drawable.btn_player_pause);
             } else {
-                mPauseButton.setBackgroundResource(R.drawable.play_button);
+                mPauseButton.setImageResource(R.drawable.btn_player_play);
             }
         } catch (RemoteException ex) {
         }
@@ -997,10 +799,10 @@ public class MediaPlaybackActivity extends Activity implements SurfaceHolder.Cal
 		}	
     }
     
+    private ImageView mAlbum;
     private TextView mCurrentTime;
     private TextView mTotalTime;
-    private TextView mArtistName;
-    private TextView mAlbumName;
+    private TextView mArtistAndAlbumName;
     private TextView mTrackName;
     private ProgressBar mProgress;
     private long mPosOverride = -1;
@@ -1011,6 +813,8 @@ public class MediaPlaybackActivity extends Activity implements SurfaceHolder.Cal
 
     private static final int REFRESH = 1;
     private static final int QUIT = 2;
+    //private static final int GET_ALBUM_ART = 3;
+    private static final int ALBUM_ART_DECODED = 4;
 
     private void queueNextRefresh(long delay) {
         if (!paused) {
@@ -1070,6 +874,11 @@ public class MediaPlaybackActivity extends Activity implements SurfaceHolder.Cal
         @Override
         public void handleMessage(Message msg) {
             switch (msg.what) {
+                case ALBUM_ART_DECODED:
+                    mAlbum.setImageBitmap((Bitmap)msg.obj);
+                    mAlbum.getDrawable().setDither(true);
+                    break;
+
                 case REFRESH:
                     long next = refreshNow();
                     queueNextRefresh(next);
@@ -1108,11 +917,6 @@ public class MediaPlaybackActivity extends Activity implements SurfaceHolder.Cal
                 setSeekControls();
                 setPauseButtonImage();
                 queueNextRefresh(1);
-        		
-                if (mMediaControls.getVisibility() != View.VISIBLE) {
-                	mMediaControls.startAnimation(media_controls_fade_in);
-                	mMediaControls.setVisibility(View.VISIBLE);
-                }
             } else if (action.equals(MediaPlaybackService.PLAYSTATE_CHANGED)) {
                 setPauseButtonImage();
             } else if (action.equals(MediaPlaybackService.START_DIALOG)) {
@@ -1148,8 +952,7 @@ public class MediaPlaybackActivity extends Activity implements SurfaceHolder.Cal
             
             mTrackNumber.setText(mService.getTrackNumber());
             
-            ((View) mArtistName.getParent()).setVisibility(View.VISIBLE);
-            ((View) mAlbumName.getParent()).setVisibility(View.VISIBLE);
+            ((View) mArtistAndAlbumName.getParent()).setVisibility(View.VISIBLE);
                 
             String trackName = mService.getTrackName();
             if (trackName == null || trackName.equals(Media.UNKNOWN_STRING)) {
@@ -1157,8 +960,8 @@ public class MediaPlaybackActivity extends Activity implements SurfaceHolder.Cal
             }
                 
             mTrackName.setText(trackName);
-            mArtistName.setText(mService.getArtistName());
-            mAlbumName.setText(mService.getAlbumName());
+            // TODO refactor this!
+            mArtistAndAlbumName.setText(mService.getArtistName() + "-" + mService.getAlbumName());
                 
             if (mService.isStreaming()) {
             	mDuration = mService.duration();
