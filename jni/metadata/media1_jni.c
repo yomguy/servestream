@@ -106,12 +106,17 @@ Java_net_sourceforge_servestream_media_MediaMetadataRetriever_extractMetadata(JN
 
     key = (*env)->GetStringUTFChars(env, jkey, NULL) ;
 
+	if (!pFormatCtx) {
+		goto fail;
+	}
+
 	if (key) {
 		if (av_dict_get(pFormatCtx->metadata, key, NULL, AV_DICT_IGNORE_SUFFIX)) {
 			value = (*env)->NewStringUTF(env, av_dict_get(pFormatCtx->metadata, key, NULL, AV_DICT_IGNORE_SUFFIX)->value);
 		}
 	}
 
+	fail:
     (*env)->ReleaseStringUTFChars(env, jkey, key);
 
 	return value;
@@ -157,6 +162,7 @@ Java_net_sourceforge_servestream_media_MediaMetadataRetriever_getEmbeddedPicture
 
 	fail:
 	(*env)->ReleaseStringUTFChars(env, jpath, path);
+
 	return NULL;
 }
 
