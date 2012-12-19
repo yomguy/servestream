@@ -24,7 +24,9 @@
 	android:versionCode="64"
 	android:installLocation="auto">
 
-	<uses-sdk android:targetSdkVersion="17" android:minSdkVersion="8" />
+	<uses-sdk
+	    android:targetSdkVersion="17"
+	    android:minSdkVersion="8" />
 
 	<uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 	<uses-permission android:name="android.permission.INTERNET" />
@@ -40,28 +42,25 @@
 		android:description="@string/app_desc"
 		android:allowBackup="true"
 		android:backupAgent=".service.BackupAgent"
-		android:killAfterRestore="true">
+		android:killAfterRestore="true" >
 
-		<meta-data android:name="com.google.android.backup.api_key"
+		<meta-data
+		    android:name="com.google.android.backup.api_key"
     		android:value="AEdPqrEAAAAIWcqt9c_ET5W0EpBB9ZCQGbBhfrOetXL6t6Cdwg" />
 
-        <receiver android:name=".service.MediaButtonIntentReceiver">
-            <intent-filter>
-                <action android:name="android.intent.action.MEDIA_BUTTON" />
-                <action android:name="android.media.AUDIO_BECOMING_NOISY" />
-            </intent-filter>
-        </receiver>
-
-        <provider android:name=".provider.MediaProvider"
-            android:authorities="net.sourceforge.servestream.provider.Media" />
+        <provider
+            android:name=".provider.MediaProvider"
+            android:authorities="net.sourceforge.servestream.provider.Media"
+            android:exported="false" />
         
-        <provider android:name=".alarm.AlarmProvider"
-                android:authorities="net.sourceforge.servestream"
-                android:exported="false" />
+        <provider
+            android:name=".alarm.AlarmProvider"
+            android:authorities="net.sourceforge.servestream"
+            android:exported="false" />
 
-		<activity android:name=".activity.URLListActivity"
+		<activity
+		    android:name=".activity.URLListActivity"
 		    android:launchMode="singleTop" >
-		    
 			<intent-filter>
 				<action android:name="android.intent.action.MAIN" />
 				<category android:name="android.intent.category.LAUNCHER" />
@@ -108,31 +107,52 @@
 		<activity android:name=".activity.SettingsActivity" android:configChanges="keyboardHidden|orientation" />
 		<activity android:name=".activity.StreamEditorActivity" android:configChanges="keyboardHidden|orientation" />
 
-		<service android:name=".service.MediaPlaybackService"
+		<service
+		    android:name=".service.MediaPlaybackService"
 			android:configChanges="keyboardHidden|orientation"
 			android:description="@string/media_service_desc" />
 
-        <activity android:name=".activity.MediaPlaybackActivity"
-            	android:screenOrientation="portrait"
-                android:configChanges="keyboardHidden|orientation"
-                android:taskAffinity=""
-                android:launchMode="singleTop"
-                android:clearTaskOnLaunch="true"
-                android:excludeFromRecents="true"
-                android:exported="true" >
+        <activity
+            android:name=".activity.MediaPlaybackActivity"
+            android:screenOrientation="portrait"
+            android:configChanges="keyboardHidden|orientation"
+            android:taskAffinity=""
+            android:launchMode="singleTop"
+            android:clearTaskOnLaunch="true"
+            android:exported="false" >
             <intent-filter>
                 <action android:name="net.sourceforge.servestream.PLAYBACK_VIEWER" />
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </activity>
         
-        <receiver android:name=".widget.ServeStreamAppWidgetOneProvider">
+        <receiver
+            android:name=".receiver.MediaButtonIntentReceiver" >
+            <intent-filter>
+                <action android:name="android.intent.action.MEDIA_BUTTON" />
+                <action android:name="android.media.AUDIO_BECOMING_NOISY" />
+            </intent-filter>
+        </receiver>
+        
+        <receiver
+            android:name=".widget.ServeStreamAppWidgetOneProvider" >
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
             </intent-filter>
             <meta-data android:name="android.appwidget.provider" android:resource="@xml/appwidget_one" />
         </receiver>
 
+        <receiver
+            android:name=".receiver.SimpleLastfmScrobblerReceiver"
+            android:exported="false" >
+            <intent-filter>
+                <action android:name="net.sourceforge.servestream.playbackstarted" />
+                <action android:name="net.sourceforge.servestream.playstatechanged" />
+                <action android:name="net.sourceforge.servestream.playbackcomplete" />
+                <action android:name="net.sourceforge.servestream.metachanged" />
+            </intent-filter>
+        </receiver>
+        
 		<!-- Alarm Activities -->
 
         <activity android:name=".activity.AlarmClockActivity"
@@ -140,7 +160,7 @@
                 android:taskAffinity=""
                 android:excludeFromRecents="true"
                 android:configChanges="orientation|keyboardHidden|keyboard|navigation"
-                android:exported="true" />
+                android:exported="false" />
 
         <activity android:name=".activity.SetAlarmActivity" android:label="@string/set_alarm"
                 android:configChanges="orientation|keyboardHidden|keyboard|navigation" />
@@ -154,14 +174,17 @@
         <!-- This activity is basically the same as AlarmAlert but with a more
              generic theme. It also shows as full screen (with status bar) but
              with the wallpaper background. -->
-        <activity android:name=".alarm.AlarmAlertFullScreen"
-                android:excludeFromRecents="true"
-                android:theme="@android:style/Theme.Wallpaper.NoTitleBar"
-                android:launchMode="singleInstance"
-                android:taskAffinity=""
-                android:configChanges="orientation|keyboardHidden|keyboard|navigation"/>
+        <activity
+            android:name=".alarm.AlarmAlertFullScreen"
+            android:excludeFromRecents="true"
+            android:theme="@android:style/Theme.Wallpaper.NoTitleBar"
+            android:launchMode="singleInstance"
+            android:taskAffinity=""
+            android:configChanges="orientation|keyboardHidden|keyboard|navigation" />
 
-        <receiver android:name=".alarm.AlarmReceiver">
+        <receiver
+            android:name=".alarm.AlarmReceiver"
+            android:exported="false" >
             <intent-filter>
                 <action android:name="net.sourceforge.servestream.ALARM_ALERT" />
                 <action android:name="net.sourceforge.servestream.ALARM_KILLED" />
@@ -175,9 +198,10 @@
              intent. The service plays the alarm alert and vibrates the device.
              This allows the alert to continue playing even if another activity
              causes the AlarmAlert activity to pause. -->
-        <service android:name=".alarm.AlarmKlaxon"
-			android:description="@string/alarm_klaxon_service_desc">
-                
+        <service
+            android:name=".alarm.AlarmKlaxon"
+			android:description="@string/alarm_klaxon_service_desc"
+			android:exported="false" >                
             <intent-filter>
                 <action android:name="net.sourceforge.servestream.ALARM_ALERT" />
             </intent-filter>
