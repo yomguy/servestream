@@ -67,7 +67,7 @@ public abstract class AbstractMediaPlayer implements Parcelable {
 		} else if (uri.startsWith(MMST.getProtocolName())) {
 			return new FFmpegMediaPlayer();
 		} else {
-			return null;
+			return new NativeMediaPlayer();
 		}
 	}
     
