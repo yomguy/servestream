@@ -28,10 +28,8 @@ import android.database.Cursor;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.preference.PreferenceManager;
-import android.util.Log;
 
 public class MetadataRetriever {
-	private static final String TAG = MetadataRetriever.class.getName();
 	
 	// This class cannot be instantiated
 	private MetadataRetriever() {
@@ -121,15 +119,9 @@ public class MetadataRetriever {
 		SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
         
 		// only attempt to retrieve album art if the user has enabled that option
-		if (preferences.getBoolean(PreferenceConstants.RETRIEVE_METADATA, false)) {
+		if (preferences.getBoolean(PreferenceConstants.RETRIEVE_ALBUM_ART, false)) {
 			artwork = mmr.getEmbeddedPicture();
-			
-			if (artwork != null) {				
-				Log.i(TAG, "Found album art");
-			}
 		}
-		
-		Log.i(TAG, "Duration: " + duration);
 		
 		// if we didn't obtain at least the title, album or artist then don't store
 		// the metadata since it's pretty useless
