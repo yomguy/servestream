@@ -56,6 +56,7 @@ import net.sourceforge.servestream.player.AbstractMediaPlayer;
 import net.sourceforge.servestream.player.FFmpegMediaPlayer;
 import net.sourceforge.servestream.player.NativeMediaPlayer;
 import net.sourceforge.servestream.provider.Media;
+import net.sourceforge.servestream.receiver.MediaButtonIntentReceiver;
 import net.sourceforge.servestream.utils.MusicUtils;
 import net.sourceforge.servestream.utils.PreferenceConstants;
 import net.sourceforge.servestream.utils.Utils;
@@ -158,7 +159,6 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
     private ConnectivityReceiver mConnectivityManager;
     private SHOUTcastMetadata mSHOUTcastMetadata;
     private DownloadManager mDownloadManager;
-    private SimpleLastfmScrobblerManager mSimpleLastfmScrobblerManager;
     private boolean mIsStreaming = true;
     
     // our RemoteControlClient object, which will use remote control APIs available in
@@ -265,9 +265,6 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
   	    } else if (key.equals(PreferenceConstants.RETRIEVE_SHOUTCAST_METADATA)) {
 			final boolean retrieveSHOUTcastMetadata = mPreferences.getBoolean(PreferenceConstants.RETRIEVE_SHOUTCAST_METADATA, false);
 			mSHOUTcastMetadata.setShouldRetrieveMetadata(retrieveSHOUTcastMetadata);
-  	    } else if (key.equals(PreferenceConstants.SEND_SCROBBLER_INFO)) {
-			final boolean sendShoutcastInfo = mPreferences.getBoolean(PreferenceConstants.SEND_SCROBBLER_INFO, false);
-			mSimpleLastfmScrobblerManager.setShouldSendScrobblerInfo(sendShoutcastInfo);
   	    }
   	}
     
@@ -342,8 +339,6 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
 		final boolean retrieveSHOUTcastMetadata = mPreferences.getBoolean(PreferenceConstants.RETRIEVE_SHOUTCAST_METADATA, false);
 		mSHOUTcastMetadata = new SHOUTcastMetadata(this, retrieveSHOUTcastMetadata);
 		mDownloadManager = new DownloadManager(this);
-		final boolean sendScrobblerInfo = mPreferences.getBoolean(PreferenceConstants.SEND_SCROBBLER_INFO, false);
-		mSimpleLastfmScrobblerManager = new SimpleLastfmScrobblerManager(this, sendScrobblerInfo);
 		
         mAudioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
         mMediaButtonReceiverComponent = new ComponentName(this, MediaButtonIntentReceiver.class);
@@ -415,7 +410,6 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
         mSHOUTcastMetadata.cleanup();
     	mDownloadManager.cancelDownload();
     	Utils.deleteAllFiles();
-    	mSimpleLastfmScrobblerManager.cleanup();
         
 		stopForeground(true);
 		
@@ -1696,15 +1690,6 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
                     	.putBitmap(100, MusicUtils.getCachedBitmapArtwork(this, getTrackId()))
                     	.apply();
             }
-        	
-            Intent i = new Intent(PLAYSTATE_CHANGED);
-            i.putExtra("id", Long.valueOf(getAudioId()));
-            i.putExtra("artist", getArtistName());
-            i.putExtra("album",getAlbumName());
-            i.putExtra("track", getTrackName());
-            i.putExtra("duration", Long.valueOf(duration()));
-            i.putExtra("playing", isPlaying());
-        	mSimpleLastfmScrobblerManager.scrobble(i);
         	
             notifyChange(META_CHANGED);
             

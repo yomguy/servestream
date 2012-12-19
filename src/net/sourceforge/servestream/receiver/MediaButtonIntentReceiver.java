@@ -15,8 +15,9 @@
  * limitations under the License.
  */
 
-package net.sourceforge.servestream.service;
+package net.sourceforge.servestream.receiver;
 
+import net.sourceforge.servestream.service.MediaPlaybackService;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
