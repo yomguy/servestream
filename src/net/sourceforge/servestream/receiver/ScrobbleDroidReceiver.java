@@ -17,7 +17,6 @@
 
 package net.sourceforge.servestream.receiver;
 
-import net.sourceforge.servestream.R;
 import net.sourceforge.servestream.provider.Media;
 import net.sourceforge.servestream.service.MediaPlaybackService;
 import net.sourceforge.servestream.utils.PreferenceConstants;
@@ -27,21 +26,14 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
 
-public class SimpleLastfmScrobblerReceiver extends BroadcastReceiver {
-	private static final String BROADCAST_ACTION = "com.adam.aslfms.notify.playstatechanged";
+public class ScrobbleDroidReceiver extends BroadcastReceiver {
+	private static final String BROADCAST_ACTION = "net.jjc1138.android.scrobbler.action.MUSIC_STATUS";
 	
-	private static final int START = 0;
-	private static final int RESUME = 1;
-	private static final int PAUSE = 2;
-	private static final int COMPLETE = 3;
-	
-	private static final String APP_NAME_NAME = "app-name";
-	private static final String APP_PACKAGE_NAME = "app-package";
-	private static final String STATE_NAME = "state";
+	private static final String STATE_NAME = "playing";
 	private static final String ARTIST_NAME = "artist";
 	private static final String ALBUM_NAME = "album";
 	private static final String TRACK_NAME = "track";
-	private static final String DURATION_NAME = "duration";
+	private static final String DURATION_NAME = "secs";
 	
 	@Override
 	public void onReceive(Context context, Intent intent) {
@@ -89,34 +81,14 @@ public class SimpleLastfmScrobblerReceiver extends BroadcastReceiver {
 	}
 	
 	/**
-	 * Parses a broadcasted MediaPlaybackService intent and sends a broadcast to SLS.
+	 * Parses a broadcasted MediaPlaybackService intent and sends a broadcast to scrobbledroid.
 	 * 
 	 * @param context The current context.
 	 * @param intent The received intent.
 	 */
 	private void sendBroadcast(Context context, Intent intent) {
-		int state = RESUME;
-		
 		Intent i = new Intent(BROADCAST_ACTION);
-		i.putExtra(APP_NAME_NAME, context.getString(R.string.app_name));
-		i.putExtra(APP_PACKAGE_NAME, context.getApplicationContext().getPackageName());
-		
-		String action = intent.getAction();
-		if (action.equals(MediaPlaybackService.PLAYBACK_STARTED)) {
-			state = START;
-		} else if (action.equals(MediaPlaybackService.PLAYSTATE_CHANGED)) {
-			boolean isPlaying = intent.getBooleanExtra("playing", false);
-			
-			if (isPlaying) {
-				state = RESUME;
-			} else {
-				state = PAUSE;
-			}
-		} else if (action.equals(MediaPlaybackService.PLAYBACK_COMPLETE)) {
-			state = COMPLETE;
-		}
-		
-		i.putExtra(STATE_NAME, state);
+		i.putExtra(STATE_NAME, intent.getBooleanExtra("playing", false));
 		i.putExtra(ARTIST_NAME, intent.getStringExtra("artist"));
 		
 		String album = intent.getStringExtra("album");

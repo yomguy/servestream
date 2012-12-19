@@ -153,6 +153,17 @@
             </intent-filter>
         </receiver>
         
+        <receiver
+            android:name=".receiver.ScrobbleDroidReceiver"
+            android:exported="false" >
+            <intent-filter>
+                <action android:name="net.sourceforge.servestream.playbackstarted" />
+                <action android:name="net.sourceforge.servestream.playstatechanged" />
+                <action android:name="net.sourceforge.servestream.playbackcomplete" />
+                <action android:name="net.sourceforge.servestream.metachanged" />
+            </intent-filter>
+        </receiver>
+        
 		<!-- Alarm Activities -->
 
         <activity android:name=".activity.AlarmClockActivity"
