@@ -800,6 +800,9 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
             }
             stop(false);
 
+            // TODO is there a better place for this?
+            MusicUtils.clearAlbumArtCache();
+            
             String id = String.valueOf(mPlayList[mPlayPos]);
             
             mCursor = getContentResolver().query(
