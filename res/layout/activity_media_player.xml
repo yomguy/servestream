@@ -88,8 +88,8 @@
         
         	<ImageView
         	    android:id="@+id/album_art"
-            	android:layout_width="match_parent"
-            	android:layout_height="match_parent"
+            	android:layout_width="fill_parent"
+            	android:layout_height="fill_parent"
             	android:background="@null"
             	android:src="@drawable/albumart_mp_unknown" />
         
@@ -109,6 +109,7 @@
                 android:id="@+id/track_number_text"
                 android:layout_width="wrap_content" 
                 android:layout_height="wrap_content"
+                android:paddingTop="5dip"
                 android:textSize="13dip"
         		android:textStyle="normal"
         		android:textColor="#ffa9a9a9"
@@ -118,7 +119,6 @@
             	android:id="@+id/trackname"
             	android:layout_width="wrap_content"
         		android:layout_height="wrap_content"
-        		android:paddingTop="5dip"
             	android:textSize="17dip"
         		android:textStyle="bold"
         		android:textColor="#ffffffff"

@@ -41,6 +41,9 @@ import android.content.SharedPreferences;
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
 import android.content.res.Configuration;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.Drawable;
 import android.media.AudioManager;
 import android.os.Bundle;
 import android.os.Handler;
@@ -52,6 +55,7 @@ import android.os.SystemClock;
 import android.os.PowerManager.WakeLock;
 import android.preference.PreferenceManager;
 import android.util.Log;
+import android.view.Display;
 import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -60,6 +64,7 @@ import android.view.View;
 import android.view.Window;
 import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.ImageView.ScaleType;
 import android.widget.ProgressBar;
 import android.widget.SeekBar;
 import android.widget.TextView;
@@ -122,6 +127,7 @@ public class MediaPlaybackActivity extends Activity implements MusicUtils.Defs,
         mTotalTime = (TextView) findViewById(R.id.duration_text);
         mProgress = (ProgressBar) findViewById(R.id.seek_bar);
         mAlbum = (ImageView) findViewById(R.id.album_art);
+		mAlbum.setScaleType(ScaleType.FIT_XY);
         mTrackName = (TextView) findViewById(R.id.trackname);
         mArtistAndAlbumName = (TextView) findViewById(R.id.artist_and_album);
         mTrackNumber = (TextView) findViewById(R.id.track_number_text);
@@ -950,6 +956,8 @@ public class MediaPlaybackActivity extends Activity implements MusicUtils.Defs,
                 return;
             }
             
+            renderAlbumArt();
+            
             mTrackNumber.setText(mService.getTrackNumber());
             
             ((View) mArtistAndAlbumName.getParent()).setVisibility(View.VISIBLE);
@@ -977,5 +985,37 @@ public class MediaPlaybackActivity extends Activity implements MusicUtils.Defs,
         } catch (RemoteException ex) {
             finish();
         }
+    }
+    
+    private void renderAlbumArt() {
+    	if (mService == null) {
+    		return;
+    	}
+        try {
+        	long artIndex = mService.getTrackId();
+        	Display display = getWindowManager().getDefaultDisplay();
+        	int width = display.getWidth() - 20;
+        	int height = display.getHeight() - 20;
+        
+        	// Get the smaller window dimension to use when scaling
+        	if (width >= height) {
+        		width = height;
+        	} else {
+        		height = width;
+        	}
+        
+        	Bitmap b = BitmapFactory.decodeResource(this.getResources(), R.drawable.albumart_mp_unknown);
+        	BitmapDrawable defaultAlbumIcon = new BitmapDrawable(this.getResources(), b);
+        	// no filter or dither, it's a lot faster and we can't tell the difference
+        	defaultAlbumIcon.setFilterBitmap(false);
+        	defaultAlbumIcon.setDither(false);
+        	
+			Drawable d = MusicUtils.getLargeCachedArtwork(this, artIndex, width, height, defaultAlbumIcon);
+			
+			if (d != null) {
+				mAlbum.setImageDrawable(d);
+			}
+		} catch (RemoteException e) {
+		}
     }
 }
