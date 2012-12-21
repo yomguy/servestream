@@ -382,6 +382,10 @@ public class MusicUtils {
         synchronized(sArtCache) {
             sArtCache.clear();
         }
+        
+        synchronized(sLargeArtCache) {
+        	sLargeArtCache.clear();
+        }
     }
     
     public static Drawable getCachedArtwork(Context context, long artIndex, BitmapDrawable defaultArtwork) {
