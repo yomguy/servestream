@@ -34,9 +34,15 @@ JNIEXPORT jstring JNICALL Java_net_sourceforge_servestream_media_MediaMetadataRe
 JNIEXPORT jbyteArray JNICALL Java_net_sourceforge_servestream_media_MediaMetadataRetriever__1getEmbeddedPicture(JNIEnv* env, jobject obj);
 JNIEXPORT void JNICALL Java_net_sourceforge_servestream_media_MediaMetadataRetriever_release(JNIEnv *env, jclass obj);
 
+void jniThrowException(JNIEnv* env, const char* className,
+    const char* msg) {
+    jclass exception = (*env)->FindClass(env, className);
+    (*env)->ThrowNew(env, exception, msg);
+}
+
 JNIEXPORT void JNICALL
 Java_net_sourceforge_servestream_media_MediaMetadataRetriever_native_1init(JNIEnv *env, jclass obj) {
-    __android_log_write(ANDROID_LOG_INFO, TAG, "native_init called");
+    //__android_log_write(ANDROID_LOG_INFO, TAG, "native_init");
 
     // Initialize libavformat and register all the muxers, demuxers and protocols.
     av_register_all();
@@ -63,7 +69,6 @@ Java_net_sourceforge_servestream_media_MediaMetadataRetriever_setDataSource(JNIE
 	}
 
 	char duration[30] = "0";
-
     const char *uri;
 
     uri = (*env)->GetStringUTFChars(env, jpath, NULL);
@@ -72,8 +77,8 @@ Java_net_sourceforge_servestream_media_MediaMetadataRetriever_setDataSource(JNIE
 
     if (avformat_open_input(&pFormatCtx, uri, NULL, NULL) != 0) {
 	    __android_log_write(ANDROID_LOG_INFO, TAG, "Metadata could not be retrieved");
-	    avformat_close_input(&pFormatCtx);
         (*env)->ReleaseStringUTFChars(env, jpath, uri);
+    	jniThrowException(env, "java/lang/IllegalArgumentException", NULL);
     	return;
     }
 
@@ -81,13 +86,14 @@ Java_net_sourceforge_servestream_media_MediaMetadataRetriever_setDataSource(JNIE
 	    __android_log_write(ANDROID_LOG_INFO, TAG, "Metadata could not be retrieved");
 	    avformat_close_input(&pFormatCtx);
         (*env)->ReleaseStringUTFChars(env, jpath, uri);
+        jniThrowException(env, "java/lang/IllegalArgumentException", NULL);
     	return;
 	}
 
 	getDuration(pFormatCtx, duration);
 	av_dict_set(&pFormatCtx->metadata, DURATION, duration, 0);
 
-	__android_log_write(ANDROID_LOG_INFO, TAG, "Found metadata");
+	//__android_log_write(ANDROID_LOG_INFO, TAG, "Found metadata");
 	/*AVDictionaryEntry *tag = NULL;
 	while ((tag = av_dict_get(pFormatCtx->metadata, "", tag, AV_DICT_IGNORE_SUFFIX))) {
     	__android_log_write(ANDROID_LOG_INFO, TAG, tag->key);
@@ -144,7 +150,7 @@ Java_net_sourceforge_servestream_media_MediaMetadataRetriever_getEmbeddedPicture
     // find the first attached picture, if available
     for (i = 0; i < pFormatCtx->nb_streams; i++) {
         if (pFormatCtx->streams[i]->disposition & AV_DISPOSITION_ATTACHED_PIC) {
-        	__android_log_print(ANDROID_LOG_INFO, TAG, "Found album art");
+        	//__android_log_print(ANDROID_LOG_INFO, TAG, "Found album art");
 
             FILE *picture = fopen(path, "wb");
 
