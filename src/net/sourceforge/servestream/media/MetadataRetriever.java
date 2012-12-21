@@ -28,8 +28,10 @@ import android.database.Cursor;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.preference.PreferenceManager;
+import android.util.Log;
 
 public class MetadataRetriever {
+	private static final String TAG = MetadataRetriever.class.getName();
 	
 	// This class cannot be instantiated
 	private MetadataRetriever() {
@@ -64,13 +66,17 @@ public class MetadataRetriever {
 				String uri = getUri(mContext, list[0][i]);
 			
 				if (uri != null) {
-					mmr.setDataSource(uri.toString());
+					try {
+						mmr.setDataSource(uri.toString());
 				
-					updateMetadata(mContext, list[0][i], mmr);
+						updateMetadata(mContext, list[0][i], mmr);
 					
-					if (i == mPosition) {
-						// send a broadcast so our activities can use the updated metadata 
-						((MediaPlaybackService) mContext).updateMetadata();
+						if (i == mPosition) {
+							// send a broadcast so our activities can use the updated metadata 
+							((MediaPlaybackService) mContext).updateMetadata();
+						}
+					} catch(IllegalArgumentException ex) {
+						Log.e(TAG, "Metadata for track could not be retrived");
 					}
 				}
 			}
