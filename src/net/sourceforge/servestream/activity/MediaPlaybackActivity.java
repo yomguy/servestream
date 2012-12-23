@@ -41,13 +41,11 @@ import android.content.SharedPreferences;
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
 import android.content.res.Configuration;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.graphics.drawable.BitmapDrawable;
-import android.graphics.drawable.Drawable;
 import android.media.AudioManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
+import android.os.Looper;
 import android.os.Message;
 import android.os.PowerManager;
 import android.os.RemoteException;
@@ -64,7 +62,6 @@ import android.view.View;
 import android.view.Window;
 import android.widget.ImageButton;
 import android.widget.ImageView;
-import android.widget.ImageView.ScaleType;
 import android.widget.ProgressBar;
 import android.widget.SeekBar;
 import android.widget.TextView;
@@ -97,6 +94,8 @@ public class MediaPlaybackActivity extends Activity implements MusicUtils.Defs,
     private RepeatingImageButton mNextButton;
     private ImageButton mRepeatButton;
     private ImageButton mShuffleButton;
+    private Worker mAlbumArtWorker;
+    private AlbumArtHandler mAlbumArtHandler;
     private Toast mToast;
     private ServiceToken mToken;
 
@@ -113,6 +112,9 @@ public class MediaPlaybackActivity extends Activity implements MusicUtils.Defs,
         super.onCreate(icicle);
         setVolumeControlStream(AudioManager.STREAM_MUSIC);
 
+        mAlbumArtWorker = new Worker("album art worker");
+        mAlbumArtHandler = new AlbumArtHandler(mAlbumArtWorker.getLooper());
+        
         mPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         mPreferences.registerOnSharedPreferenceChangeListener(this);
         
@@ -127,7 +129,6 @@ public class MediaPlaybackActivity extends Activity implements MusicUtils.Defs,
         mTotalTime = (TextView) findViewById(R.id.duration_text);
         mProgress = (ProgressBar) findViewById(R.id.seek_bar);
         mAlbum = (ImageView) findViewById(R.id.album_art);
-		mAlbum.setScaleType(ScaleType.FIT_XY);
         mTrackName = (TextView) findViewById(R.id.trackname);
         mArtistAndAlbumName = (TextView) findViewById(R.id.artist_and_album);
         mTrackNumber = (TextView) findViewById(R.id.track_number_text);
@@ -316,6 +317,12 @@ public class MediaPlaybackActivity extends Activity implements MusicUtils.Defs,
         MusicUtils.unbindFromService(mToken);
         mService = null;
         super.onStop();
+    }
+    
+    @Override
+    public void onDestroy() {
+        mAlbumArtWorker.quit();
+        super.onDestroy();
     }
     
     @Override
@@ -819,7 +826,7 @@ public class MediaPlaybackActivity extends Activity implements MusicUtils.Defs,
 
     private static final int REFRESH = 1;
     private static final int QUIT = 2;
-    //private static final int GET_ALBUM_ART = 3;
+    private static final int GET_ALBUM_ART = 3;
     private static final int ALBUM_ART_DECODED = 4;
 
     private void queueNextRefresh(long delay) {
@@ -945,6 +952,13 @@ public class MediaPlaybackActivity extends Activity implements MusicUtils.Defs,
         }
     };
     
+    private static class IdWrapper {
+        public long id;
+        IdWrapper(long id) {
+            this.id = id;
+        }
+    }
+    
     private void updateTrackInfo() {
         if (mService == null) {
             return;
@@ -955,8 +969,6 @@ public class MediaPlaybackActivity extends Activity implements MusicUtils.Defs,
                 finish();
                 return;
             }
-            
-            renderAlbumArt();
             
             mTrackNumber.setText(mService.getTrackNumber());
             
@@ -970,7 +982,10 @@ public class MediaPlaybackActivity extends Activity implements MusicUtils.Defs,
             mTrackName.setText(trackName);
             // TODO refactor this!
             mArtistAndAlbumName.setText(mService.getArtistName() + "-" + mService.getAlbumName());
-                
+            
+            mAlbumArtHandler.removeMessages(GET_ALBUM_ART);
+            mAlbumArtHandler.obtainMessage(GET_ALBUM_ART, new IdWrapper(mService.getTrackId())).sendToTarget();
+            
             if (mService.isStreaming()) {
             	mDuration = mService.duration();
             	mProgress.setSecondaryProgress(0);
@@ -987,35 +1002,89 @@ public class MediaPlaybackActivity extends Activity implements MusicUtils.Defs,
         }
     }
     
-    private void renderAlbumArt() {
-    	if (mService == null) {
-    		return;
-    	}
-        try {
-        	long artIndex = mService.getTrackId();
-        	Display display = getWindowManager().getDefaultDisplay();
-        	int width = display.getWidth() - 20;
-        	int height = display.getHeight() - 20;
+    public class AlbumArtHandler extends Handler {
+        private long mId = -1;
+        private boolean mUsingEmbeddedArt = false;
         
-        	// Get the smaller window dimension to use when scaling
-        	if (width >= height) {
-        		width = height;
-        	} else {
-        		height = width;
-        	}
+        public AlbumArtHandler(Looper looper) {
+            super(looper);
+        }
+        @Override
+        public void handleMessage(Message msg)
+        {
+            long id = ((IdWrapper) msg.obj).id;
+            if (msg.what == GET_ALBUM_ART && ((mId != id || !mUsingEmbeddedArt) && id >= 1)) {
+            	Display display = getWindowManager().getDefaultDisplay();
+            	int width = display.getWidth() - 20;
+            	int height = display.getHeight() - 20;
+            
+            	// Get the smaller window dimension to use when scaling
+            	if (width >= height) {
+            		width = height;
+            	} else {
+            		height = width;
+            	}
+
+            	Bitmap b = MusicUtils.getDefaultArtwork(MediaPlaybackActivity.this, R.drawable.albumart_mp_unknown, width, height);
+            	
+                // while decoding the new image, show the default album art
+                Message numsg = mHandler.obtainMessage(ALBUM_ART_DECODED, b);
+                mHandler.removeMessages(ALBUM_ART_DECODED);
+                mHandler.sendMessageDelayed(numsg, 300);
+                // Don't allow default artwork here, because we want to fall back to song-specific
+                // album art if we can't find anything for the album.
+                if (mPreferences.getBoolean(PreferenceConstants.RETRIEVE_ALBUM_ART, false)) {
+                	Bitmap bm = MusicUtils.getLargeCachedArtwork(MediaPlaybackActivity.this, id, width, height);
+                	if (bm != null) {
+                		mUsingEmbeddedArt = true;
+                		numsg = mHandler.obtainMessage(ALBUM_ART_DECODED, bm);
+                		mHandler.removeMessages(ALBUM_ART_DECODED);
+                		mHandler.sendMessage(numsg);
+                	}
+                }
+                mId = id;
+            }
+        }
+    }
+    
+    private static class Worker implements Runnable {
+        private final Object mLock = new Object();
+        private Looper mLooper;
         
-        	Bitmap b = BitmapFactory.decodeResource(this.getResources(), R.drawable.albumart_mp_unknown);
-        	BitmapDrawable defaultAlbumIcon = new BitmapDrawable(this.getResources(), b);
-        	// no filter or dither, it's a lot faster and we can't tell the difference
-        	defaultAlbumIcon.setFilterBitmap(false);
-        	defaultAlbumIcon.setDither(false);
-        	
-			Drawable d = MusicUtils.getLargeCachedArtwork(this, artIndex, width, height, defaultAlbumIcon);
-			
-			if (d != null) {
-				mAlbum.setImageDrawable(d);
-			}
-		} catch (RemoteException e) {
-		}
+        /**
+         * Creates a worker thread with the given name. The thread
+         * then runs a {@link android.os.Looper}.
+         * @param name A name for the new thread
+         */
+        Worker(String name) {
+            Thread t = new Thread(null, this, name);
+            t.setPriority(Thread.MIN_PRIORITY);
+            t.start();
+            synchronized (mLock) {
+                while (mLooper == null) {
+                    try {
+                        mLock.wait();
+                    } catch (InterruptedException ex) {
+                    }
+                }
+            }
+        }
+        
+        public Looper getLooper() {
+            return mLooper;
+        }
+        
+        public void run() {
+            synchronized (mLock) {
+                Looper.prepare();
+                mLooper = Looper.myLooper();
+                mLock.notifyAll();
+            }
+            Looper.loop();
+        }
+        
+        public void quit() {
+            mLooper.quit();
+        }
     }
 }

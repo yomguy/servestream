@@ -57,6 +57,7 @@ import net.sourceforge.servestream.player.FFmpegMediaPlayer;
 import net.sourceforge.servestream.player.NativeMediaPlayer;
 import net.sourceforge.servestream.provider.Media;
 import net.sourceforge.servestream.receiver.MediaButtonIntentReceiver;
+import net.sourceforge.servestream.service.RemoteControlClientCompat.MetadataEditorCompat;
 import net.sourceforge.servestream.utils.MusicUtils;
 import net.sourceforge.servestream.utils.PreferenceConstants;
 import net.sourceforge.servestream.utils.Utils;
@@ -899,13 +900,15 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
         		RemoteControlClientCompat.FLAG_KEY_MEDIA_STOP);
 
         // Update the remote controls
-        mRemoteControlClientCompat.editMetadata(true)
-                .putString(2, getArtistName())
-                .putString(1, getAlbumName())
-                .putString(7, getTrackName())
-                .putLong(9, getDuration())
-                .putBitmap(100, MusicUtils.getCachedBitmapArtwork(this, getTrackId()))
-                .apply();
+        MetadataEditorCompat metadataEditor = mRemoteControlClientCompat.editMetadata(true);
+        metadataEditor.putString(2, getArtistName());
+        metadataEditor.putString(1, getAlbumName());
+        metadataEditor.putString(7, getTrackName());
+        metadataEditor.putLong(9, getDuration());
+        /*if (mPreferences.getBoolean(PreferenceConstants.RETRIEVE_ALBUM_ART, false)) {
+        	metadataEditor.putBitmap(100, MusicUtils.getCachedBitmapArtwork(this, getTrackId()));
+        }*/
+        metadataEditor.apply();
         
         // Tell any remote controls that our playback state is 'playing'.
         if (mRemoteControlClientCompat != null) {
@@ -1685,13 +1688,15 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
         	
             if (mRemoteControlClientCompat != null) {
             	// Update the remote controls
-            	mRemoteControlClientCompat.editMetadata(true)
-                    	.putString(2, getArtistName())
-                    	.putString(1, getAlbumName())
-                    	.putString(7, getTrackName())
-                    	.putLong(9, getDuration())
-                    	.putBitmap(100, MusicUtils.getCachedBitmapArtwork(this, getTrackId()))
-                    	.apply();
+                MetadataEditorCompat metadataEditor = mRemoteControlClientCompat.editMetadata(true);
+                metadataEditor.putString(2, getArtistName());
+                metadataEditor.putString(1, getAlbumName());
+                metadataEditor.putString(7, getTrackName());
+                metadataEditor.putLong(9, getDuration());
+                /*if (mPreferences.getBoolean(PreferenceConstants.RETRIEVE_ALBUM_ART, false)) {
+                	metadataEditor.putBitmap(100, MusicUtils.getCachedBitmapArtwork(this, getTrackId()));
+                }*/
+                metadataEditor.apply();
             }
         	
             notifyChange(META_CHANGED);
@@ -1723,7 +1728,7 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
         status.flags |= Notification.FLAG_ONGOING_EVENT;
         PendingIntent contentIntent = PendingIntent.getActivity(this, 0,
                 new Intent(this, MediaPlaybackActivity.class)
-                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK), 0);
+                .addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP), 0);
 		status.setLatestEventInfo(getApplicationContext(), trackName,
 				getString(R.string.notification_artist_album, artist, album), contentIntent);
 		
