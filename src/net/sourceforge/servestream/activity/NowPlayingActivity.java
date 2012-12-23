@@ -50,8 +50,11 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.Window;
 import android.view.ContextMenu.ContextMenuInfo;
 import android.view.MenuItem.OnMenuItemClickListener;
+import android.view.View.OnClickListener;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.SimpleCursorAdapter;
@@ -66,6 +69,7 @@ public class NowPlayingActivity extends ListActivity implements View.OnCreateCon
     
     private boolean mDeletedOneRow = false;
     private String mCurrentTrackName;
+    private ImageButton mCloseButton;
     private ListView mTrackList;
     private Cursor mTrackCursor;
     private TrackListAdapter mAdapter;
@@ -90,6 +94,7 @@ public class NowPlayingActivity extends ListActivity implements View.OnCreateCon
     {
         super.onCreate(icicle);
         
+        requestWindowFeature(Window.FEATURE_NO_TITLE);
         setContentView(R.layout.now_playing_activity);
         
 		this.setTitle(String.format("%s: %s",
@@ -98,6 +103,15 @@ public class NowPlayingActivity extends ListActivity implements View.OnCreateCon
 
         setVolumeControlStream(AudioManager.STREAM_MUSIC);
 		
+        mCloseButton = (ImageButton) findViewById(R.id.close);
+        mCloseButton.setOnClickListener(new OnClickListener() {
+
+			@Override
+			public void onClick(View v) {
+				finish();
+			}
+        });
+        
         mTrackList = getListView();
         mTrackList.setOnCreateContextMenuListener(this);
         mTrackList.setCacheColorHint(0);

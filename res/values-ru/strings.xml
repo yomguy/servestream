@@ -144,6 +144,7 @@
 
 	<!-- Title of the media player -->
 	<string name="nowplaying_title">Сейчас играет</string>
+    <string name="play_queue_title">Play Queue</string>
 
 	<!-- The dialog message when opening a URL -->
 	<string name="opening_url_message">Открываю URL...</string>
