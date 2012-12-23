@@ -368,7 +368,6 @@ public class MusicUtils {
     private static final BitmapFactory.Options sBitmapOptionsCache = new BitmapFactory.Options();
     private static final Uri sArtworkUri = Media.MediaColumns.CONTENT_URI;
     private static final HashMap<Long, Drawable> sArtCache = new HashMap<Long, Drawable>();
-    private static final HashMap<Long, Drawable> sLargeArtCache = new HashMap<Long, Drawable>();
     
     static {
         // for the cache, 
@@ -382,10 +381,6 @@ public class MusicUtils {
         synchronized(sArtCache) {
             sArtCache.clear();
         }
-        
-        synchronized(sLargeArtCache) {
-        	sLargeArtCache.clear();
-        }
     }
     
     public static Drawable getCachedArtwork(Context context, long artIndex, BitmapDrawable defaultArtwork) {
@@ -396,7 +391,7 @@ public class MusicUtils {
         if (d == null) {
         	// TODO add the next line back to show default artwork
             //d = defaultArtwork;
-            final Bitmap icon = defaultArtwork.getBitmap();
+            final Bitmap icon = BitmapFactory.decodeResource(context.getResources(), R.drawable.albumart_mp_unknown_list);
             int w = icon.getWidth();
             int h = icon.getHeight();
             Bitmap b = MusicUtils.getArtworkQuick(context, artIndex, w, h);
@@ -470,31 +465,16 @@ public class MusicUtils {
         return null;
     }
     
-    public static Drawable getLargeCachedArtwork(Context context, long artIndex, int w, int h, BitmapDrawable defaultArtwork) {
-        Drawable d = null;
-        synchronized(sLargeArtCache) {
-            d = sLargeArtCache.get(artIndex);
+    public static Bitmap getLargeCachedArtwork(Context context, long artIndex, int w, int h) {
+        Bitmap b = MusicUtils.getLargeArtworkQuick(context, artIndex, w, h);
+        if (b == null) {
+        	b = getDefaultArtwork(context, R.drawable.albumart_mp_unknown, w, h);
         }
-        if (d == null) {
-            d = defaultArtwork;
-            Bitmap b = MusicUtils.getLargeArtworkQuick(context, artIndex, w, h);
-            if (b != null) {
-                d = new FastBitmapDrawable(b);
-                synchronized(sLargeArtCache) {
-                    // the cache may have changed since we checked
-                    Drawable value = sLargeArtCache.get(artIndex);
-                    if (value == null) {
-                    	sLargeArtCache.put(artIndex, d);
-                    } else {
-                        d = value;
-                    }
-                }
-            }
-        }
-        return d;
+        
+        return b;
     }
     
- // Get album art for specified album. This method will not try to
+    // Get album art for specified album. This method will not try to
     // fall back to getting artwork directly from the file, nor will
     // it attempt to repair the database.
     private static Bitmap getLargeArtworkQuick(Context context, long id, int w, int h) {
@@ -548,13 +528,46 @@ public class MusicUtils {
         return null;
     }
     
+    public static Bitmap getDefaultArtwork(Context context, int id, int w, int h) {
+    	BitmapFactory.Options sBitmapOptionsCache = new BitmapFactory.Options();
+    	Bitmap b = null;
+        int sampleSize = 1;
+        
+        sBitmapOptionsCache.inPreferredConfig = Bitmap.Config.ARGB_8888;
+        
+        // Compute the closest power-of-two scale factor 
+        // and pass that to sBitmapOptionsCache.inSampleSize, which will
+        // result in faster decoding and better quality
+        sBitmapOptionsCache.inJustDecodeBounds = true;
+                
+        BitmapFactory.decodeResource(context.getResources(), id, sBitmapOptionsCache);
+        int nextWidth = sBitmapOptionsCache.outWidth >> 1;
+        int nextHeight = sBitmapOptionsCache.outHeight >> 1;
+        while (nextWidth>w && nextHeight>h) {
+        	sampleSize <<= 1;
+        	nextWidth >>= 1;
+        	nextHeight >>= 1;
+        }
+
+        sBitmapOptionsCache.inSampleSize = sampleSize;
+        sBitmapOptionsCache.inJustDecodeBounds = false;
+        b = BitmapFactory.decodeResource(context.getResources(), id, sBitmapOptionsCache);
+            
+        if (b != null) {
+        	// finally rescale to exactly the size we need
+            if (sBitmapOptionsCache.outWidth != w || sBitmapOptionsCache.outHeight != h) {
+            	Bitmap tmp = Bitmap.createScaledBitmap(b, w, h, true);
+            	// Bitmap.createScaledBitmap() can return the same bitmap
+                if (tmp != b) b.recycle();
+                	b = tmp;
+            }
+        }
+            
+        return b;
+    }
+    
     public static Bitmap getCachedBitmapArtwork(Context context, long artIndex) {
-        Bitmap b = BitmapFactory.decodeResource(context.getResources(), R.drawable.albumart_mp_unknown_list);
-        BitmapDrawable defaultArtwork = new BitmapDrawable(context.getResources(), b);
-        // no filter or dither, it's a lot faster and we can't tell the difference
-        defaultArtwork.setFilterBitmap(false);
-        defaultArtwork.setDither(false);
-        FastBitmapDrawable d = (FastBitmapDrawable) MusicUtils.getCachedArtwork(context, artIndex, defaultArtwork);
+        FastBitmapDrawable d = (FastBitmapDrawable) MusicUtils.getCachedArtwork(context, artIndex, null);
 
 		if (d != null) {
 			return d.getBitmap();
@@ -571,28 +584,15 @@ public class MusicUtils {
         try {
             if (true && MusicUtils.sService != null && MusicUtils.sService.getAudioId() != -1) {
             	ImageView coverart = (ImageView) nowPlayingView.findViewById(R.id.coverart);
+    			coverart.setVisibility(View.GONE);
                 TextView title = (TextView) nowPlayingView.findViewById(R.id.title);
                 title.setSelected(true);
                 TextView artist = (TextView) nowPlayingView.findViewById(R.id.artist);
                 artist.setSelected(true);
                 final ImageView pauseButton = (ImageView) nowPlayingView.findViewById(R.id.play_pause_button);
-                
-	            Bitmap b = BitmapFactory.decodeResource(a.getResources(), R.drawable.albumart_mp_unknown_list);
-	            BitmapDrawable defaultAlbumIcon = new BitmapDrawable(a.getResources(), b);
-	            // no filter or dither, it's a lot faster and we can't tell the difference
-	            defaultAlbumIcon.setFilterBitmap(false);
-	            defaultAlbumIcon.setDither(false);
-				Drawable d = MusicUtils.getCachedArtwork(a, sService.getAudioId(), defaultAlbumIcon);
-                
+        		
                 CharSequence trackName = sService.getTrackName();
-            	CharSequence artistName = sService.getArtistName();
-                
-            	if (d == null) {
-            		coverart.setVisibility(View.GONE);
-            	} else {
-            		coverart.setVisibility(View.VISIBLE);
-            		coverart.setImageDrawable(d);
-            	}
+            	CharSequence artistName = sService.getArtistName();                
             	
                 if (trackName == null || trackName.equals(Media.UNKNOWN_STRING)) {
             		title.setText(R.string.widget_one_track_info_unavailable);
