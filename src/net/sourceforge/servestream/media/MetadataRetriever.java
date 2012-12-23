@@ -143,7 +143,10 @@ public class MetadataRetriever {
 		values.put(Media.MediaColumns.ALBUM, validateAttribute(album));
 		values.put(Media.MediaColumns.ARTIST, validateAttribute(artist));
 		values.put(Media.MediaColumns.DURATION, convertToInteger(duration));
-		values.put(Media.MediaColumns.ARTWORK, artwork);
+		
+		if (artwork != null) {
+			values.put(Media.MediaColumns.ARTWORK, artwork);
+		}
 
 		// Get the base URI for the Media Files table in the Media content provider.
 		Uri mediaFile =  Media.MediaColumns.CONTENT_URI;
