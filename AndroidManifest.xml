@@ -115,10 +115,7 @@
         <activity
             android:name=".activity.MediaPlaybackActivity"
             android:screenOrientation="portrait"
-            android:configChanges="keyboardHidden|orientation"
-            android:taskAffinity=""
             android:launchMode="singleTop"
-            android:clearTaskOnLaunch="true"
             android:exported="false" >
             <intent-filter>
                 <action android:name="net.sourceforge.servestream.PLAYBACK_VIEWER" />
