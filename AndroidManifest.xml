@@ -103,7 +103,7 @@
 		<activity android:name=".activity.HelpActivity" android:configChanges="keyboardHidden|orientation" />
 		<activity android:name=".activity.HelpTopicActivity" android:configChanges="keyboardHidden|orientation" />
 		<activity android:name=".activity.MinuteSelector" android:theme="@android:style/Theme.Dialog" android:exported="false" />
-		<activity android:name=".activity.NowPlayingActivity" android:exported="false" />
+		<activity android:name=".activity.NowPlayingActivity" />
 		<activity android:name=".activity.SettingsActivity" android:configChanges="keyboardHidden|orientation" />
 		<activity android:name=".activity.StreamEditorActivity" android:configChanges="keyboardHidden|orientation" />
 

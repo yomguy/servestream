@@ -144,6 +144,7 @@
 
 	<!-- Title of the media player -->
 	<string name="nowplaying_title">En cours de lecture</string>
+	<string name="play_queue_title">Jouer la File d\'attente</string>
 
 	<!-- The dialog message when opening a URL -->
 	<string name="opening_url_message">Ouverture de l\'URL</string>
