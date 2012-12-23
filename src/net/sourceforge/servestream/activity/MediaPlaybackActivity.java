@@ -1004,7 +1004,6 @@ public class MediaPlaybackActivity extends Activity implements MusicUtils.Defs,
     
     public class AlbumArtHandler extends Handler {
         private long mId = -1;
-        private boolean mUsingEmbeddedArt = false;
         
         public AlbumArtHandler(Looper looper) {
             super(looper);
@@ -1013,7 +1012,8 @@ public class MediaPlaybackActivity extends Activity implements MusicUtils.Defs,
         public void handleMessage(Message msg)
         {
             long id = ((IdWrapper) msg.obj).id;
-            if (msg.what == GET_ALBUM_ART && ((mId != id || !mUsingEmbeddedArt) && id >= 1)) {
+            
+            if (msg.what == GET_ALBUM_ART) {
             	Display display = getWindowManager().getDefaultDisplay();
             	int width = display.getWidth() - 20;
             	int height = display.getHeight() - 20;
@@ -1036,13 +1036,14 @@ public class MediaPlaybackActivity extends Activity implements MusicUtils.Defs,
                 if (mPreferences.getBoolean(PreferenceConstants.RETRIEVE_ALBUM_ART, false)) {
                 	Bitmap bm = MusicUtils.getLargeCachedArtwork(MediaPlaybackActivity.this, id, width, height);
                 	if (bm != null) {
-                		mUsingEmbeddedArt = true;
                 		numsg = mHandler.obtainMessage(ALBUM_ART_DECODED, bm);
                 		mHandler.removeMessages(ALBUM_ART_DECODED);
                 		mHandler.sendMessage(numsg);
+                        mId = id;
                 	}
+                } else {
+                    mId = id;
                 }
-                mId = id;
             }
         }
     }
