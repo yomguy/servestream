@@ -20,5 +20,5 @@
 
 <resources>
 	<string name="app_name">ServeStream</string>
-	<string name="msg_version">ServeStream (v0.5.1)</string>
+	<string name="msg_version">ServeStream (v0.5.2)</string>
 </resources>
