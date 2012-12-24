@@ -599,11 +599,13 @@ public class MusicUtils {
     }
     
     public static Bitmap getCachedBitmapArtwork(Context context, long artIndex) {
-        FastBitmapDrawable d = (FastBitmapDrawable) MusicUtils.getCachedArtwork(context, artIndex, false);
+    	if (artIndex >= 0) {
+    		FastBitmapDrawable d = (FastBitmapDrawable) MusicUtils.getCachedArtwork(context, artIndex, false);
 
-		if (d != null) {
-			return d.getBitmap();
-		}
+    		if (d != null) {
+    			return d.getBitmap();
+    		}
+    	}
 		
 		return null;
     }
@@ -621,7 +623,10 @@ public class MusicUtils {
             	
             	SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(a);
                 if (preferences.getBoolean(PreferenceConstants.RETRIEVE_ALBUM_ART, false)) {
-                	d = MusicUtils.getCachedArtwork(a, sService.getAudioId(), true);
+                	long id = sService.getAudioId();
+                	if (id >= 0) {
+                		d = MusicUtils.getCachedArtwork(a, sService.getAudioId(), true);
+                	}
                 }
             	
             	if (d == null) {

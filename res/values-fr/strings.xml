@@ -120,7 +120,8 @@
     <string name="list_menu_shuffle">Aléatoire activé/désactivé</string>
     <string name="list_menu_sleep_timer">Compte à rebour</string>
     <string name="list_menu_sort_by_name">Trier par nom</string>
-    <string name="list_menu_sort_by_date">Trier par nom</string>   
+    <string name="list_menu_sort_by_date">Trier par nom</string>
+    <string name="list_menu_stop">Arrêter</string>   
 	
  	<!-- Frequency for which to check for program updates. -->
  	<!-- Frequency for which to check for program updates. -->
