@@ -811,6 +811,8 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
                     mCursorCols, "_id=" + id , null, null);
             if (mCursor != null) {
             	mCursor.moveToFirst();
+            	// TODO Is this code needed?
+            	notifyChange(META_CHANGED);
                 open(Media.MediaColumns.CONTENT_URI + "/" + id);
             }
         }
