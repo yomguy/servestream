@@ -48,7 +48,7 @@ public class MediaProvider extends ContentProvider {
     private static final String TAG = MediaProvider.class.getName();
 
     private static final String DATABASE_NAME = "media.db";
-    private static final int DATABASE_VERSION = 1;
+    private static final int DATABASE_VERSION = 2;
     private static final String MEDIA_TABLE_NAME = "media_files";
 
     private static HashMap<String, String> sMediaProjectionMap;
