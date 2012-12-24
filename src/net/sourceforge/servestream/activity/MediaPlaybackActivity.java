@@ -986,16 +986,25 @@ public class MediaPlaybackActivity extends Activity implements MusicUtils.Defs,
             
             mTrackNumber.setText(mService.getTrackNumber());
             
-            ((View) mArtistAndAlbumName.getParent()).setVisibility(View.VISIBLE);
-                
             String trackName = mService.getTrackName();
             if (trackName == null || trackName.equals(Media.UNKNOWN_STRING)) {
             	trackName = mService.getMediaUri();
             }
-                
+            
             mTrackName.setText(trackName);
-            // TODO refactor this!
-            mArtistAndAlbumName.setText(mService.getArtistName() + "-" + mService.getAlbumName());
+            
+            String artistName = mService.getArtistName();
+            String albumName = mService.getAlbumName();
+            String artistAndAlbumName = null;
+            
+            if ((artistName == null || artistName.equals(Media.UNKNOWN_STRING)) &&
+            		albumName == null || albumName.equals(Media.UNKNOWN_STRING)) {
+            	artistAndAlbumName = "";
+            } else {
+            	artistAndAlbumName = mService.getArtistName() + " - " + mService.getAlbumName();
+            }
+            
+            mArtistAndAlbumName.setText(artistAndAlbumName);
             
             mAlbumArtHandler.removeMessages(GET_ALBUM_ART);
             mAlbumArtHandler.obtainMessage(GET_ALBUM_ART, new IdWrapper(mService.getTrackId())).sendToTarget();
