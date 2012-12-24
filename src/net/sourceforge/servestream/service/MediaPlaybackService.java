@@ -905,9 +905,9 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
         metadataEditor.putString(1, getAlbumName());
         metadataEditor.putString(7, getTrackName());
         metadataEditor.putLong(9, getDuration());
-        /*if (mPreferences.getBoolean(PreferenceConstants.RETRIEVE_ALBUM_ART, false)) {
+        if (mPreferences.getBoolean(PreferenceConstants.RETRIEVE_ALBUM_ART, false)) {
         	metadataEditor.putBitmap(100, MusicUtils.getCachedBitmapArtwork(this, getTrackId()));
-        }*/
+        }
         metadataEditor.apply();
         
         // Tell any remote controls that our playback state is 'playing'.
@@ -1693,9 +1693,9 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
                 metadataEditor.putString(1, getAlbumName());
                 metadataEditor.putString(7, getTrackName());
                 metadataEditor.putLong(9, getDuration());
-                /*if (mPreferences.getBoolean(PreferenceConstants.RETRIEVE_ALBUM_ART, false)) {
+                if (mPreferences.getBoolean(PreferenceConstants.RETRIEVE_ALBUM_ART, false)) {
                 	metadataEditor.putBitmap(100, MusicUtils.getCachedBitmapArtwork(this, getTrackId()));
-                }*/
+                }
                 metadataEditor.apply();
             }
         	
