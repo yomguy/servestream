@@ -289,15 +289,11 @@ public class MusicUtils {
         return sFormatter.format(durationformat, timeArgs).toString();
     }
     
-    public static void playAll(Context context, long [] list, int position, boolean fromActivity) {
-        playAll(context, list, position, false, fromActivity);
-    }
-    
     public static void playAll(Context context, long [] list, int position) {
-        playAll(context, list, position, false, true);
+        playAll(context, list, position, false);
     }
     
-    private static void playAll(Context context, long [] list, int position, boolean force_shuffle, boolean fromActivity) {
+    private static void playAll(Context context, long [] list, int position, boolean force_shuffle) {
         if (list.length == 0 || sService == null) {
             Log.d("MusicUtils", "attempt to play empty song list");
             // Don't try to play empty playlists. Nothing good will come of it.
@@ -328,14 +324,8 @@ public class MusicUtils {
             sService.open(list, force_shuffle ? -1 : position);
         } catch (RemoteException ex) {
         } finally {
-            Intent intent = new Intent("net.sourceforge.servestream.PLAYBACK_VIEWER");
-            
-            if (fromActivity) {
-            	intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-            } else {
-            	intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-            }
-            
+            Intent intent = new Intent("net.sourceforge.servestream.PLAYBACK_VIEWER")
+            	.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
             context.startActivity(intent);
         }
     }
