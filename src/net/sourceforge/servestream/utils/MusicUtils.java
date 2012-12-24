@@ -466,12 +466,7 @@ public class MusicUtils {
     }
     
     public static Bitmap getLargeCachedArtwork(Context context, long artIndex, int w, int h) {
-        Bitmap b = MusicUtils.getLargeArtworkQuick(context, artIndex, w, h);
-        if (b == null) {
-        	b = getDefaultArtwork(context, R.drawable.albumart_mp_unknown, w, h);
-        }
-        
-        return b;
+        return MusicUtils.getLargeArtworkQuick(context, artIndex, w, h);
     }
     
     // Get album art for specified album. This method will not try to
