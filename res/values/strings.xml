@@ -120,7 +120,8 @@
     <string name="list_menu_shuffle">Shuffle on/off</string>
     <string name="list_menu_sleep_timer">Sleep timer</string>
     <string name="list_menu_sort_by_name">Sort by name</string>
-    <string name="list_menu_sort_by_date">Sort by date</string>    
+    <string name="list_menu_sort_by_date">Sort by date</string>
+    <string name="list_menu_stop">Stop</string>
 	
  	<!-- Frequency for which to check for program updates. -->
  	<!-- Frequency for which to check for program updates. -->

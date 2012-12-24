@@ -328,6 +328,9 @@ public class MediaPlaybackActivity extends Activity implements MusicUtils.Defs,
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
     	switch(item.getItemId()) {
+    		case (R.id.menu_item_stop):
+    			doStop();
+    			return true;
         	case (R.id.menu_item_sleep_timer):
                 startActivity(new Intent(this, MinuteSelector.class));
         		return true;
@@ -651,6 +654,17 @@ public class MediaPlaybackActivity extends Activity implements MusicUtils.Defs,
             }
         } catch (RemoteException ex) {
         }
+    }
+    
+    private void doStop() {
+    	try {
+    		if(mService != null) {
+    			mService.stop();
+    			refreshNow();
+    			setPauseButtonImage();
+    		}
+    	} catch (RemoteException ex) {
+    	}
     }
     
     private void toggleShuffle() {
@@ -1013,7 +1027,7 @@ public class MediaPlaybackActivity extends Activity implements MusicUtils.Defs,
         {
             long id = ((IdWrapper) msg.obj).id;
             
-            if (msg.what == GET_ALBUM_ART && mId != id) {
+            if (msg.what == GET_ALBUM_ART && mId != id && id >= 0) {
             	Display display = getWindowManager().getDefaultDisplay();
             	int width = display.getWidth() - 20;
             	int height = display.getHeight() - 20;

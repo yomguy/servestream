@@ -120,7 +120,8 @@
     <string name="list_menu_shuffle">(Не)Перемешать</string>
     <string name="list_menu_sleep_timer">Таймер сна</string>
     <string name="list_menu_sort_by_name">Сортировать по имени</string>
-    <string name="list_menu_sort_by_date">Сортировать по дате</string>    
+    <string name="list_menu_sort_by_date">Сортировать по дате</string>
+    <string name="list_menu_stop">Стоп</string>  
 	
  	<!-- Frequency for which to check for program updates. -->
  	<!-- Frequency for which to check for program updates. -->
