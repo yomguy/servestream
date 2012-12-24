@@ -148,7 +148,10 @@ public class BrowseActivity extends ListActivity implements ServiceConnection,
 		mHomeButton.setOnClickListener(new OnClickListener() {
 
 			public void onClick(View arg0) {
-				BrowseActivity.this.startActivity(new Intent(BrowseActivity.this, URLListActivity.class));
+                Intent intent = new Intent(BrowseActivity.this, URLListActivity.class);
+		        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+				BrowseActivity.this.startActivity(intent);
+				finish();
 			}
 		});
 	    
