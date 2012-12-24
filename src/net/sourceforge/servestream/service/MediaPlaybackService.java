@@ -840,29 +840,17 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
             
     		mDownloadManager.cancelDownload();
             
-            if (playingVideo()) {
-            	mPlayer.release();
-            	mPlayer = new NativeMediaPlayer();
-                mPlayer.setHandler(mMediaplayerHandler);
+            mPlayer.release();
+            mPlayer = AbstractMediaPlayer.getMediaPlayer(mFileToPlay);
+            mPlayer.setHandler(mMediaplayerHandler);
             	
+            if (mPreferences.getBoolean(PreferenceConstants.PROGRESSIVE_DOWNLOAD, false) &&
+            		!(mPlayer instanceof FFmpegMediaPlayer)) {
+            	mIsStreaming = false;
+            	mDownloadManager.download(mPlayList[mPlayPos]);
+            } else {
             	mIsStreaming = true;
-                Intent intent = new Intent(this, MediaPlaybackActivity.class);
-                intent.setAction(PREPARE_VIDEO);
-                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_SINGLE_TOP);
-                startActivity(intent);
-            } else { 
-            	mPlayer.release();
-            	mPlayer = AbstractMediaPlayer.getMediaPlayer(mFileToPlay);
-                mPlayer.setHandler(mMediaplayerHandler);
-            	
-            	if (mPreferences.getBoolean(PreferenceConstants.PROGRESSIVE_DOWNLOAD, false) &&
-            			!(mPlayer instanceof FFmpegMediaPlayer)) {
-            		mIsStreaming = false;
-            		mDownloadManager.download(mPlayList[mPlayPos]);
-            	} else {
-            		mIsStreaming = true;
-            		mPlayer.setDataSource(mFileToPlay, false);
-            	}
+            	mPlayer.setDataSource(mFileToPlay, false);
             }
         }
     }
@@ -1644,29 +1632,6 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
 			play();
 		}
 	}
-    
-    /**
-     * Checks if the currently playing media file is a video file
-     * 
-     * @return boolean True if the currently playing file is a video, false otherwise
-     */
-    private boolean playingVideo() {
-    	String fileExtention = null;
-    	
-    	try {
-    	    if (this.mFileToPlay.length() > 4) {
-    		    fileExtention = this.mFileToPlay.substring(this.mFileToPlay.length() - 4, this.mFileToPlay.length());
-    	        if (fileExtention.equalsIgnoreCase(".3gp") || fileExtention.equalsIgnoreCase(".mp4")) {
-    	    	    return true;
-    	        }
-    	    }
-    	} catch (Exception ex) {
-    		ex.printStackTrace();
-    		return false;
-    	}
-    	
-    	return false;
-    }
     
     public void updateMetadata() {
     	Cursor cursor;
