@@ -1013,7 +1013,7 @@ public class MediaPlaybackActivity extends Activity implements MusicUtils.Defs,
         {
             long id = ((IdWrapper) msg.obj).id;
             
-            if (msg.what == GET_ALBUM_ART) {
+            if (msg.what == GET_ALBUM_ART && mId != id) {
             	Display display = getWindowManager().getDefaultDisplay();
             	int width = display.getWidth() - 20;
             	int height = display.getHeight() - 20;
