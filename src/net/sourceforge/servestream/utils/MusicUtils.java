@@ -53,19 +53,20 @@ import android.content.Context;
 import android.content.ContextWrapper;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.ColorFilter;
 import android.graphics.PixelFormat;
-import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Handler;
 import android.os.Message;
 import android.os.RemoteException;
+import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
@@ -383,18 +384,17 @@ public class MusicUtils {
         }
     }
     
-    public static Drawable getCachedArtwork(Context context, long artIndex, BitmapDrawable defaultArtwork) {
+    public static Drawable getCachedArtwork(Context context, long artIndex, boolean allowdefault) {
         Drawable d = null;
+        
+        float density = context.getResources().getDisplayMetrics().density;
+        int scale = Math.round((float) 56 * density);
+        
         synchronized(sArtCache) {
             d = sArtCache.get(artIndex);
         }
         if (d == null) {
-        	// TODO add the next line back to show default artwork
-            //d = defaultArtwork;
-            final Bitmap icon = BitmapFactory.decodeResource(context.getResources(), R.drawable.albumart_mp_unknown_list);
-            int w = icon.getWidth();
-            int h = icon.getHeight();
-            Bitmap b = MusicUtils.getArtworkQuick(context, artIndex, w, h);
+            Bitmap b = MusicUtils.getArtworkQuick(context, artIndex, scale, scale);
             if (b != null) {
                 d = new FastBitmapDrawable(b);
                 synchronized(sArtCache) {
@@ -408,6 +408,15 @@ public class MusicUtils {
                 }
             }
         }
+        
+        if (d == null && allowdefault) {
+        	Bitmap b = getDefaultArtworkQuick(context, scale, scale);
+        
+        	if (b != null) {
+        		d = new FastBitmapDrawable(b);
+        	}
+        }
+        
         return d;
     }
     
@@ -463,6 +472,44 @@ public class MusicUtils {
             return b;
         }
         return null;
+    }
+    
+    // Get album art for specified album. This method will not try to
+    // fall back to getting artwork directly from the file, nor will
+    // it attempt to repair the database.
+    private static Bitmap getDefaultArtworkQuick(Context context, int w, int h) {
+    	Bitmap b = null;
+        int sampleSize = 1;
+                
+        // Compute the closest power-of-two scale factor 
+        // and pass that to sBitmapOptionsCache.inSampleSize, which will
+        // result in faster decoding and better quality
+        sBitmapOptionsCache.inJustDecodeBounds = true;
+                
+        BitmapFactory.decodeResource(context.getResources(), R.drawable.albumart_mp_unknown_list, sBitmapOptionsCache);
+        int nextWidth = sBitmapOptionsCache.outWidth >> 1;
+        int nextHeight = sBitmapOptionsCache.outHeight >> 1;
+        while (nextWidth>w && nextHeight>h) {
+        	sampleSize <<= 1;
+            nextWidth >>= 1;
+            nextHeight >>= 1;
+        }
+
+        sBitmapOptionsCache.inSampleSize = sampleSize;
+        sBitmapOptionsCache.inJustDecodeBounds = false;
+        b = BitmapFactory.decodeResource(context.getResources(), R.drawable.albumart_mp_unknown_list, sBitmapOptionsCache);
+            
+        if (b != null) {
+        	// finally rescale to exactly the size we need
+            if (sBitmapOptionsCache.outWidth != w || sBitmapOptionsCache.outHeight != h) {
+            	Bitmap tmp = Bitmap.createScaledBitmap(b, w, h, true);
+                // Bitmap.createScaledBitmap() can return the same bitmap
+                if (tmp != b) b.recycle();
+                	b = tmp;
+            }
+        }
+                
+        return b;
     }
     
     public static Bitmap getLargeCachedArtwork(Context context, long artIndex, int w, int h) {
@@ -562,7 +609,7 @@ public class MusicUtils {
     }
     
     public static Bitmap getCachedBitmapArtwork(Context context, long artIndex) {
-        FastBitmapDrawable d = (FastBitmapDrawable) MusicUtils.getCachedArtwork(context, artIndex, null);
+        FastBitmapDrawable d = (FastBitmapDrawable) MusicUtils.getCachedArtwork(context, artIndex, false);
 
 		if (d != null) {
 			return d.getBitmap();
@@ -578,13 +625,26 @@ public class MusicUtils {
         }
         try {
             if (true && MusicUtils.sService != null && MusicUtils.sService.getAudioId() != -1) {
+            	Drawable d = null;
+            	
             	ImageView coverart = (ImageView) nowPlayingView.findViewById(R.id.coverart);
-    			coverart.setVisibility(View.GONE);
-                TextView title = (TextView) nowPlayingView.findViewById(R.id.title);
+            	
+            	SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(a);
+                if (preferences.getBoolean(PreferenceConstants.RETRIEVE_ALBUM_ART, false)) {
+                	d = MusicUtils.getCachedArtwork(a, sService.getAudioId(), true);
+                }
+            	
+            	if (d == null) {
+            		coverart.setVisibility(View.GONE);
+            	} else {
+            		coverart.setVisibility(View.VISIBLE);
+            		coverart.setImageDrawable(d);
+            	}
+                
+            	TextView title = (TextView) nowPlayingView.findViewById(R.id.title);
                 title.setSelected(true);
                 TextView artist = (TextView) nowPlayingView.findViewById(R.id.artist);
                 artist.setSelected(true);
-                final ImageView pauseButton = (ImageView) nowPlayingView.findViewById(R.id.play_pause_button);
         		
                 CharSequence trackName = sService.getTrackName();
             	CharSequence artistName = sService.getArtistName();                
@@ -601,6 +661,7 @@ public class MusicUtils {
                 
             	artist.setText(artistName);
             	
+                final ImageView pauseButton = (ImageView) nowPlayingView.findViewById(R.id.play_pause_button);
             	pauseButton.setVisibility(View.VISIBLE);
             	
             	if (sService.isPlaying()) {
