@@ -4,7 +4,7 @@ WORKING_DIR=`pwd`
 NDK=`grep ndk.dir local.properties | cut -d'=' -f2`
 
 if [ "$NDK" = "" ] || [ ! -d $NDK ]; then
-	echo "NDK variable not set or invalid, exiting..."
+	echo "NDK variable not set or path to NDK is invalid, exiting..."
 	exit 1
 fi
 
