@@ -1,10 +1,11 @@
 #!/bin/sh
 
 WORKING_DIR=`pwd`
+NDK=`grep ndk.dir local.properties | cut -d'=' -f2`
 
-if [ "$NDK" = "" ]; then
-	echo NDK variable not set, exiting...
-	exit
+if [ "$NDK" = "" ] || [ ! -d $NDK ]; then
+	echo "NDK variable not set or invalid, exiting..."
+	exit 1
 fi
 
 if [ ! -d ffmpeg ]; then
