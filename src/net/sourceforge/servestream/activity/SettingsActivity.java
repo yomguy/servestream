@@ -1,6 +1,6 @@
 /*
  * ServeStream: A HTTP stream browser/player for Android
- * Copyright 2010 William Seemann
+ * Copyright 2012 William Seemann
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,14 +23,19 @@ import android.os.Bundle;
 import android.preference.PreferenceActivity;
 import android.preference.PreferenceManager;
 import android.util.Log;
+import android.view.Window;
 
 public class SettingsActivity extends PreferenceActivity {
 	private static final String TAG = SettingsActivity.class.getName();
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
+        requestWindowFeature(Window.FEATURE_NO_TITLE);
 		super.onCreate(savedInstanceState);
 		try {
+			
+	        setContentView(R.layout.activity_settings);
+			
 			addPreferencesFromResource(R.xml.preferences);
 		} catch (ClassCastException e) {
 			Log.e(TAG, "Shared preferences are corrupt! Resetting to default values.");
