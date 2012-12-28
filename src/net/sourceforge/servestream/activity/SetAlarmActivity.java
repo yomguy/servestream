@@ -38,6 +38,7 @@ import android.preference.PreferenceScreen;
 import android.text.format.DateFormat;
 import android.util.Log;
 import android.view.View;
+import android.view.Window;
 import android.widget.Button;
 import android.widget.TimePicker;
 import android.widget.Toast;
@@ -70,15 +71,12 @@ public class SetAlarmActivity extends PreferenceActivity
      */
     @Override
     protected void onCreate(Bundle icicle) {
+        requestWindowFeature(Window.FEATURE_NO_TITLE);
         super.onCreate(icicle);
 
         // Override the default content view.
         setContentView(R.layout.activity_set_alarm);
 
-		this.setTitle(String.format("%s: %s",
-				getResources().getText(R.string.app_name),
-				getResources().getText(R.string.title_set_alarm)));
-        
         addPreferencesFromResource(R.xml.alarm_prefs);
 
         // Get each preference so we can retrieve the value later.
