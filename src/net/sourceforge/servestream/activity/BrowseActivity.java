@@ -27,6 +27,7 @@ import net.sourceforge.servestream.activity.MainActivity;
 import net.sourceforge.servestream.bean.UriBean;
 import net.sourceforge.servestream.dbutils.StreamDatabase;
 import net.sourceforge.servestream.filemanager.*;
+import net.sourceforge.servestream.service.MediaPlaybackService;
 import net.sourceforge.servestream.transport.TransportFactory;
 import net.sourceforge.servestream.utils.DetermineActionTask;
 import net.sourceforge.servestream.utils.MusicUtils;
@@ -36,10 +37,12 @@ import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.ListActivity;
 import android.app.ProgressDialog;
+import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.media.AudioManager;
 import android.net.Uri;
@@ -56,9 +59,10 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.Window;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
-import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -89,7 +93,7 @@ public class BrowseActivity extends ListActivity implements ServiceConnection,
     
 	private InputMethodManager mInputManager = null;
 	private StreamDatabase mStreamdb = null;
-	private Button mHomeButton = null;
+	private ImageButton mHomeButton = null;
 
     private ServiceToken mToken;
 	
@@ -112,11 +116,8 @@ public class BrowseActivity extends ListActivity implements ServiceConnection,
     public void onCreate(Bundle icicle) { 
     	super.onCreate(icicle); 
 
+        requestWindowFeature(Window.FEATURE_NO_TITLE);
         setContentView(R.layout.activity_browse);
-    	
-		this.setTitle(String.format("%s: %s",
-				getResources().getText(R.string.app_name),
-				getResources().getText(R.string.title_stream_browse)));  
     	
         setVolumeControlStream(AudioManager.STREAM_MUSIC);
 		
@@ -144,7 +145,7 @@ public class BrowseActivity extends ListActivity implements ServiceConnection,
 	    
 		mInputManager = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
 	    
-		mHomeButton = (Button) this.findViewById(R.id.home_button);
+		mHomeButton = (ImageButton) this.findViewById(R.id.home_button);
 		mHomeButton.setOnClickListener(new OnClickListener() {
 
 			public void onClick(View arg0) {
@@ -179,6 +180,24 @@ public class BrowseActivity extends ListActivity implements ServiceConnection,
 	}
     
 	@Override
+	public void onResume() {
+		super.onResume();
+		
+        IntentFilter f = new IntentFilter();
+        f.addAction(MediaPlaybackService.PLAYSTATE_CHANGED);
+        f.addAction(MediaPlaybackService.META_CHANGED);
+        f.addAction(MediaPlaybackService.QUEUE_CHANGED);
+        registerReceiver(mTrackListListener, f);
+	}
+	
+	@Override
+	public void onPause() {
+		super.onResume();
+		
+        unregisterReceiver(mTrackListListener);
+	}
+	
+	@Override
 	public void onStop() {
 		super.onStop();
 		
@@ -202,6 +221,13 @@ public class BrowseActivity extends ListActivity implements ServiceConnection,
     	 
     	mDirectoryScanner = null;
     }
+	
+    private BroadcastReceiver mTrackListListener = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            MusicUtils.updateNowPlaying(BrowseActivity.this);
+        }
+    };
 	
 	@Override
     public boolean onOptionsItemSelected(MenuItem item) {
@@ -464,7 +490,7 @@ public class BrowseActivity extends ListActivity implements ServiceConnection,
 	}
 	
 	public void onServiceConnected(ComponentName arg0, IBinder arg1) {
-		
+		MusicUtils.updateNowPlaying(this);
 	}
 
 	public void onServiceDisconnected(ComponentName arg0) {

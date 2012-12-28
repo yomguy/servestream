@@ -282,7 +282,7 @@
 	<string name="title_url_list">URLs</string>
 
 	<!-- Window title for Browsing Streams List -->
-	<string name="title_stream_browse">Parcourir les médias</string>
+	<string name="title_stream_browse">Parcourir les</string>
 
     <!-- Default name of artist that doesn't have a name in the metadata -->
     <string name="unknown_artist_name">Artiste inconnu</string>
