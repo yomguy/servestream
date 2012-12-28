@@ -73,7 +73,7 @@ public class SetAlarmActivity extends PreferenceActivity
         super.onCreate(icicle);
 
         // Override the default content view.
-        setContentView(R.layout.acc_set_alarm);
+        setContentView(R.layout.activity_set_alarm);
 
 		this.setTitle(String.format("%s: %s",
 				getResources().getText(R.string.app_name),
