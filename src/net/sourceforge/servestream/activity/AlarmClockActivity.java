@@ -215,7 +215,7 @@ public class AlarmClockActivity extends Activity implements OnItemClickListener 
     }
 
     private void updateLayout() {
-        setContentView(R.layout.acc_alarm_clock);
+        setContentView(R.layout.activity_alarm_clock);
         mAlarmsList = (ListView) findViewById(R.id.alarms_list);
         AlarmTimeAdapter adapter = new AlarmTimeAdapter(this, mCursor);
         mAlarmsList.setAdapter(adapter);
