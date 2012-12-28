@@ -44,7 +44,7 @@ public class HelpActivity extends Activity {
 	@Override
 	public void onCreate(Bundle icicle) {
 		super.onCreate(icicle);
-		setContentView(R.layout.act_help);
+		setContentView(R.layout.activity_help);
 
 		this.setTitle(String.format("%s: %s",
 				getResources().getText(R.string.app_name),
