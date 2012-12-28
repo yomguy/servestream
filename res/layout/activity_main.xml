@@ -33,7 +33,6 @@
         android:orientation="horizontal" >
 
         <ImageButton
-            android:id="@+id/close"
             android:layout_width="56dip"
             android:layout_height="fill_parent"
             android:padding="4dip"
