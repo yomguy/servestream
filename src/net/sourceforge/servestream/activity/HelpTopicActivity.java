@@ -34,7 +34,7 @@ public class HelpTopicActivity extends Activity {
 	@Override
 	public void onCreate(Bundle icicle) {
 		super.onCreate(icicle);
-		setContentView(R.layout.act_help_topic);
+		setContentView(R.layout.activity_help_topic);
 
 		String topic = getIntent().getStringExtra(Intent.EXTRA_TITLE);
 
