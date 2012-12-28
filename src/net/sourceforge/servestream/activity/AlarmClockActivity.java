@@ -31,6 +31,7 @@ import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.Window;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
@@ -203,10 +204,6 @@ public class AlarmClockActivity extends Activity implements OnItemClickListener 
     protected void onCreate(Bundle icicle) {
         super.onCreate(icicle);
         
-		this.setTitle(String.format("%s: %s",
-				getResources().getText(R.string.app_name),
-				getResources().getText(R.string.title_alarm_clock)));
-        
         mFactory = LayoutInflater.from(this);
         //mPrefs = getSharedPreferences(PREFERENCES, 0);
         mCursor = Alarms.getAlarmsCursor(getContentResolver());
@@ -215,6 +212,7 @@ public class AlarmClockActivity extends Activity implements OnItemClickListener 
     }
 
     private void updateLayout() {
+        requestWindowFeature(Window.FEATURE_NO_TITLE);
         setContentView(R.layout.activity_alarm_clock);
         mAlarmsList = (ListView) findViewById(R.id.alarms_list);
         AlarmTimeAdapter adapter = new AlarmTimeAdapter(this, mCursor);
