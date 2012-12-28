@@ -112,7 +112,7 @@ public class BrowseActivity extends ListActivity implements ServiceConnection,
     public void onCreate(Bundle icicle) { 
     	super.onCreate(icicle); 
 
-        setContentView(R.layout.browse_activity);
+        setContentView(R.layout.activity_browse);
     	
 		this.setTitle(String.format("%s: %s",
 				getResources().getText(R.string.app_name),
