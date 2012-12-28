@@ -24,9 +24,55 @@
     android:orientation="vertical"
     >
 
+    <LinearLayout
+        android:id="@+id/player_actionbar"
+        android:layout_width="fill_parent"
+        android:layout_height="48dip"
+        android:gravity="center_vertical"
+        android:orientation="horizontal" >
+
+        <ImageButton
+            android:layout_width="56dip"
+            android:layout_height="fill_parent"
+            android:padding="4dip"
+            android:scaleType="centerInside"
+            android:background="@drawable/bg_actionbar_item"
+            android:src="@drawable/icon" />
+
+        <View
+            android:layout_width="1dip"
+            android:layout_height="26dip"
+            android:background="#ff444444" />
+
+        <TextView
+            android:id="@+id/actionbar_title"
+            android:layout_width="0dip"
+            android:layout_height="fill_parent"
+            android:layout_weight="1"
+        	android:textSize="18sp"
+        	android:textColor="#ffffffff"
+       		android:ellipsize="marquee"
+        	android:gravity="center_vertical"
+        	android:paddingLeft="6dip"
+        	android:paddingRight="6dip"
+        	android:singleLine="true"
+            android:layout_marginLeft="8dip"
+            android:text="@string/title_stream_browse" />
+        
+        <ImageButton
+            android:id="@+id/home_button"
+            android:layout_width="56dip"
+            android:layout_height="fill_parent"
+            android:padding="4dip"
+            android:scaleType="centerInside"
+            android:background="@drawable/bg_actionbar_item"
+            android:src="@drawable/icn_home" />
+        
+    </LinearLayout>
+    
     <ListView android:id="@android:id/list"
         android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="0dip"
         android:layout_weight="1"
         android:drawSelectorOnTop="false"/>
 
@@ -45,38 +91,6 @@
         	
     </LinearLayout>
 
-    <RelativeLayout
-    	android:id="@+id/home_tab"
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:paddingTop="2dip"
-		android:paddingBottom="2dip"
-        >
-		
-		<View android:id="@+id/divider"
-    	  	  android:layout_width="fill_parent"
-    	  	  android:layout_height="1dip"
-    	  	  android:layout_alignParentTop="true"
-    	  	  android:background="@drawable/appwidget_divider"
-    	  	  />
-		
-		<Button android:id="@+id/home_button"
-				android:layout_width="32dip"
-				android:layout_height="32dip"
-				android:layout_centerInParent="true"
-				android:layout_below="@+id/divider"
-				android:background="@drawable/ic_tab_home"
-				/>
-				
-		<TextView
-                  android:layout_width="wrap_content" 
-                  android:layout_height="wrap_content"
-                  android:textAppearance="?android:attr/textAppearanceSmall"
-                  android:text="Home"
-		          android:layout_centerInParent="true"
-		       	  android:layout_below="@+id/home_button"
-           		  />
-
-	</RelativeLayout>
-
+	<include layout="@layout/nowplaying" />
+	
 </LinearLayout>
