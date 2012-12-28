@@ -2,7 +2,7 @@
 <!--
 /*
  * ServeStream: A HTTP stream browser/player for Android
- * Copyright 2010 William Seemann
+ * Copyright 2012 William Seemann
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +24,42 @@
 	android:layout_height="fill_parent"
 	>
 
+    <LinearLayout
+        android:id="@+id/player_actionbar"
+        android:layout_width="fill_parent"
+        android:layout_height="48dip"
+        android:gravity="center_vertical"
+        android:orientation="horizontal" >
+
+        <ImageButton
+            android:layout_width="56dip"
+            android:layout_height="fill_parent"
+            android:padding="4dip"
+            android:scaleType="centerInside"
+            android:background="@drawable/bg_actionbar_item"
+            android:src="@drawable/icon" />
+
+        <View
+            android:layout_width="1dip"
+            android:layout_height="26dip"
+            android:background="#ff444444" />
+
+        <TextView
+            android:id="@+id/actionbar_title"
+            android:layout_width="0dip"
+            android:layout_height="fill_parent"
+            android:layout_weight="1"
+        	android:textSize="18sp"
+        	android:textColor="#ffffffff"
+       		android:ellipsize="marquee"
+        	android:gravity="center_vertical"
+        	android:paddingLeft="6dip"
+        	android:paddingRight="6dip"
+        	android:singleLine="true"
+            android:layout_marginLeft="8dip" />
+        
+    </LinearLayout>
+    
 	<net.sourceforge.servestream.utils.HelpTopicView
 		android:id="@+id/topic_text"
 		android:layout_width="fill_parent"
