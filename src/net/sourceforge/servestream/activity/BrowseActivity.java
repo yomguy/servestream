@@ -23,7 +23,7 @@ import java.util.List;
 
 import net.sourceforge.servestream.R;
 import net.sourceforge.servestream.activity.SettingsActivity;
-import net.sourceforge.servestream.activity.URLListActivity;
+import net.sourceforge.servestream.activity.MainActivity;
 import net.sourceforge.servestream.bean.UriBean;
 import net.sourceforge.servestream.dbutils.StreamDatabase;
 import net.sourceforge.servestream.filemanager.*;
@@ -148,7 +148,7 @@ public class BrowseActivity extends ListActivity implements ServiceConnection,
 		mHomeButton.setOnClickListener(new OnClickListener() {
 
 			public void onClick(View arg0) {
-                Intent intent = new Intent(BrowseActivity.this, URLListActivity.class);
+                Intent intent = new Intent(BrowseActivity.this, MainActivity.class);
 		        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
 				BrowseActivity.this.startActivity(intent);
 				finish();

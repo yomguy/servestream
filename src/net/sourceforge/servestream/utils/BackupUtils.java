@@ -34,7 +34,7 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 
 import net.sourceforge.servestream.R;
-import net.sourceforge.servestream.activity.URLListActivity;
+import net.sourceforge.servestream.activity.MainActivity;
 import net.sourceforge.servestream.bean.UriBean;
 import net.sourceforge.servestream.dbutils.StreamDatabase;
 import net.sourceforge.servestream.transport.TransportFactory;
@@ -90,7 +90,7 @@ public class BackupUtils {
     					backup(context, BACKUP_FILE);
     				} else if (item == RESTORE_OPERATION) {
     					restore(context, BACKUP_FILE);
-    					((URLListActivity) context).updateList();
+    					((MainActivity) context).updateList();
     				}
     			}
     		});
