@@ -1,6 +1,6 @@
 /*
  * ServeStream: A HTTP stream browser/player for Android
- * Copyright 2010 William Seemann
+ * Copyright 2012 William Seemann
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,28 +23,25 @@ import net.sourceforge.servestream.utils.HelpTopicView;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
+import android.view.Window;
+import android.widget.TextView;
 
-/**
- * @author Kenny Root
- *
- */
 public class HelpTopicActivity extends Activity {
 	public final static String TAG = HelpActivity.class.getName();
 
 	@Override
 	public void onCreate(Bundle icicle) {
 		super.onCreate(icicle);
+		
+		requestWindowFeature(Window.FEATURE_NO_TITLE);
 		setContentView(R.layout.activity_help_topic);
 
 		String topic = getIntent().getStringExtra(Intent.EXTRA_TITLE);
 
-		this.setTitle(String.format("%s: %s - %s",
-				getResources().getText(R.string.app_name),
-				getResources().getText(R.string.title_help),
-				topic));
+		TextView title = (TextView) this.findViewById(R.id.actionbar_title);
+		title.setText(topic);
 
 		HelpTopicView helpTopic = (HelpTopicView) findViewById(R.id.topic_text);
-
 		helpTopic.setTopic(topic);
 	}
 }
