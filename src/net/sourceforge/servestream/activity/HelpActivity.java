@@ -1,6 +1,6 @@
 /*
  * ServeStream: A HTTP stream browser/player for Android
- * Copyright 2010 William Seemann
+ * Copyright 2012 William Seemann
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,14 +27,11 @@ import android.content.res.AssetManager;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.view.Window;
 import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.LinearLayout;
 
-/**
- * @author Kenny Root
- *
- */
 public class HelpActivity extends Activity {
 	public final static String TAG = HelpActivity.class.getName();
 
@@ -44,11 +41,9 @@ public class HelpActivity extends Activity {
 	@Override
 	public void onCreate(Bundle icicle) {
 		super.onCreate(icicle);
+		
+        requestWindowFeature(Window.FEATURE_NO_TITLE);
 		setContentView(R.layout.activity_help);
-
-		this.setTitle(String.format("%s: %s",
-				getResources().getText(R.string.app_name),
-				getResources().getText(R.string.title_help)));
 
 		AssetManager am = this.getAssets();
 		LinearLayout content = (LinearLayout)this.findViewById(R.id.topics);
