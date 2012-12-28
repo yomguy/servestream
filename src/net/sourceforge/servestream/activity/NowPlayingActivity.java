@@ -95,12 +95,8 @@ public class NowPlayingActivity extends ListActivity implements View.OnCreateCon
         super.onCreate(icicle);
         
         requestWindowFeature(Window.FEATURE_NO_TITLE);
-        setContentView(R.layout.now_playing_activity);
+        setContentView(R.layout.activity_now_playing);
         
-		this.setTitle(String.format("%s: %s",
-				getResources().getText(R.string.app_name),
-				getResources().getText(R.string.title_now_playing))); 
-
         setVolumeControlStream(AudioManager.STREAM_MUSIC);
 		
         mCloseButton = (ImageButton) findViewById(R.id.close);
