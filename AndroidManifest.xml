@@ -87,7 +87,20 @@
 				<data android:scheme="http" />
 				<data android:host="*" />
 				<data android:mimeType="audio/*" />
-				<data android:mimeType="video/*"/>
+				<data android:mimeType="video/*" />
+				<data android:mimeType="audio/x-mpegurl" />
+        		<data android:mimeType="audio/x-scpls" />
+        		<data android:mimeType="video/x-ms-asf" />
+			</intent-filter>
+			<intent-filter>
+				<action android:name="android.intent.action.VIEW" />
+				<category android:name="android.intent.category.BROWSABLE" />
+				<category android:name="android.intent.category.DEFAULT" />
+				<data android:scheme="http" />
+				<data android:host="*" />
+				<data android:pathPattern=".*\\.m3u" />
+				<data android:pathPattern=".*\\.pls" />
+				<data android:pathPattern=".*\\.asx" />
 			</intent-filter>
 			<intent-filter>
         		<action android:name="android.intent.action.VIEW" />
@@ -96,7 +109,7 @@
         		<data android:mimeType="audio/x-mpegurl" />
         		<data android:mimeType="audio/x-scpls" />
         		<data android:mimeType="video/x-ms-asf" />
-    		</intent-filter>			
+    		</intent-filter>
 		</activity>
 
 		<activity android:name=".activity.BrowseActivity" android:configChanges="keyboardHidden|orientation" />
