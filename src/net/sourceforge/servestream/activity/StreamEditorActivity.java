@@ -37,6 +37,7 @@ import android.preference.CheckBoxPreference;
 import android.preference.ListPreference;
 import android.preference.Preference;
 import android.preference.PreferenceActivity;
+import android.view.Window;
 
 public class StreamEditorActivity extends PreferenceActivity implements OnSharedPreferenceChangeListener {
 	public class CursorPreferenceHack implements SharedPreferences {
@@ -218,8 +219,11 @@ public class StreamEditorActivity extends PreferenceActivity implements OnShared
 
 	@Override
 	public void onCreate(Bundle icicle) {
+        requestWindowFeature(Window.FEATURE_NO_TITLE);
 		super.onCreate(icicle);
 
+		setContentView(R.layout.activity_stream_editor);
+		
 		long streamId = this.getIntent().getLongExtra(Intent.EXTRA_TITLE, -1);
 
 		this.m_streamdb = new StreamDatabase(this);
