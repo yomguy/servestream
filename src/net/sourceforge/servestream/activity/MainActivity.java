@@ -68,6 +68,7 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.Window;
 import android.view.View.OnKeyListener;
 import android.view.ViewGroup;
 import android.view.MenuItem.OnMenuItemClickListener;
@@ -84,10 +85,10 @@ import android.widget.AdapterView.OnItemClickListener;
 
 import net.sourceforge.servestream.utils.DetermineActionTask;
 
-public class URLListActivity extends ListActivity implements ServiceConnection,
+public class MainActivity extends ListActivity implements ServiceConnection,
 				DetermineActionTask.MusicRetrieverPreparedListener {
 	
-	public final static String TAG = URLListActivity.class.getName();	
+	public final static String TAG = MainActivity.class.getName();	
 	
  	private static final int MESSAGE_UPDATE_LIST = 1;
 
@@ -121,14 +122,14 @@ public class URLListActivity extends ListActivity implements ServiceConnection,
 	protected Handler mHandler = new Handler() {
 		@Override
 		public void handleMessage(Message msg) {
-			URLListActivity.this.handleMessage(msg);
+			MainActivity.this.handleMessage(msg);
 		}
 	};
 	
 	protected Handler mQueueHandler = new Handler() {
 		@Override
 		public void handleMessage(Message msg) {
-			MusicUtils.addToCurrentPlaylist(URLListActivity.this, (long []) msg.obj);
+			MusicUtils.addToCurrentPlaylist(MainActivity.this, (long []) msg.obj);
 		}
 	};
 	
@@ -136,12 +137,9 @@ public class URLListActivity extends ListActivity implements ServiceConnection,
 	public void onCreate(Bundle icicle) {
 		super.onCreate(icicle);
 		
-		setContentView(R.layout.act_urllist);
+        requestWindowFeature(Window.FEATURE_NO_TITLE);
+		setContentView(R.layout.activity_main);
 
-		this.setTitle(String.format("%s: %s",
-				getResources().getText(R.string.app_name),
-				getResources().getText(R.string.title_url_list)));
-		
 		setVolumeControlStream(AudioManager.STREAM_MUSIC);
 		
         mToken = MusicUtils.bindToService(this, this);		
@@ -206,7 +204,7 @@ public class URLListActivity extends ListActivity implements ServiceConnection,
 					contents.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
 					
 					// create shortcut if requested
-					ShortcutIconResource icon = Intent.ShortcutIconResource.fromContext(URLListActivity.this, R.drawable.icon);
+					ShortcutIconResource icon = Intent.ShortcutIconResource.fromContext(MainActivity.this, R.drawable.icon);
 
 					Intent intent = new Intent();
 					intent.putExtra(Intent.EXTRA_SHORTCUT_INTENT, contents);
@@ -346,7 +344,7 @@ public class URLListActivity extends ListActivity implements ServiceConnection,
     private BroadcastReceiver mTrackListListener = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
-            MusicUtils.updateNowPlaying(URLListActivity.this);
+            MusicUtils.updateNowPlaying(MainActivity.this);
         }
     };
     
@@ -390,10 +388,10 @@ public class URLListActivity extends ListActivity implements ServiceConnection,
 				updateList();
     			break;
         	case (R.id.menu_item_settings):
-        		startActivity(new Intent(URLListActivity.this, SettingsActivity.class));
+        		startActivity(new Intent(MainActivity.this, SettingsActivity.class));
         		break;
         	case (R.id.menu_item_help):
-        		startActivity(new Intent(URLListActivity.this, HelpActivity.class));
+        		startActivity(new Intent(MainActivity.this, HelpActivity.class));
         		break;
             case (R.id.menu_item_alarms):
                 startActivity(new Intent(this, AlarmClockActivity.class));
@@ -433,7 +431,7 @@ public class URLListActivity extends ListActivity implements ServiceConnection,
     	AlertDialog alertDialog;
 	    switch(id) {
 	    case DETERMINE_INTENT_TASK:
-	    	progressDialog = new ProgressDialog(URLListActivity.this);
+	    	progressDialog = new ProgressDialog(MainActivity.this);
 	    	progressDialog.setMessage(getString(R.string.opening_url_message));
 	    	progressDialog.setOnCancelListener(new OnCancelListener() {
 
@@ -566,9 +564,9 @@ public class URLListActivity extends ListActivity implements ServiceConnection,
 		MenuItem edit = menu.add(R.string.edit);
 		edit.setOnMenuItemClickListener(new OnMenuItemClickListener() {
 			public boolean onMenuItemClick(MenuItem arg0) {
-				Intent intent = new Intent(URLListActivity.this, StreamEditorActivity.class);
+				Intent intent = new Intent(MainActivity.this, StreamEditorActivity.class);
 				intent.putExtra(Intent.EXTRA_TITLE, uri.getId());
-				URLListActivity.this.startActivity(intent);
+				MainActivity.this.startActivity(intent);
 				return true;
 			}
 		});
@@ -578,7 +576,7 @@ public class URLListActivity extends ListActivity implements ServiceConnection,
 		delete.setOnMenuItemClickListener(new OnMenuItemClickListener() {
 			public boolean onMenuItemClick(MenuItem item) {
 				// prompt user to make sure they really want this
-				new AlertDialog.Builder(URLListActivity.this)
+				new AlertDialog.Builder(MainActivity.this)
 					.setMessage(getString(R.string.delete_message, uri.getNickname()))
 					.setPositiveButton(R.string.delete_pos, new DialogInterface.OnClickListener() {
 						public void onClick(DialogInterface dialog, int which) {
@@ -599,7 +597,7 @@ public class URLListActivity extends ListActivity implements ServiceConnection,
 		MenuItem add = menu.add(R.string.add_to_playlist);
 		add.setOnMenuItemClickListener(new OnMenuItemClickListener() {
 			public boolean onMenuItemClick(MenuItem item) {
-				MusicUtils.addToCurrentPlaylistFromURL(URLListActivity.this, uri, mQueueHandler);
+				MusicUtils.addToCurrentPlaylistFromURL(MainActivity.this, uri, mQueueHandler);
 				return true;
 			}
 		});
@@ -789,16 +787,16 @@ public class URLListActivity extends ListActivity implements ServiceConnection,
 				mStreamdb.touchUri(uri);
 			}
 			
-			Intent intent = new Intent(URLListActivity.this, BrowseActivity.class);
+			Intent intent = new Intent(MainActivity.this, BrowseActivity.class);
 			intent.setData(uri.getScrubbedUri());
 			
-			URLListActivity.this.startActivity(intent);			
+			MainActivity.this.startActivity(intent);			
 		} else if (action.equals(DetermineActionTask.URL_ACTION_PLAY)) {
 			if (mPreferences.getBoolean(PreferenceConstants.AUTOSAVE, true)) {
 				mStreamdb.touchUri(uri);
 			}
 			
-			MusicUtils.playAll(URLListActivity.this, list, 0);        
+			MusicUtils.playAll(MainActivity.this, list, 0);        
 		}
 	}
 }
