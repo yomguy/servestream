@@ -196,9 +196,9 @@
 	<string name="pref_retrieveshoutcastmetadata_summary">"Lire et afficher les métadonnées pour les média SHOUTcast (expérimental)"</string>
 
 	<!-- Name for the send scrobbler info preference -->
-	<string name="pref_sendscrobblerinfo_title">"Scrobbler les média"</string>
+	<string name="pref_sendscrobblerinfo_title">"Last.fm Scrobbling"</string>
 	<!-- Summary for the send scrobbler info preference -->
-	<string name="pref_sendscrobblerinfo_summary">"Activer le support avec Last.fm. \"Simple LastFM Scrobbler\" doit être installé."</string>
+	<string name="pref_sendscrobblerinfo_summary">"Activer Last.fm Scrobbling. \"Simple LastFM Scrobbler\" ou \"Scrobble Droid\" doit être installé."</string>
 		
 	<!-- Name for the update check preference -->
 	<!-- Summary for the update check preference -->
