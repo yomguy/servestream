@@ -549,8 +549,6 @@ public class MusicUtils {
             }
         }
         
-        System.out.println("============> " + b.getHeight());
-        
         return b;
     }
     
