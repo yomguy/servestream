@@ -40,6 +40,12 @@ if [ ! -d ffmpeg ]; then
     chmod +x $FFMPEG_BUILD_DIR/mips-build.sh
 fi
 
+# Make the target JNI folder if it doesn't exist
+if [ ! -d $WORKING_DIR/jni/ffmpeg/ffmpeg ] && ! mkdir -p $WORKING_DIR/jni/ffmpeg/ffmpeg; then
+    echo "Error, could not make $WORKING_DIR/jni/ffmpeg/ffmpeg, exiting..."
+    exit 1
+fi
+
 if [ ! -d $TARGET_ARMEABI_DIR ] || [ ! -d $TARGET_ARMEABIV7A_DIR ]; then
     # Build FFmpeg from ARM architecture and copy to the JNI folder
     cd $FFMPEG_BUILD_DIR
@@ -51,7 +57,7 @@ if [ ! -d $TARGET_ARMEABI_DIR ] || [ ! -d $TARGET_ARMEABIV7A_DIR ]; then
     cp -r $SO_DIR/armeabi-v7a $TARGET_ARMEABIV7A_DIR
 fi
 
-if [ ! -d ../jni/ffmpeg/ffmpeg/x86 ]; then
+if [ ! -d $TARGET_X86_DIR ]; then
     # Build FFmpeg from x86 architecture and copy to the JNI folder
     cd $FFMPEG_BUILD_DIR
     ./x86-build.sh
@@ -60,7 +66,7 @@ if [ ! -d ../jni/ffmpeg/ffmpeg/x86 ]; then
     cp -r $SO_DIR/x86 $TARGET_X86_DIR
 fi
 
-if [ ! -d ../jni/ffmpeg/ffmpeg/mips ]; then
+if [ ! -d $TARGET_MIPS_DIR ]; then
     # Build FFmpeg from MIPS architecture and copy to the JNI folder
     cd $FFMPEG_BUILD_DIR
     ./mips-build.sh
