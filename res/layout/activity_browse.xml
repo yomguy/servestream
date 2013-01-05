@@ -24,52 +24,6 @@
     android:orientation="vertical"
     >
 
-    <LinearLayout
-        android:id="@+id/player_actionbar"
-        android:layout_width="fill_parent"
-        android:layout_height="48dip"
-        android:gravity="center_vertical"
-        android:orientation="horizontal" >
-
-        <ImageButton
-            android:layout_width="56dip"
-            android:layout_height="fill_parent"
-            android:padding="4dip"
-            android:scaleType="centerInside"
-            android:background="@drawable/bg_actionbar_item"
-            android:src="@drawable/icon" />
-
-        <View
-            android:layout_width="1dip"
-            android:layout_height="26dip"
-            android:background="#ff444444" />
-
-        <TextView
-            android:id="@+id/actionbar_title"
-            android:layout_width="0dip"
-            android:layout_height="fill_parent"
-            android:layout_weight="1"
-        	android:textSize="18sp"
-        	android:textColor="#ffffffff"
-       		android:ellipsize="marquee"
-        	android:gravity="center_vertical"
-        	android:paddingLeft="6dip"
-        	android:paddingRight="6dip"
-        	android:singleLine="true"
-            android:layout_marginLeft="8dip"
-            android:text="@string/title_stream_browse" />
-        
-        <ImageButton
-            android:id="@+id/home_button"
-            android:layout_width="56dip"
-            android:layout_height="fill_parent"
-            android:padding="4dip"
-            android:scaleType="centerInside"
-            android:background="@drawable/bg_actionbar_item"
-            android:src="@drawable/icn_home" />
-        
-    </LinearLayout>
-    
     <ListView android:id="@android:id/list"
         android:layout_width="fill_parent"
         android:layout_height="0dip"

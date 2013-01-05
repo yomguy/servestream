@@ -19,20 +19,21 @@ package net.sourceforge.servestream.activity;
 
 import java.io.IOException;
 
+import com.actionbarsherlock.app.ActionBar;
+import com.actionbarsherlock.app.SherlockActivity;
+
 import net.sourceforge.servestream.R;
 
-import android.app.Activity;
 import android.content.Intent;
 import android.content.res.AssetManager;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
-import android.view.Window;
 import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.LinearLayout;
 
-public class HelpActivity extends Activity {
+public class HelpActivity extends SherlockActivity {
 	public final static String TAG = HelpActivity.class.getName();
 
 	public final static String HELPDIR = "help";
@@ -42,9 +43,11 @@ public class HelpActivity extends Activity {
 	public void onCreate(Bundle icicle) {
 		super.onCreate(icicle);
 		
-        requestWindowFeature(Window.FEATURE_NO_TITLE);
 		setContentView(R.layout.activity_help);
 
+		ActionBar actionBar = getSupportActionBar();
+		actionBar.setTitle(R.string.title_help);
+		
 		AssetManager am = this.getAssets();
 		LinearLayout content = (LinearLayout)this.findViewById(R.id.topics);
 

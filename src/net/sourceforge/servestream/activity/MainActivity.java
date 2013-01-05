@@ -22,6 +22,12 @@ import java.net.URLDecoder;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.actionbarsherlock.app.ActionBar;
+import com.actionbarsherlock.app.SherlockListActivity;
+import com.actionbarsherlock.view.Menu;
+import com.actionbarsherlock.view.MenuInflater;
+import com.actionbarsherlock.view.MenuItem;
+
 import net.sourceforge.servestream.service.MediaPlaybackService;
 import net.sourceforge.servestream.transport.AbsTransport;
 import net.sourceforge.servestream.transport.TransportFactory;
@@ -36,7 +42,6 @@ import net.sourceforge.servestream.utils.PreferenceConstants;
 
 import android.app.AlertDialog;
 import android.app.Dialog;
-import android.app.ListActivity;
 import android.app.ProgressDialog;
 import android.content.ActivityNotFoundException;
 import android.content.BroadcastReceiver;
@@ -64,11 +69,7 @@ import android.util.Log;
 import android.view.ContextMenu;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
-import android.view.Menu;
-import android.view.MenuInflater;
-import android.view.MenuItem;
 import android.view.View;
-import android.view.Window;
 import android.view.View.OnKeyListener;
 import android.view.ViewGroup;
 import android.view.MenuItem.OnMenuItemClickListener;
@@ -85,7 +86,7 @@ import android.widget.AdapterView.OnItemClickListener;
 
 import net.sourceforge.servestream.utils.DetermineActionTask;
 
-public class MainActivity extends ListActivity implements ServiceConnection,
+public class MainActivity extends SherlockListActivity implements ServiceConnection,
 				DetermineActionTask.MusicRetrieverPreparedListener {
 	
 	public final static String TAG = MainActivity.class.getName();	
@@ -137,9 +138,11 @@ public class MainActivity extends ListActivity implements ServiceConnection,
 	public void onCreate(Bundle icicle) {
 		super.onCreate(icicle);
 		
-        requestWindowFeature(Window.FEATURE_NO_TITLE);
-		setContentView(R.layout.activity_main);
-
+		setContentView(R.layout.activity_main);		
+		
+		ActionBar actionBar = getSupportActionBar();
+		actionBar.setTitle(R.string.title_url_list);
+		
 		setVolumeControlStream(AudioManager.STREAM_MUSIC);
 		
         mToken = MusicUtils.bindToService(this, this);		
@@ -541,7 +544,7 @@ public class MainActivity extends ListActivity implements ServiceConnection,
 			return true;
 		}
     	
-        MenuInflater inflater = getMenuInflater();
+        MenuInflater inflater = getSupportMenuInflater();
         inflater.inflate(R.menu.url_list_menu, menu);
         return true;
     }
@@ -561,9 +564,9 @@ public class MainActivity extends ListActivity implements ServiceConnection,
 		menu.setHeaderTitle(uri.getNickname());
 
 		// edit the URL
-		MenuItem edit = menu.add(R.string.edit);
+		android.view.MenuItem edit = menu.add(R.string.edit);
 		edit.setOnMenuItemClickListener(new OnMenuItemClickListener() {
-			public boolean onMenuItemClick(MenuItem arg0) {
+			public boolean onMenuItemClick(android.view.MenuItem arg0) {
 				Intent intent = new Intent(MainActivity.this, StreamEditorActivity.class);
 				intent.putExtra(Intent.EXTRA_TITLE, uri.getId());
 				MainActivity.this.startActivity(intent);
@@ -572,9 +575,9 @@ public class MainActivity extends ListActivity implements ServiceConnection,
 		});
 		
 		// delete the URL
-		MenuItem delete = menu.add(R.string.delete);
+		android.view.MenuItem delete = menu.add(R.string.delete);
 		delete.setOnMenuItemClickListener(new OnMenuItemClickListener() {
-			public boolean onMenuItemClick(MenuItem item) {
+			public boolean onMenuItemClick(android.view.MenuItem item) {
 				// prompt user to make sure they really want this
 				new AlertDialog.Builder(MainActivity.this)
 					.setMessage(getString(R.string.delete_message, uri.getNickname()))
@@ -594,18 +597,18 @@ public class MainActivity extends ListActivity implements ServiceConnection,
 		});
 		
 		// add to playlist
-		MenuItem add = menu.add(R.string.add_to_playlist);
+		android.view.MenuItem add = menu.add(R.string.add_to_playlist);
 		add.setOnMenuItemClickListener(new OnMenuItemClickListener() {
-			public boolean onMenuItemClick(MenuItem item) {
+			public boolean onMenuItemClick(android.view.MenuItem item) {
 				MusicUtils.addToCurrentPlaylistFromURL(MainActivity.this, uri, mQueueHandler);
 				return true;
 			}
 		});
 		
 		// share the URL
-		MenuItem share = menu.add(R.string.share);
+		android.view.MenuItem share = menu.add(R.string.share);
 		share.setOnMenuItemClickListener(new OnMenuItemClickListener() {
-			public boolean onMenuItemClick(MenuItem item) {
+			public boolean onMenuItemClick(android.view.MenuItem item) {
 				String url = uri.getUri().toString();
 				String appName = getString(R.string.app_name);
 				

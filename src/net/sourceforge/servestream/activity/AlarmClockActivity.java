@@ -17,7 +17,6 @@
 
 package net.sourceforge.servestream.activity;
 
-import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -28,10 +27,7 @@ import android.os.Bundle;
 import android.view.ContextMenu;
 import android.view.ContextMenu.ContextMenuInfo;
 import android.view.LayoutInflater;
-import android.view.Menu;
-import android.view.MenuItem;
 import android.view.View;
-import android.view.Window;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
@@ -45,6 +41,11 @@ import android.widget.TextView;
 
 import java.util.Calendar;
 
+import com.actionbarsherlock.app.ActionBar;
+import com.actionbarsherlock.app.SherlockActivity;
+import com.actionbarsherlock.view.Menu;
+import com.actionbarsherlock.view.MenuItem;
+
 import net.sourceforge.servestream.R;
 import net.sourceforge.servestream.alarm.Alarm;
 import net.sourceforge.servestream.alarm.Alarms;
@@ -54,7 +55,7 @@ import net.sourceforge.servestream.alarm.ToastMaster;
 /**
  * AlarmClock application.
  */
-public class AlarmClockActivity extends Activity implements OnItemClickListener {
+public class AlarmClockActivity extends SherlockActivity implements OnItemClickListener {
 
     public static final String PREFERENCES = "AlarmClock";
 
@@ -152,7 +153,7 @@ public class AlarmClockActivity extends Activity implements OnItemClickListener 
     };
 
     @Override
-    public boolean onContextItemSelected(final MenuItem item) {
+    public boolean onContextItemSelected(final android.view.MenuItem item) {
         final AdapterContextMenuInfo info =
                 (AdapterContextMenuInfo) item.getMenuInfo();
         final int id = (int) info.id;
@@ -212,8 +213,11 @@ public class AlarmClockActivity extends Activity implements OnItemClickListener 
     }
 
     private void updateLayout() {
-        requestWindowFeature(Window.FEATURE_NO_TITLE);
         setContentView(R.layout.activity_alarm_clock);
+        
+		ActionBar actionBar = getSupportActionBar();
+		actionBar.setTitle(R.string.title_alarm_clock);
+        
         mAlarmsList = (ListView) findViewById(R.id.alarms_list);
         AlarmTimeAdapter adapter = new AlarmTimeAdapter(this, mCursor);
         mAlarmsList.setAdapter(adapter);
@@ -293,7 +297,7 @@ public class AlarmClockActivity extends Activity implements OnItemClickListener 
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.alarm_list_menu, menu);
+        getSupportMenuInflater().inflate(R.menu.alarm_list_menu, menu);
         return super.onCreateOptionsMenu(menu);
     }
 

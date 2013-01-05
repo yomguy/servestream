@@ -17,29 +17,29 @@
 
 package net.sourceforge.servestream.activity;
 
+import com.actionbarsherlock.app.ActionBar;
+import com.actionbarsherlock.app.SherlockActivity;
+
 import net.sourceforge.servestream.R;
 import net.sourceforge.servestream.utils.HelpTopicView;
 
-import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
-import android.view.Window;
-import android.widget.TextView;
 
-public class HelpTopicActivity extends Activity {
+public class HelpTopicActivity extends SherlockActivity {
 	public final static String TAG = HelpActivity.class.getName();
 
 	@Override
 	public void onCreate(Bundle icicle) {
 		super.onCreate(icicle);
 		
-		requestWindowFeature(Window.FEATURE_NO_TITLE);
 		setContentView(R.layout.activity_help_topic);
 
+		ActionBar actionBar = getSupportActionBar();
+		
 		String topic = getIntent().getStringExtra(Intent.EXTRA_TITLE);
 
-		TextView title = (TextView) this.findViewById(R.id.actionbar_title);
-		title.setText(topic);
+		actionBar.setTitle(topic);
 
 		HelpTopicView helpTopic = (HelpTopicView) findViewById(R.id.topic_text);
 		helpTopic.setTopic(topic);

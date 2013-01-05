@@ -21,9 +21,14 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
+import com.actionbarsherlock.app.ActionBar;
+import com.actionbarsherlock.app.SherlockListActivity;
+import com.actionbarsherlock.view.Menu;
+import com.actionbarsherlock.view.MenuInflater;
+import com.actionbarsherlock.view.MenuItem;
+
 import net.sourceforge.servestream.R;
 import net.sourceforge.servestream.activity.SettingsActivity;
-import net.sourceforge.servestream.activity.MainActivity;
 import net.sourceforge.servestream.bean.UriBean;
 import net.sourceforge.servestream.dbutils.StreamDatabase;
 import net.sourceforge.servestream.filemanager.*;
@@ -35,7 +40,6 @@ import net.sourceforge.servestream.utils.MusicUtils.ServiceToken;
 
 import android.app.AlertDialog;
 import android.app.Dialog;
-import android.app.ListActivity;
 import android.app.ProgressDialog;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
@@ -53,21 +57,15 @@ import android.os.Message;
 import android.util.Log;
 import android.view.ContextMenu;
 import android.view.MenuItem.OnMenuItemClickListener;
-import android.view.View.OnClickListener;
 import android.view.KeyEvent;
-import android.view.Menu;
-import android.view.MenuInflater;
-import android.view.MenuItem;
 import android.view.View;
-import android.view.Window;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
-import android.widget.ImageButton;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-public class BrowseActivity extends ListActivity implements ServiceConnection,
+public class BrowseActivity extends SherlockListActivity implements ServiceConnection,
 				DetermineActionTask.MusicRetrieverPreparedListener {
 
 	private final static String TAG = BrowseActivity.class.getName();
@@ -93,7 +91,6 @@ public class BrowseActivity extends ListActivity implements ServiceConnection,
     
 	private InputMethodManager mInputManager = null;
 	private StreamDatabase mStreamdb = null;
-	private ImageButton mHomeButton = null;
 
     private ServiceToken mToken;
 	
@@ -116,9 +113,11 @@ public class BrowseActivity extends ListActivity implements ServiceConnection,
     public void onCreate(Bundle icicle) { 
     	super.onCreate(icicle); 
 
-        requestWindowFeature(Window.FEATURE_NO_TITLE);
         setContentView(R.layout.activity_browse);
     	
+		ActionBar actionBar = getSupportActionBar();
+		actionBar.setTitle(R.string.title_stream_browse);
+        
         setVolumeControlStream(AudioManager.STREAM_MUSIC);
 		
 		try {
@@ -144,17 +143,6 @@ public class BrowseActivity extends ListActivity implements ServiceConnection,
         mEmptyText.setVisibility(View.GONE);
 	    
 		mInputManager = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
-	    
-		mHomeButton = (ImageButton) this.findViewById(R.id.home_button);
-		mHomeButton.setOnClickListener(new OnClickListener() {
-
-			public void onClick(View arg0) {
-                Intent intent = new Intent(BrowseActivity.this, MainActivity.class);
-		        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-				BrowseActivity.this.startActivity(intent);
-				finish();
-			}
-		});
 	    
 		refreshList();
     }
@@ -260,7 +248,7 @@ public class BrowseActivity extends ListActivity implements ServiceConnection,
 	
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        MenuInflater inflater = getMenuInflater();
+        MenuInflater inflater = getSupportMenuInflater();
         inflater.inflate(R.menu.stream_browse_menu, menu);
         return true;
     }
@@ -283,9 +271,9 @@ public class BrowseActivity extends ListActivity implements ServiceConnection,
 		menu.setHeaderTitle(uri.getNickname());
 
 		// save the URL
-		MenuItem save = menu.add(R.string.save);
+		android.view.MenuItem save = menu.add(R.string.save);
 		save.setOnMenuItemClickListener(new OnMenuItemClickListener() {
-			public boolean onMenuItemClick(MenuItem arg0) {
+			public boolean onMenuItemClick(android.view.MenuItem arg0) {
 				// prompt user to make sure they really want this
 				new AlertDialog.Builder(BrowseActivity.this)
 					.setMessage(getString(R.string.save_message, streamURL))
@@ -300,9 +288,9 @@ public class BrowseActivity extends ListActivity implements ServiceConnection,
 		});
 	
 		// view the URL
-		MenuItem view = menu.add(R.string.view_url);
+		android.view.MenuItem view = menu.add(R.string.view_url);
 		view.setOnMenuItemClickListener(new OnMenuItemClickListener() {
-			public boolean onMenuItemClick(MenuItem arg0) {
+			public boolean onMenuItemClick(android.view.MenuItem arg0) {
 				// display the URL
 				new AlertDialog.Builder(BrowseActivity.this)
 					.setMessage(streamURL)
@@ -320,18 +308,18 @@ public class BrowseActivity extends ListActivity implements ServiceConnection,
 		}
 		
 		// add to playlist
-		MenuItem add = menu.add(R.string.add_to_playlist);
+		android.view.MenuItem add = menu.add(R.string.add_to_playlist);
 		add.setOnMenuItemClickListener(new OnMenuItemClickListener() {
-			public boolean onMenuItemClick(MenuItem item) {
+			public boolean onMenuItemClick(android.view.MenuItem item) {
 				MusicUtils.addToCurrentPlaylistFromURL(BrowseActivity.this, uri, mQueueHandler);
 				return true;
 			}
 		});
 		
 		// share the URL
-		MenuItem share = menu.add(R.string.share);
+		android.view.MenuItem share = menu.add(R.string.share);
 		share.setOnMenuItemClickListener(new OnMenuItemClickListener() {
-			public boolean onMenuItemClick(MenuItem item) {
+			public boolean onMenuItemClick(android.view.MenuItem item) {
 				String url = uri.getUri().toString();
 				String appName = getString(R.string.app_name);
 				
