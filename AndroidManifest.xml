@@ -42,7 +42,8 @@
 		android:description="@string/app_desc"
 		android:allowBackup="true"
 		android:backupAgent=".service.BackupAgent"
-		android:killAfterRestore="true" >
+		android:killAfterRestore="true"
+		android:theme="@style/Theme.Sherlock" >
 
 		<meta-data
 		    android:name="com.google.android.backup.api_key"

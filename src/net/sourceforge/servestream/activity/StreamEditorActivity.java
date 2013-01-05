@@ -23,6 +23,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import com.actionbarsherlock.app.ActionBar;
+import com.actionbarsherlock.app.SherlockPreferenceActivity;
+
 import net.sourceforge.servestream.R;
 import net.sourceforge.servestream.dbutils.StreamDatabase;
 
@@ -36,10 +39,9 @@ import android.os.Bundle;
 import android.preference.CheckBoxPreference;
 import android.preference.ListPreference;
 import android.preference.Preference;
-import android.preference.PreferenceActivity;
 import android.view.Window;
 
-public class StreamEditorActivity extends PreferenceActivity implements OnSharedPreferenceChangeListener {
+public class StreamEditorActivity extends SherlockPreferenceActivity implements OnSharedPreferenceChangeListener {
 	public class CursorPreferenceHack implements SharedPreferences {
 		protected final String table;
 		protected final long id;
@@ -223,6 +225,9 @@ public class StreamEditorActivity extends PreferenceActivity implements OnShared
 		super.onCreate(icicle);
 
 		setContentView(R.layout.activity_stream_editor);
+		
+		ActionBar actionBar = getSupportActionBar();
+		actionBar.setTitle("");
 		
 		long streamId = this.getIntent().getLongExtra(Intent.EXTRA_TITLE, -1);
 

@@ -17,6 +17,9 @@
 
 package net.sourceforge.servestream.activity;
 
+import com.actionbarsherlock.app.ActionBar;
+import com.actionbarsherlock.app.SherlockPreferenceActivity;
+
 import net.sourceforge.servestream.R;
 import net.sourceforge.servestream.alarm.Alarm;
 import net.sourceforge.servestream.alarm.AlarmPreference;
@@ -33,12 +36,10 @@ import android.os.Handler;
 import android.preference.CheckBoxPreference;
 import android.preference.EditTextPreference;
 import android.preference.Preference;
-import android.preference.PreferenceActivity;
 import android.preference.PreferenceScreen;
 import android.text.format.DateFormat;
 import android.util.Log;
 import android.view.View;
-import android.view.Window;
 import android.widget.Button;
 import android.widget.TimePicker;
 import android.widget.Toast;
@@ -46,7 +47,7 @@ import android.widget.Toast;
 /**
  * Manages each alarm
  */
-public class SetAlarmActivity extends PreferenceActivity
+public class SetAlarmActivity extends SherlockPreferenceActivity
         implements TimePickerDialog.OnTimeSetListener,
         Preference.OnPreferenceChangeListener {
 
@@ -71,12 +72,14 @@ public class SetAlarmActivity extends PreferenceActivity
      */
     @Override
     protected void onCreate(Bundle icicle) {
-        requestWindowFeature(Window.FEATURE_NO_TITLE);
         super.onCreate(icicle);
 
         // Override the default content view.
         setContentView(R.layout.activity_set_alarm);
 
+		ActionBar actionBar = getSupportActionBar();
+		actionBar.setTitle(R.string.title_set_alarm);
+        
         addPreferencesFromResource(R.xml.alarm_prefs);
 
         // Get each preference so we can retrieve the value later.

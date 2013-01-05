@@ -17,25 +17,28 @@
 
 package net.sourceforge.servestream.activity;
 
+import com.actionbarsherlock.app.ActionBar;
+import com.actionbarsherlock.app.SherlockPreferenceActivity;
+
 import net.sourceforge.servestream.R;
 import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.preference.PreferenceActivity;
 import android.preference.PreferenceManager;
 import android.util.Log;
-import android.view.Window;
 
-public class SettingsActivity extends PreferenceActivity {
+public class SettingsActivity extends SherlockPreferenceActivity {
 	private static final String TAG = SettingsActivity.class.getName();
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
-        requestWindowFeature(Window.FEATURE_NO_TITLE);
 		super.onCreate(savedInstanceState);
 		try {
 			
 	        setContentView(R.layout.activity_settings);
 			
+			ActionBar actionBar = getSupportActionBar();
+			actionBar.setTitle("Settings");
+	        
 			addPreferencesFromResource(R.xml.preferences);
 		} catch (ClassCastException e) {
 			Log.e(TAG, "Shared preferences are corrupt! Resetting to default values.");
