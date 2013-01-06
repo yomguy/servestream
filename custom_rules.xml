@@ -19,14 +19,22 @@
         </exec>
     </target>
     
-    <target name="build-ffmpeg">        
+    <target name="get-abs">
+        <exec executable="/bin/sh" dir="." failonerror="true" osfamily="unix">
+            <arg value="scripts/get-abs.sh" />
+        </exec>
+    </target>
+
+    <target name="build-ffmpeg">
         <exec executable="/bin/sh" dir="." failonerror="true" osfamily="unix">
             <arg value="scripts/build-ffmpeg.sh" />
         </exec>
     </target>
     
     <target name="-pre-build">
-        <echo>Buiilding native code...</echo>
+        <echo>Downloading and preparing ActionBarSherlock...</echo>
+        <antcall target="get-abs" />
+        <echo>Building native code...</echo>
         <antcall target="-check-ndk" />
         <antcall target="build-ffmpeg" />
         <antcall target="native-build" />
