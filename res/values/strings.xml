@@ -101,16 +101,10 @@
 	<!-- Context menu item -->
 	<string name="view_url">View URL</string>
 	
-	<string name="recovery_options">Recovery options</string>
-	<string name="restore">Restore</string>
-	<string name="backup_message">Successfully performed backup</string>
-	<string name="restore_message">Successfully performed recovery</string>	
-	
 	<!-- Note that the '\n' splits the lines so it's actually "quick-connect box above to connect" -->
 	<string name="list_stream_empty">Use the quick-connect box\nabove to open a media stream.</string>
 
 	<string name="list_menu_backup">Backup</string>
-    <string name="list_menu_donate">Donate</string>
     <string name="list_menu_help">Help</string>
     <string name="list_menu_now_playing">Now playing</string>
 	<string name="list_menu_refresh">Refresh</string>
@@ -153,6 +147,12 @@
     <!-- Shown as a transient message whenever a file fails to play -->
     <string name="playback_failed">Sorry, the player does not support this type of media file.</string>
 
+    <string name="pref_backup_and_restore">Backup &amp; restore</string>
+    <string name="pref_backup">Backup to JSON file</string>
+    <string name="pref_restore">Restore from JSON file</string>
+    
+    <string name="pref_donate">Donate</string>
+    
 	<!-- The category title for general settings preferences -->
 	<string name="pref_general_settings_category">General settings</string>
 

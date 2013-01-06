@@ -89,4 +89,25 @@
 
 	</PreferenceCategory>
 	
+	<PreferenceScreen
+    	android:title="@string/pref_backup_and_restore"
+        android:persistent="false" >   
+	    
+	    <Preference
+	        android:key="backup"
+	        android:title="@string/pref_backup" >
+		</Preference>
+	
+	    <Preference
+	        android:key="restore"
+	        android:title="@string/pref_restore" >
+		</Preference>
+	    	
+    </PreferenceScreen>
+	
+    <Preference
+        android:key="donate"
+		android:title="@string/pref_donate" >
+    </Preference>
+	
 </PreferenceScreen>

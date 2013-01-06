@@ -17,255 +17,229 @@
 
 package net.sourceforge.servestream.utils;
 
+import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map.Entry;
-import java.util.Set;
 
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-
-import net.sourceforge.servestream.R;
-import net.sourceforge.servestream.activity.MainActivity;
 import net.sourceforge.servestream.bean.UriBean;
 import net.sourceforge.servestream.dbutils.StreamDatabase;
 import net.sourceforge.servestream.transport.TransportFactory;
 
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
-import org.xmlpull.v1.XmlSerializer;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
-import android.util.Xml;
-import android.widget.Toast;
+import android.os.Environment;
 
 public class BackupUtils {
 
-	private static final String BACKUP_FILE = "backup.xml";
+	private static final String BACKUP_FILE = "backup.json";
+	private static final String ROOT_JSON_ELEMENT = "backup";
+	private static final String BACKUP_DIRECTORY_PATH = "/ServeStream/backup/";
 	
-	private static final String ROOT_ELEMENT_TAG_NAME = "backup";
-	private static final String BACKUP_ENCODING = "UTF-8";
-
-	private static final int BACKUP_OPERATION = 0;
-	private static final int RESTORE_OPERATION = 1;
-	
-	public static void showBackupDialog(final Context context) {
+	private static void showBackupDialog(final Context context, String message) {
     	AlertDialog.Builder builder;
     	AlertDialog alertDialog;
-    	
-    	File backupFile = getBackupFile(context, BACKUP_FILE);
-
-    	if (backupFile == null) {
-    		return;
-    	}
-    	
-    	CharSequence [] items;
-    	
-    	if (backupFile.exists()) {
-    		items = new CharSequence[2];
-    	    items[0] = context.getString(R.string.list_menu_backup);
-    		items[1] = context.getString(R.string.restore);
-    	} else {
-    		items = new CharSequence[1];
-    		items[0] = context.getString(R.string.list_menu_backup);
-    	}
-
     	builder = new AlertDialog.Builder(context);
-    	builder.setTitle(R.string.recovery_options)
-    		.setItems(items, new DialogInterface.OnClickListener() {
-    			public void onClick(DialogInterface dialog, int item) {
-    				if (item == BACKUP_OPERATION) {
-    					backup(context, BACKUP_FILE);
-    				} else if (item == RESTORE_OPERATION) {
-    					restore(context, BACKUP_FILE);
-    					((MainActivity) context).updateList();
-    				}
+    	builder.setMessage(message)
+    		.setCancelable(true)
+    		.setNeutralButton(android.R.string.ok, new DialogInterface.OnClickListener() {
+    			public void onClick(DialogInterface dialog, int id) {
+    				dialog.dismiss();
     			}
     		});
     	alertDialog = builder.create();
     	alertDialog.show();
 	}
 	
-	private static void backup(Context context, String filename) {
-		BufferedWriter out = null;
+	public synchronized static void backup(Context context) {
+		boolean success = true;
+		String message = "Backup failed";
 		
-		StreamDatabase streamdb = new StreamDatabase(context);
+		File backupFile = getBackupFile();
 		
-		String xml = writeXml(streamdb.getUris());
-		
-		streamdb.close();
-		
-		File backupFile = getBackupFile(context, filename);
-		try {
-			out = new BufferedWriter(new FileWriter(backupFile));
-			out.write(xml);
-		} catch (FileNotFoundException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
-			e.printStackTrace();
-		} finally {
-			try {
-				out.close();
-			} catch (IOException e) {
+		if (backupFile == null) {
+			success = false;
+		} else {
+			BufferedWriter out = null;
+			StreamDatabase streamdb = new StreamDatabase(context);
+			List<UriBean> uris = streamdb.getUris();
+			streamdb.close();
+			
+			if (uris.size() > 0) {
+				try {
+					String json = writeJSON(uris);
+					out = new BufferedWriter(new FileWriter(backupFile));
+					out.write(json);
+				} catch (FileNotFoundException e) {
+					success = false;
+				} catch (IOException e) {
+					success = false;
+				} catch (JSONException e) {
+					success = false;
+				} finally {
+					try {
+						out.close();
+					} catch (IOException e) {
+					}
+				}
+			} else {
+				success = false;
+				message = "No data available to backup.";
 			}
 		}
 		
-		Toast.makeText(context, context.getString(R.string.backup_message), Toast.LENGTH_SHORT).show();
+		if (success) {
+			message = "Backup was successful, file is: \"" + backupFile + "\"";
+		}
+		
+		showBackupDialog(context, message);
 	}
 	
-	private static void restore(Context context, String fileName) {
+	public synchronized static void restore(Context context) {
+		boolean success = true;
+		String message = "Restore failed";
+		
 		StreamDatabase streamdb = new StreamDatabase(context);
 		
-		File backupFile = new File(context.getCacheDir(), fileName);
+		File backupFile = getBackupFile();
 		
-		BackupFileParser bfp = new BackupFileParser(backupFile);
+		if (backupFile == null || !backupFile.exists()) {
+			success = false;
+			message = "Restore failed, make sure \"" + Environment.getExternalStorageDirectory() + BACKUP_DIRECTORY_PATH + BACKUP_FILE + "\" exists.";
+		} else {
+			try {
+				List<UriBean> uris = parseBackupFile(backupFile);
+			
+				for (int i = 0; i < uris.size(); i++) {
+					if (TransportFactory.findUri(streamdb, uris.get(i).getUri()) == null) {
+						streamdb.saveUri(uris.get(i));
+					}
+				}
+			} catch (IOException e) {
+				e.printStackTrace();
+				success = false;
+			} catch (JSONException e) {
+				e.printStackTrace();
+				success = false;
+			}
+		}
 		
-		List<UriBean> uris = bfp.parse();
+		if (success) {
+			message = "Restore was successful";
+		}
+		
+		streamdb.close();
+		
+		showBackupDialog(context, message);
+	}
+	
+	private static File getBackupFile() {
+		File file = new File(Environment.getExternalStorageDirectory() + BACKUP_DIRECTORY_PATH);
+
+	    if (!file.exists() && !file.mkdirs()) {
+	    	return null;
+	    }
+	    
+		file = new File(Environment.getExternalStorageDirectory() + BACKUP_DIRECTORY_PATH, BACKUP_FILE);
+		
+	    return file;
+	}
+	
+	private static String writeJSON(List<UriBean> uris) throws JSONException {		
+		JSONObject root = new JSONObject();
+		JSONArray array = new JSONArray();
+		JSONObject js = new JSONObject();
 		
 		for (int i = 0; i < uris.size(); i++) {
-			if (TransportFactory.findUri(streamdb, uris.get(i).getUri()) == null) {
-				streamdb.saveUri(uris.get(i));
+			UriBean uriBean = uris.get(i);				
+			
+			js = new JSONObject();
+			js.put(StreamDatabase.FIELD_STREAM_NICKNAME, uriBean.getNickname());
+			js.put(StreamDatabase.FIELD_STREAM_PROTOCOL, uriBean.getProtocol());
+			js.put(StreamDatabase.FIELD_STREAM_USERNAME, uriBean.getUsername());
+			js.put(StreamDatabase.FIELD_STREAM_PASSWORD, uriBean.getPassword());
+			js.put(StreamDatabase.FIELD_STREAM_HOSTNAME, uriBean.getHostname());
+			js.put(StreamDatabase.FIELD_STREAM_PORT, uriBean.getPort());
+			js.put(StreamDatabase.FIELD_STREAM_PATH, uriBean.getPath());
+			js.put(StreamDatabase.FIELD_STREAM_QUERY, uriBean.getQuery());
+			js.put(StreamDatabase.FIELD_STREAM_REFERENCE, uriBean.getReference());
+			js.put(StreamDatabase.FIELD_STREAM_LASTCONNECT, uriBean.getLastConnect());
+			array.put(js);
+		}
+			
+		js = new JSONObject();
+		js.put(UriBean.BEAN_NAME, array);
+		root.put(ROOT_JSON_ELEMENT, js);
+		
+		return root.toString();
+	}
+	
+	private static List<UriBean> parseBackupFile(File backupFile) throws IOException, JSONException {
+		BufferedReader br = null;
+		String line;
+		StringBuffer buffer = new StringBuffer();
+		List<UriBean> uris = new ArrayList<UriBean>();
+		
+		try {
+			br = new BufferedReader(new FileReader(backupFile));
+			
+			while ((line = br.readLine()) != null) {
+				buffer.append(line);
 			}
-		}
-		
-		streamdb.close();
-		
-		Toast.makeText(context, R.string.restore_message, Toast.LENGTH_SHORT).show();
-	}
-	
-	private static File getBackupFile(Context context, String filename) {
-		//File cacheDir = context.getCacheDir();
-		File cacheDir = context.getExternalCacheDir();
-		
-		if (cacheDir == null) {
-			return null;
-		}
-		
-		return new File(cacheDir, filename);
-	}
-	
-	private static String writeXml(List<UriBean> uris) {
-	    XmlSerializer serializer = Xml.newSerializer();
-	    StringWriter writer = new StringWriter();
-	    
-	    try {
-	        serializer.setOutput(writer);
-	        serializer.startDocument(BACKUP_ENCODING, true);
-	        serializer.startTag("", ROOT_ELEMENT_TAG_NAME);
-	        
-	        for (UriBean uriBean: uris) {
-	            serializer.startTag("", UriBean.BEAN_NAME);
-	        	
-        		Set<Entry<String, Object>> selection = uriBean.getValues().valueSet();
-	        	
-        		Iterator<Entry<String, Object>> i = selection.iterator();
+		 
+			JSONObject js = new JSONObject(buffer.toString());
+			JSONArray tableRows = js.getJSONObject(ROOT_JSON_ELEMENT).getJSONArray(UriBean.BEAN_NAME);
+			
+			for (int i = 0; i < tableRows.length(); i++) {
+				JSONObject row = tableRows.getJSONObject(i);
+				UriBean uriBean = new UriBean();
+				
+	      		@SuppressWarnings("unchecked")
+				Iterator<String> iterator = row.keys();
         		
-        		while (i.hasNext()) {
-        			Entry<String, Object> entry = i.next();
-        		
-        			String key = entry.getKey();
-        			
-        			// don't save password and username in plain text
-        			if (key.equals(StreamDatabase.FIELD_STREAM_USERNAME) ||
-        					key.equals(StreamDatabase.FIELD_STREAM_PASSWORD)) {
-        				continue;
-        			}
-        			
-        			serializer.startTag("", key);
-            		if (entry.getValue() != null) {
-            			serializer.text(entry.getValue().toString());
-            		} else {
-            			serializer.text("");
-            		}
-        			serializer.endTag("", key);
-        		}
-        		
-                serializer.endTag("", UriBean.BEAN_NAME);
-	        }
-	        
-	        serializer.endTag("", ROOT_ELEMENT_TAG_NAME);
-	        serializer.endDocument();
-	        return writer.toString();
-	    } catch (Exception e) {
-	        throw new RuntimeException(e);
-	    } 
-	}
-	
-	private static class BackupFileParser {
-
-		private File mBackupFile = null;
-
-		/**
-		 * Default constructor
-		 * @param backupFile
-		 */
-		public BackupFileParser(File backupFile) {
-			mBackupFile = backupFile;
-		}
-
-		public List<UriBean> parse() {
-			DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-			List<UriBean> uris = new ArrayList<UriBean>();
-			try {
-				DocumentBuilder builder = factory.newDocumentBuilder();
-				Document dom = builder.parse(new FileInputStream(mBackupFile));
-				Element root = dom.getDocumentElement();
-				NodeList items = root.getElementsByTagName(UriBean.BEAN_NAME);
-
-				for (int i = 0; i < items.getLength(); i++) {
-					UriBean uriBean = new UriBean();
-					Node item = items.item(i);
-					NodeList properties = item.getChildNodes();
-					for (int j = 0; j < properties.getLength(); j++) {
-						Node property = properties.item(j);
-						String name = property.getNodeName();
-
-						if (property.getFirstChild() == null) {
-							continue;
-						}
-
-						if (name.equalsIgnoreCase(StreamDatabase.FIELD_STREAM_NICKNAME)) {
-							uriBean.setNickname(property.getFirstChild().getNodeValue());
-						} else if (name.equalsIgnoreCase(StreamDatabase.FIELD_STREAM_PROTOCOL)) {
-							uriBean.setProtocol(property.getFirstChild().getNodeValue());
-						} else if (name.equalsIgnoreCase(StreamDatabase.FIELD_STREAM_USERNAME)) {
-							uriBean.setUsername(property.getFirstChild().getNodeValue());
-						} else if (name.equalsIgnoreCase(StreamDatabase.FIELD_STREAM_PASSWORD)) {
-							uriBean.setPassword(property.getFirstChild().getNodeValue());
-						} else if (name.equalsIgnoreCase(StreamDatabase.FIELD_STREAM_HOSTNAME)) {
-							uriBean.setHostname(property.getFirstChild().getNodeValue());
-						} else if (name.equalsIgnoreCase(StreamDatabase.FIELD_STREAM_PORT)) {
-							uriBean.setPort(Integer.valueOf(property.getFirstChild().getNodeValue()));
-						} else if (name.equalsIgnoreCase(StreamDatabase.FIELD_STREAM_PATH)) {
-							uriBean.setPath(property.getFirstChild().getNodeValue());
-						} else if (name.equalsIgnoreCase(StreamDatabase.FIELD_STREAM_QUERY)) {
-							uriBean.setQuery(property.getFirstChild().getNodeValue());
-						} else if (name.equalsIgnoreCase(StreamDatabase.FIELD_STREAM_REFERENCE)) {
-							uriBean.setReference(property.getFirstChild().getNodeValue());
-						} else if (name.equalsIgnoreCase(StreamDatabase.FIELD_STREAM_LASTCONNECT)) {
-							uriBean.setLastConnect(Long.valueOf(property.getFirstChild().getNodeValue()));
-						}
-					}
-
-					uris.add(uriBean);
-				}
-			} catch (Exception e) {
-				throw new RuntimeException(e);
+	      		while (iterator.hasNext()) {
+	      			String name = iterator.next();
+	      		
+	      			if (name.equalsIgnoreCase(StreamDatabase.FIELD_STREAM_NICKNAME)) {
+	    				uriBean.setNickname(row.getString(StreamDatabase.FIELD_STREAM_NICKNAME));
+	      			} else if (name.equalsIgnoreCase(StreamDatabase.FIELD_STREAM_PROTOCOL)) {
+	      				uriBean.setProtocol(row.getString(StreamDatabase.FIELD_STREAM_PROTOCOL));
+	      			} else if (name.equalsIgnoreCase(StreamDatabase.FIELD_STREAM_USERNAME)) {
+	    				uriBean.setUsername(row.getString(StreamDatabase.FIELD_STREAM_USERNAME));
+	      			} else if (name.equalsIgnoreCase(StreamDatabase.FIELD_STREAM_PASSWORD)) {
+	    				uriBean.setPassword(row.getString(StreamDatabase.FIELD_STREAM_PASSWORD));
+	      			} else if (name.equalsIgnoreCase(StreamDatabase.FIELD_STREAM_HOSTNAME)) {
+	      				uriBean.setHostname(row.getString(StreamDatabase.FIELD_STREAM_HOSTNAME));
+	      			} else if (name.equalsIgnoreCase(StreamDatabase.FIELD_STREAM_PORT)) {
+	      				uriBean.setPort(row.getInt(StreamDatabase.FIELD_STREAM_PORT));
+	      			} else if (name.equalsIgnoreCase(StreamDatabase.FIELD_STREAM_PATH)) {
+	      				uriBean.setPath(row.getString(StreamDatabase.FIELD_STREAM_PATH));
+	      			} else if (name.equalsIgnoreCase(StreamDatabase.FIELD_STREAM_QUERY)) {
+	      				uriBean.setQuery(row.getString(StreamDatabase.FIELD_STREAM_QUERY));
+	      			} else if (name.equalsIgnoreCase(StreamDatabase.FIELD_STREAM_REFERENCE)) {
+	      				uriBean.setReference(row.getString(StreamDatabase.FIELD_STREAM_REFERENCE));
+	      			} else if (name.equalsIgnoreCase(StreamDatabase.FIELD_STREAM_LASTCONNECT)) {
+	      				uriBean.setLastConnect(row.getLong(StreamDatabase.FIELD_STREAM_LASTCONNECT));
+	      			}
+	      		}
+	      		
+				uris.add(uriBean);
 			}
-
-			return uris;
+		} finally {
+			Utils.closeBufferedReader(br);
 		}
+		
+		return uris;
 	}
 }

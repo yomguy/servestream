@@ -101,16 +101,10 @@
 	<!-- Context menu item -->
 	<string name="view_url">Voir l\'URL</string>
 	
-	<string name="recovery_options">Options de récupération</string>
-	<string name="restore">Restaurer</string>
-	<string name="backup_message">Sauvegarde effectuée avec succès</string>
-	<string name="restore_message">De récupération avec succès</string>	
-	
 	<!-- Note that the '\n' splits the lines so it's actually "quick-connect box above to connect" -->
 	<string name="list_stream_empty">Utiliser la boîte de connexion rapide\nau-dessus pour ouvrir un média.</string>
 
 	<string name="list_menu_backup">Sauvegarde</string>
-	<string name="list_menu_donate">Donner</string>
     <string name="list_menu_help">Aide</string>
     <string name="list_menu_now_playing">En cours de lecture</string>
 	<string name="list_menu_refresh">Rafraichir</string>
@@ -153,6 +147,10 @@
     <!-- Shown as a transient message whenever a file fails to play -->
     <string name="playback_failed">Désolé, le lecteur ne supporte pas ce type de média.</string>
 
+    <string name="pref_backup_and_restore">Backup &amp; restore</string>
+    
+    <string name="pref_donate">Donner</string>
+    
 	<!-- The category title for general settings preferences -->
 	<string name="pref_general_settings_category">Paramètres gérénaux</string>
 

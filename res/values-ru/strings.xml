@@ -101,16 +101,10 @@
 	<!-- Context menu item -->
 	<string name="view_url">Посмотреть URL</string>
 	
-	<string name="recovery_options">Опции восстановления</string>
-	<string name="restore">Восстановление</string>
-	<string name="backup_message">Резервное копирование прошло успешно</string>
-	<string name="restore_message">Восстановление прошло успешно</string>	
-	
 	<!-- Note that the '\n' splits the lines so it's actually "quick-connect box above to connect" -->
 	<string name="list_stream_empty">Используй quick-connect box\nвыше для открытия медиа потока.</string>
 
 	<string name="list_menu_backup">Сохранение</string>
-    <string name="list_menu_donate">Пожертвования</string>
     <string name="list_menu_help">Помощь</string>
     <string name="list_menu_now_playing">Сейчас играет</string>
 	<string name="list_menu_refresh">Обновить</string>
@@ -153,6 +147,10 @@
     <!-- Shown as a transient message whenever a file fails to play -->
     <string name="playback_failed">Извините, плеер не поддерживает этот тип медиа-файла.</string>
 
+    <string name="pref_backup_and_restore">Backup &amp; restore</string>
+    
+    <string name="pref_donate">Пожертвования</string>
+    
 	<!-- The category title for general settings preferences -->
 	<string name="pref_general_settings_category">Общие настройки</string>
 
