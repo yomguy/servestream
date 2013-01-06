@@ -21,9 +21,16 @@ import com.actionbarsherlock.app.ActionBar;
 import com.actionbarsherlock.app.SherlockPreferenceActivity;
 
 import net.sourceforge.servestream.R;
+import net.sourceforge.servestream.utils.BackupUtils;
+import net.sourceforge.servestream.utils.PreferenceConstants;
+import android.content.ActivityNotFoundException;
+import android.content.Intent;
 import android.content.SharedPreferences;
+import android.net.Uri;
 import android.os.Bundle;
+import android.preference.Preference;
 import android.preference.PreferenceManager;
+import android.preference.PreferenceScreen;
 import android.util.Log;
 
 public class SettingsActivity extends SherlockPreferenceActivity {
@@ -33,7 +40,6 @@ public class SettingsActivity extends SherlockPreferenceActivity {
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		try {
-			
 	        setContentView(R.layout.activity_settings);
 			
 			ActionBar actionBar = getSupportActionBar();
@@ -56,4 +62,28 @@ public class SettingsActivity extends SherlockPreferenceActivity {
 		}
 	}
 
+	@Override
+	public boolean onPreferenceTreeClick (PreferenceScreen preferenceScreen, Preference preference) {
+		if (preference.getKey() != null) {
+			if (preference.getKey().equals(PreferenceConstants.BACKUP)) {
+				BackupUtils.backup(this);
+			} else if (preference.getKey().equals(PreferenceConstants.RESTORE)) {
+				BackupUtils.restore(this);
+			} else if (preference.getKey().equals(PreferenceConstants.DONATE)) {
+				try {
+	        		Intent intent = new Intent(Intent.ACTION_VIEW);
+	        		intent.setData(Uri.parse("market://details?id=net.sourceforge.donate.servestream"));
+	        		startActivity(intent);
+	        	} catch (ActivityNotFoundException ex ) {
+	        		// the market couldn't be opening or the application couldn't be found
+	        		// lets take the user to the project's webpage instead.
+	        		Intent intent = new Intent(Intent.ACTION_VIEW);
+	        		intent.setData(Uri.parse("https://sourceforge.net/p/servestream/donate/"));
+	        		startActivity(intent);
+	            }
+			}
+		}
+		
+		return true;
+	}
 }
