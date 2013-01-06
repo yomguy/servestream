@@ -221,7 +221,6 @@ public class StreamEditorActivity extends SherlockPreferenceActivity implements 
 
 	@Override
 	public void onCreate(Bundle icicle) {
-        requestWindowFeature(Window.FEATURE_NO_TITLE);
 		super.onCreate(icicle);
 
 		setContentView(R.layout.activity_stream_editor);
