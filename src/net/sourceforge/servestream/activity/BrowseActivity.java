@@ -117,6 +117,7 @@ public class BrowseActivity extends SherlockListActivity implements ServiceConne
     	
 		ActionBar actionBar = getSupportActionBar();
 		actionBar.setTitle(R.string.title_stream_browse);
+		actionBar.setDisplayHomeAsUpEnabled(true);
         
         setVolumeControlStream(AudioManager.STREAM_MUSIC);
 		
@@ -217,18 +218,23 @@ public class BrowseActivity extends SherlockListActivity implements ServiceConne
         }
     };
 	
-	@Override
+    @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-    	switch(item.getItemId()) {
-        	case (R.id.menu_item_refresh):
-        		refreshList();
-        		break;
-        	case (R.id.menu_item_settings):
-        		startActivity(new Intent(BrowseActivity.this, SettingsActivity.class));
-    			break;
-    	}
-    	
-		return false;
+        switch (item.getItemId()) {
+        	case android.R.id.home:
+                Intent intent = new Intent(this, MainActivity.class);
+                intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                startActivity(intent);
+        		return true;
+            case (R.id.menu_item_refresh):
+            	refreshList();
+            	return true;
+            case (R.id.menu_item_settings):
+            	startActivity(new Intent(BrowseActivity.this, SettingsActivity.class));
+        		return true;
+        	default:
+        		return super.onOptionsItemSelected(item);
+        }
     }
 	
 	protected Dialog onCreateDialog(int id) {
