@@ -55,6 +55,7 @@ import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.Display;
 import android.view.KeyEvent;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -73,11 +74,14 @@ public class MediaPlaybackActivity extends Activity implements MusicUtils.Defs,
 {
     private static final String TAG = MediaPlaybackActivity.class.getName();
 
+    private static final int MAX_SLEEP_TIMER_MINUTES = 120;
+    
     private int mParentActivityState = VISIBLE;
     private static int VISIBLE = 1;
     private static int GONE = 2;
     
     private final static int PREPARING_MEDIA = 1;
+    private final static int DIALOG_SLEEP_TIMER = 2;
     
     private SharedPreferences mPreferences;
     private WakeLock mWakeLock;
@@ -332,7 +336,7 @@ public class MediaPlaybackActivity extends Activity implements MusicUtils.Defs,
     			doStop();
     			return true;
         	case (R.id.menu_item_sleep_timer):
-                startActivity(new Intent(this, MinuteSelector.class));
+        		showDialog(DIALOG_SLEEP_TIMER);
         		return true;
         	case (R.id.menu_item_settings):
         		startActivity(new Intent(MediaPlaybackActivity.this, SettingsActivity.class));
@@ -351,6 +355,53 @@ public class MediaPlaybackActivity extends Activity implements MusicUtils.Defs,
         	progressDialog.setMessage("Opening file...");
         	progressDialog.setCancelable(true);
 	    	return progressDialog;
+	    case DIALOG_SLEEP_TIMER:
+            LayoutInflater factory = LayoutInflater.from(this);
+            final View sleepTimerView = factory.inflate(R.layout.alert_dialog_sleep_timer, null);
+            final TextView sleepTimerText = (TextView) sleepTimerView.findViewById(R.id.sleep_timer_text);
+            final SeekBar seekbar = (SeekBar) sleepTimerView.findViewById(R.id.seekbar);
+            seekbar.setMax(MAX_SLEEP_TIMER_MINUTES);
+            try {
+            	int sleepTimerMode = mService.getSleepTimerMode();
+				sleepTimerText.setText(makeTimeString(sleepTimerMode));
+				seekbar.setProgress(sleepTimerMode);
+			} catch (RemoteException e) {
+			}
+            seekbar.setOnSeekBarChangeListener(new OnSeekBarChangeListener() {
+
+				@Override
+				public void onProgressChanged(SeekBar seekBar, int progress,
+						boolean fromUser) {
+					sleepTimerText.setText(makeTimeString(progress));
+				}
+
+				@Override
+				public void onStartTrackingTouch(SeekBar seekBar) {
+					
+				}
+
+				@Override
+				public void onStopTrackingTouch(SeekBar seekBar) {
+					
+				}
+            	
+            });
+            return new AlertDialog.Builder(MediaPlaybackActivity.this)
+                .setTitle(R.string.menu_sleep_timer)
+                .setView(sleepTimerView)
+                .setCancelable(true)
+                .setPositiveButton(R.string.set_alarm, new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int whichButton) {
+                    	setSleepTimer(seekbar.getProgress());
+                    	dialog.dismiss();
+                    }
+                })
+                .setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int whichButton) {
+                    	dialog.dismiss();
+                    }
+                })
+                .create();
 	    default:
 	        dialog = null;
 	    }
@@ -717,11 +768,52 @@ public class MediaPlaybackActivity extends Activity implements MusicUtils.Defs,
         
     }
     
+    private void setSleepTimer(int pos) {
+        if (mService == null) {
+            return;
+        }    	
+    	try {
+			MusicUtils.sService.setSleepTimerMode(pos);
+			if (pos == MediaPlaybackService.SLEEP_TIMER_OFF) {
+				showToast(R.string.sleep_timer_off_notif);
+			} else {
+			    showToast(getString(R.string.sleep_timer_on_notif) + " " + makeTimeString(pos));
+			}
+		} catch (RemoteException e) {
+		}
+    }
+    
+    private String makeTimeString(int pos) {
+    	String minuteText;
+    	
+    	if (pos == MediaPlaybackService.SLEEP_TIMER_OFF) {
+	    	minuteText = getResources().getString(R.string.minute_picker_cancel);
+	    } else if (pos == 1) {
+	    	minuteText = getResources().getString(R.string.minute);
+	    } else if (pos % 60 == 0 && pos > 60) {
+	    	minuteText = getResources().getString(R.string.hours, String.valueOf(pos / 60));
+	    } else if (pos % 60 == 0) {
+	    	minuteText = getResources().getString(R.string.hour);
+	    } else {
+	    	minuteText = getResources().getString(R.string.minutes, String.valueOf(pos));
+	    }
+    	
+    	return minuteText;
+    }
+    
     private void showToast(int resid) {
+        if (mToast == null) {
+            mToast = Toast.makeText(this, null, Toast.LENGTH_SHORT);
+        }
+        mToast.setText(resid);
+        mToast.show();
+    }
+    
+    private void showToast(String message) {
         if (mToast == null) {
             mToast = Toast.makeText(this, "", Toast.LENGTH_SHORT);
         }
-        mToast.setText(resid);
+        mToast.setText(message);
         mToast.show();
     }
     
