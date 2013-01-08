@@ -126,7 +126,7 @@ public class AlarmAlertFullScreen extends Activity {
     private void updateLayout() {
         LayoutInflater inflater = LayoutInflater.from(this);
 
-        setContentView(inflater.inflate(R.layout.acc_alarm_alert, null));
+        setContentView(inflater.inflate(R.layout.activity_alarm_alert, null));
 
         /* snooze behavior: pop a snooze confirmation view, kick alarm
            manager. */
