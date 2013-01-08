@@ -217,6 +217,7 @@ public class AlarmClockActivity extends SherlockActivity implements OnItemClickL
         
 		ActionBar actionBar = getSupportActionBar();
 		actionBar.setTitle(R.string.title_alarm_clock);
+		actionBar.setDisplayHomeAsUpEnabled(true);
         
         mAlarmsList = (ListView) findViewById(R.id.alarms_list);
         AlarmTimeAdapter adapter = new AlarmTimeAdapter(this, mCursor);
@@ -286,6 +287,11 @@ public class AlarmClockActivity extends SherlockActivity implements OnItemClickL
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
+    		case android.R.id.home:
+    			Intent intent = new Intent(this, MainActivity.class);
+    			intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+    			startActivity(intent);
+    			return true;
             case R.id.menu_item_add_alarm:
                 addNewAlarm();
                 return true;
@@ -294,7 +300,7 @@ public class AlarmClockActivity extends SherlockActivity implements OnItemClickL
         }
         return super.onOptionsItemSelected(item);
     }
-
+    
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getSupportMenuInflater().inflate(R.menu.alarm_list_menu, menu);

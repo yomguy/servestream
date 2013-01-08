@@ -19,6 +19,7 @@ package net.sourceforge.servestream.activity;
 
 import com.actionbarsherlock.app.ActionBar;
 import com.actionbarsherlock.app.SherlockPreferenceActivity;
+import com.actionbarsherlock.view.MenuItem;
 
 import net.sourceforge.servestream.R;
 import net.sourceforge.servestream.alarm.Alarm;
@@ -79,6 +80,7 @@ public class SetAlarmActivity extends SherlockPreferenceActivity
 
 		ActionBar actionBar = getSupportActionBar();
 		actionBar.setTitle(R.string.title_set_alarm);
+		actionBar.setDisplayHomeAsUpEnabled(true);
         
         addPreferencesFromResource(R.xml.alarm_prefs);
 
@@ -187,6 +189,20 @@ public class SetAlarmActivity extends SherlockPreferenceActivity
         }
     }
 
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+    		case android.R.id.home:
+    			Intent intent = new Intent(this, AlarmClockActivity.class);
+    			intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+    			startActivity(intent);
+    			return true;
+            default:
+                break;
+        }
+        return super.onOptionsItemSelected(item);
+    }
+    
     // Used to post runnables asynchronously.
     private static final Handler sHandler = new Handler();
 

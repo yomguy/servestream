@@ -19,6 +19,7 @@ package net.sourceforge.servestream.activity;
 
 import com.actionbarsherlock.app.ActionBar;
 import com.actionbarsherlock.app.SherlockPreferenceActivity;
+import com.actionbarsherlock.view.MenuItem;
 
 import net.sourceforge.servestream.R;
 import net.sourceforge.servestream.utils.BackupUtils;
@@ -44,6 +45,7 @@ public class SettingsActivity extends SherlockPreferenceActivity {
 			
 			ActionBar actionBar = getSupportActionBar();
 			actionBar.setTitle("Settings");
+			actionBar.setDisplayHomeAsUpEnabled(true);
 	        
 			addPreferencesFromResource(R.xml.preferences);
 		} catch (ClassCastException e) {
@@ -62,6 +64,20 @@ public class SettingsActivity extends SherlockPreferenceActivity {
 		}
 	}
 
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+    		case android.R.id.home:
+    			Intent intent = new Intent(this, MainActivity.class);
+    			intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+    			startActivity(intent);
+    			return true;
+            default:
+                break;
+        }
+        return super.onOptionsItemSelected(item);
+    }
+	
 	@Override
 	public boolean onPreferenceTreeClick (PreferenceScreen preferenceScreen, Preference preference) {
 		if (preference.getKey() != null) {
