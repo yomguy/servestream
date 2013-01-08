@@ -20,9 +20,9 @@ package net.sourceforge.servestream.utils;
 import android.os.Build;
 
 public final class PreferenceConstants {
-	public static final boolean PRE_ECLAIR = (Integer.parseInt(Build.VERSION.SDK) <= 4);
+	public static final boolean PRE_ECLAIR = (Build.VERSION.SDK_INT <= 4);
 	public static final boolean PRE_FROYO = PRE_ECLAIR ? true :
-		(Integer.parseInt(Build.VERSION.SDK) <= 7);
+		(Build.VERSION.SDK_INT <= 7);
 
 	public static final String AUTOSAVE = "autosave";
 	public static final String PROGRESSIVE_DOWNLOAD = "progressivedownload";
