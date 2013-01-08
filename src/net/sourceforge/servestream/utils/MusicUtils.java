@@ -256,22 +256,23 @@ public class MusicUtils {
         }
         
     }
+    
     public static Cursor query(Context context, Uri uri, String[] projection,
             String selection, String[] selectionArgs, String sortOrder) {
         return query(context, uri, projection, selection, selectionArgs, sortOrder, 0);
     }
-    
+
     /*  Try to use String.format() as little as possible, because it creates a
      *  new Formatter every time you call it, which is very inefficient.
      *  Reusing an existing Formatter more than tripled the speed of
      *  makeTimeString().
      *  This Formatter/StringBuilder are also used by makeAlbumSongsLabel()
      */
+    private static StringBuilder sFormatBuilder = new StringBuilder();
+    private static Formatter sFormatter = new Formatter(sFormatBuilder, Locale.getDefault());
+    private static final Object[] sTimeArgs = new Object[5];
+
     public static String makeTimeString(Context context, long secs) {
-        StringBuilder sFormatBuilder = new StringBuilder();
-        Formatter sFormatter = new Formatter(sFormatBuilder, Locale.getDefault());
-        final Object[] sTimeArgs = new Object[5];
-        
         String durationformat = context.getString(
                 secs < 3600 ? R.string.durationformatshort : R.string.durationformatlong);
         
@@ -351,9 +352,6 @@ public class MusicUtils {
         }
         @Override
         public void setColorFilter(ColorFilter cf) {
-        }
-        public Bitmap getBitmap() {
-        	return mBitmap;
         }
     }
 
