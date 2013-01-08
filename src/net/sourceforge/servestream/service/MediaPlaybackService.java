@@ -144,7 +144,6 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
             Media.MediaColumns.ARTIST,
             Media.MediaColumns.DURATION,
             Media.MediaColumns.TRACK,
-            Media.MediaColumns.YEAR
     };
     private int mServiceStartId = -1;
     private boolean mServiceInUse = false;
