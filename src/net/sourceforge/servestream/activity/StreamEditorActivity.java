@@ -25,6 +25,7 @@ import java.util.Set;
 
 import com.actionbarsherlock.app.ActionBar;
 import com.actionbarsherlock.app.SherlockPreferenceActivity;
+import com.actionbarsherlock.view.MenuItem;
 
 import net.sourceforge.servestream.R;
 import net.sourceforge.servestream.dbutils.StreamDatabase;
@@ -226,7 +227,8 @@ public class StreamEditorActivity extends SherlockPreferenceActivity implements 
 		setContentView(R.layout.activity_stream_editor);
 		
 		ActionBar actionBar = getSupportActionBar();
-		actionBar.setTitle("");
+		actionBar.setDisplayShowTitleEnabled(false);
+		actionBar.setDisplayHomeAsUpEnabled(true);
 		
 		long streamId = this.getIntent().getLongExtra(Intent.EXTRA_TITLE, -1);
 
@@ -258,6 +260,20 @@ public class StreamEditorActivity extends SherlockPreferenceActivity implements 
 		}
 	}
 
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+    		case android.R.id.home:
+    			Intent intent = new Intent(this, MainActivity.class);
+    			intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+    			startActivity(intent);
+    			return true;
+            default:
+                break;
+        }
+        return super.onOptionsItemSelected(item);
+    }
+	
 	private void updateSummaries() {
 		// for all text preferences, set hint as current database value
 		for (String key : this.pref.values.keySet()) {

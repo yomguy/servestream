@@ -21,6 +21,7 @@ import java.io.IOException;
 
 import com.actionbarsherlock.app.ActionBar;
 import com.actionbarsherlock.app.SherlockActivity;
+import com.actionbarsherlock.view.MenuItem;
 
 import net.sourceforge.servestream.R;
 
@@ -47,6 +48,7 @@ public class HelpActivity extends SherlockActivity {
 
 		ActionBar actionBar = getSupportActionBar();
 		actionBar.setTitle(R.string.title_help);
+		actionBar.setDisplayHomeAsUpEnabled(true);
 		
 		AssetManager am = this.getAssets();
 		LinearLayout content = (LinearLayout)this.findViewById(R.id.topics);
@@ -74,4 +76,18 @@ public class HelpActivity extends SherlockActivity {
 			Log.e(TAG, "couldn't get list of help assets", e);
 		}
 	}
+	
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+    		case android.R.id.home:
+    			Intent intent = new Intent(this, MainActivity.class);
+    			intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+    			startActivity(intent);
+    			return true;
+            default:
+                break;
+        }
+        return super.onOptionsItemSelected(item);
+    }
 }
