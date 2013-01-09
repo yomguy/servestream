@@ -50,7 +50,8 @@ import java.util.Vector;
 import net.sourceforge.servestream.R;
 import net.sourceforge.servestream.activity.MediaPlaybackActivity;
 import net.sourceforge.servestream.dbutils.StreamDatabase;
-import net.sourceforge.servestream.media.MetadataRetriever;
+import net.sourceforge.servestream.media.MetadataRetrieverTask;
+import net.sourceforge.servestream.media.MetadataRetrieverTask.MetadataRetrieverListener;
 import net.sourceforge.servestream.media.SHOUTcastMetadata;
 import net.sourceforge.servestream.player.AbstractMediaPlayer;
 import net.sourceforge.servestream.player.FFmpegMediaPlayer;
@@ -67,7 +68,8 @@ import net.sourceforge.servestream.widget.ServeStreamAppWidgetOneProvider;
  * Provides "background" audio playback capabilities, allowing the
  * user to switch between activities without stopping playback.
  */
-public class MediaPlaybackService extends Service implements OnSharedPreferenceChangeListener {
+public class MediaPlaybackService extends Service implements OnSharedPreferenceChangeListener,
+		MetadataRetrieverListener {
 	private static final String TAG = MediaPlaybackService.class.getName();
 	
 	private static final int AUDIOFOCUS_GAIN = 1;
@@ -653,7 +655,7 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
     				playPos = mPlayPos;
     			}
     			
-    			MetadataRetriever.retrieve(MediaPlaybackService.this, list, playPos);
+    			new MetadataRetrieverTask(this).execute(list);
         	}
         }
     }
@@ -1632,15 +1634,18 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
 		}
 	}
     
-    public void updateMetadata() {
+	@Override
+	public synchronized void onMetadataParsed(long id) {
+		if (mPlayList == null || id != mPlayList[mPlayPos]) {
+			return;
+		}
+		
     	Cursor cursor;
     	Cursor tempCursor;
     	
     	if (mCursor == null) {
     		return;
     	}
-    	
-    	long id = mPlayList[mPlayPos];
     	
         cursor = getContentResolver().query(
                 Media.MediaColumns.CONTENT_URI,
