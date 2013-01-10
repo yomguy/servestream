@@ -353,11 +353,15 @@ public class MusicUtils {
         @Override
         public void setColorFilter(ColorFilter cf) {
         }
+        public Bitmap getBitmap() {
+        	return mBitmap;
+        }
     }
 
     private static final BitmapFactory.Options sBitmapOptionsCache = new BitmapFactory.Options();
     private static final Uri sArtworkUri = Media.MediaColumns.CONTENT_URI;
     private static final HashMap<Long, Drawable> sArtCache = new HashMap<Long, Drawable>();
+    private static final HashMap<Long, Bitmap> sLargeArtCache = new HashMap<Long, Bitmap>();
     
     static {
         // for the cache, 
@@ -370,6 +374,10 @@ public class MusicUtils {
     public static void clearAlbumArtCache() {
         synchronized(sArtCache) {
             sArtCache.clear();
+        }
+        
+        synchronized(sLargeArtCache) {
+        	sLargeArtCache.clear();
         }
     }
     
@@ -455,7 +463,26 @@ public class MusicUtils {
     }
     
     public static Bitmap getLargeCachedArtwork(Context context, long artIndex, int w, int h) {
-        return MusicUtils.getLargeArtworkQuick(context, artIndex, w, h);
+        Bitmap d = null;
+        synchronized(sLargeArtCache) {
+            d = sLargeArtCache.get(artIndex);
+        }
+        if (d == null) {
+            Bitmap b = MusicUtils.getLargeArtworkQuick(context, artIndex, w, h);
+            if (b != null) {
+                d = b;
+                synchronized(sLargeArtCache) {
+                    // the cache may have changed since we checked
+                    Bitmap value = sLargeArtCache.get(artIndex);
+                    if (value == null) {
+                        sLargeArtCache.put(artIndex, d);
+                    } else {
+                        d = value;
+                    }
+                }
+            }
+        }
+        return d;
     }
     
     // Get album art for specified album. This method will not try to
@@ -558,11 +585,11 @@ public class MusicUtils {
             defaultAlbumIcon.setFilterBitmap(false);
             defaultAlbumIcon.setDither(false);
             
-    		//FastBitmapDrawable d = (FastBitmapDrawable) MusicUtils.getCachedArtwork(context, artIndex, defaultAlbumIcon);
+    		FastBitmapDrawable d = (FastBitmapDrawable) MusicUtils.getCachedArtwork(context, artIndex, defaultAlbumIcon);
 
-    		//if (d != null) {
-    		//	return d.getBitmap();
-    		//}
+    		if (d != null) {
+    			return d.getBitmap();
+    		}
     	}
 		
 		return null;
