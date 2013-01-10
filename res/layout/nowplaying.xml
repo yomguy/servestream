@@ -33,7 +33,9 @@
     <LinearLayout
     	android:layout_width="fill_parent"
     	android:layout_height="57.0dip"
-    	android:orientation="horizontal" >
+    	android:gravity="bottom"
+    	android:orientation="horizontal"
+    	android:background="@drawable/bg_player_preview_button" >
     
     	<ImageView
         	android:id="@+id/coverart"
