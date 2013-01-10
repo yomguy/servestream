@@ -31,12 +31,9 @@ import android.database.sqlite.SQLiteOpenHelper;
 import android.database.sqlite.SQLiteQueryBuilder;
 import android.database.sqlite.SQLiteStatement;
 import android.net.Uri;
-import android.os.ParcelFileDescriptor;
 import android.text.TextUtils;
 import android.util.Log;
 
-import java.io.File;
-import java.io.FileNotFoundException;
 import java.util.HashMap;
 
 /**
@@ -198,8 +195,10 @@ public class MediaProvider extends ContentProvider {
         if (rowId > 0) {
             Uri audioUri = ContentUris.withAppendedId(MediaColumns.CONTENT_URI, rowId);
             getContext().getContentResolver().notifyChange(audioUri, null);
+            db.close();
             return audioUri;
         }
+        db.close();
 
         throw new SQLException("Failed to insert row into " + uri);
     }
@@ -273,6 +272,7 @@ public class MediaProvider extends ContentProvider {
         	db.setTransactionSuccessful();
         } finally {
         	db.endTransaction();
+        	db.close();
         }
         
         return numInserted;
@@ -297,7 +297,9 @@ public class MediaProvider extends ContentProvider {
             throw new IllegalArgumentException("Unknown URI " + uri);
         }
 
-        getContext().getContentResolver().notifyChange(uri, null);
+        getContext().getContentResolver().notifyChange(uri, null);        
+        db.close();
+        
         return count;
     }
 
@@ -321,57 +323,11 @@ public class MediaProvider extends ContentProvider {
         }
 
         getContext().getContentResolver().notifyChange(uri, null);
+        db.close();
+        
         return count;
     }
 
-    @Override
-    public ParcelFileDescriptor openFile(Uri uri, String mode)
-            throws FileNotFoundException {
-    	return customOpenFileHelper(uri, mode);
-    }
-    
-    /**
-     * Convenience for subclasses that wish to implement {@link #openFile}
-     * by looking up a column named "_data" at the given URI.
-     *
-     * @param uri The URI to be opened.
-     * @param mode The file mode.  May be "r" for read-only access,
-     * "w" for write-only access (erasing whatever data is currently in
-     * the file), "wa" for write-only access to append to any existing data,
-     * "rw" for read and write access on any existing data, and "rwt" for read
-     * and write access that truncates any existing file.
-     *
-     * @return Returns a new ParcelFileDescriptor that can be used by the
-     * client to access the file.
-     */
-    private final ParcelFileDescriptor customOpenFileHelper(Uri uri,
-            String mode) throws FileNotFoundException {
-        Cursor c = query(uri, new String[]{MediaColumns.ARTWORK}, null, null, null);
-        int count = (c != null) ? c.getCount() : 0;
-        if (count != 1) {
-            // If there is not exactly one result, throw an appropriate
-            // exception.
-            if (c != null) {
-                c.close();
-            }
-            if (count == 0) {
-                throw new FileNotFoundException("No entry for " + uri);
-            }
-            throw new FileNotFoundException("Multiple items at " + uri);
-        }
-
-        c.moveToFirst();
-        int i = c.getColumnIndex(MediaColumns.ARTWORK);
-        String path = (i >= 0 ? c.getString(i) : null);
-        c.close();
-        if (path == null) {
-            throw new FileNotFoundException("Column artwork not found.");
-        }
-
-        //int modeBits = ContentResolver.modeToMode(uri, mode);
-        return ParcelFileDescriptor.open(new File(path), ParcelFileDescriptor.MODE_READ_ONLY);
-    }
-    
     static {
         sUriMatcher = new UriMatcher(UriMatcher.NO_MATCH);
         sUriMatcher.addURI(Media.AUTHORITY, "uris", MEDIA);
