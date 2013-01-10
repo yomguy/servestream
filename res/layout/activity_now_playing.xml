@@ -2,7 +2,7 @@
 <!--
 /*
  * ServeStream: A HTTP stream browser/player for Android
- * Copyright 2010 William Seemann
+ * Copyright 2013 William Seemann
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,7 +28,6 @@
         android:id="@+id/player_actionbar"
         android:layout_width="fill_parent"
         android:layout_height="48dip"
-        android:layout_alignParentTop="true"
         android:gravity="center_vertical"
         android:orientation="horizontal" >
 
@@ -66,7 +65,7 @@
     <net.sourceforge.servestream.utils.TouchInterceptor
         android:id="@android:id/list"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_height="0dip"
         android:layout_weight="1"
         android:textSize="18sp"
         android:drawSelectorOnTop="false"
