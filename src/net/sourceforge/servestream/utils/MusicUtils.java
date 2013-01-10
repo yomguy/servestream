@@ -381,13 +381,15 @@ public class MusicUtils {
         }
     }
     
-    public static Drawable getCachedArtwork(Context context, long artIndex, BitmapDrawable defaultArtwork) {
+    public static Drawable getCachedArtwork(Context context, long artIndex, BitmapDrawable defaultArtwork, boolean allowdefault) {
         Drawable d = null;
         synchronized(sArtCache) {
             d = sArtCache.get(artIndex);
         }
         if (d == null) {
-        	d = defaultArtwork;
+        	if (allowdefault) {
+        		d = defaultArtwork;
+        	}
             final Bitmap icon = defaultArtwork.getBitmap();
             int w = icon.getWidth();
             int h = icon.getHeight();
@@ -585,7 +587,7 @@ public class MusicUtils {
             defaultAlbumIcon.setFilterBitmap(false);
             defaultAlbumIcon.setDither(false);
             
-    		FastBitmapDrawable d = (FastBitmapDrawable) MusicUtils.getCachedArtwork(context, artIndex, defaultAlbumIcon);
+    		FastBitmapDrawable d = (FastBitmapDrawable) MusicUtils.getCachedArtwork(context, artIndex, defaultAlbumIcon, false);
 
     		if (d != null) {
     			return d.getBitmap();
@@ -616,7 +618,7 @@ public class MusicUtils {
                         defaultAlbumIcon.setFilterBitmap(false);
                         defaultAlbumIcon.setDither(false);
                 		
-                		d = MusicUtils.getCachedArtwork(a, sService.getAudioId(), defaultAlbumIcon);
+                		d = MusicUtils.getCachedArtwork(a, sService.getAudioId(), defaultAlbumIcon, true);
                 	}
                 }
             	
