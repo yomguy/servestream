@@ -83,9 +83,7 @@ public class NowPlayingActivity extends ListActivity implements View.OnCreateCon
             Media.MediaColumns.TITLE,
             Media.MediaColumns.ALBUM,
             Media.MediaColumns.ARTIST,
-            Media.MediaColumns.DURATION,
-            Media.MediaColumns.TRACK,
-            Media.MediaColumns.YEAR
+            Media.MediaColumns.DURATION
     };
     
     /** Called when the activity is first created. */
