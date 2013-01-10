@@ -1,6 +1,6 @@
 /*
  * ServeStream: A HTTP stream browser/player for Android
- * Copyright 2010 William Seemann
+ * Copyright 2013 William Seemann
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -195,10 +195,8 @@ public class MediaProvider extends ContentProvider {
         if (rowId > 0) {
             Uri audioUri = ContentUris.withAppendedId(MediaColumns.CONTENT_URI, rowId);
             getContext().getContentResolver().notifyChange(audioUri, null);
-            db.close();
             return audioUri;
         }
-        db.close();
 
         throw new SQLException("Failed to insert row into " + uri);
     }
@@ -272,7 +270,6 @@ public class MediaProvider extends ContentProvider {
         	db.setTransactionSuccessful();
         } finally {
         	db.endTransaction();
-        	db.close();
         }
         
         return numInserted;
@@ -297,9 +294,7 @@ public class MediaProvider extends ContentProvider {
             throw new IllegalArgumentException("Unknown URI " + uri);
         }
 
-        getContext().getContentResolver().notifyChange(uri, null);        
-        db.close();
-        
+        getContext().getContentResolver().notifyChange(uri, null);
         return count;
     }
 
@@ -323,8 +318,6 @@ public class MediaProvider extends ContentProvider {
         }
 
         getContext().getContentResolver().notifyChange(uri, null);
-        db.close();
-        
         return count;
     }
 
