@@ -86,12 +86,10 @@
             android:padding="10dip"
             android:background="@null" >
         
-        	<ImageView
-        	    android:id="@+id/album_art"
-            	android:layout_width="fill_parent"
-            	android:layout_height="fill_parent"
-            	android:scaleType="fitXY"
-            	android:background="@null" />
+            <net.sourceforge.servestream.utils.CoverView
+				android:id="@+id/album_art"
+				android:layout_height="fill_parent"
+				android:layout_width="fill_parent" />
         
         </LinearLayout>
         
@@ -109,7 +107,7 @@
                 android:layout_width="wrap_content" 
                 android:layout_height="wrap_content"
                 android:paddingTop="5dip"
-                android:textSize="13dip"
+                android:textSize="13sp"
         		android:textStyle="normal"
         		android:textColor="#ffa9a9a9"
         		android:singleLine="true" />
@@ -118,7 +116,7 @@
             	android:id="@+id/trackname"
             	android:layout_width="wrap_content"
         		android:layout_height="wrap_content"
-            	android:textSize="17dip"
+            	android:textSize="17sp"
         		android:textStyle="bold"
         		android:textColor="#ffffffff"
         		android:ellipsize="marquee"
@@ -128,7 +126,7 @@
                 android:id="@+id/artist_and_album"
                 android:layout_width="wrap_content"
         		android:layout_height="wrap_content"
-                android:textSize="13dip"
+                android:textSize="13sp"
         		android:textStyle="normal"
         		android:textColor="#ffa9a9a9"
         		android:ellipsize="marquee"
@@ -158,7 +156,7 @@
                 android:layout_width="wrap_content"
         		android:layout_height="wrap_content"
         		android:paddingRight="6dip" 
-                android:textSize="12dip"
+                android:textSize="12sp"
         		android:textColor="#ffbbbbbb"
                 android:gravity="right" />
 
@@ -182,7 +180,7 @@
                 android:layout_width="wrap_content"
         		android:layout_height="wrap_content"
         		android:paddingLeft="6dip"
-                android:textSize="12dip"
+                android:textSize="12sp"
         		android:textColor="#ffbbbbbb"
                 android:gravity="left" />
         </LinearLayout>

@@ -22,6 +22,8 @@ import net.sourceforge.servestream.button.RepeatingImageButton;
 import net.sourceforge.servestream.provider.Media;
 import net.sourceforge.servestream.service.IMediaPlaybackService;
 import net.sourceforge.servestream.service.MediaPlaybackService;
+import net.sourceforge.servestream.utils.CoverView;
+import net.sourceforge.servestream.utils.CoverView.CoverViewListener;
 import net.sourceforge.servestream.utils.MusicUtils;
 import net.sourceforge.servestream.utils.PreferenceConstants;
 import net.sourceforge.servestream.utils.MusicUtils.ServiceToken;
@@ -40,20 +42,16 @@ import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
 import android.content.res.Configuration;
-import android.graphics.Bitmap;
 import android.media.AudioManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Looper;
 import android.os.Message;
-import android.os.PowerManager;
 import android.os.RemoteException;
 import android.os.SystemClock;
-import android.os.PowerManager.WakeLock;
 import android.preference.PreferenceManager;
 import android.util.Log;
-import android.view.Display;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -61,8 +59,8 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.Window;
+import android.view.WindowManager;
 import android.widget.ImageButton;
-import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.SeekBar;
 import android.widget.TextView;
@@ -70,7 +68,8 @@ import android.widget.Toast;
 import android.widget.SeekBar.OnSeekBarChangeListener;
 
 public class MediaPlaybackActivity extends Activity implements MusicUtils.Defs,
-    OnSharedPreferenceChangeListener
+    OnSharedPreferenceChangeListener,
+    CoverViewListener
 {
     private static final String TAG = MediaPlaybackActivity.class.getName();
 
@@ -84,7 +83,6 @@ public class MediaPlaybackActivity extends Activity implements MusicUtils.Defs,
     private final static int DIALOG_SLEEP_TIMER = 2;
     
     private SharedPreferences mPreferences;
-    private WakeLock mWakeLock;
     
     private boolean mSeeking = false;
     private boolean mDeviceHasDpad;
@@ -122,17 +120,14 @@ public class MediaPlaybackActivity extends Activity implements MusicUtils.Defs,
         mPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         mPreferences.registerOnSharedPreferenceChangeListener(this);
         
-        PowerManager pm = (PowerManager)getSystemService(Context.POWER_SERVICE);
-        mWakeLock = pm.newWakeLock(PowerManager.SCREEN_BRIGHT_WAKE_LOCK, TAG);
-        mWakeLock.setReferenceCounted(false);
-
         requestWindowFeature(Window.FEATURE_NO_TITLE);
         setContentView(R.layout.activity_media_player);
 
         mCurrentTime = (TextView) findViewById(R.id.position_text);
         mTotalTime = (TextView) findViewById(R.id.duration_text);
         mProgress = (ProgressBar) findViewById(R.id.seek_bar);
-        mAlbum = (ImageView) findViewById(R.id.album_art);
+        mAlbum = (CoverView) findViewById(R.id.album_art);
+        mAlbum.setup(mAlbumArtWorker.getLooper(), this);
         mTrackName = (TextView) findViewById(R.id.trackname);
         mArtistAndAlbumName = (TextView) findViewById(R.id.artist_and_album);
         mTrackNumber = (TextView) findViewById(R.id.track_number_text);
@@ -171,9 +166,9 @@ public class MediaPlaybackActivity extends Activity implements MusicUtils.Defs,
 			String key) {
   	    if (key.equals(PreferenceConstants.WAKELOCK)) {
 			if (sharedPreferences.getBoolean(PreferenceConstants.WAKELOCK, true)) {
-		    	mWakeLock.acquire();
+		    	getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
   	        } else {
-  	            mWakeLock.release();
+  	      		getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
   	        }
   	    }
   	}
@@ -277,7 +272,7 @@ public class MediaPlaybackActivity extends Activity implements MusicUtils.Defs,
         paused = false;
         
 		if (mPreferences.getBoolean(PreferenceConstants.WAKELOCK, true)) {
-			mWakeLock.acquire();
+	    	getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 		}
         
         mToken = MusicUtils.bindToService(this, osc);
@@ -308,7 +303,6 @@ public class MediaPlaybackActivity extends Activity implements MusicUtils.Defs,
     @Override
     public void onPause() {
     	super.onPause();
-		mWakeLock.release();
     	mParentActivityState = GONE;
     	removeDialog(PREPARING_MEDIA);
     }
@@ -352,7 +346,7 @@ public class MediaPlaybackActivity extends Activity implements MusicUtils.Defs,
 	    switch(id) {
 	    case PREPARING_MEDIA:
         	progressDialog = new ProgressDialog(MediaPlaybackActivity.this);
-        	progressDialog.setMessage("Opening file...");
+        	progressDialog.setMessage(getString(R.string.opening_url_message));
         	progressDialog.setCancelable(true);
 	    	return progressDialog;
 	    case DIALOG_SLEEP_TIMER:
@@ -398,7 +392,7 @@ public class MediaPlaybackActivity extends Activity implements MusicUtils.Defs,
                 })
                 .setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int whichButton) {
-                    	dialog.dismiss();
+                    	removeDialog(DIALOG_SLEEP_TIMER);
                     }
                 })
                 .create();
@@ -918,7 +912,7 @@ public class MediaPlaybackActivity extends Activity implements MusicUtils.Defs,
 		}	
     }
     
-    private ImageView mAlbum;
+    private CoverView mAlbum;
     private TextView mCurrentTime;
     private TextView mTotalTime;
     private TextView mArtistAndAlbumName;
@@ -933,7 +927,6 @@ public class MediaPlaybackActivity extends Activity implements MusicUtils.Defs,
     private static final int REFRESH = 1;
     private static final int QUIT = 2;
     private static final int GET_ALBUM_ART = 3;
-    private static final int ALBUM_ART_DECODED = 4;
 
     private void queueNextRefresh(long delay) {
         if (!paused) {
@@ -993,11 +986,6 @@ public class MediaPlaybackActivity extends Activity implements MusicUtils.Defs,
         @Override
         public void handleMessage(Message msg) {
             switch (msg.what) {
-                case ALBUM_ART_DECODED:
-                    mAlbum.setImageBitmap((Bitmap)msg.obj);
-                    mAlbum.getDrawable().setDither(true);
-                    break;
-
                 case REFRESH:
                     long next = refreshNow();
                     queueNextRefresh(next);
@@ -1129,36 +1117,7 @@ public class MediaPlaybackActivity extends Activity implements MusicUtils.Defs,
             long id = ((IdWrapper) msg.obj).id;
             
             if (msg.what == GET_ALBUM_ART && mId != id && id >= 0) {
-            	Display display = getWindowManager().getDefaultDisplay();
-            	int width = display.getWidth() - 20;
-            	int height = display.getHeight() - 20;
-            
-            	// Get the smaller window dimension to use when scaling
-            	if (width >= height) {
-            		width = height;
-            	} else {
-            		height = width;
-            	}
-
-            	Bitmap b = MusicUtils.getDefaultArtwork(MediaPlaybackActivity.this, R.drawable.albumart_mp_unknown, width, height);
-            	
-                // while decoding the new image, show the default album art
-                Message numsg = mHandler.obtainMessage(ALBUM_ART_DECODED, b);
-                mHandler.removeMessages(ALBUM_ART_DECODED);
-                mHandler.sendMessageDelayed(numsg, 300);
-                // Don't allow default artwork here, because we want to fall back to song-specific
-                // album art if we can't find anything for the album.
-                if (mPreferences.getBoolean(PreferenceConstants.RETRIEVE_ALBUM_ART, false)) {
-                	Bitmap bm = MusicUtils.getLargeCachedArtwork(MediaPlaybackActivity.this, id, width, height);
-                	if (bm != null) {
-                		numsg = mHandler.obtainMessage(ALBUM_ART_DECODED, bm);
-                		mHandler.removeMessages(ALBUM_ART_DECODED);
-                		mHandler.sendMessage(numsg);
-                        mId = id;
-                	}
-                } else {
-                    mId = id;
-                }
+            	mAlbum.setSong((int) id);
             }
         }
     }
@@ -1203,4 +1162,17 @@ public class MediaPlaybackActivity extends Activity implements MusicUtils.Defs,
             mLooper.quit();
         }
     }
+
+	@Override
+	public void onCoverViewInitialized() {
+        if (mService == null) {
+            return;
+        }
+        
+        try {
+            mAlbumArtHandler.removeMessages(GET_ALBUM_ART);
+			mAlbumArtHandler.obtainMessage(GET_ALBUM_ART, new IdWrapper(mService.getTrackId())).sendToTarget();
+		} catch (RemoteException e) {
+		}
+	}
 }
