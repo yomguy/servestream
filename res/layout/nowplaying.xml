@@ -35,7 +35,7 @@
     	android:layout_height="57.0dip"
     	android:gravity="bottom"
     	android:orientation="horizontal"
-    	android:background="@drawable/bg_player_preview_button" >
+        android:background="@drawable/bg_actionbar_item" >
     
     	<ImageView
         	android:id="@+id/coverart"
