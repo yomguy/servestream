@@ -1675,7 +1675,47 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
             mManager.notify(PLAYBACKSERVICE_STATUS, buildNotification());
         }
     }
-    
+   
+	public void updateMetadata() {
+    	Cursor cursor;
+    	Cursor tempCursor;
+    	
+    	if (mCursor == null) {
+    		return;
+    	}
+    	
+    	long id = mPlayList[mPlayPos];
+    	
+        cursor = getContentResolver().query(
+                Media.MediaColumns.CONTENT_URI,
+                mCursorCols, "_id=" + id , null, null);
+        
+        if (cursor != null) {
+        	cursor.moveToFirst();
+        	tempCursor = mCursor;
+        	tempCursor.close();
+        	mCursor = cursor;
+        	
+            if (mRemoteControlClientCompat != null) {
+            	// Update the remote controls
+                MetadataEditorCompat metadataEditor = mRemoteControlClientCompat.editMetadata(true);
+                metadataEditor.putString(2, getArtistName());
+                metadataEditor.putString(1, getAlbumName());
+                metadataEditor.putString(7, getTrackName());
+                metadataEditor.putLong(9, getDuration());
+                if (mPreferences.getBoolean(PreferenceConstants.RETRIEVE_ALBUM_ART, false)) {
+                	metadataEditor.putBitmap(100, MusicUtils.getCachedBitmapArtwork(this, getTrackId()));
+                }
+                metadataEditor.apply();
+            }
+        	
+            notifyChange(META_CHANGED);
+            
+    		NotificationManager mManager = (NotificationManager) this.getSystemService(Context.NOTIFICATION_SERVICE);
+            mManager.notify(PLAYBACKSERVICE_STATUS, buildNotification());
+        }
+    }
+	
     private Notification buildNotification() {
         String trackName = getTrackName();
     	if (trackName == null || trackName.equals(Media.UNKNOWN_STRING)) {

@@ -417,7 +417,7 @@ public class SHOUTcastMetadata extends BroadcastReceiver {
 
 						Log.v(TAG, "Metadata found");
 						
-						//mMediaPlaybackService.updateMetadata();
+						mMediaPlaybackService.updateMetadata();
 					} else {
 						Log.v(TAG, "Metadata not found");
 					}
