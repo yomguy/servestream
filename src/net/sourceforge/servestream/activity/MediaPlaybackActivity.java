@@ -344,60 +344,70 @@ public class MediaPlaybackActivity extends Activity implements MusicUtils.Defs,
 	    Dialog dialog;
 	    ProgressDialog progressDialog = null;
 	    switch(id) {
-	    case PREPARING_MEDIA:
-        	progressDialog = new ProgressDialog(MediaPlaybackActivity.this);
-        	progressDialog.setMessage(getString(R.string.opening_url_message));
-        	progressDialog.setCancelable(true);
-	    	return progressDialog;
-	    case DIALOG_SLEEP_TIMER:
-            LayoutInflater factory = LayoutInflater.from(this);
-            final View sleepTimerView = factory.inflate(R.layout.alert_dialog_sleep_timer, null);
-            final TextView sleepTimerText = (TextView) sleepTimerView.findViewById(R.id.sleep_timer_text);
-            final SeekBar seekbar = (SeekBar) sleepTimerView.findViewById(R.id.seekbar);
-            seekbar.setMax(MAX_SLEEP_TIMER_MINUTES);
-            try {
-            	int sleepTimerMode = mService.getSleepTimerMode();
-				sleepTimerText.setText(makeTimeString(sleepTimerMode));
-				seekbar.setProgress(sleepTimerMode);
-			} catch (RemoteException e) {
-			}
-            seekbar.setOnSeekBarChangeListener(new OnSeekBarChangeListener() {
+	    	case PREPARING_MEDIA:
+	    		progressDialog = new ProgressDialog(MediaPlaybackActivity.this);
+	    		progressDialog.setMessage(getString(R.string.opening_url_message));
+	    		progressDialog.setCancelable(true);
+	    		return progressDialog;
+	    	case DIALOG_SLEEP_TIMER:
+	    		dialog = null;
+	    		
+	    		if (mService != null) {
+	    			break;
+	    		}
+	    	
+	    		int sleepTimerMode = -1;
+	    	
+	    		try {
+	    			sleepTimerMode = mService.getSleepTimerMode();
+	    		} catch (RemoteException e) {
+	    			break;
+	    		}
+			
+            	LayoutInflater factory = LayoutInflater.from(this);
+            	final View sleepTimerView = factory.inflate(R.layout.alert_dialog_sleep_timer, null);
+            	final TextView sleepTimerText = (TextView) sleepTimerView.findViewById(R.id.sleep_timer_text);
+            	final SeekBar seekbar = (SeekBar) sleepTimerView.findViewById(R.id.seekbar);
+            	seekbar.setMax(MAX_SLEEP_TIMER_MINUTES);
+            	sleepTimerText.setText(makeTimeString(sleepTimerMode));
+            	seekbar.setProgress(sleepTimerMode);
+            	seekbar.setOnSeekBarChangeListener(new OnSeekBarChangeListener() {
 
-				@Override
-				public void onProgressChanged(SeekBar seekBar, int progress,
-						boolean fromUser) {
-					sleepTimerText.setText(makeTimeString(progress));
-				}
+            		@Override
+            		public void onProgressChanged(SeekBar seekBar, int progress,
+            				boolean fromUser) {
+            			sleepTimerText.setText(makeTimeString(progress));
+            		}
 
-				@Override
-				public void onStartTrackingTouch(SeekBar seekBar) {
-					
-				}
+            		@Override
+            		public void onStartTrackingTouch(SeekBar seekBar) {
+            			
+            		}
 
-				@Override
-				public void onStopTrackingTouch(SeekBar seekBar) {
-					
-				}
+            		@Override
+            		public void onStopTrackingTouch(SeekBar seekBar) {
+            			
+            		}
             	
-            });
-            return new AlertDialog.Builder(MediaPlaybackActivity.this)
-                .setTitle(R.string.menu_sleep_timer)
-                .setView(sleepTimerView)
-                .setCancelable(true)
-                .setPositiveButton(R.string.set_alarm, new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int whichButton) {
-                    	setSleepTimer(seekbar.getProgress());
-                    	dialog.dismiss();
-                    }
-                })
-                .setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int whichButton) {
-                    	removeDialog(DIALOG_SLEEP_TIMER);
-                    }
-                })
-                .create();
-	    default:
-	        dialog = null;
+            	});
+            	return new AlertDialog.Builder(MediaPlaybackActivity.this)
+                	.setTitle(R.string.menu_sleep_timer)
+                	.setView(sleepTimerView)
+                	.setCancelable(true)
+                	.setPositiveButton(R.string.set_alarm, new DialogInterface.OnClickListener() {
+                		public void onClick(DialogInterface dialog, int whichButton) {
+                			setSleepTimer(seekbar.getProgress());
+                			dialog.dismiss();
+                		}
+                	})
+                	.setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
+                		public void onClick(DialogInterface dialog, int whichButton) {
+                			removeDialog(DIALOG_SLEEP_TIMER);
+                		}
+                	})
+                	.create();
+	    	default:
+	    		dialog = null;
 	    }
 	    return dialog;
 	}
