@@ -352,7 +352,7 @@ public class MediaPlaybackActivity extends Activity implements MusicUtils.Defs,
 	    	case DIALOG_SLEEP_TIMER:
 	    		dialog = null;
 	    		
-	    		if (mService != null) {
+	    		if (mService == null) {
 	    			break;
 	    		}
 	    	
