@@ -112,11 +112,6 @@ public class FFmpegMediaPlayer extends AbstractMediaPlayer {
             
         	Log.v(TAG, "onCompletionListener called");
         	
-            // Acquire a temporary wakelock, since when we return from
-            // this callback the MediaPlayer will release its wakelock
-            // and allow the device to go to sleep.
-            // This temporary wakelock is released when the RELEASE_WAKELOCK
-            // message is processed, but just in case, put a timeout on it.
             if (mIsInitialized) {
             	mHandler.sendEmptyMessage(MediaPlaybackService.TRACK_ENDED);
             }
