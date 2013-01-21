@@ -41,6 +41,12 @@
 			android:defaultValue="false" />
 
 		<CheckBoxPreference
+			android:key="ffmpegplayer"
+			android:title="@string/pref_ffmpegplayer_title"
+			android:summary="@string/pref_ffmpegplayer_summary"
+			android:defaultValue="false" />
+		
+		<CheckBoxPreference
 			android:key="wakelock"
 			android:title="@string/pref_wakelock_title"
 			android:summary="@string/pref_wakelock_summary"

@@ -18,13 +18,12 @@
 package net.sourceforge.servestream.service;
 
 import android.graphics.Bitmap;
-import net.sourceforge.servestream.player.AbstractMediaPlayer;
+import net.sourceforge.servestream.player.MultiPlayer;
 
 interface IMediaPlaybackService
 {
     void openFile(String path);
     void open(in long [] list, int position);
-    void setDataSource(boolean progressiveDownload);
     int getQueuePosition();
     boolean isPlaying();
     void stop();
@@ -55,7 +54,7 @@ interface IMediaPlaybackService
     int getRepeatMode();
     void setSleepTimerMode(int sleepmode);
     int getSleepTimerMode();
-    AbstractMediaPlayer getMediaPlayer();
+    MultiPlayer getMediaPlayer();
     boolean isStreaming();
     boolean isCompleteFileAvailable();
     long getCompleteFileDuration();
