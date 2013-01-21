@@ -26,6 +26,7 @@ public final class PreferenceConstants {
 
 	public static final String AUTOSAVE = "autosave";
 	public static final String PROGRESSIVE_DOWNLOAD = "progressivedownload";
+	public static final String USE_FFMPEG_PLAYER = "ffmpegplayer";
 	public static final String WAKELOCK = "wakelock";
 	public static final String WIFI_LOCK = "wifilock";
 	public static final String HEADPHONE_PAUSE = "headphonepause";

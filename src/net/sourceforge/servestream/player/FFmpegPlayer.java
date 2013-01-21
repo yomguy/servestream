@@ -510,7 +510,7 @@ import android.view.SurfaceHolder;
  * thread by default has a Looper running).
  *
  */
-public class FFmpegPlayer
+public class FFmpegPlayer extends AbstractMediaPlayer
 {
 
     private static final int AVCODEC_MAX_AUDIO_FRAME_SIZE = 200000;
@@ -584,6 +584,7 @@ public class FFmpegPlayer
      * result in an exception.</p>
      */
 	public FFmpegPlayer() {
+		super();
 		
         Looper looper;
         if ((looper = Looper.myLooper()) != null) {
@@ -741,8 +742,8 @@ public class FFmpegPlayer
      * @param mode target video scaling mode. Most be one of the supported
      * video scaling modes; otherwise, IllegalArgumentException will be thrown.
      *
-     * @see MediaPlayer#VIDEO_SCALING_MODE_SCALE_TO_FIT
-     * @see MediaPlayer#VIDEO_SCALING_MODE_SCALE_TO_FIT_WITH_CROPPING
+     * @see MultiPlayer#VIDEO_SCALING_MODE_SCALE_TO_FIT
+     * @see MultiPlayer#VIDEO_SCALING_MODE_SCALE_TO_FIT_WITH_CROPPING
      */
     public void setVideoScalingMode(int mode) {
         if (!isVideoScalingModeSupported(mode)) {
@@ -852,6 +853,23 @@ public class FFmpegPlayer
         return null;
     }
 
+    /**
+     * Sets the data source (file-path or http/rtsp URL) to use.
+     *
+     * @param path the path of the file, or the http/rtsp URL of the stream you want to play
+     * @throws IllegalStateException if it is called in an invalid state
+     *
+     * <p>When <code>path</code> refers to a local file, the file may actually be opened by a
+     * process other than the calling application.  This implies that the pathname
+     * should be an absolute path (as any other process runs with unspecified current working
+     * directory), and that the pathname should reference a world-readable file.
+     * As an alternative, the application could first open the file for reading,
+     * and then use the file descriptor form {@link #setDataSource(FileDescriptor)}.
+     */
+    public void setDataSource(String path, boolean isLocalFile)
+            throws IOException, IllegalArgumentException, SecurityException, IllegalStateException {
+    }
+    
     /**
      * Sets the data source (file-path or http/rtsp URL) to use.
      *
@@ -2254,4 +2272,59 @@ private native void _reset();
 		
 		return 1;
     }
+
+	@Override
+	public void setOnPreparedListener(AbstractMediaPlayer.OnPreparedListener listener) {
+		preparedListener = listener;
+		FFmpegPlayer.this.setOnPreparedListener(onPreparedListener);
+	}
+
+    private AbstractMediaPlayer.OnPreparedListener preparedListener;
+	
+	@Override
+	public void setOnCompletionListener(AbstractMediaPlayer.OnCompletionListener listener) {
+		completionListener = listener;
+		FFmpegPlayer.this.setOnCompletionListener(onCompletionListener);
+	}
+
+    private AbstractMediaPlayer.OnCompletionListener completionListener;
+	
+	@Override
+	public void setOnErrorListener(AbstractMediaPlayer.OnErrorListener listener) {
+		errorListener = listener;
+		FFmpegPlayer.this.setOnErrorListener(onErrorListener);
+	}
+    
+    private AbstractMediaPlayer.OnErrorListener errorListener;
+    
+    private FFmpegPlayer.OnPreparedListener onPreparedListener = new FFmpegPlayer.OnPreparedListener() {
+
+		@Override
+		public void onPrepared(FFmpegPlayer mp) {
+			if (preparedListener != null) {
+				preparedListener.onPrepared(FFmpegPlayer.this);
+			}
+		}
+    };
+    
+    private FFmpegPlayer.OnCompletionListener onCompletionListener = new FFmpegPlayer.OnCompletionListener() {
+
+		@Override
+		public void onCompletion(FFmpegPlayer mp) {
+			if (completionListener != null) {
+				completionListener.onCompletion(FFmpegPlayer.this);
+			}
+		}
+    };
+
+    private FFmpegPlayer.OnErrorListener onErrorListener = new FFmpegPlayer.OnErrorListener() {
+
+		@Override
+		public boolean onError(FFmpegPlayer mp, int what, int extra) {
+			if (errorListener != null) {
+				errorListener.onError(FFmpegPlayer.this, what, extra);
+			}
+			return false;
+		}
+    };
 }

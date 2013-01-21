@@ -19,8 +19,9 @@ package net.sourceforge.servestream.player;
 
 import android.media.MediaPlayer;
 import android.os.Handler;
+import android.os.Parcel;
+import android.os.Parcelable;
 import android.util.Log;
-import android.view.SurfaceHolder;
 
 import java.io.IOException;
 
@@ -31,20 +32,34 @@ import net.sourceforge.servestream.service.MediaPlaybackService;
  * Provides a unified interface for dealing with midi files and
  * other media files.
  */
-public class NativeMediaPlayer extends AbstractMediaPlayer {
-	private static final String TAG = NativeMediaPlayer.class.getName();
+public class MultiPlayer implements Parcelable {
+	private static final String TAG = MultiPlayer.class.getName();
 	
-	private MediaPlayer mMediaPlayer = new MediaPlayer();
+	private AbstractMediaPlayer mMediaPlayer = new NativePlayer();
     private Handler mHandler;
     private boolean mIsInitialized = false;
 
-    public NativeMediaPlayer() {
+    public MultiPlayer() {
         super();
     }
 
-    public void setDataSource(String path, boolean isLocalFile) {
+    public void setDataSource(String path, boolean isLocalFile, boolean useFFmpegPlayer) {
         try {
             mMediaPlayer.reset();
+            mMediaPlayer.release();
+            
+            AbstractMediaPlayer player = null;
+            if (isLocalFile) {
+            	player = new NativePlayer();
+            } else {
+            	if (useFFmpegPlayer) {
+            		player = new FFmpegPlayer();
+            	} else {
+            		player = AbstractMediaPlayer.getMediaPlayer(path);
+            	}
+            }
+        	mMediaPlayer = player;
+            
             mMediaPlayer.setOnPreparedListener(onPreparedListener);
             mMediaPlayer.setOnCompletionListener(completionListener);
             mMediaPlayer.setOnErrorListener(errorListener);            
@@ -93,8 +108,8 @@ public class NativeMediaPlayer extends AbstractMediaPlayer {
         mHandler = handler;
     }
 
-    MediaPlayer.OnPreparedListener onPreparedListener = new MediaPlayer.OnPreparedListener() {
-		public void onPrepared(MediaPlayer mp) {
+    AbstractMediaPlayer.OnPreparedListener onPreparedListener = new AbstractMediaPlayer.OnPreparedListener() {
+		public void onPrepared(AbstractMediaPlayer mp) {
 			
 			Log.v(TAG, "media player is prepared");
 	        mIsInitialized = true;
@@ -102,8 +117,8 @@ public class NativeMediaPlayer extends AbstractMediaPlayer {
 		}
     };
     
-    MediaPlayer.OnCompletionListener completionListener = new MediaPlayer.OnCompletionListener() {
-        public void onCompletion(MediaPlayer mp) {
+    AbstractMediaPlayer.OnCompletionListener completionListener = new AbstractMediaPlayer.OnCompletionListener() {
+        public void onCompletion(AbstractMediaPlayer mp) {
             
         	Log.v(TAG, "onCompletionListener called");
         	
@@ -113,15 +128,15 @@ public class NativeMediaPlayer extends AbstractMediaPlayer {
         }
     };
 
-    MediaPlayer.OnErrorListener errorListener = new MediaPlayer.OnErrorListener() {
-        public boolean onError(MediaPlayer mp, int what, int extra) {
+    AbstractMediaPlayer.OnErrorListener errorListener = new AbstractMediaPlayer.OnErrorListener() {
+        public boolean onError(AbstractMediaPlayer mp, int what, int extra) {
         	Log.d(TAG, "Error: " + what + "," + extra);
         	
             switch (what) {
             case MediaPlayer.MEDIA_ERROR_SERVER_DIED:
                 mIsInitialized = false;
                 mMediaPlayer.release();
-                mMediaPlayer = new MediaPlayer(); 
+                mMediaPlayer = new NativePlayer(); 
                 mHandler.sendMessageDelayed(mHandler.obtainMessage(MediaPlaybackService.SERVER_DIED), 2000);
                 return true;
             default:
@@ -150,7 +165,24 @@ public class NativeMediaPlayer extends AbstractMediaPlayer {
         mMediaPlayer.setVolume(vol, vol);
     }
 
-    public void setDisplay(SurfaceHolder holder) {
-    	mMediaPlayer.setDisplay(holder);
-    }
+	@Override
+	public int describeContents() {
+		return 0;
+	}
+
+	@Override
+	public void writeToParcel(Parcel dest, int flags) {
+		
+	}
+	
+	public static final Parcelable.Creator<MultiPlayer> CREATOR = new
+	Parcelable.Creator<MultiPlayer>() {
+	    public MultiPlayer createFromParcel(Parcel in) {
+	    	return null;
+	    }
+
+	    public MultiPlayer[] newArray(int size) {
+	    	return null;
+	    }
+	};
 }

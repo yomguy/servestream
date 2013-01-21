@@ -53,9 +53,7 @@ import net.sourceforge.servestream.dbutils.StreamDatabase;
 import net.sourceforge.servestream.media.MetadataRetrieverTask;
 import net.sourceforge.servestream.media.MetadataRetrieverTask.MetadataRetrieverListener;
 import net.sourceforge.servestream.media.SHOUTcastMetadata;
-import net.sourceforge.servestream.player.AbstractMediaPlayer;
-import net.sourceforge.servestream.player.FFmpegMediaPlayer;
-import net.sourceforge.servestream.player.NativeMediaPlayer;
+import net.sourceforge.servestream.player.MultiPlayer;
 import net.sourceforge.servestream.provider.Media;
 import net.sourceforge.servestream.receiver.MediaButtonIntentReceiver;
 import net.sourceforge.servestream.service.RemoteControlClientCompat.MetadataEditorCompat;
@@ -126,7 +124,7 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
     
     protected StreamDatabase mStreamdb = null;
     
-    private AbstractMediaPlayer mPlayer;
+    private MultiPlayer mPlayer;
     private String mFileToPlay;
     private int mShuffleMode = SHUFFLE_NONE;
     private int mRepeatMode = REPEAT_NONE;
@@ -350,7 +348,7 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
 		tm.listen(mPhoneListener, PhoneStateListener.LISTEN_CALL_STATE);
         
         // Needs to be done in this thread, since otherwise ApplicationContext.getPowerManager() crashes.
-        mPlayer = new NativeMediaPlayer();
+        mPlayer = new MultiPlayer();
         mPlayer.setHandler(mMediaplayerHandler);
         
         reloadSettings();
@@ -565,7 +563,7 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
     	}
     };
     
-    public AbstractMediaPlayer getMediaPlayer() {
+    public MultiPlayer getMediaPlayer() {
     	return mPlayer;
     }
     
@@ -840,23 +838,15 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
             
     		mDownloadManager.cancelDownload();
             
-            mPlayer.release();
-            mPlayer = AbstractMediaPlayer.getMediaPlayer(mFileToPlay);
-            mPlayer.setHandler(mMediaplayerHandler);
-            	
-            if (mPreferences.getBoolean(PreferenceConstants.PROGRESSIVE_DOWNLOAD, false) &&
-            		!(mPlayer instanceof FFmpegMediaPlayer)) {
+            if (mPreferences.getBoolean(PreferenceConstants.PROGRESSIVE_DOWNLOAD, false)) {
             	mIsStreaming = false;
             	mDownloadManager.download(mPlayList[mPlayPos]);
             } else {
+            	boolean useFFmpegPlayer = mPreferences.getBoolean(PreferenceConstants.USE_FFMPEG_PLAYER, false);   	
             	mIsStreaming = true;
-            	mPlayer.setDataSource(mFileToPlay, false);
+            	mPlayer.setDataSource(mFileToPlay, false, useFFmpegPlayer);
             }
         }
-    }
-
-    private void setDataSource(boolean progressiveDownload) {    	
-    	mPlayer.setDataSource(mFileToPlay, false);
     }
     
     /**
@@ -1468,9 +1458,6 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
         public void open(long [] list, int position) {
             mService.get().open(list, position);
         }
-        public void setDataSource(boolean progressiveDownload) {
-        	mService.get().setDataSource(progressiveDownload);
-        }
         public int getQueuePosition() {
             return mService.get().getQueuePosition();
         }
@@ -1561,7 +1548,7 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
 		public int getSleepTimerMode() throws RemoteException {
 			return mService.get().getSleepTimerMode();
 		}
-		public AbstractMediaPlayer getMediaPlayer() throws RemoteException {
+		public MultiPlayer getMediaPlayer() throws RemoteException {
 			return mService.get().getMediaPlayer();
 		}
 		public boolean isStreaming() throws RemoteException {
