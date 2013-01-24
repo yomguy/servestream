@@ -122,8 +122,6 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
     public static final int PLAYER_ERROR = 7;
     private static final int MAX_HISTORY_SIZE = 100;
     
-    protected StreamDatabase mStreamdb = null;
-    
     private MultiPlayer mPlayer;
     private String mFileToPlay;
     private int mShuffleMode = SHUFFLE_NONE;
@@ -342,8 +340,6 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
         mAudioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
         mMediaButtonReceiverComponent = new ComponentName(this, MediaButtonIntentReceiver.class);
         
-        mStreamdb = new StreamDatabase(this);
-        
 		TelephonyManager tm = (TelephonyManager)getSystemService(TELEPHONY_SERVICE);
 		tm.listen(mPhoneListener, PhoneStateListener.LISTEN_CALL_STATE);
         
@@ -373,11 +369,6 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
     @Override
     public void onDestroy() {
     	Log.v(TAG, "onDestroy called");
-    	
-		if(mStreamdb != null) {
-			mStreamdb.close();
-			mStreamdb = null;
-		}
     	
         // Check that we're not being destroyed while something is still playing.
         if (isPlaying()) {
