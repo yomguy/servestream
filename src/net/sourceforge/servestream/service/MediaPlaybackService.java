@@ -49,7 +49,6 @@ import java.util.Vector;
 
 import net.sourceforge.servestream.R;
 import net.sourceforge.servestream.activity.MediaPlaybackActivity;
-import net.sourceforge.servestream.dbutils.StreamDatabase;
 import net.sourceforge.servestream.media.MetadataRetrieverTask;
 import net.sourceforge.servestream.media.MetadataRetrieverTask.MetadataRetrieverListener;
 import net.sourceforge.servestream.media.SHOUTcastMetadata;
