@@ -1,6 +1,6 @@
 /*
  * ServeStream: A HTTP stream browser/player for Android
- * Copyright 2012 William Seemann
+ * Copyright 2013 William Seemann
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,20 +25,31 @@ import android.util.Log;
 
 import java.io.IOException;
 
+import net.sourceforge.servestream.transport.File;
+import net.sourceforge.servestream.transport.HTTP;
+import net.sourceforge.servestream.transport.HTTPS;
+import net.sourceforge.servestream.transport.MMS;
+import net.sourceforge.servestream.transport.MMSH;
+import net.sourceforge.servestream.transport.MMST;
+import net.sourceforge.servestream.transport.RTSP;
 import net.sourceforge.servestream.utils.URLUtils;
 import net.sourceforge.servestream.service.MediaPlaybackService;
 
 /**
- * Provides a unified interface for dealing with midi files and
- * other media files.
+ * Provides a unified interface for dealing with media files.
  */
 public class MultiPlayer implements Parcelable {
 	private static final String TAG = MultiPlayer.class.getName();
 	
-	private AbstractMediaPlayer mMediaPlayer = new NativePlayer();
+	private NativePlayer mNativeMediaPlayer = new NativePlayer();
+	private FFmpegPlayer mFFmpegMediaPlayer;
+	private AbstractMediaPlayer mMediaPlayer = mNativeMediaPlayer;
     private Handler mHandler;
     private boolean mIsInitialized = false;
 
+    /**
+     * Default constructor
+     */
     public MultiPlayer() {
         super();
     }
@@ -46,23 +57,24 @@ public class MultiPlayer implements Parcelable {
     public void setDataSource(String path, boolean isLocalFile, boolean useFFmpegPlayer) {
         try {
             mMediaPlayer.reset();
-            mMediaPlayer.release();
             
             AbstractMediaPlayer player = null;
             if (isLocalFile) {
             	player = new NativePlayer();
             } else {
             	if (useFFmpegPlayer) {
-            		player = new FFmpegPlayer();
+            		player = getFFmpegPlayer();
             	} else {
-            		player = AbstractMediaPlayer.getMediaPlayer(path);
+            		player = getMediaPlayer(path);
             	}
             }
-        	mMediaPlayer = player;
             
+        	mMediaPlayer = player;
+            mMediaPlayer.reset();           
             mMediaPlayer.setOnPreparedListener(onPreparedListener);
-            mMediaPlayer.setOnCompletionListener(completionListener);
-            mMediaPlayer.setOnErrorListener(errorListener);            
+            mMediaPlayer.setOnCompletionListener(onCompletionListener);
+            mMediaPlayer.setOnErrorListener(onErrorListener);
+            
             if (isLocalFile) {
                 mMediaPlayer.setDataSource(path);
             	mMediaPlayer.prepare();
@@ -70,13 +82,14 @@ public class MultiPlayer implements Parcelable {
                 mMediaPlayer.setDataSource(URLUtils.encodeURL(path));
             	mMediaPlayer.prepareAsync();
             }
+            
             Log.v(TAG, "Preparing media player");
         } catch (IOException ex) {
-        	Log.v(TAG, "Error initializing");
+        	Log.v(TAG, "Error initializing media player");
             mIsInitialized = false;
             mHandler.sendMessageDelayed(mHandler.obtainMessage(MediaPlaybackService.PLAYER_ERROR), 2000);
         } catch (IllegalArgumentException ex) {
-        	Log.v(TAG, "Error initializing");
+        	Log.v(TAG, "Error initializing media player");
             mIsInitialized = false;
             mHandler.sendMessageDelayed(mHandler.obtainMessage(MediaPlaybackService.PLAYER_ERROR), 2000);
         }
@@ -98,6 +111,16 @@ public class MultiPlayer implements Parcelable {
     public void release() {
         stop();
         mMediaPlayer.release();
+        
+        if (mNativeMediaPlayer != null) {
+        	mNativeMediaPlayer.release();
+        	mNativeMediaPlayer = null;
+        }
+        
+        if (mFFmpegMediaPlayer != null) {
+        	mFFmpegMediaPlayer.release();
+        	mFFmpegMediaPlayer = null;
+        }
     }
         
     public void pause() {
@@ -108,19 +131,18 @@ public class MultiPlayer implements Parcelable {
         mHandler = handler;
     }
 
-    AbstractMediaPlayer.OnPreparedListener onPreparedListener = new AbstractMediaPlayer.OnPreparedListener() {
+    private AbstractMediaPlayer.OnPreparedListener onPreparedListener = new AbstractMediaPlayer.OnPreparedListener() {
 		public void onPrepared(AbstractMediaPlayer mp) {
+			Log.i(TAG, "onPreparedListener called");
 			
-			Log.v(TAG, "media player is prepared");
 	        mIsInitialized = true;
 			mHandler.sendEmptyMessage(MediaPlaybackService.PLAYER_PREPARED);
 		}
     };
     
-    AbstractMediaPlayer.OnCompletionListener completionListener = new AbstractMediaPlayer.OnCompletionListener() {
+    private AbstractMediaPlayer.OnCompletionListener onCompletionListener = new AbstractMediaPlayer.OnCompletionListener() {
         public void onCompletion(AbstractMediaPlayer mp) {
-            
-        	Log.v(TAG, "onCompletionListener called");
+        	Log.i(TAG, "onCompletionListener called");
         	
             if (mIsInitialized) {
             	mHandler.sendEmptyMessage(MediaPlaybackService.TRACK_ENDED);
@@ -128,21 +150,23 @@ public class MultiPlayer implements Parcelable {
         }
     };
 
-    AbstractMediaPlayer.OnErrorListener errorListener = new AbstractMediaPlayer.OnErrorListener() {
+    private AbstractMediaPlayer.OnErrorListener onErrorListener = new AbstractMediaPlayer.OnErrorListener() {
         public boolean onError(AbstractMediaPlayer mp, int what, int extra) {
+        	Log.i(TAG, "onErrorListener called");
         	Log.d(TAG, "Error: " + what + "," + extra);
         	
             switch (what) {
-            case MediaPlayer.MEDIA_ERROR_SERVER_DIED:
-                mIsInitialized = false;
-                mMediaPlayer.release();
-                mMediaPlayer = new NativePlayer(); 
-                mHandler.sendMessageDelayed(mHandler.obtainMessage(MediaPlaybackService.SERVER_DIED), 2000);
-                return true;
-            default:
-                mIsInitialized = false;
-                mHandler.sendEmptyMessage(MediaPlaybackService.PLAYER_ERROR);
-                break;
+            	case MediaPlayer.MEDIA_ERROR_SERVER_DIED:
+            		mIsInitialized = false;
+            		mMediaPlayer.release();
+            		mNativeMediaPlayer = new NativePlayer();
+            		mMediaPlayer = mNativeMediaPlayer; 
+            		mHandler.sendMessageDelayed(mHandler.obtainMessage(MediaPlaybackService.SERVER_DIED), 2000);
+            		return true;
+            	default:
+            		mIsInitialized = false;
+            		mHandler.sendEmptyMessage(MediaPlaybackService.PLAYER_ERROR);
+            		break;
             }
             return false;
         }
@@ -165,6 +189,42 @@ public class MultiPlayer implements Parcelable {
         mMediaPlayer.setVolume(vol, vol);
     }
 
+    /**
+     * Detects the appropriate media player depending on the URI of 
+     * a file.
+     * @param uri path to a file.
+     * @return a media player.
+     */
+	private AbstractMediaPlayer getMediaPlayer(String uri) {
+		if (uri.startsWith(HTTP.getProtocolName())) {
+			return mNativeMediaPlayer;
+		} else if (uri.startsWith(HTTPS.getProtocolName())) {
+			return mNativeMediaPlayer;
+		} else if (uri.startsWith(File.getProtocolName())) {
+			return mNativeMediaPlayer;
+		} else if (uri.startsWith(RTSP.getProtocolName())) {
+			return mNativeMediaPlayer;
+		} else if (uri.startsWith(MMS.getProtocolName())) {
+			return getFFmpegPlayer();
+		} else if (uri.startsWith(MMSH.getProtocolName())) {
+			return getFFmpegPlayer();
+		} else if (uri.startsWith(MMST.getProtocolName())) {
+			return getFFmpegPlayer();
+		} else {
+			return mNativeMediaPlayer;
+		}
+	}
+    
+	private FFmpegPlayer getFFmpegPlayer() {
+		// allow for lazy initialization of FFmpeg player
+		// in case it is never used		
+		if (mFFmpegMediaPlayer == null) {
+			mFFmpegMediaPlayer = new FFmpegPlayer();
+		}
+		
+		return mFFmpegMediaPlayer;
+	}
+	
 	@Override
 	public int describeContents() {
 		return 0;

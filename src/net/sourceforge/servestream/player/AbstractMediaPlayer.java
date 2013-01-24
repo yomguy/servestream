@@ -1,6 +1,6 @@
 /*
  * ServeStream: A HTTP stream browser/player for Android
- * Copyright 2012 William Seemann
+ * Copyright 2013 William Seemann
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,14 +20,6 @@ package net.sourceforge.servestream.player;
 import java.io.FileDescriptor;
 import java.io.IOException;
 
-import net.sourceforge.servestream.transport.File;
-import net.sourceforge.servestream.transport.HTTP;
-import net.sourceforge.servestream.transport.HTTPS;
-import net.sourceforge.servestream.transport.MMS;
-import net.sourceforge.servestream.transport.MMSH;
-import net.sourceforge.servestream.transport.MMST;
-import net.sourceforge.servestream.transport.RTSP;
-
 import android.media.AudioManager;
 
 /**
@@ -46,32 +38,6 @@ public abstract class AbstractMediaPlayer {
         
     }
 
-    /**
-     * Detects the appropriate media player depending on the URI of 
-     * a file.
-     * @param uri path to a file.
-     * @return a media player.
-     */
-	public static final AbstractMediaPlayer getMediaPlayer(String uri) {
-		if (uri.startsWith(HTTP.getProtocolName())) {
-			return new NativePlayer();
-		} else if (uri.startsWith(HTTPS.getProtocolName())) {
-			return new NativePlayer();
-		} else if (uri.startsWith(File.getProtocolName())) {
-			return new NativePlayer();
-		} else if (uri.startsWith(RTSP.getProtocolName())) {
-			return new NativePlayer();
-		} else if (uri.startsWith(MMS.getProtocolName())) {
-			return new FFmpegPlayer();
-		} else if (uri.startsWith(MMSH.getProtocolName())) {
-			return new FFmpegPlayer();
-		} else if (uri.startsWith(MMST.getProtocolName())) {
-			return new FFmpegPlayer();
-		} else {
-			return new NativePlayer();
-		}
-	}
-    
     /**
      * Sets the data source (file-path or http/rtsp URL) to use.
      *
