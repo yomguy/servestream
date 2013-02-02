@@ -31,6 +31,7 @@ import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
 import android.database.Cursor;
+import android.graphics.Bitmap;
 import android.media.AudioManager;
 import android.media.AudioManager.OnAudioFocusChangeListener;
 import android.os.Handler;
@@ -41,6 +42,9 @@ import android.preference.PreferenceManager;
 import android.telephony.PhoneStateListener;
 import android.telephony.TelephonyManager;
 import android.util.Log;
+import android.view.KeyEvent;
+import android.view.View;
+import android.widget.RemoteViews;
 import android.widget.Toast;
 
 import java.lang.ref.WeakReference;
@@ -109,6 +113,7 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
     public static final String CMDPAUSE = "pause";
     public static final String CMDPREVIOUS = "previous";
     public static final String CMDNEXT = "next";
+    public static final String CMDNOTIF = "buttonId";
 
     public static final String TOGGLEPAUSE_ACTION = "net.sourceforge.servestream.mediaservicecommand.togglepause";
     public static final String PAUSE_ACTION = "net.sourceforge.servestream.mediaservicecommand.pause";
@@ -464,7 +469,11 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
                 }
             } else if (CMDTOGGLEPAUSE.equals(cmd) || TOGGLEPAUSE_ACTION.equals(action)) {
                 if (isPlaying()) {
-                    pause();
+                    if (intent.getIntExtra(CMDNOTIF, 0) == 1) {
+                        altPause();	
+                    } else {
+                    	pause();
+                    }
                     mPausedByTransientLossOfFocus = false;
                     mPausedByConnectivityReceiver = false;
                 } else {
@@ -890,7 +899,7 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
     		
             mPlayer.start();
 
-            startForeground(PLAYBACKSERVICE_STATUS, buildNotification());
+            updateNotification(false);
             
             if (!mIsSupposedToBePlaying) {
                 mIsSupposedToBePlaying = true;
@@ -899,6 +908,80 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
         } else {
         	openCurrent();
         }
+    }
+    
+    private void updateNotification(boolean updateNotification) {
+    	RemoteViews views = new RemoteViews(getPackageName(), R.layout.statusbar);
+    	Bitmap b = MusicUtils.getCachedBitmapArtwork(this, getTrackId());
+
+    	if (b != null) {
+    		views.setViewVisibility(R.id.status_bar_icon, View.GONE);
+    		views.setViewVisibility(R.id.status_bar_album_art, View.VISIBLE);
+    		views.setImageViewBitmap(R.id.status_bar_album_art, b);
+    	} else {
+    		views.setViewVisibility(R.id.status_bar_icon, View.VISIBLE);
+    		views.setViewVisibility(R.id.status_bar_album_art, View.GONE);
+    	}
+    	ComponentName rec = new ComponentName(getPackageName(),
+    			MediaButtonIntentReceiver.class.getName());
+    	Intent mediaButtonIntent = new Intent(Intent.ACTION_MEDIA_BUTTON);
+    	mediaButtonIntent.putExtra(CMDNOTIF, 1);
+    	mediaButtonIntent.setComponent(rec);
+    	KeyEvent mediaKey = new KeyEvent(KeyEvent.ACTION_DOWN,
+    			KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE);
+    	mediaButtonIntent.putExtra(Intent.EXTRA_KEY_EVENT, mediaKey);
+    	PendingIntent mediaPendingIntent = PendingIntent.getBroadcast(getApplicationContext(),
+    			1, mediaButtonIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+    	views.setOnClickPendingIntent(R.id.status_bar_play, mediaPendingIntent);
+    	mediaKey = new KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_MEDIA_PREVIOUS);
+    	mediaButtonIntent.putExtra(Intent.EXTRA_KEY_EVENT, mediaKey);
+    	mediaPendingIntent = PendingIntent.getBroadcast(getApplicationContext(), 2,
+    			mediaButtonIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+    	views.setOnClickPendingIntent(R.id.status_bar_previous, mediaPendingIntent);
+    	mediaKey = new KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_MEDIA_NEXT);
+    	mediaButtonIntent.putExtra(Intent.EXTRA_KEY_EVENT, mediaKey);
+    	mediaPendingIntent = PendingIntent.getBroadcast(getApplicationContext(), 3,
+    			mediaButtonIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+    	views.setOnClickPendingIntent(R.id.status_bar_next, mediaPendingIntent);
+    	views.setImageViewResource(R.id.status_bar_play, R.drawable.btn_player_pause);
+
+    	String trackName = getTrackName();
+    	if (trackName == null || trackName.equals(Media.UNKNOWN_STRING)) {
+    		trackName = getMediaUri();
+    	}
+
+    	String artist = getArtistName();
+    	if (artist == null || artist.equals(Media.UNKNOWN_STRING)) {
+    		artist = getString(R.string.unknown_artist_name);
+    	}
+
+    	String album = getAlbumName();
+    	if (album == null || album.equals(Media.UNKNOWN_STRING)) {
+    		album = getString(R.string.unknown_album_name);
+    	}
+
+    	views.setTextViewText(R.id.status_bar_track_name, trackName);
+        views.setTextViewText(R.id.status_bar_artist_name,
+                getString(R.string.notification_artist_album, artist, album));
+
+    	Notification status = new Notification();
+    	status.contentView = views;
+    	status.flags = Notification.FLAG_ONGOING_EVENT;
+    	status.icon = R.drawable.notification_icon;
+    	status.contentIntent = PendingIntent.getActivity(this, 0,
+    			new Intent(this, MediaPlaybackActivity.class)
+    	.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP), 0);
+
+    	if (!updateNotification) {
+    		startForeground(PLAYBACKSERVICE_STATUS, status);
+    	} else {
+        	status.contentView.setImageViewResource(R.id.status_bar_play,
+        			mIsSupposedToBePlaying ? R.drawable.btn_player_play
+        					: R.drawable.btn_player_pause);
+    		
+    		NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+    		notificationManager.notify(PLAYBACKSERVICE_STATUS, status);
+    	}
     }
     
     private void stop(boolean remove_status_icon) {
@@ -945,7 +1028,6 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
                 gotoIdleState();
                 mIsSupposedToBePlaying = false;
                 notifyChange(PLAYSTATE_CHANGED);
-                stopForeground(true);
                 
                 // Tell any remote controls that our playback state is 'paused'.
                 if (mRemoteControlClientCompat != null) {
@@ -956,6 +1038,26 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
         }
     }
 
+    /**
+     * Pauses playback (call play() to resume)
+     */
+    public void altPause() {
+        synchronized(this) {
+            if (isPlaying()) {        		
+                mPlayer.pause();
+                altGotoIdleState();
+                mIsSupposedToBePlaying = false;
+                notifyChange(PLAYSTATE_CHANGED);
+                
+                // Tell any remote controls that our playback state is 'paused'.
+                if (mRemoteControlClientCompat != null) {
+                    mRemoteControlClientCompat
+                            .setPlaybackState(RemoteControlClientCompat.PLAYSTATE_PAUSED);
+                }
+            }
+        }
+    }
+    
     /** Returns whether something is currently playing
      *
      * @return true if something is playing (or will be playing shortly, in case
@@ -1106,6 +1208,14 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
         Message msg = mDelayedStopHandler.obtainMessage();
         mDelayedStopHandler.sendMessageDelayed(msg, IDLE_DELAY);
         stopForeground(true);
+    }
+    
+    private void altGotoIdleState() {
+        mDelayedStopHandler.removeCallbacksAndMessages(null);
+        Message msg = mDelayedStopHandler.obtainMessage();
+        mDelayedStopHandler.sendMessageDelayed(msg, IDLE_DELAY);
+        stopForeground(false);
+        updateNotification(true);
     }
     
     // A simple variation of Random that makes sure that the
@@ -1647,9 +1757,7 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
             }
         	
             notifyChange(META_CHANGED);
-            
-    		NotificationManager mManager = (NotificationManager) this.getSystemService(Context.NOTIFICATION_SERVICE);
-            mManager.notify(PLAYBACKSERVICE_STATUS, buildNotification());
+            updateNotification(true);
         }
     }
    
@@ -1687,41 +1795,10 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
             }
         	
             notifyChange(META_CHANGED);
-            
-    		NotificationManager mManager = (NotificationManager) this.getSystemService(Context.NOTIFICATION_SERVICE);
-            mManager.notify(PLAYBACKSERVICE_STATUS, buildNotification());
+            updateNotification(true);
         }
     }
 	
-    private Notification buildNotification() {
-        String trackName = getTrackName();
-    	if (trackName == null || trackName.equals(Media.UNKNOWN_STRING)) {
-    			trackName = getMediaUri();
-    	}
-    	
-        String artist = getArtistName();
-    	if (artist == null || artist.equals(Media.UNKNOWN_STRING)) {
-    		artist = getString(R.string.unknown_artist_name);
-    	}
-            
-    	String album = getAlbumName();
-        if (album == null || album.equals(Media.UNKNOWN_STRING)) {
-            album = getString(R.string.unknown_album_name);
-        }
-        
-		Notification status = new Notification(
-				R.drawable.notification_icon, null,
-				System.currentTimeMillis());
-        status.flags |= Notification.FLAG_ONGOING_EVENT;
-        PendingIntent contentIntent = PendingIntent.getActivity(this, 0,
-                new Intent(this, MediaPlaybackActivity.class)
-                .addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP), 0);
-		status.setLatestEventInfo(getApplicationContext(), trackName,
-				getString(R.string.notification_artist_album, artist, album), contentIntent);
-		
-		return status;
-    }
-    
     private void handleError() {
     	if (!mPlayer.isInitialized()) {
             Intent i = new Intent(STOP_DIALOG);
