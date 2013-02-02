@@ -21,7 +21,8 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="horizontal" >
+    android:orientation="horizontal"
+    android:background="@android:color/black" >
 
     <ImageView
         android:id="@+id/status_bar_album_art"
@@ -71,28 +72,42 @@
         	
     </LinearLayout>
 
-    <ImageButton
-        android:id="@+id/status_bar_play"
-        android:layout_width="48dip"
-        android:layout_height="48dip"
-        android:layout_gravity="center|right"                    
+    <LinearLayout
+        android:id="@+id/player_controller"
+        android:layout_width="144dip"
+        android:layout_height="match_parent" 
         android:background="@null"
-        android:contentDescription="" />
+        android:orientation="horizontal" >
+    
+    	<ImageButton
+        	android:id="@+id/status_bar_previous"
+        	android:layout_width="0dip"
+        	android:layout_height="48dip"
+        	android:layout_weight="1"
+        	android:layout_gravity="center_vertical"
+        	android:background="@null"
+        	android:src="@drawable/btn_player_prev"
+        	android:contentDescription="" />
 
-    <ImageButton
-        android:id="@+id/status_bar_previous"
-        android:layout_width="48dip"
-        android:layout_height="48dip"
-        android:background="@null"
-        android:src="@drawable/btn_player_prev"
-        android:contentDescription="" />
+     <ImageButton
+        	android:id="@+id/status_bar_play"
+        	android:layout_width="0dip"
+        	android:layout_height="48dip"
+        	android:layout_weight="1"
+        	android:layout_gravity="center_vertical"
+        	android:background="@null"
+        	android:contentDescription="" />
+    
+    	<ImageButton
+        	android:id="@+id/status_bar_next"
+        	android:layout_width="0dip"
+        	android:layout_height="48dip"
+        	android:layout_weight="1"
+        	android:layout_gravity="center_vertical"
+        	android:background="@null"
+        	android:src="@drawable/btn_player_next"
+        	android:contentDescription="" />
 
-    <ImageButton
-        android:id="@+id/status_bar_next"
-        android:layout_width="48dip"
-        android:layout_height="48dip"
-        android:background="@null"
-        android:src="@drawable/btn_player_next"
-        android:contentDescription="" />
-
+    </LinearLayout>
+    
 </LinearLayout>

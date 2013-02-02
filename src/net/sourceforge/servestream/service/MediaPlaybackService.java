@@ -31,7 +31,6 @@ import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
 import android.database.Cursor;
-import android.graphics.Bitmap;
 import android.media.AudioManager;
 import android.media.AudioManager.OnAudioFocusChangeListener;
 import android.os.Handler;
@@ -42,9 +41,6 @@ import android.preference.PreferenceManager;
 import android.telephony.PhoneStateListener;
 import android.telephony.TelephonyManager;
 import android.util.Log;
-import android.view.KeyEvent;
-import android.view.View;
-import android.widget.RemoteViews;
 import android.widget.Toast;
 
 import java.lang.ref.WeakReference;
@@ -910,7 +906,7 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
         }
     }
     
-    private void updateNotification(boolean updateNotification) {
+    /*private void updateNotification(boolean updateNotification) {
     	RemoteViews views = new RemoteViews(getPackageName(), R.layout.statusbar);
     	Bitmap b = MusicUtils.getCachedBitmapArtwork(this, getTrackId());
 
@@ -979,6 +975,40 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
         			mIsSupposedToBePlaying ? R.drawable.btn_player_play
         					: R.drawable.btn_player_pause);
     		
+    		NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+    		notificationManager.notify(PLAYBACKSERVICE_STATUS, status);
+    	}
+    }*/
+
+    private void updateNotification(boolean updateNotification) {
+        String trackName = getTrackName();
+    	if (trackName == null || trackName.equals(Media.UNKNOWN_STRING)) {
+    			trackName = getMediaUri();
+    	}
+    	
+        String artist = getArtistName();
+    	if (artist == null || artist.equals(Media.UNKNOWN_STRING)) {
+    		artist = getString(R.string.unknown_artist_name);
+    	}
+            
+    	String album = getAlbumName();
+        if (album == null || album.equals(Media.UNKNOWN_STRING)) {
+            album = getString(R.string.unknown_album_name);
+        }
+        
+		Notification status = new Notification(
+				R.drawable.notification_icon, null,
+				System.currentTimeMillis());
+        status.flags |= Notification.FLAG_ONGOING_EVENT;
+        PendingIntent contentIntent = PendingIntent.getActivity(this, 0,
+                new Intent(this, MediaPlaybackActivity.class)
+                .addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP), 0);
+		status.setLatestEventInfo(getApplicationContext(), trackName,
+				getString(R.string.notification_artist_album, artist, album), contentIntent);
+		
+		if (!updateNotification) {
+    		startForeground(PLAYBACKSERVICE_STATUS, status);
+    	} else {
     		NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
     		notificationManager.notify(PLAYBACKSERVICE_STATUS, status);
     	}
