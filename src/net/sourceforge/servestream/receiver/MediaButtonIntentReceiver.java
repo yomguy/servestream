@@ -22,6 +22,8 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.media.AudioManager;
+import android.os.Handler;
+import android.os.Message;
 import android.view.KeyEvent;
 
 /**
@@ -29,8 +31,19 @@ import android.view.KeyEvent;
  */
 public class MediaButtonIntentReceiver extends BroadcastReceiver {
 
+    private static final int MSG_LONGPRESS_TIMEOUT = 1;
+	
     private static long mLastClickTime = 0;
-    private static boolean mDown = false;
+    
+    private static Handler mHandler = new Handler() {
+        @Override
+        public void handleMessage(Message msg) {
+            switch (msg.what) {
+                case MSG_LONGPRESS_TIMEOUT:
+                    break;
+            }
+        }
+    };
     
     @Override
     public void onReceive(Context context, Intent intent) {
@@ -51,6 +64,7 @@ public class MediaButtonIntentReceiver extends BroadcastReceiver {
             int keycode = event.getKeyCode();
             int action = event.getAction();
             long eventtime = event.getEventTime();
+            int buttonId = intent.getIntExtra(MediaPlaybackService.CMDNOTIF, 0);
 
             // single quick press: pause/resume. 
             // double press: next track
@@ -74,13 +88,17 @@ public class MediaButtonIntentReceiver extends BroadcastReceiver {
 
             if (command != null) {
                 if (action == KeyEvent.ACTION_DOWN) {
-                    if (!mDown) {
-                        // if this isn't a repeat event
+                    if (event.getRepeatCount() == 0) {
+                        // only consider the first event in a sequence, not the repeat events,
+                        // so that we don't trigger in cases where the first event went to
+                        // a different app (e.g. when the user ends a phone call by
+                        // long pressing the headset button)
 
                         // The service may or may not be running, but we need to send it
                         // a command.
                         Intent i = new Intent(context, MediaPlaybackService.class);
                         i.setAction(MediaPlaybackService.SERVICECMD);
+                        i.putExtra(MediaPlaybackService.CMDNOTIF, buttonId);
                         if (keycode == KeyEvent.KEYCODE_HEADSETHOOK &&
                                 eventtime - mLastClickTime < 300) {
                             i.putExtra(MediaPlaybackService.CMDNAME, MediaPlaybackService.CMDNEXT);
@@ -91,11 +109,9 @@ public class MediaButtonIntentReceiver extends BroadcastReceiver {
                             context.startService(i);
                             mLastClickTime = eventtime;
                         }
-
-                        mDown = true;
                     }
                 } else {
-                    mDown = false;
+                    mHandler.removeMessages(MSG_LONGPRESS_TIMEOUT);
                 }
                 if (isOrderedBroadcast()) {
                     abortBroadcast();
