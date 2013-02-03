@@ -23,19 +23,16 @@ import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
-import android.os.Handler;
 import android.os.Looper;
-import android.os.Message;
 import android.preference.PreferenceManager;
 import android.util.AttributeSet;
 import android.view.View;
 
-public final class CoverView extends View implements Handler.Callback {
+public final class CoverView extends View {
 	
 	private SharedPreferences mPreferences = null;
 	private CoverViewListener mListener;
 	
-	private Handler mHandler;
 	private Bitmap mBitmap = null;
 
 	public CoverView(Context context, AttributeSet attributes) {
@@ -44,8 +41,6 @@ public final class CoverView extends View implements Handler.Callback {
 	}
 
 	public void setup(Looper looper, Context context) {
-		mHandler = new Handler(looper, this);
-		
 		// Verify that the host activity implements the callback interface
 	    try {
 	    	// Instantiate the CoverViewListener so we can send events to the host
@@ -80,14 +75,14 @@ public final class CoverView extends View implements Handler.Callback {
 		}
 	}
 	
-	private void generateBitmap(long id) {
+	public boolean generateBitmap(long id) {
 		Bitmap b = null;
 		
 		int width = getWidth();
 		int height = getHeight();
 		
 		if (width == 0 || height == 0) {
-			return;
+			return false;
 		}
 
 		int scale = Math.min(width, height);
@@ -104,24 +99,7 @@ public final class CoverView extends View implements Handler.Callback {
 		
 		mBitmap = b;
 		postInvalidate();
-	}
-
-	public void setSong(int id) {
-		mHandler.sendMessage(mHandler.obtainMessage(MSG_GENERATE_BITMAP, id, -1));
-	}
-
-	private static final int MSG_GENERATE_BITMAP = 0;
-
-	@Override
-	public boolean handleMessage(Message message) {
-		switch (message.what) {
-		case MSG_GENERATE_BITMAP:
-			generateBitmap(message.arg1);
-			break;
-		default:
-			return false;
-		}
-
+		
 		return true;
 	}
 

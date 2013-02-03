@@ -483,7 +483,15 @@ public class MusicUtils {
                     }
                 }
             }
+        } else {
+        	if (d.getWidth() != w || d.getHeight() != h) {
+                synchronized(sLargeArtCache) {
+                	sLargeArtCache.clear();
+                	d = getLargeCachedArtwork(context, artIndex, w, h);
+                }
+        	}
         }
+        
         return d;
     }
     
