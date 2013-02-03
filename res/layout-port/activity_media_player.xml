@@ -18,18 +18,17 @@
  */
 -->
 
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="fill_parent"
     android:layout_height="fill_parent"
     android:gravity="center_vertical"
-    android:orientation="horizontal"
+    android:orientation="vertical"
     android:background="@null" >
 
     <LinearLayout
         android:id="@+id/player_actionbar"
         android:layout_width="fill_parent"
         android:layout_height="48dip"
-        android:layout_alignParentTop="true"
         android:gravity="center_vertical"
         android:orientation="horizontal" >
 
@@ -73,16 +72,16 @@
 
     </LinearLayout>
 
-    <RelativeLayout
+    <LinearLayout
         android:layout_width="fill_parent"
-        android:layout_height="fill_parent"
-        android:layout_above="@+id/player_controller"
-        android:layout_below="@+id/player_actionbar" >
+        android:layout_height="0dip"
+        android:layout_weight="1"
+        android:orientation="vertical" >
         
         <LinearLayout
            	android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_above="@+id/player_info"
+            android:layout_height="0dip"
+            android:layout_weight="1"
             android:padding="10dip"
             android:background="@null" >
         
@@ -97,7 +96,6 @@
         	android:id="@+id/player_info"
         	android:layout_width="fill_parent"
         	android:layout_height="wrap_content"
-        	android:layout_alignParentBottom="true"
         	android:layout_marginTop="10dip"
         	android:gravity="center_horizontal"
         	android:orientation="vertical" >
@@ -116,6 +114,8 @@
             	android:id="@+id/trackname"
             	android:layout_width="wrap_content"
         		android:layout_height="wrap_content"
+        		android:layout_marginLeft="12dip"
+        		android:layout_marginRight="12dip"
             	android:textSize="17sp"
         		android:textStyle="bold"
         		android:textColor="#ffffffff"
@@ -126,6 +126,8 @@
                 android:id="@+id/artist_and_album"
                 android:layout_width="wrap_content"
         		android:layout_height="wrap_content"
+        		android:layout_marginLeft="12dip"
+        		android:layout_marginRight="12dip"
                 android:textSize="13sp"
         		android:textStyle="normal"
         		android:textColor="#ffa9a9a9"
@@ -134,13 +136,12 @@
             
         </LinearLayout>
         
-    </RelativeLayout>
+    </LinearLayout>
 
     <LinearLayout
         android:id="@+id/player_controller"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
         android:orientation="vertical" >
 
         <LinearLayout
@@ -183,6 +184,7 @@
                 android:textSize="12sp"
         		android:textColor="#ffbbbbbb"
                 android:gravity="left" />
+
         </LinearLayout>
 
         <RelativeLayout
@@ -256,4 +258,4 @@
         
     </LinearLayout>
 
-</RelativeLayout>
+</LinearLayout>
