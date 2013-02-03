@@ -93,6 +93,7 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
     
     public static final String PLAYSTATE_CHANGED = "net.sourceforge.servestream.playstatechanged";
     public static final String META_CHANGED = "net.sourceforge.servestream.metachanged";
+    public static final String ART_CHANGED = "net.sourceforge.servestream.artchanged";
     public static final String QUEUE_CHANGED = "net.sourceforge.servestream.queuechanged";
     
     public static final String PLAYBACK_STARTED = "net.sourceforge.servestream.playbackstarted";
@@ -1787,6 +1788,7 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
             }
         	
             notifyChange(META_CHANGED);
+            notifyChange(ART_CHANGED);
             updateNotification(true);
         }
     }

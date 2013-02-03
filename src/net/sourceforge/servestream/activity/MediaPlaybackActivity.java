@@ -129,7 +129,9 @@ public class MediaPlaybackActivity extends Activity implements MusicUtils.Defs,
         mAlbum = (CoverView) findViewById(R.id.album_art);
         mAlbum.setup(mAlbumArtWorker.getLooper(), this);
         mTrackName = (TextView) findViewById(R.id.trackname);
+        mTrackName.setSelected(true);
         mArtistAndAlbumName = (TextView) findViewById(R.id.artist_and_album);
+        mArtistAndAlbumName.setSelected(true);
         mTrackNumber = (TextView) findViewById(R.id.track_number_text);
 
         mCloseButton = (ImageButton) findViewById(R.id.close);
@@ -284,6 +286,7 @@ public class MediaPlaybackActivity extends Activity implements MusicUtils.Defs,
         IntentFilter f = new IntentFilter();
         f.addAction(MediaPlaybackService.PLAYSTATE_CHANGED);
         f.addAction(MediaPlaybackService.META_CHANGED);
+        f.addAction(MediaPlaybackService.ART_CHANGED);
         f.addAction(MediaPlaybackService.START_DIALOG);
         f.addAction(MediaPlaybackService.STOP_DIALOG);
         registerReceiver(mStatusListener, new IntentFilter(f));
@@ -937,6 +940,7 @@ public class MediaPlaybackActivity extends Activity implements MusicUtils.Defs,
     private static final int REFRESH = 1;
     private static final int QUIT = 2;
     private static final int GET_ALBUM_ART = 3;
+    private static final int REFRESH_ALBUM_ART = 4;
 
     private void queueNextRefresh(long delay) {
         if (!paused) {
@@ -1034,6 +1038,12 @@ public class MediaPlaybackActivity extends Activity implements MusicUtils.Defs,
                 setSeekControls();
                 setPauseButtonImage();
                 queueNextRefresh(1);
+            } else if (action.equals(MediaPlaybackService.ART_CHANGED)) {
+                try {
+                	mAlbumArtHandler.removeMessages(REFRESH_ALBUM_ART);
+					mAlbumArtHandler.obtainMessage(REFRESH_ALBUM_ART, new IdWrapper(mService.getTrackId())).sendToTarget();
+				} catch (RemoteException e) {
+				}
             } else if (action.equals(MediaPlaybackService.PLAYSTATE_CHANGED)) {
                 setPauseButtonImage();
             } else if (action.equals(MediaPlaybackService.START_DIALOG)) {
@@ -1126,8 +1136,12 @@ public class MediaPlaybackActivity extends Activity implements MusicUtils.Defs,
         {
             long id = ((IdWrapper) msg.obj).id;
             
-            if (msg.what == GET_ALBUM_ART && mId != id && id >= 0) {
-            	mAlbum.setSong((int) id);
+            if (((msg.what == GET_ALBUM_ART && mId != id)
+            		|| msg.what == REFRESH_ALBUM_ART)
+            		&& id >= 0) {
+            	if (mAlbum.generateBitmap(id)) {
+            		mId = id;
+            	}
             }
         }
     }

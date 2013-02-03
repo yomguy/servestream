@@ -127,7 +127,6 @@
 
         <activity
             android:name=".activity.MediaPlaybackActivity"
-            android:screenOrientation="portrait"
             android:launchMode="singleTop"
             android:exported="false" >
             <intent-filter>
