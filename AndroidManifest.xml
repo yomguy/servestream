@@ -20,8 +20,8 @@
 
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
 	package="net.sourceforge.servestream"
-	android:versionName="0.5.3"
-	android:versionCode="67"
+	android:versionName="0.5.4"
+	android:versionCode="69"
 	android:installLocation="auto">
 
 	<uses-sdk
