@@ -32,7 +32,6 @@ import net.sourceforge.servestream.transport.MMS;
 import net.sourceforge.servestream.transport.MMSH;
 import net.sourceforge.servestream.transport.MMST;
 import net.sourceforge.servestream.transport.RTSP;
-import net.sourceforge.servestream.utils.HTTPRequestTask;
 import net.sourceforge.servestream.utils.HTTPRequestTask.HTTPRequestListener;
 import net.sourceforge.servestream.utils.URLUtils;
 import net.sourceforge.servestream.service.MediaPlaybackService;
@@ -64,10 +63,10 @@ public class MultiPlayer implements Parcelable, HTTPRequestListener {
         try {
             mMediaPlayer.reset();
             
-            if (contentType == null && path.startsWith(HTTP.getProtocolName())) {
+            /*if (contentType == null && path.startsWith(HTTP.getProtocolName())) {
             	new HTTPRequestTask(path, isLocalFile, useFFmpegPlayer, this).execute();
             	return;
-            }
+            }*/
             
             AbstractMediaPlayer player = null;
             if (isLocalFile) {
