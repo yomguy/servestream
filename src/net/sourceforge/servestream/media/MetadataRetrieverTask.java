@@ -52,6 +52,11 @@ public class MetadataRetrieverTask extends AsyncTask<long [], Void, Void> {
 	    
 	@Override
 	protected Void doInBackground(long [] ... list) {
+		try {
+			Thread.sleep(5000);
+		} catch (InterruptedException e) {
+		}
+		
 		MediaMetadataRetriever mmr = new MediaMetadataRetriever();
 			
 		for (int i = 0; i < list[0].length; i++) {
@@ -65,6 +70,11 @@ public class MetadataRetrieverTask extends AsyncTask<long [], Void, Void> {
 						if (mListener != null) {
 							mListener.onMetadataParsed(list[0][i]);
 						}
+					}
+					
+					try {
+						Thread.sleep(1000);
+					} catch (InterruptedException e) {
 					}
 				} catch(IllegalArgumentException ex) {
 					Log.e(TAG, "Metadata for track could not be retrieved");
