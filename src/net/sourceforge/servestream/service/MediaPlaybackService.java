@@ -201,6 +201,10 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
                     }
                     break;
                 case PLAYER_PREPARED:
+                    Intent i = new Intent("android.media.action.OPEN_AUDIO_EFFECT_CONTROL_SESSION");
+                    i.putExtra("android.media.extra.AUDIO_SESSION", getAudioSessionId());
+                    i.putExtra("android.media.extra.PACKAGE_NAME", getPackageName());
+                    sendBroadcast(i);
                 	removeStickyBroadcast(new Intent(START_DIALOG));
                     sendBroadcast(new Intent(STOP_DIALOG));
                     play();
@@ -378,7 +382,11 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
         
         notifyChange(PLAYER_CLOSED);
         
-        // release all MediaPlayer resources
+        // release all MediaPlayer resources, including the native player and wakelocks
+        Intent i = new Intent("android.media.extra.PACKAGE_NAME");
+        i.putExtra("android.media.extra.AUDIO_SESSION", getAudioSessionId());
+        i.putExtra("android.media.extra.PACKAGE_NAME", getPackageName());
+        sendBroadcast(i);
         mPlayer.release();
         mPlayer = null;
 
@@ -1570,6 +1578,15 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
         return -1;
     }
     
+    /**
+     * Returns the audio session ID.
+     */
+    public int getAudioSessionId() {
+        synchronized (this) {
+            return mPlayer.getAudioSessionId();
+        }
+    }
+    
     /*
      * By making this a static class with a WeakReference to the Service, we
      * ensure that the Service can be GCd even when the system process still
@@ -1694,6 +1711,9 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
 		public double getPercentDownloaded() throws RemoteException {
 			return mService.get().getPercentDownloaded();
 		}
+        public int getAudioSessionId() {
+            return mService.get().getAudioSessionId();
+        }
     }
     
     private final IBinder mBinder = new ServiceStub(this);

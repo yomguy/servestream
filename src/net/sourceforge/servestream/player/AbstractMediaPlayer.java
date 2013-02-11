@@ -204,6 +204,14 @@ public abstract class AbstractMediaPlayer {
     public abstract void setVolume(float leftVolume, float rightVolume);
     
     /**
+     * Returns the audio session ID.
+     *
+     * @return the audio session ID. {@see #setAudioSessionId(int)}
+     * Note that the audio session ID is 0 only if a problem occured when the MediaPlayer was contructed.
+     */
+    public abstract int getAudioSessionId();
+    
+    /**
      * Interface definition for a callback to be invoked when the media
      * source is ready for playback.
      */

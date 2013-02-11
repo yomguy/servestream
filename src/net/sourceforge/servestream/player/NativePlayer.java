@@ -1,16 +1,21 @@
 package net.sourceforge.servestream.player;
 
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 
 import android.media.MediaPlayer;
+import android.util.Log;
 
 public class NativePlayer extends AbstractMediaPlayer {
-
+    private static final String TAG = NativePlayer.class.getName();
+	
 	private MediaPlayer mMediaPlayer;
 	
 	public NativePlayer() {
 		super();
 		mMediaPlayer = new MediaPlayer();
+		initializeStaticCompatMethods();
 	}
 	
 	@Override
@@ -82,6 +87,50 @@ public class NativePlayer extends AbstractMediaPlayer {
 	public void setVolume(float leftVolume, float rightVolume) {
 		mMediaPlayer.setVolume(leftVolume, rightVolume);
 	}
+	
+	@Override
+	public int getAudioSessionId() {
+		return getAudioSessionIdCompat(mMediaPlayer);
+	}
+	
+    private static Method sMethodRegisterGetAudioSessionId;
+	
+    private static void initializeStaticCompatMethods() {
+        try {
+        	sMethodRegisterGetAudioSessionId = MediaPlayer.class.getMethod(
+                    "getAudioSessionId");
+        } catch (NoSuchMethodException e) {
+            // Silently fail when running on an OS before API level 9.
+        }
+    }
+    
+	private static int getAudioSessionIdCompat(MediaPlayer mediaPlayer) {
+        int audioSessionId = 0;
+		
+		if (sMethodRegisterGetAudioSessionId == null) {
+            return audioSessionId;
+		}
+
+        try {
+        	audioSessionId = (Integer) sMethodRegisterGetAudioSessionId.invoke(mediaPlayer);
+        } catch (InvocationTargetException e) {
+            // Unpack original exception when possible
+            Throwable cause = e.getCause();
+            if (cause instanceof RuntimeException) {
+                throw (RuntimeException) cause;
+            } else if (cause instanceof Error) {
+                throw (Error) cause;
+            } else {
+                // Unexpected checked exception; wrap and re-throw
+                throw new RuntimeException(e);
+            }
+        } catch (IllegalAccessException e) {
+            Log.e(TAG, "IllegalAccessException invoking getAudioSessionId.");
+            e.printStackTrace();
+        }
+        
+        return audioSessionId;
+    }
 	
 	@Override
 	public void setOnPreparedListener(OnPreparedListener listener) {

@@ -59,4 +59,5 @@ interface IMediaPlaybackService
     boolean isCompleteFileAvailable();
     long getCompleteFileDuration();
     double getPercentDownloaded();
+    int getAudioSessionId();
 }

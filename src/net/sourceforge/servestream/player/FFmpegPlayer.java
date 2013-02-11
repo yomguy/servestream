@@ -21,6 +21,8 @@ import java.io.File;
 import java.io.FileDescriptor;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
@@ -585,6 +587,8 @@ public class FFmpegPlayer extends AbstractMediaPlayer
      */
 	public FFmpegPlayer() {
 		super();
+		
+		initializeStaticCompatMethods();
 		
         Looper looper;
         if ((looper = Looper.myLooper()) != null) {
@@ -1254,8 +1258,55 @@ private native void _reset();
      * @return the audio session ID. {@see #setAudioSessionId(int)}
      * Note that the audio session ID is 0 only if a problem occured when the MediaPlayer was contructed.
      */
-    public native int getAudioSessionId();
+    //public native int getAudioSessionId();
 
+    public int getAudioSessionId() {
+    	if (mAudioTrack == null) {
+    		return 0;
+    	} else {
+    		return getAudioSessionIdCompat(mAudioTrack);
+    	}    	
+    }
+    
+    private static Method sMethodRegisterGetAudioSessionId;
+	
+    private static void initializeStaticCompatMethods() {
+        try {
+        	sMethodRegisterGetAudioSessionId = AudioTrack.class.getMethod(
+                    "getAudioSessionId");
+        } catch (NoSuchMethodException e) {
+            // Silently fail when running on an OS before API level 9.
+        }
+    }
+    
+	private static int getAudioSessionIdCompat(AudioTrack audioTrack) {
+        int audioSessionId = 0;
+		
+		if (sMethodRegisterGetAudioSessionId == null) {
+            return audioSessionId;
+		}
+
+        try {
+        	audioSessionId = (Integer) sMethodRegisterGetAudioSessionId.invoke(audioTrack);
+        } catch (InvocationTargetException e) {
+            // Unpack original exception when possible
+            Throwable cause = e.getCause();
+            if (cause instanceof RuntimeException) {
+                throw (RuntimeException) cause;
+            } else if (cause instanceof Error) {
+                throw (Error) cause;
+            } else {
+                // Unexpected checked exception; wrap and re-throw
+                throw new RuntimeException(e);
+            }
+        } catch (IllegalAccessException e) {
+            Log.e(TAG, "IllegalAccessException invoking getAudioSessionId.");
+            e.printStackTrace();
+        }
+        
+        return audioSessionId;
+    }
+    
     /**
      * Attaches an auxiliary effect to the player. A typical auxiliary effect is a reverberation
      * effect which can be applied on any sound source that directs a certain amount of its

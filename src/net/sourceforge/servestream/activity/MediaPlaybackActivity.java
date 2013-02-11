@@ -43,6 +43,7 @@ import android.content.SharedPreferences;
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
 import android.content.res.Configuration;
 import android.media.AudioManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
@@ -338,6 +339,16 @@ public class MediaPlaybackActivity extends Activity implements MusicUtils.Defs,
         	case (R.id.menu_item_settings):
         		startActivity(new Intent(MediaPlaybackActivity.this, SettingsActivity.class));
         		return true;
+        	 case EFFECTS_PANEL: {
+                try {
+                	Intent i = new Intent("android.media.action.DISPLAY_AUDIO_EFFECT_CONTROL_PANEL");
+					i.putExtra("android.media.extra.AUDIO_SESSION", mService.getAudioSessionId());
+	                startActivityForResult(i, EFFECTS_PANEL);
+	                return true;
+				} catch (RemoteException e) {
+					e.printStackTrace();
+				}
+             }
         }
          	
         return super.onOptionsItemSelected(item);
@@ -419,6 +430,17 @@ public class MediaPlaybackActivity extends Activity implements MusicUtils.Defs,
     public boolean onCreateOptionsMenu(Menu menu) {
         MenuInflater inflater = getMenuInflater();
         inflater.inflate(R.menu.activity_media_playback, menu);
+        
+        // Don't offer the audio effects display when running on an OS
+        // before API level 9 because it relies on the getAudioSessionId method,
+        // which isn't available until after API 8
+        if (Build.VERSION.SDK_INT >= 9 && MusicUtils.getCurrentAudioId() >= 0) {
+            Intent i = new Intent("android.media.action.DISPLAY_AUDIO_EFFECT_CONTROL_PANEL");
+            if (getPackageManager().resolveActivity(i, 0) != null) {
+                menu.add(0, EFFECTS_PANEL, 0, "Effects").setIcon(android.R.drawable.ic_menu_call);
+            }
+        }
+        
         return true;
     }
 
