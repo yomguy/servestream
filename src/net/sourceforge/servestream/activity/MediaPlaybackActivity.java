@@ -437,7 +437,7 @@ public class MediaPlaybackActivity extends Activity implements MusicUtils.Defs,
         if (Build.VERSION.SDK_INT >= 9 && MusicUtils.getCurrentAudioId() >= 0) {
             Intent i = new Intent("android.media.action.DISPLAY_AUDIO_EFFECT_CONTROL_PANEL");
             if (getPackageManager().resolveActivity(i, 0) != null) {
-                menu.add(0, EFFECTS_PANEL, 0, "Effects").setIcon(android.R.drawable.ic_menu_call);
+                menu.add(0, EFFECTS_PANEL, 0, R.string.list_menu_effects).setIcon(R.drawable.ic_menu_eq);
             }
         }
         

@@ -2,7 +2,7 @@
 <!--
 /*
  * ServeStream: A HTTP stream browser/player for Android
- * Copyright 2012 William Seemann
+ * Copyright 2013 William Seemann
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,7 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
     <item android:id="@+id/menu_item_stop"
         android:title="@string/list_menu_stop"
-        android:icon="@drawable/ic_menu_close_clear_cancel"/>
+        android:icon="@android:drawable/ic_menu_close_clear_cancel"/>
     <item android:id="@+id/menu_item_sleep_timer"
         android:title="@string/list_menu_sleep_timer"
         android:icon="@drawable/ic_menu_sleep_timer"/>

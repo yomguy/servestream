@@ -105,6 +105,7 @@
 	<string name="list_stream_empty">Utiliser la boîte de connexion rapide\nau-dessus pour ouvrir un média.</string>
 
 	<string name="list_menu_backup">Sauvegarde</string>
+	<string name="list_menu_effects">Effets sonores</string>
     <string name="list_menu_help">Aide</string>
     <string name="list_menu_now_playing">En cours de lecture</string>
 	<string name="list_menu_refresh">Rafraichir</string>
