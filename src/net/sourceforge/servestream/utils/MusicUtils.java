@@ -176,6 +176,16 @@ public class MusicUtils {
         }
     }
     
+    public static long getCurrentAudioId() {
+        if (MusicUtils.sService != null) {
+            try {
+                return sService.getAudioId();
+            } catch (RemoteException ex) {
+            }
+        }
+        return -1;
+    }
+    
     public static AddToCurrentPlaylistAsyncTask addToCurrentPlaylistFromURL(Context context, UriBean uri, Handler handler) {
     	AddToCurrentPlaylistAsyncTask playlistTask = new AddToCurrentPlaylistAsyncTask(context, uri, handler);
     	playlistTask.execute();
