@@ -70,7 +70,7 @@ public class MultiPlayer implements Parcelable, HTTPRequestListener {
             
             AbstractMediaPlayer player = null;
             if (isLocalFile) {
-            	player = new NativePlayer();
+            	player = mNativeMediaPlayer;
             } else {
             	if (useFFmpegPlayer) {
             		player = getFFmpegPlayer();
@@ -171,8 +171,7 @@ public class MultiPlayer implements Parcelable, HTTPRequestListener {
         	
             switch (what) {
             	case MediaPlayer.MEDIA_ERROR_SERVER_DIED:
-            		mIsInitialized = false;
-            		mMediaPlayer.release();
+            		release();
             		mNativeMediaPlayer = new NativePlayer();
             		mMediaPlayer = mNativeMediaPlayer; 
             		mHandler.sendMessageDelayed(mHandler.obtainMessage(MediaPlaybackService.SERVER_DIED), 2000);
