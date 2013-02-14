@@ -1,0 +1,474 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+/*
+ * ServeStream: A HTTP stream browser/player for Android
+ * Copyright 2010 William Seemann
+ * 
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+-->
+
+<resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
+	
+    <string name="app_desc">Un Navador y Reproductor Multimedia de Código Abierto a través de HTTP.</string>
+	
+	<!-- Toasts after adding song(s) to playlists -->
+    <plurals name="NNNtrackstoplaylist">
+        <!-- message shown when one song was added -->
+        <item quantity="one">1 canción agregada a lista.</item>
+        <!-- message shown when zero or more than one song was added -->
+        <item quantity="other"><xliff:g id="number" example="27">%d</xliff:g> canciones agregadas a la lista.</item>
+    </plurals>
+	
+	<string name="media_service_desc">"Permite la reproducción de archivos en el fondo"</string>
+	
+	<string name="help_intro">Por favor escoja un tópico abajo para obtener mas información acerca de un tema específico.</string>
+
+	<!-- Displayed to indicate a stream has never been connected to. -->
+	<string name="bind_never">Nunca se ha conectado</string>
+	<!-- The time that has elapsed since a stream was connected to when it has been less than an hour. -->
+	<string name="bind_minutes">Hace %1$s minutos</string>
+	<!-- The time that has elapsed since a stream was connected to when it has been less than a day. -->
+	<string name="bind_hours">Hace %1$s horas</string>
+	<!-- The time that has elapsed since a stream was connected to when it has been a day or more. -->
+	<string name="bind_days">Hace %1$s días</string>
+
+	<string name="cannot_play_media_title">El archivo no se puede reproducir</string>
+	<string name="cannot_play_media_message">Disculpe, este archivo multimedia no se puede reproducir.</string>
+
+	<string name="delete_message">¿Quiere borrar \'%1$s\'?</string>
+	<string name="delete_pos">Sí, borrar</string>
+
+    <!--
+    This string is used as the format string in a String.format call,
+    and 5 additional arguments are available for printing:
+    1 - hours
+    2 - minutes
+    3 - minutes%60
+    4 - seconds
+    5 - second%60
+    -->
+    <skip/>
+    <!-- Do not translate. Duration format for duration < 1 hour -->
+    <string name="durationformatshort" translatable="false"><xliff:g id="format">%2$d:%5$02d</xliff:g></string>
+    <!-- Do not translate. Duration format for duration >= 1 hour -->
+    <string name="durationformatlong" translatable="false"><xliff:g id="format">%1$d:%3$02d:%5$02d</xliff:g></string>
+
+    <!-- Toast after selecting an empty playlist -->
+    <string name="emptyplaylist">La lista seleccionada esta vacía.</string>
+
+	<!-- Displayed when a user tries to use the scan menu option without having ZXing barcode scanner installed. -->
+	<string name="find_barcode_scanner_message">Esta opción requiere un ZXing escáner de código de barras instalado. ¿Quiere buscar esta aplicación?</string>
+	<string name="find_pos">Sí</string>
+	<string name="find_neg">No</string>
+
+	<string name="rate_application">¿Quiere valorar esta aplicación en el mercado Android? Su opinión es bienvenida.</string>
+	<string name="rate_pos">"Sí, abrir el mercado"</string>
+	<string name="rate_neg">"No, y no preguntar de nuevo"</string>
+	
+	<string name="invalid_playlist_title">No se puede reproducir este archivo de lista</string>
+	<string name="invalid_playlist_message">Discuple, este archivo de lista no tiene entradas válidas.</string>
+
+	<string name="invalid_url_message">El URL no es válido</string>
+
+	<string name="url_not_opened_message">El URL no pudo abrir.</string>
+
+	<string name="save_message">¿Está seguro que quiere guardar \'%1$s\'?</string>
+	<string name="save_pos">Sí, guarda</string>
+
+	<string name="share_signature">%1$s \n\n\n\nEnviado usando %2$s</string>
+	
+ 	<!-- Context menu item -->
+    <string name="add_to_playlist">Agregar a lista</string>
+    <!-- Context menu item -->
+	<string name="edit">Editar</string>
+	<!-- Context menu item -->
+	<string name="delete">Remover</string>
+	<!-- Context menu item -->
+	<string name="save">Guardar</string>
+	<!-- Context menu item -->
+	<string name="share">Compartir</string>
+	<!-- Context menu item -->
+	<string name="view_url">Ver URL</string>
+	
+	<!-- Note that the '\n' splits the lines so it's actually "quick-connect box above to connect" -->
+	<string name="list_stream_empty">Utilize la caja para conexión-rápida\narriba para abrir una sesión multimedia.</string>
+
+	<string name="list_menu_backup">Recuperar</string>
+    <string name="list_menu_effects">Efectos sonido</string>
+    <string name="list_menu_donate">Donar</string>
+    <string name="list_menu_help">Ayuda</string>
+    <string name="list_menu_now_playing">Reproduciendo</string>
+	<string name="list_menu_refresh">Refrescar</string>
+	<string name="list_menu_repeat">Repetir</string>
+	<string name="list_menu_scan">Escanear</string>
+	<string name="list_menu_settings">Configuración</string>
+    <string name="list_menu_shuffle">Activar/Deactivar orden aleatorio</string>
+    <string name="list_menu_sleep_timer">Apagador automático</string>
+    <string name="list_menu_sort_by_name">Ordenar por nombre</string>
+    <string name="list_menu_sort_by_date">Ordenar por fecha</string>    
+	
+ 	<!-- Frequency for which to check for program updates. -->
+ 	<!-- Frequency for which to check for program updates. -->
+ 	<!-- Frequency for which to check for program updates. -->
+
+	<!-- The dialog message when loading a URL -->
+	<string name="loading_message">Cargando. Por favor espere...</string>
+
+    <!-- Title of sleep timer menu entry -->
+    <string name="menu_sleep_timer">Apagador Automático</string>
+
+    <!-- Button name in minute picker -->
+    <string name="minute_picker_cancel">Cancelar</string>
+    <!-- Button name in minute picker -->
+    <string name="minute_picker_set">Ok</string>
+    <!-- Title of minute picker -->
+    <string name="minute_picker_title">Apagador automático</string>
+    
+	<!-- Used to display the album and artist in the notification bar -->
+	<string name="notification_artist_album" msgid="2128095771677061443">"<xliff:g id="ALBUM">%2$s</xliff:g>" - "<xliff:g id="ARTIST">%1$s</xliff:g>"</string>
+
+	<!-- Title of the media player -->
+	<string name="nowplaying_title">Reproduciendo</string>
+	<string name="play_queue_title">Reproducir Lista</string>
+
+	<!-- The dialog message when opening a URL -->
+	<string name="opening_url_message">Abriendo URL...</string>
+
+    <!-- Shown as a transient message whenever a file fails to play -->
+    <string name="playback_failed">Disculpe, este tipo de archivo multimedia no está soportado.</string>
+
+    <string name="pref_backup_and_restore">Resguardar y Restaurar</string>
+    <string name="pref_backup">Resguardar a archivo JSON</string>
+    <string name="pref_restore">Restaurar desde archivo JSON</string>
+    
+    <string name="pref_donate">Donar</string>
+
+	<!-- The category title for general settings preferences -->
+	<string name="pref_general_settings_category">Configuración general</string>
+
+	<!-- The category title for playback preferences -->
+	<string name="pref_playback_category">Configuración de reproducción</string>
+
+	<!-- The category title for social media preferences -->
+	<string name="pref_social_media_category">Configuración de redes sociales</string>
+	
+	<!-- The category title for user interface preferences -->
+	<string name="pref_ui_category">Interface de usuario</string>
+
+	<!-- Name for the auto save preference -->
+	<string name="pref_autosave_title">Guardar stream automáticamente</string>
+	<!-- Summary for the rotation mode preference -->
+	<string name="pref_autosave_summary">Guardar automáticamente streams ingresadas</string>
+
+	<!-- Name for the headphone preference -->
+	<string name="pref_headphonepause_title">"Pausa Auriculares"</string>
+	<!-- Summary for the headphone preference -->
+	<string name="pref_headphonepause_summary">"Pausar cuando se desconecten los auriculares"</string>
+	
+	<!-- Name for the progressive download preference -->
+	<string name="pref_progressivedownload_title">"Descarga progresiva"</string>
+	<!-- Summary for the progressive download preference -->
+	<string name="pref_progressivedownload_summary">"Usar descarga progresiva para reproducción"</string>
+
+	<string name="pref_ffmpegplayer_title">"Usar el reproductor basado en FFmpeg"</string>
+	<string name="pref_ffmpegplayer_summary">>" Usar el reproductor basado en FFmpeg para reproducir archivos de medios."</string>
+
+	<!-- Name for the retrieve metadata preference -->
+	<string name="pref_retrievemetadata_title">"Leer metadatos"</string>
+	<!-- Summary for the retrieve metadata preference -->
+	<string name="pref_retrievemetadata_summary">"Leer y mostrar metadatos"</string>
+
+	<!-- Name for the retrieve metadata preference -->
+	<string name="pref_retrievealbumart_title">"Leer arte de álbum"</string>
+	<!-- Summary for the retrieve metadata preference -->
+	<string name="pref_retrievealbumart_summary">"Mostrar y guardar arte de álbum embebido"</string>
+	
+	<!-- Name for the retrieve shoutcast metadata preference -->
+	<string name="pref_retrieveshoutcastmetadata_title">"Buscar metadatos en SHOUTcast"</string>
+	<!-- Summary for the retrieve shoutcast metadata preference -->
+	<string name="pref_retrieveshoutcastmetadata_summary">"Leer y mostrar metadatos de streams SHOUTcast (experimental)"</string>
+
+	<!-- Name for the send scrobbler info preference -->
+	<string name="pref_sendscrobblerinfo_title">"Enviar información a scrobbler"</string>
+	<!-- Summary for the send scrobbler info preference -->
+	<string name="pref_sendscrobblerinfo_summary">"Activar soporte para el servicio scrobbler de Last.fm. Debe tener \"Simple LastFM Scrobbler\" instalado."</string>
+		
+	<!-- Name for the update check preference -->
+	<!-- Summary for the update check preference -->
+
+	<!-- Name for the wake lock preference -->
+	<string name="pref_wakelock_title">Mantener pantalla encendida</string>
+	<!-- Summary for the rotation mode preference -->
+	<string name="pref_wakelock_summary">Evitar que la pantalla se oscuresca o se apague</string>
+
+	<!-- Name for the Wi-Fi lock preference -->
+	<string name="pref_wifilock_title">"Mantener Wi-Fi activado"</string>
+	<!-- Summary for the Wi-Fi lock preference -->
+	<string name="pref_wifilock_summary">"Evitar que el Wi-Fi se apague durante una sesión"</string>
+
+    <!-- Toast after turning repeat off -->
+    <string name="repeat_off_notif">Repetir está apagado</string>
+    <!-- Toast after turning single repeat on -->
+    <string name="repeat_current_notif">Repitiendo este medio</string>
+    <!-- Toast after turning repeat all on -->
+    <string name="repeat_all_notif">Repitiendo todos los medios</string>
+
+    <!-- Dialog box title -->
+    <string name="service_start_error_title">Problema al reproducir</string>
+    <!-- Dialog box message -->
+    <string name="service_start_error_msg">Disculpe, este medio no puede ser reproducido.</string>
+    <!-- Dialog box button -->
+
+    <!-- Toast after turning sleep timer off -->
+    <string name="sleep_timer_on_notif">Apagador automático activado para</string>
+    <!-- Toast after turning sleep timer on -->
+    <string name="sleep_timer_off_notif">Apagador automático desactivado</string>
+
+    <!-- Toast after turning shuffle on -->
+    <string name="shuffle_on_notif">Orden aleatorio activado</string>
+    <!-- Toast after turning shuffle off -->
+    <string name="shuffle_off_notif">Orden aleatorio deactivado</string>
+
+	<!-- Stream nickname field preference title -->
+	<string name="streampref_nickname_title">Nick</string>
+
+	<!-- Stream preference category title for connection settings -->
+	<string name="streampref_connection_category">Configuración de la Conexión</string>
+
+	<!-- Protocol field title for stream editor preference -->
+	<string name="streampref_protocol_title">Protocolo</string>
+
+	<!-- Username field title for stream editor preference -->
+	<string name="streampref_username_title">Usuario</string>
+
+	<!-- Password field title for stream editor preference -->
+	<string name="streampref_password_title">Clave</string>
+
+	<!-- Hostname field title for stream editor preference -->
+	<string name="streampref_hostname_title">Nombre de dominio</string>
+
+	<!-- Port field title for stream editor preference -->
+	<string name="streampref_port_title">Puerto</string>
+
+	<!-- Path field title for stream editor preference -->
+	<string name="streampref_path_title">Directorio</string>
+
+	<!-- Query field title for stream editor preference -->
+	<string name="streampref_query_title">Búsqueda</string>
+
+	<!-- Reference field title for stream editor preference -->
+	<string name="streampref_reference_title">Referencia</string>
+
+    <!-- Window title for the Stream List -->
+    <string name="text_go_button">Ir</string>
+
+	<!-- Window title for Help index -->
+	<string name="title_help">Ayuda</string>
+
+	<!-- Window title for Now Playing Activity -->
+	<string name="title_now_playing">Reproduciendo</string>
+
+	<!-- Dialog title for the share intent -->
+	<string name="title_share">Compartir a través de</string>
+	
+	<!-- Window title for main URL list -->
+	<string name="title_url_list">URLs</string>
+
+	<!-- Window title for Browsing Streams List -->
+	<string name="title_stream_browse">Navegar Streams</string>
+
+    <!-- Default name of artist that doesn't have a name in the metadata -->
+    <string name="unknown_artist_name">Artista desconocido</string>
+    
+    <!-- Default name of album that doesn't have a name in the metadata -->
+    <string name="unknown_album_name">Álbum desconocido</string>
+
+	<!-- Message to display when a user attempts to scan a URL that is unsupported -->
+	<string name="unsupported_scanned_intent_message">El código QR escaneado no hace referencia a un URL soportado</string>
+	
+	<!-- Dialog title when a new version of ServeStream is detected. -->
+	<string name="upgrade">"Versión nueva"</string>
+	<!-- Button selection to upgrade to the latest ServeStream when one is available. -->
+	<string name="upgrade_pos">"Si, actualizar"</string>
+	<!-- Button selection to skip upgrading to the latest ServeStream when one is available. -->
+	<string name="upgrade_neg">"No ahora"</string>
+	
+	<!-- Text shown on widget one when first loaded -->
+	<string name="widget_one_initial_text">"Tocar para seleccionar medios."</string>
+	
+	<!-- Text shown on widget one when first loaded -->
+	<string name="widget_one_track_info_unavailable">"Información de pista no disponible"</string>
+
+	<!-- Window title for Alarm Clock -->
+	<string name="title_alarm_clock">Reloj Alarma</string>
+
+	<!-- Window title for Set Alarm -->
+	<string name="title_set_alarm">Programar Alarma</string>
+
+	<!-- Begin Music Code String -->
+	
+	<!-- Do not translate. Background color for albums in the artists list view. -->
+    <color name="expanding_child_background">#ff404040</color>
+	
+    <!-- context menu item to remove the selected item from the playlist -->
+    <string name="remove_from_playlist">Eliminar de la lista</string>
+    	
+    <!-- End Music Code Strings -->
+	
+	<!-- Begin Alarm Code Strings -->
+	
+    <!-- Title for AlarmClock activity -->
+    <string name="alarm_list_title">Alarmas</string>
+
+    <!-- Menu item on Alarm Clock screen: Add alarm -->
+    <string name="add_alarm">Agregar alarma</string>
+
+    <!-- Menu item on Alarm Clock screen: Edit alarm -->
+    <string name="menu_edit_alarm">Editar alarma</string>
+
+    <!-- Context Menu Item on Alarm Settings screen: Delete alarm -->
+    <string name="delete_alarm">Eliminar alarma</string>
+
+    <!-- Context Menu Item on Alarm Settings screen: Enable alarm -->
+    <string name="enable_alarm">Prender alarma</string>
+
+    <!-- Context Menu Item on Alarm Settings screen: Disable alarm -->
+    <string name="disable_alarm">Apagar alarma</string>
+
+    <!-- Delete alarm confirmation dialog message. -->
+    <string name="delete_alarm_confirm">Esta alarma será borrada.</string>
+
+    <!-- Setting label on Set alarm screen: Label -->
+    <string name="label">Etiqueta</string>
+
+    <!-- Default label to display for an alarm -->
+    <string name="default_label">Alarma</string>
+
+    <!-- Preference category on Alarm Settings screen: Set alarm -->
+    <string name="set_alarm">Programar alarma</string>
+
+    <!-- Setting labels on Set alarm screen: Vibration on or off -->
+    <string name="alarm_vibrate">Vibrar</string>
+
+    <!-- Setting labels on Set alarm screen: Repeat -->
+    <string name="alarm_repeat">Repetir</string>
+
+    <!-- Setting labels on Set alarm screen: Select alarm ringtone  -->
+    <string name="alert">Ringtone</string>
+
+    <!-- Setting labels on Set alarm screen: Set time  -->
+    <string name="time">Hora</string>
+
+    <!-- Button labels on the alarm dialog: Dismiss -->
+    <string name="alarm_alert_dismiss_text">Cancelar</string>
+
+    <!-- Alarm Alert screen: this message is shown after an alarm rung
+         unattended for a number of minutes.  It tells the user that
+         the alarm has been silenced.-->
+    <string name="alarm_alert_alert_silenced">Alarma silenciada después de <xliff:g id="minutes">%d</xliff:g> minutos</string>
+
+    <!-- Button labels on the alarm dialog: Snooze -->
+    <!-- AB: There is another word: Dormitar. However, many electronic devices can only be purchased in English, especially clocks -->
+    <string name="alarm_alert_snooze_text">Snooze</string>
+
+    <!-- Toast that appears after Alarm is snoozed from the Alarm
+         dialog. Says the alarm will snooze for xxx minutes.  -->
+    <string name="alarm_alert_snooze_set">Snoozing por <xliff:g id="minutes">%d</xliff:g> minutos.</string>
+
+    <!-- 0: nothing
+         1: days
+         2:      hours
+         3: days hours
+         4:            minutes
+         5: days       minutes
+         6:      hours minutes
+         7: days hours minutes
+    --><skip />
+
+    <!-- Alarm confirmation toast: Describes how long from now until
+         alarm fires -->
+    <string-array name="alarm_set">
+        <item>La alarma está configurada para menos de un minuto desde ahora.</item>
+        <item>La alarma está configurada para <xliff:g id="DAYS" example="2 days">%1$s</xliff:g> desde ahora.</item>
+        <item>La alarma está configurada para <xliff:g id="HOURS" example="2 hours">%2$s</xliff:g> desde ahora.</item>
+        <item>La alarma está configurada para <xliff:g id="DAYS" example="2 days">%1$s</xliff:g> y <xliff:g id="HOURS" example="2 hours">%2$s</xliff:g> desde ahora.</item>
+        <item>La alarma está configurada para <xliff:g id="MINUTES" example="2 minutes">%3$s</xliff:g> desde ahora.</item>
+        <item>La alarma está configurada para <xliff:g id="DAYS" example="2 days">%1$s</xliff:g> y <xliff:g id="MINUTES" example="2 minutes">%3$s</xliff:g> desde ahora.</item>
+        <item>La alarma está configurada para <xliff:g id="HOURS" example="2 hours">%2$s</xliff:g> y <xliff:g id="MINUTES" example="2 minutes">%3$s</xliff:g> desde ahora.</item>
+        <item>La alarma está configurada para <xliff:g id="DAYS" example="2 days">%1$s</xliff:g>, <xliff:g id="HOURS" example="2 hours">%2$s</xliff:g>, y <xliff:g id="MINUTES" example="2 minutes">%3$s</xliff:g> desde ahora.</item>
+    </string-array>
+
+    <!-- Alarm confirmation toast: singular day -->
+    <string name="day">"1 día"</string>
+
+    <!-- Alarm confirmation toast: plural days -->
+    <string name="days">"<xliff:g id="days">%s</xliff:g> días"</string>
+
+    <!-- Alarm confirmation toast: singular hour -->
+    <string name="hour">1 hora</string>
+
+    <!-- Alarm confirmation toast: plural hours -->
+    <string name="hours"><xliff:g id="hours">%s</xliff:g> horas</string>
+
+    <!-- Alarm confirmation toast: singular minute  -->
+    <string name="minute">"1 minuto"</string>
+
+    <!-- Alarm confirmation toast: plural minutes  -->
+    <string name="minutes">"<xliff:g id="minutes">%s</xliff:g> minutos"</string>
+
+    <!-- Repeat options that appear under an alarm on main Alarm Clock
+         screen to identify repetition schedule: special case for when
+         the alarm is set to repeat every day -->
+    <string name="every_day">diariamente</string>
+
+    <!-- Repeat options that appear under an alarm on main Alarm Clock
+         screen to identify repetition schedule: special case for when
+         the alarm is set to never repeat -->
+    <string name="never">Nunca</string>
+
+    <!-- Repeat options that appear under an alarm on main Alarm Clock
+         screen to identify repetition schedule: concatenate days with
+         this character, i.e. "Mon, Tue, Wed" -->
+    <string name="day_concat">", "</string>
+
+    <!-- Done button when editing an alarm. -->
+    <string name="done">Finalizar</string>
+
+    <!-- Revert button when editing an alarm. -->
+    <string name="revert">Revertir</string>
+
+    <!-- Setting title for changing the alarm volume. -->
+    <string name="alarm_volume_title">Volumen de la alarma</string>
+
+    <!-- Setting summary for changing the alarm volume. -->
+    <string name="alarm_volume_summary">Ajustar el volumen de las alarmas</string>
+
+    <!-- Summary for the alarm preference when silent is chosen. -->
+    <string name="silent_alarm_summary">Mudo</string>
+
+    <!-- Text to display in the small text of the notification -->
+    <string name="alarm_notify_text">Seleccionar para snooze o descartar esta alarma.</string>
+
+    <!-- Text to display in the notification ticker and label -->
+    <string name="alarm_notify_snooze_label"><xliff:g id="label">%s</xliff:g> (snoozed)</string>
+
+    <!-- Text to display in the notification when the alarm has been snoozed -->
+    <string name="alarm_notify_snooze_text">Alarma programada para <xliff:g id="time">%s</xliff:g>. Selecciona para cancelar.</string>
+
+    <string name="alarm_klaxon_service_desc">Servicio para reproducción de sonido para alarmas programadas en DeskClock.</string>
+
+	<!-- End Alarm Code Strings -->
+
+</resources>
+
