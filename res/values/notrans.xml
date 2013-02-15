@@ -2,7 +2,7 @@
 <!--
 /*
  * ServeStream: A HTTP stream browser/player for Android
- * Copyright 2012 William Seemann
+ * Copyright 2013 William Seemann
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,5 +20,5 @@
 
 <resources>
 	<string name="app_name">ServeStream</string>
-	<string name="msg_version">ServeStream (v0.5.4)</string>
+	<string name="msg_version">ServeStream (v0.5.5)</string>
 </resources>
