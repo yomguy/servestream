@@ -140,7 +140,7 @@
 
 	<!-- Title of the media player -->
 	<string name="nowplaying_title">Сейчас играет</string>
-    <string name="play_queue_title">Play Queue</string>
+    <string name="play_queue_title">Воспроизвести очередь</string>
 
 	<!-- The dialog message when opening a URL -->
 	<string name="opening_url_message">Открываю URL...</string>
@@ -148,7 +148,9 @@
     <!-- Shown as a transient message whenever a file fails to play -->
     <string name="playback_failed">Извините, плеер не поддерживает этот тип медиа-файла.</string>
 
-    <string name="pref_backup_and_restore">Backup &amp; restore</string>
+    <string name="pref_backup_and_restore">Сохранить &amp; Восстановить</string>
+    <string name="pref_backup">Сохранить в JSON файл</string>
+    <string name="pref_restore">Восстановить из JSON файла</string>
     
     <string name="pref_donate">Пожертвования</string>
     
@@ -179,6 +181,9 @@
 	<!-- Summary for the progressive download preference -->
 	<string name="pref_progressivedownload_summary">Использовать прогрессивную загрузку для воспроизведения</string>
 
+	<string name="pref_ffmpegplayer_title">Применить FFmpeg</string>
+	<string name="pref_ffmpegplayer_summary">Использовать для воспроизведения плеер на основе FFmpeg</string>
+
 	<!-- Name for the retrieve metadata preference -->
 	<string name="pref_retrievemetadata_title">Извлекать мета-данные</string>
 	<!-- Summary for the retrieve metadata preference -->
@@ -197,7 +202,7 @@
 	<!-- Name for the send scrobbler info preference -->
 	<string name="pref_sendscrobblerinfo_title">"Last.fm Scrobbling"</string>
 	<!-- Summary for the send scrobbler info preference -->
-	<string name="pref_sendscrobblerinfo_summary">"Включить Last.fm Scrobbling. Должен быть установлен \"Simple LastFM Scrobbler\"."</string>
+	<string name="pref_sendscrobblerinfo_summary">"Использовать Last.fm Scrobbling. Должен быть установлен \"Simple LastFM Scrobbler\"."</string>
 		
 	<!-- Name for the update check preference -->
 	<!-- Summary for the update check preference -->
