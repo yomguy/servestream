@@ -202,10 +202,18 @@ public class MultiPlayer implements Parcelable, HTTPRequestListener {
         mMediaPlayer.setVolume(vol, vol);
     }
     
+    public void setAudioSessionId(int sessionId) {
+    	//mMediaPlayer.setAudioSessionId(sessionId);
+    }
+    
     public int getAudioSessionId() {
         return mMediaPlayer.getAudioSessionId();
     }
 
+    public void setNextDataSource(String path) {
+    	
+    }
+    
     /**
      * Detects the appropriate media player depending on the URI of 
      * a file.

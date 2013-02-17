@@ -1,6 +1,6 @@
 /*
  * ServeStream: A HTTP stream browser/player for Android
- * Copyright 2010 William Seemann
+ * Copyright 2013 William Seemann
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,6 @@
 
 package net.sourceforge.servestream.service;
 
-import android.graphics.Bitmap;
 import net.sourceforge.servestream.player.MultiPlayer;
 
 interface IMediaPlaybackService
@@ -34,16 +33,15 @@ interface IMediaPlaybackService
     long duration();
     long position();
     long seek(long pos);
-    int getTrackId();
-    String getMediaUri();
     String getTrackName();
     String getAlbumName();
+    long getAlbumId();
     String getArtistName();
+    long getArtistId();
     void enqueue(in long [] list, int action);
     long [] getQueue();
     void moveQueueItem(int from, int to);
     void setQueuePosition(int index);
-    String getTrackNumber();
     String getPath();
     long getAudioId();
     void setShuffleMode(int shufflemode);
@@ -52,6 +50,12 @@ interface IMediaPlaybackService
     int removeTrack(long id);
     void setRepeatMode(int repeatmode);
     int getRepeatMode();
+    int getAudioSessionId();
+    
+    //
+    int getTrackId();
+    String getMediaUri();
+    String getTrackNumber();
     void setSleepTimerMode(int sleepmode);
     int getSleepTimerMode();
     MultiPlayer getMediaPlayer();
@@ -59,5 +63,4 @@ interface IMediaPlaybackService
     boolean isCompleteFileAvailable();
     long getCompleteFileDuration();
     double getPercentDownloaded();
-    int getAudioSessionId();
 }

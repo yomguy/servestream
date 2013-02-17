@@ -1,6 +1,6 @@
 /*
  * ServeStream: A HTTP stream browser/player for Android
- * Copyright 2010 William Seemann
+ * Copyright 2013 William Seemann
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,7 +39,7 @@ public class RemoteControlClientCompat {
 
     private static final String TAG = "RemoteControlCompat";
 
-    private static Class sRemoteControlClientClass;
+    private static Class<?> sRemoteControlClientClass;
 
     // RCC short for RemoteControlClient
     private static Method sRCCEditMetadataMethod;
@@ -171,7 +171,7 @@ public class RemoteControlClientCompat {
                         "should not be given a null MetadataEditor");
             }
             if (sHasRemoteControlAPIs) {
-                Class metadataEditorClass = actualMetadataEditor.getClass();
+                Class<? extends Object> metadataEditorClass = actualMetadataEditor.getClass();
 
                 try {
                     mPutStringMethod = metadataEditorClass.getMethod("putString",

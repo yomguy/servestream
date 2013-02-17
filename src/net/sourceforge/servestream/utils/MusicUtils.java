@@ -315,7 +315,7 @@ public class MusicUtils {
         }
         try {
             if (force_shuffle) {
-                sService.setShuffleMode(MediaPlaybackService.SHUFFLE_ON);
+                sService.setShuffleMode(MediaPlaybackService.SHUFFLE_NORMAL);
             }
             long curid = sService.getAudioId();
             int curpos = sService.getQueuePosition();
@@ -372,6 +372,7 @@ public class MusicUtils {
     private static final Uri sArtworkUri = Media.MediaColumns.CONTENT_URI;
     private static final HashMap<Long, Drawable> sArtCache = new HashMap<Long, Drawable>();
     private static final HashMap<Long, Bitmap> sLargeArtCache = new HashMap<Long, Bitmap>();
+    private static final HashMap<Long, Bitmap> sNotificationArtCache = new HashMap<Long, Bitmap>();
     
     static {
         // for the cache, 
@@ -388,6 +389,16 @@ public class MusicUtils {
         
         synchronized(sLargeArtCache) {
         	sLargeArtCache.clear();
+        }
+        
+        synchronized(sNotificationArtCache) {
+        	sNotificationArtCache.clear();
+        }
+    }
+    
+    public static void clearNotificationArtCache() {
+        synchronized(sNotificationArtCache) {
+        	sNotificationArtCache.clear();
         }
     }
     
@@ -614,7 +625,34 @@ public class MusicUtils {
 		
 		return null;
     }
+    
+    public static Bitmap getNotificationArtwork(Context context, long id) {
+    	Bitmap d = null;
+        synchronized(sNotificationArtCache) {
+            d = sNotificationArtCache.get(id);
+        }
+        if (d == null) {
+        	int scale = (int) (64 * context.getResources().getDisplayMetrics().density);
+        	Bitmap b = getArtworkQuick(context, id, scale, scale);
+            if (b == null) {
+            	b = BitmapFactory.decodeResource(context.getResources(), R.drawable.albumart_mp_unknown_notification);
+            }
+                
+            d = b;
+            synchronized(sNotificationArtCache) {
+            	// the cache may have changed since we checked
+                Bitmap value = sNotificationArtCache.get(id);
+                if (value == null) {
+                	sNotificationArtCache.put(id, d);
+                } else {
+                    d = value;
+                }
+            }
+        }
         
+        return d;
+    }
+    
     public static void updateNowPlaying(Activity a) {
         View nowPlayingView = a.findViewById(R.id.nowplaying);
         if (nowPlayingView == null) {
