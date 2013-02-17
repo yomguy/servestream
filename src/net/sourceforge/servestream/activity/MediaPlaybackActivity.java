@@ -993,7 +993,7 @@ public class MediaPlaybackActivity extends Activity implements MusicUtils.Defs,
         	
             long pos = mPosOverride < 0 ? mService.position() : mPosOverride;
             long remaining = 1000 - (pos % 1000);
-            if ((pos >= 0) && (mDuration > 0)) {
+            if ((pos >= 0)) {
                 mCurrentTime.setText(MusicUtils.makeTimeString(this, pos / 1000));
                 
                 if (mService.isPlaying()) {
@@ -1005,7 +1005,11 @@ public class MediaPlaybackActivity extends Activity implements MusicUtils.Defs,
                     remaining = 500;
                 }
 
-                mProgress.setProgress((int) (1000 * pos / mDuration));
+                if (mDuration > 0) {
+                	mProgress.setProgress((int) (1000 * pos / mDuration));
+                } else {
+                	mProgress.setProgress(1000);
+                }
             } else {
                 mCurrentTime.setText("--:--");
                 mProgress.setProgress(1000);
