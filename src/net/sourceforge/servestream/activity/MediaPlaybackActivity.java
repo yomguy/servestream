@@ -754,13 +754,13 @@ public class MediaPlaybackActivity extends Activity implements MusicUtils.Defs,
         try {
             int shuffle = mService.getShuffleMode();
             if (shuffle == MediaPlaybackService.SHUFFLE_NONE) {
-            	mService.setShuffleMode(MediaPlaybackService.SHUFFLE_ON);
+            	mService.setShuffleMode(MediaPlaybackService.SHUFFLE_NORMAL);
                 if (mService.getRepeatMode() == MediaPlaybackService.REPEAT_CURRENT) {
                 	mService.setRepeatMode(MediaPlaybackService.REPEAT_ALL);
                     setRepeatButtonImage();
                 }
                 showToast(R.string.shuffle_on_notif);
-            } else if (shuffle == MediaPlaybackService.SHUFFLE_ON) {
+            } else if (shuffle == MediaPlaybackService.SHUFFLE_NORMAL) {
             	mService.setShuffleMode(MediaPlaybackService.SHUFFLE_NONE);
                 showToast(R.string.shuffle_off_notif);
             } else {

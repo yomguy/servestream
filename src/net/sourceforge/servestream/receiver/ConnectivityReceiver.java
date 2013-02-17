@@ -1,6 +1,6 @@
 /*
  * ServeStream: A HTTP stream browser/player for Android
- * Copyright 2010 William Seemann
+ * Copyright 2013 William Seemann
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,8 +15,9 @@
  * limitations under the License.
  */
 
-package net.sourceforge.servestream.service;
+package net.sourceforge.servestream.receiver;
 
+import net.sourceforge.servestream.service.MediaPlaybackService;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -29,32 +30,21 @@ import android.net.wifi.WifiManager.WifiLock;
 import android.os.Build;
 import android.util.Log;
 
-/**
-* @author kroot
-*
-*/
 public class ConnectivityReceiver extends BroadcastReceiver {
 	private static final String TAG = ConnectivityReceiver.class.getName();
 
+	private Context mContext = null;
 	private boolean mIsConnected = false;
-
-	final private MediaPlaybackService mMediaPlaybackService;
-
 	final private WifiLock mWifiLock;
-
 	private int mNetworkRef = 0;
-
 	private boolean mLockingWifi;
-
 	private Object[] mLock = new Object[0];
 
-	public ConnectivityReceiver(MediaPlaybackService MediaPlaybackService, boolean lockingWifi) {
-		mMediaPlaybackService = MediaPlaybackService;
-
-		final ConnectivityManager cm =
-				(ConnectivityManager) MediaPlaybackService.getSystemService(Context.CONNECTIVITY_SERVICE);
-
-		final WifiManager wm = (WifiManager) MediaPlaybackService.getSystemService(Context.WIFI_SERVICE);
+	public ConnectivityReceiver(Context context, boolean lockingWifi) {
+		mContext = context;
+		
+		final ConnectivityManager cm = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+		final WifiManager wm = (WifiManager) context.getSystemService(Context.WIFI_SERVICE);
 		
 		// prevent WIFI throttling when the screen is off
 	    int lockType = WifiManager.WIFI_MODE_FULL;
@@ -70,38 +60,32 @@ public class ConnectivityReceiver extends BroadcastReceiver {
 		}
 
 		mLockingWifi = lockingWifi;
-
-		final IntentFilter filter = new IntentFilter();
+		
+		IntentFilter filter = new IntentFilter();
 		filter.addAction(ConnectivityManager.CONNECTIVITY_ACTION);
-		MediaPlaybackService.registerReceiver(this, filter);
+		context.registerReceiver(this, filter);
 	}
 
-	/* (non-Javadoc)
-	 * @see android.content.BroadcastReceiver#onReceive(android.content.Context, android.content.Intent)
-	 */
 	@Override
 	public void onReceive(Context context, Intent intent) {
 		final String action = intent.getAction();
 
-		if (!action.equals(ConnectivityManager.CONNECTIVITY_ACTION)) {
-           Log.w(TAG, "onReceived() called: " + intent);
-           return;
-		}
+		if (action.equals(ConnectivityManager.CONNECTIVITY_ACTION)) {
+			boolean noConnectivity = intent.getBooleanExtra(ConnectivityManager.EXTRA_NO_CONNECTIVITY, false);
+			boolean isFailover = intent.getBooleanExtra(ConnectivityManager.EXTRA_IS_FAILOVER, false);
 
-		boolean noConnectivity = intent.getBooleanExtra(ConnectivityManager.EXTRA_NO_CONNECTIVITY, false);
-		boolean isFailover = intent.getBooleanExtra(ConnectivityManager.EXTRA_IS_FAILOVER, false);
+			Log.d(TAG, "onReceived() called; noConnectivity? " + noConnectivity + "; isFailover? " + isFailover);
 
-		Log.d(TAG, "onReceived() called; noConnectivity? " + noConnectivity + "; isFailover? " + isFailover);
-
-		if (noConnectivity && !isFailover && mIsConnected) {
-			mIsConnected = false;
-			mMediaPlaybackService.onConnectivityLost();
-		} else if (!mIsConnected) {
-			NetworkInfo info = (NetworkInfo) intent.getExtras()
-					.get(ConnectivityManager.EXTRA_NETWORK_INFO);
-
-			if (mIsConnected = (info.getState() == State.CONNECTED)) {
-				mMediaPlaybackService.onConnectivityRestored();
+			if (noConnectivity && !isFailover && mIsConnected) {
+				mIsConnected = false;
+				context.sendBroadcast(new Intent(MediaPlaybackService.PAUSE_ACTION));
+			} else if (!mIsConnected) {
+				ConnectivityManager manager = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+			    NetworkInfo info = manager.getActiveNetworkInfo();
+				
+				if (info != null && (mIsConnected = (info.getState() == State.CONNECTED))) {
+					context.sendBroadcast(new Intent(MediaPlaybackService.TOGGLEPAUSE_ACTION));
+				}
 			}
 		}
 	}
@@ -110,10 +94,11 @@ public class ConnectivityReceiver extends BroadcastReceiver {
 	 *
 	 */
 	public void cleanup() {
-		if (mWifiLock.isHeld())
+		if (mWifiLock.isHeld()) {
 			mWifiLock.release();
-
-		mMediaPlaybackService.unregisterReceiver(this);
+		}
+		
+		mContext.unregisterReceiver(this);
 	}
 
 	/**
