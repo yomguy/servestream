@@ -665,7 +665,6 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
                 if (action == NOW) {
                     mPlayPos = mPlayListLen - list.length;
                     openCurrentAndNext();
-                    play();
                     notifyChange(META_CHANGED);
                     return;
                 }
@@ -673,7 +672,6 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
             if (mPlayPos < 0) {
                 mPlayPos = 0;
                 openCurrentAndNext();
-                play();
                 notifyChange(META_CHANGED);
             }
         }
@@ -913,6 +911,8 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
             
             mFileToPlay = path;
             
+            Log.i(LOGTAG, "Opening: " + mFileToPlay);
+            
             sendStickyBroadcast(new Intent(START_DIALOG));
             
     		mDownloadManager.cancelDownload();
@@ -1098,7 +1098,6 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
             }
             stop(false);
             openCurrentAndNext();
-            play();
             notifyChange(META_CHANGED);
         }
     }
@@ -1208,7 +1207,6 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
             stop(false);
             mPlayPos = pos;
             openCurrentAndNext();
-            play();
             notifyChange(META_CHANGED);
         }
     }
@@ -1418,7 +1416,6 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
                     doAutoShuffleUpdate();
                     mPlayPos = 0;
                     openCurrentAndNext();
-                    play();
                     notifyChange(META_CHANGED);
                     return;
                 } else {
@@ -1482,7 +1479,6 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
             stop(false);
             mPlayPos = pos;
             openCurrentAndNext();
-            play();
             notifyChange(META_CHANGED);
             if (mShuffleMode == SHUFFLE_AUTO) {
                 doAutoShuffleUpdate();
