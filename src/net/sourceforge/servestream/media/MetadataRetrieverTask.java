@@ -1,6 +1,6 @@
 /*
  * ServeStream: A HTTP stream browser/player for Android
- * Copyright 2012 William Seemann
+ * Copyright 2013 William Seemann
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,6 +29,7 @@ import android.net.Uri;
 import android.os.AsyncTask;
 import android.preference.PreferenceManager;
 import android.util.Log;
+import android.util.SparseArray;
 
 public class MetadataRetrieverTask extends AsyncTask<long [], Void, Void> {
 	private static final String TAG = MetadataRetrieverTask.class.getName();
@@ -53,14 +54,16 @@ public class MetadataRetrieverTask extends AsyncTask<long [], Void, Void> {
 	@Override
 	protected Void doInBackground(long [] ... list) {
 		try {
-			Thread.sleep(5000);
+			Thread.sleep(4000);
 		} catch (InterruptedException e) {
 		}
 		
 		MediaMetadataRetriever mmr = new MediaMetadataRetriever();
-			
+		
+		SparseArray<String> uris = getUris(mContext, list[0]);
+		
 		for (int i = 0; i < list[0].length; i++) {
-			String uri = getUri(mContext, list[0][i]);
+			String uri = uris.get((int) list[0][i]);
 			
 			if (uri != null) {
 				try {
@@ -87,29 +90,44 @@ public class MetadataRetrieverTask extends AsyncTask<long [], Void, Void> {
     	return null;
     }
 	
-	private static String getUri(Context context, long id) {
+	private static SparseArray<String> getUris(Context context, long [] list) {
+		SparseArray<String> uris = new SparseArray<String>();
+		StringBuffer selection = new StringBuffer(Media.MediaColumns._ID + " IN (");
+		int id = -1;
 		String uri = null;
 		
+		for (int i = 0; i < list.length; i++) {
+			if (i == 0) {
+				selection.append(list[i]);
+			} else {
+				selection.append("," + list[i]);
+			}
+		}
+
+		selection.append(")");
+		
 		// Form an array specifying which columns to return. 
-		String [] projection = new String [] { Media.MediaColumns.URI };
+		String [] projection = new String [] { Media.MediaColumns._ID, Media.MediaColumns.URI };
 
 		// Get the base URI for the Media Files table in the Media content provider.
-        Uri mediaFile = ContentUris.withAppendedId(Media.MediaColumns.CONTENT_URI, id);
+        Uri mediaFile = Media.MediaColumns.CONTENT_URI;
 		
 		// Make the query.
 		Cursor cursor = context.getContentResolver().query(mediaFile, 
 				projection,
-				null,
+				selection.toString(),
 				null,
 				null);    	
 	
-		if (cursor.moveToFirst()) {
+		while (cursor.moveToNext()) {
+			id = cursor.getInt(cursor.getColumnIndex(Media.MediaColumns._ID));
 			uri = cursor.getString(cursor.getColumnIndex(Media.MediaColumns.URI));
+			uris.put(id, uri);
 		}
 		
 		cursor.close();
 		
-		return uri;
+		return uris;
 	}
 	
 	private static int updateMetadata(Context context, long id, MediaMetadataRetriever mmr) {
