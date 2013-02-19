@@ -24,6 +24,8 @@ import android.os.Parcelable;
 import android.util.Log;
 
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 
 import net.sourceforge.servestream.transport.File;
 import net.sourceforge.servestream.transport.HTTP;
@@ -42,9 +44,9 @@ import net.sourceforge.servestream.service.MediaPlaybackService;
 public class MultiPlayer implements Parcelable, HTTPRequestListener {
 	private static final String TAG = MultiPlayer.class.getName();
 	
-	private NativePlayer mNativeMediaPlayer = new NativePlayer();
+	private MediaPlayer mNativeMediaPlayer = new MediaPlayer();
 	private FFmpegPlayer mFFmpegMediaPlayer;
-	private AbstractMediaPlayer mMediaPlayer = mNativeMediaPlayer;
+	private MediaPlayer mMediaPlayer = mNativeMediaPlayer;
     private Handler mHandler;
     private boolean mIsInitialized = false;
 
@@ -52,7 +54,7 @@ public class MultiPlayer implements Parcelable, HTTPRequestListener {
      * Default constructor
      */
     public MultiPlayer() {
-    	
+		initializeStaticCompatMethods();
     }
 
     public void setDataSource(String path, boolean isLocalFile, boolean useFFmpegPlayer) {
@@ -68,7 +70,7 @@ public class MultiPlayer implements Parcelable, HTTPRequestListener {
             	return;
             }*/
             
-            AbstractMediaPlayer player = null;
+            MediaPlayer player = null;
             if (isLocalFile) {
             	player = mNativeMediaPlayer;
             } else {
@@ -145,8 +147,8 @@ public class MultiPlayer implements Parcelable, HTTPRequestListener {
         mHandler = handler;
     }
 
-    private AbstractMediaPlayer.OnPreparedListener onPreparedListener = new AbstractMediaPlayer.OnPreparedListener() {
-		public void onPrepared(AbstractMediaPlayer mp) {
+    private MediaPlayer.OnPreparedListener onPreparedListener = new MediaPlayer.OnPreparedListener() {
+		public void onPrepared(MediaPlayer mp) {
 			Log.i(TAG, "onPreparedListener called");
 			
 	        mIsInitialized = true;
@@ -154,8 +156,8 @@ public class MultiPlayer implements Parcelable, HTTPRequestListener {
 		}
     };
     
-    private AbstractMediaPlayer.OnCompletionListener onCompletionListener = new AbstractMediaPlayer.OnCompletionListener() {
-        public void onCompletion(AbstractMediaPlayer mp) {
+    private MediaPlayer.OnCompletionListener onCompletionListener = new MediaPlayer.OnCompletionListener() {
+        public void onCompletion(MediaPlayer mp) {
         	Log.i(TAG, "onCompletionListener called");
         	
             if (mIsInitialized) {
@@ -164,15 +166,15 @@ public class MultiPlayer implements Parcelable, HTTPRequestListener {
         }
     };
 
-    private AbstractMediaPlayer.OnErrorListener onErrorListener = new AbstractMediaPlayer.OnErrorListener() {
-        public boolean onError(AbstractMediaPlayer mp, int what, int extra) {
+    private MediaPlayer.OnErrorListener onErrorListener = new MediaPlayer.OnErrorListener() {
+        public boolean onError(MediaPlayer mp, int what, int extra) {
         	Log.i(TAG, "onErrorListener called");
         	Log.d(TAG, "Error: " + what + "," + extra);
         	
             switch (what) {
             	case MediaPlayer.MEDIA_ERROR_SERVER_DIED:
             		release();
-            		mNativeMediaPlayer = new NativePlayer();
+            		mNativeMediaPlayer = new MediaPlayer();
             		mMediaPlayer = mNativeMediaPlayer; 
             		mHandler.sendMessageDelayed(mHandler.obtainMessage(MediaPlaybackService.SERVER_DIED), 2000);
             		return true;
@@ -199,15 +201,16 @@ public class MultiPlayer implements Parcelable, HTTPRequestListener {
     }
 
     public void setVolume(float vol) {
-        mMediaPlayer.setVolume(vol, vol);
+        //mMediaPlayer.setVolume(vol, vol);
+    	// TODO: fix this
     }
     
     public void setAudioSessionId(int sessionId) {
-    	//mMediaPlayer.setAudioSessionId(sessionId);
+		setAudioSessionIdCompat(mMediaPlayer, sessionId);
     }
     
     public int getAudioSessionId() {
-        return mMediaPlayer.getAudioSessionId();
+        return getAudioSessionIdCompat(mMediaPlayer);
     }
 
     public void setNextDataSource(String path) {
@@ -220,7 +223,7 @@ public class MultiPlayer implements Parcelable, HTTPRequestListener {
      * @param uri path to a file.
      * @return a media player.
      */
-	private AbstractMediaPlayer getMediaPlayer(String uri) {
+	private MediaPlayer getMediaPlayer(String uri) {
 		if (uri.startsWith(HTTP.getProtocolName())) {
 			return mNativeMediaPlayer;
 		} else if (uri.startsWith(HTTPS.getProtocolName())) {
@@ -287,4 +290,70 @@ public class MultiPlayer implements Parcelable, HTTPRequestListener {
 			boolean useFFmpegPlayer) {
 		setDataSource(path, isLocalFile, useFFmpegPlayer, "");
 	}
+	
+    private static Method sMethodRegisterGetAudioSessionId;
+	private static Method sMethodRegisterSetAudioSessionId;
+    
+    private static void initializeStaticCompatMethods() {
+        try {
+        	sMethodRegisterGetAudioSessionId = MediaPlayer.class.getMethod(
+                    "getAudioSessionId");
+        	sMethodRegisterSetAudioSessionId = MediaPlayer.class.getMethod(
+                    "setAudioSessionId", int.class);
+        } catch (NoSuchMethodException e) {
+            // Silently fail when running on an OS before API level 9.
+        }
+    }
+	
+    private static void setAudioSessionIdCompat(MediaPlayer mediaPlayer, int sessionId) {
+		if (sMethodRegisterSetAudioSessionId == null) {
+            return;
+		}
+
+        try {
+        	sMethodRegisterSetAudioSessionId.invoke(mediaPlayer, sessionId);
+        } catch (InvocationTargetException e) {
+            // Unpack original exception when possible
+            Throwable cause = e.getCause();
+            if (cause instanceof RuntimeException) {
+                throw (RuntimeException) cause;
+            } else if (cause instanceof Error) {
+                throw (Error) cause;
+            } else {
+                // Unexpected checked exception; wrap and re-throw
+                throw new RuntimeException(e);
+            }
+        } catch (IllegalAccessException e) {
+            Log.e(TAG, "IllegalAccessException invoking setAudioSessionId.");
+            e.printStackTrace();
+        }
+    }
+    
+	private static int getAudioSessionIdCompat(MediaPlayer mediaPlayer) {
+        int audioSessionId = 0;
+		
+		if (sMethodRegisterGetAudioSessionId == null) {
+            return audioSessionId;
+		}
+
+        try {
+        	audioSessionId = (Integer) sMethodRegisterGetAudioSessionId.invoke(mediaPlayer);
+        } catch (InvocationTargetException e) {
+            // Unpack original exception when possible
+            Throwable cause = e.getCause();
+            if (cause instanceof RuntimeException) {
+                throw (RuntimeException) cause;
+            } else if (cause instanceof Error) {
+                throw (Error) cause;
+            } else {
+                // Unexpected checked exception; wrap and re-throw
+                throw new RuntimeException(e);
+            }
+        } catch (IllegalAccessException e) {
+            Log.e(TAG, "IllegalAccessException invoking getAudioSessionId.");
+            e.printStackTrace();
+        }
+        
+        return audioSessionId;
+    }
 }
