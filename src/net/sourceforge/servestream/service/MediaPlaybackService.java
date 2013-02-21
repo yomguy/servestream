@@ -28,6 +28,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.BroadcastReceiver;
 import android.content.SharedPreferences;
+import android.content.SharedPreferences.Editor;
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
 import android.database.Cursor;
 import android.media.audiofx.AudioEffect;
@@ -394,6 +395,7 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
         mPlayer = new MultiPlayer();
         mPlayer.setHandler(mMediaplayerHandler);
 
+        reloadSettings();
         notifyChange(QUEUE_CHANGED);
         notifyChange(META_CHANGED);
 
@@ -446,6 +448,27 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
     	Utils.deleteAllFiles();
         
         super.onDestroy();
+    }
+    
+    private void saveSettings() {
+        Editor ed = mPreferences.edit();
+        ed.putInt("repeatmode", mRepeatMode);
+        ed.putInt("shufflemode", mShuffleMode);
+        ed.commit();
+    }
+    
+    private void reloadSettings() {
+    	int repmode = mPreferences.getInt("repeatmode", REPEAT_NONE);
+        if (repmode != REPEAT_ALL && repmode != REPEAT_CURRENT) {
+        	repmode = REPEAT_NONE;
+        }
+        mRepeatMode = repmode;
+
+        int shufmode = mPreferences.getInt("shufflemode", SHUFFLE_NONE);
+        if (shufmode != SHUFFLE_NORMAL) {
+        	shufmode = SHUFFLE_NONE;
+        }
+        mShuffleMode = shufmode;
     }
     
     @Override
@@ -510,6 +533,9 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
     public boolean onUnbind(Intent intent) {
         mServiceInUse = false;
 
+        // Take a snapshot of the current playlist
+        saveSettings();
+        
         if (isPlaying() || mPausedByTransientLossOfFocus) {
             // something is currently playing, or will be playing once 
             // an in-progress action requesting audio focus ends, so don't stop the service now.
@@ -1423,6 +1449,7 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
                     mShuffleMode = SHUFFLE_NONE;
                 }
             }
+            saveSettings();
         }
     }
     public int getShuffleMode() {
@@ -1433,6 +1460,7 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
         synchronized(this) {
             mRepeatMode = repeatmode;
             setNextTrack();
+            saveSettings();
         }
     }
     public int getRepeatMode() {
