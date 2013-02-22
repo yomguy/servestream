@@ -91,6 +91,7 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
 
     public static final String PLAYSTATE_CHANGED = "net.sourceforge.servestream.playstatechanged";
     public static final String META_CHANGED = "net.sourceforge.servestream.metachanged";
+    public static final String META_RETRIEVED = "net.sourceforge.servestream.meta_retrieved";
     public static final String ART_CHANGED = "net.sourceforge.servestream.artchanged";
     public static final String QUEUE_CHANGED = "net.sourceforge.servestream.queuechanged";
 
@@ -1858,6 +1859,8 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
     
     @Override
 	public synchronized void onMetadataParsed(long id) {
+    	notifyChange(META_RETRIEVED);
+    	
 		if (mPlayList == null || id != mPlayList[mPlayPos]) {
 			return;
 		}
@@ -1887,6 +1890,8 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
     }
     
 	public void updateMetadata() {
+    	notifyChange(META_RETRIEVED);
+		
     	Cursor cursor;
     	Cursor tempCursor;
     	

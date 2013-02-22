@@ -221,6 +221,7 @@ public class NowPlayingActivity extends ListActivity implements View.OnCreateCon
         // Otherwise, position the selection on the first matching artist, if any
         IntentFilter f = new IntentFilter();
         f.addAction(MediaPlaybackService.META_CHANGED);
+        f.addAction(MediaPlaybackService.META_RETRIEVED);
         f.addAction(MediaPlaybackService.QUEUE_CHANGED);
         f.addAction(MediaPlaybackService.PLAYSTATE_CHANGED);
         try {
@@ -277,6 +278,8 @@ public class NowPlayingActivity extends ListActivity implements View.OnCreateCon
         @Override
         public void onReceive(Context context, Intent intent) {
             if (intent.getAction().equals(MediaPlaybackService.META_CHANGED)) {
+            	getListView().invalidateViews();
+            } else if (intent.getAction().equals(MediaPlaybackService.META_RETRIEVED)) {
                 if (mAdapter != null) {
                     Cursor c = new NowPlayingCursor(MusicUtils.sService, mCursorCols);
                     if (c.getCount() == 0) {
