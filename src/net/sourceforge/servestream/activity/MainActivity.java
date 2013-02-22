@@ -1,6 +1,6 @@
 /*
  * ServeStream: A HTTP stream browser/player for Android
- * Copyright 2012 William Seemann
+ * Copyright 2013 William Seemann
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,7 +23,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.actionbarsherlock.app.ActionBar;
-import com.actionbarsherlock.app.SherlockListActivity;
+import com.actionbarsherlock.app.SherlockFragmentActivity;
 import com.actionbarsherlock.view.Menu;
 import com.actionbarsherlock.view.MenuInflater;
 import com.actionbarsherlock.view.MenuItem;
@@ -31,6 +31,8 @@ import com.actionbarsherlock.view.MenuItem;
 import net.sourceforge.servestream.service.MediaPlaybackService;
 import net.sourceforge.servestream.transport.AbsTransport;
 import net.sourceforge.servestream.transport.TransportFactory;
+import net.sourceforge.servestream.utils.LoadingDialog.LoadingDialogListener;
+import net.sourceforge.servestream.utils.LoadingDialog;
 import net.sourceforge.servestream.utils.MusicUtils;
 import net.sourceforge.servestream.utils.MusicUtils.ServiceToken;
 
@@ -42,7 +44,6 @@ import net.sourceforge.servestream.utils.PreferenceConstants;
 
 import android.app.AlertDialog;
 import android.app.Dialog;
-import android.app.ProgressDialog;
 import android.content.ActivityNotFoundException;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
@@ -50,7 +51,6 @@ import android.content.ContentResolver;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.IntentFilter;
-import android.content.DialogInterface.OnCancelListener;
 import android.content.Intent;
 import android.content.Intent.ShortcutIconResource;
 import android.content.SharedPreferences.Editor;
@@ -64,6 +64,9 @@ import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
 import android.preference.PreferenceManager;
+import android.support.v4.app.DialogFragment;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentTransaction;
 import android.util.Log;
 
 import android.view.ContextMenu;
@@ -86,8 +89,9 @@ import android.widget.AdapterView.OnItemClickListener;
 
 import net.sourceforge.servestream.utils.DetermineActionTask;
 
-public class MainActivity extends SherlockListActivity implements ServiceConnection,
-				DetermineActionTask.MusicRetrieverPreparedListener {
+public class MainActivity extends SherlockFragmentActivity implements ServiceConnection,
+				DetermineActionTask.MusicRetrieverPreparedListener,
+				LoadingDialogListener {
 	
 	public final static String TAG = MainActivity.class.getName();	
 	
@@ -97,13 +101,14 @@ public class MainActivity extends SherlockListActivity implements ServiceConnect
     private static final String STATE_DETERMINE_INTENT_STREAM = "net.sourceforge.servestream.stream";
     private static final String STATE_MAKING_SHORTCUT = "net.sourceforge.servestream.makingshortcut";
 	
-    private final static int DETERMINE_INTENT_TASK = 1;
+    private final static String DETERMINE_INTENT_TASK = "determine_intent_task";
 	private final static int MISSING_BARCODE_SCANNER = 2;
 	private final static int UNSUPPORTED_SCANNED_INTENT = 3;
 	private final static int RATE_APPLICATION = 4;
 	
 	private TextView mQuickconnect = null;
 	private Button mGoButton = null;
+	private ListView mList = null;
 	
 	protected StreamDatabase mStreamdb = null;
 	protected LayoutInflater mInflater = null;
@@ -194,9 +199,10 @@ public class MainActivity extends SherlockListActivity implements ServiceConnect
 		mStreamdb = new StreamDatabase(this);
 		
 		mSortedByName = mPreferences.getBoolean(PreferenceConstants.SORT_BY_NAME, false);
-		
-		ListView list = this.getListView();
-		list.setOnItemClickListener(new OnItemClickListener() {
+        
+		mList = (ListView) this.findViewById(android.R.id.list);
+		mList.setEmptyView(this.findViewById(android.R.id.empty));
+		mList.setOnItemClickListener(new OnItemClickListener() {
 			public synchronized void onItemClick(AdapterView<?> parent, View view, int position, long id) {
 
 				UriBean uriBean = (UriBean) parent.getAdapter().getItem(position);
@@ -222,7 +228,7 @@ public class MainActivity extends SherlockListActivity implements ServiceConnect
 			}
 		});
 
-		this.registerForContextMenu(list);
+		this.registerForContextMenu(mList);
 
 		mGoButton = (Button) this.findViewById(R.id.go_button);
 		mGoButton.setVisibility(mMakingShortcut ? View.GONE : View.VISIBLE);
@@ -359,7 +365,7 @@ public class MainActivity extends SherlockListActivity implements ServiceConnect
             final String uri = task.getUri().toString();
             task.cancel(true);
 			try {
-				removeDialog(DETERMINE_INTENT_TASK);
+				dismissDialog(DETERMINE_INTENT_TASK);
 			} catch (Exception ex) {
 			}
 
@@ -416,27 +422,9 @@ public class MainActivity extends SherlockListActivity implements ServiceConnect
 
 	protected Dialog onCreateDialog(int id) {
 	    Dialog dialog;
-	    ProgressDialog progressDialog = null;
     	AlertDialog.Builder builder;
     	AlertDialog alertDialog;
 	    switch(id) {
-	    case DETERMINE_INTENT_TASK:
-	    	progressDialog = new ProgressDialog(MainActivity.this);
-	    	progressDialog.setMessage(getString(R.string.opening_url_message));
-	    	progressDialog.setOnCancelListener(new OnCancelListener() {
-
-				public void onCancel(DialogInterface dialog) {
-					if (mDetermineActionTask != null) {
-						mDetermineActionTask.cancel(true);
-						mDetermineActionTask = null;
-						try {
-							removeDialog(DETERMINE_INTENT_TASK);
-						} catch (Exception ex) {
-						}
-					}
-				}	
-			});
-	    	return progressDialog;
 	    case MISSING_BARCODE_SCANNER:
 	    	builder = new AlertDialog.Builder(this);
 	    	builder.setMessage(R.string.find_barcode_scanner_message)
@@ -545,7 +533,7 @@ public class MainActivity extends SherlockListActivity implements ServiceConnect
 		
 		// create menu to handle editing, deleting and sharing of URLs
 		AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo) menuInfo;
-		final UriBean uri = (UriBean) this.getListView().getItemAtPosition(info.position);
+		final UriBean uri = (UriBean) mList.getItemAtPosition(info.position);
 
 		// set the menu to the name of the URL
 		menu.setHeaderTitle(uri.getNickname());
@@ -676,7 +664,7 @@ public class MainActivity extends SherlockListActivity implements ServiceConnect
 
 		UriAdapter adapter = new UriAdapter(this, uris);
 
-		this.setListAdapter(adapter);
+		mList.setAdapter(adapter);
 	}
 	
 	class UriAdapter extends ArrayAdapter<UriBean> {
@@ -766,7 +754,7 @@ public class MainActivity extends SherlockListActivity implements ServiceConnect
 	
 	public void onMusicRetrieverPrepared(String action, UriBean uri, long[] list) {
 		try {
-			removeDialog(DETERMINE_INTENT_TASK);
+			dismissDialog(DETERMINE_INTENT_TASK);
 		} catch (Exception ex) {
 		}
 		
@@ -787,6 +775,45 @@ public class MainActivity extends SherlockListActivity implements ServiceConnect
 			}
 			
 			MusicUtils.playAll(MainActivity.this, list, 0);        
+		}
+	}
+
+	public void showDialog(String tag) {
+		// DialogFragment.show() will take care of adding the fragment
+		// in a transaction.  We also want to remove any currently showing
+		// dialog, so make our own transaction and take care of that here.
+		FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
+		Fragment prev = getSupportFragmentManager().findFragmentByTag(tag);
+		if (prev != null) {
+			ft.remove(prev);
+		}
+
+		DialogFragment newFragment = null;
+
+		// Create and show the dialog.
+		//if (tag.equals(LOADING_DIALOG)) {
+		newFragment = LoadingDialog.newInstance(this);
+		//}
+
+		ft.add(0, newFragment, tag);
+		ft.commit();
+	}
+
+	public void dismissDialog(String tag) {
+		FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
+		DialogFragment prev = (DialogFragment) getSupportFragmentManager().findFragmentByTag(tag);
+		if (prev != null) {
+			prev.dismiss();
+			ft.remove(prev);
+		}
+		ft.commit();
+	}
+	
+	@Override
+	public void onLoadingDialogCancelled(DialogFragment dialog) {
+		if (mDetermineActionTask != null) {
+			mDetermineActionTask.cancel(true);
+			mDetermineActionTask = null;
 		}
 	}
 }
