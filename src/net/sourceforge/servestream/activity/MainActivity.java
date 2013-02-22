@@ -317,7 +317,7 @@ public class MainActivity extends SherlockFragmentActivity implements ServiceCon
 	
 	@Override
 	public void onPause() {
-		super.onResume();
+		super.onPause();
 		
         unregisterReceiver(mTrackListListener);
 		
