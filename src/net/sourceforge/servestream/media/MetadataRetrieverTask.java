@@ -18,13 +18,11 @@
 package net.sourceforge.servestream.media;
 
 import net.sourceforge.servestream.provider.Media;
-import net.sourceforge.servestream.service.MediaPlaybackService;
 import net.sourceforge.servestream.utils.PreferenceConstants;
 
 import android.content.ContentUris;
 import android.content.ContentValues;
 import android.content.Context;
-import android.content.Intent;
 import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.net.Uri;
@@ -72,8 +70,6 @@ public class MetadataRetrieverTask extends AsyncTask<long [], Void, Void> {
 					mmr.setDataSource(uri.toString());
 					
 					if (updateMetadata(mContext, list[0][i], mmr) > 0) {
-						mContext.sendBroadcast(new Intent(MediaPlaybackService.META_CHANGED));
-						
 						if (mListener != null) {
 							mListener.onMetadataParsed(list[0][i]);
 						}
