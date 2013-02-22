@@ -1,6 +1,6 @@
 /*
  * ServeStream: A HTTP stream browser/player for Android
- * Copyright 2010 William Seemann
+ * Copyright 2013 William Seemann
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -46,7 +46,6 @@ import android.provider.MediaStore;
 import android.util.Log;
 import android.view.ContextMenu;
 import android.view.KeyEvent;
-import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
@@ -278,7 +277,15 @@ public class NowPlayingActivity extends ListActivity implements View.OnCreateCon
         @Override
         public void onReceive(Context context, Intent intent) {
             if (intent.getAction().equals(MediaPlaybackService.META_CHANGED)) {
-                getListView().invalidateViews();
+                if (mAdapter != null) {
+                    Cursor c = new NowPlayingCursor(MusicUtils.sService, mCursorCols);
+                    if (c.getCount() == 0) {
+                    	c.close();
+                        finish();
+                        return;
+                    }
+                    mAdapter.changeCursor(c);
+                }
             } else if (intent.getAction().equals(MediaPlaybackService.QUEUE_CHANGED)) {
                 if (mDeletedOneRow) {
                     // This is the notification for a single row that was
@@ -297,6 +304,7 @@ public class NowPlayingActivity extends ListActivity implements View.OnCreateCon
                     Cursor c = new NowPlayingCursor(MusicUtils.sService, mCursorCols);
                     if (c.getCount() == 0) {
                         finish();
+                        c.close();
                         return;
                     }
                     mAdapter.changeCursor(c);
@@ -425,28 +433,6 @@ public class NowPlayingActivity extends ListActivity implements View.OnCreateCon
         }
     }
 
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-    	// TODO add this back
-    	return true;
-    }
-
-    @Override
-    public boolean onPrepareOptionsMenu(Menu menu) {
-        return super.onPrepareOptionsMenu(menu);
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-    	// TODO: add this back
-    	return true;
-    }
-
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent intent) {
-    	//TODO: add this back
-    }
-    
     private Cursor getTrackCursor(TrackListAdapter.TrackQueryHandler queryhandler, String filter,
             boolean async) {
 
@@ -671,8 +657,9 @@ public class NowPlayingActivity extends ListActivity implements View.OnCreateCon
         @Override
         public void deactivate()
         {
-            if (mCurrentPlaylistCursor != null)
+            if (mCurrentPlaylistCursor != null) {
                 mCurrentPlaylistCursor.deactivate();
+            }
         }
 
         @Override
@@ -682,6 +669,14 @@ public class NowPlayingActivity extends ListActivity implements View.OnCreateCon
             return true;
         }
 
+        @Override
+        public void close() {
+        	if (mCurrentPlaylistCursor != null) {
+        		mCurrentPlaylistCursor.close();
+        		mCurrentPlaylistCursor = null;
+        	}
+        }
+        
         private String [] mCols;
         private Cursor mCurrentPlaylistCursor;     // updated in onMove
         private int mSize;          // size of the queue
