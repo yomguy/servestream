@@ -255,7 +255,8 @@ public class DownloadManager {
 			}
 			
 			Log.v(TAG, "setDataSource called");
-			mMediaPlaybackService.getMediaPlayer().setDataSource(getPartialFile().getPath(), true, false);
+			//TODO fix this
+			//mMediaPlaybackService.getMediaPlayer().setDataSource(getPartialFile().getPath(), true, false);
 			
 			return null;
 		}

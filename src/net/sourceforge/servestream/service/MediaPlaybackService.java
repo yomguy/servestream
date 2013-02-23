@@ -53,9 +53,9 @@ import java.util.Vector;
 import net.sourceforge.servestream.R;
 import net.sourceforge.servestream.activity.MediaPlaybackActivity;
 import net.sourceforge.servestream.media.MetadataRetrieverTask;
+import net.sourceforge.servestream.media.MultiPlayer;
 import net.sourceforge.servestream.media.MetadataRetrieverTask.MetadataRetrieverListener;
 import net.sourceforge.servestream.media.SHOUTcastMetadata;
-import net.sourceforge.servestream.player.MultiPlayer;
 import net.sourceforge.servestream.provider.Media;
 import net.sourceforge.servestream.receiver.ConnectivityReceiver;
 import net.sourceforge.servestream.receiver.MediaButtonIntentReceiver;
@@ -1745,9 +1745,6 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
         public int getSleepTimerMode() {
         	return mService.get().getSleepTimerMode();
         }
-        public MultiPlayer getMediaPlayer() {
-        	return mService.get().getMediaPlayer();
-        }
         public boolean isStreaming() {
         	return mService.get().isStreaming();
         }
@@ -1827,10 +1824,6 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
     
     public int getSleepTimerMode() {
     	return mSleepTimerMode;
-    }
-    
-    public MultiPlayer getMediaPlayer() {
-    	return mPlayer;
     }
     
     public boolean isStreaming() {

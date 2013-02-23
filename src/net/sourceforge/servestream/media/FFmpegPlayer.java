@@ -15,9 +15,11 @@
  * limitations under the License.
  */
 
-package net.sourceforge.servestream.player;
+package net.sourceforge.servestream.media;
 
+import java.io.File;
 import java.io.FileDescriptor;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -25,13 +27,13 @@ import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 
+import android.content.ContentResolver;
 import android.content.Context;
 import android.content.res.AssetFileDescriptor;
 import android.graphics.Bitmap;
 import android.media.AudioFormat;
 import android.media.AudioManager;
 import android.media.AudioTrack;
-import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Handler;
 import android.os.Looper;
@@ -510,7 +512,7 @@ import android.view.SurfaceHolder;
  * thread by default has a Looper running).
  *
  */
-public class FFmpegPlayer extends MediaPlayer
+public class FFmpegPlayer extends AbstractMediaPlayer
 {
 
     private static final int AVCODEC_MAX_AUDIO_FRAME_SIZE = 200000;
@@ -584,6 +586,8 @@ public class FFmpegPlayer extends MediaPlayer
      * result in an exception.</p>
      */
 	public FFmpegPlayer() {
+		super();
+		
 		initializeStaticCompatMethods();
 		
         Looper looper;
@@ -1159,6 +1163,7 @@ public class FFmpegPlayer extends MediaPlayer
         mOnErrorListener = null;
         mOnInfoListener = null;
         mOnVideoSizeChangedListener = null;
+        mOnTimedTextListener = null;
         _release();
     }
     
@@ -1220,8 +1225,13 @@ private native void _reset();
      * @param leftVolume left volume scalar
      * @param rightVolume right volume scalar
      */
-    public native void setVolume(float leftVolume, float rightVolume);
-
+    //public native void setVolume(float leftVolume, float rightVolume);
+    public void setVolume(float leftVolume, float rightVolume) {
+    	if (mAudioTrack != null) {
+    		mAudioTrack.setStereoVolume(leftVolume, rightVolume);
+    	}
+    }
+    
     /**
      * Currently not implemented, returns null.
      * @deprecated
@@ -1245,12 +1255,11 @@ private native void _reset();
      * This method must be called before one of the overloaded <code> setDataSource </code> methods.
      * @throws IllegalStateException if it is called in an invalid state
      */
-    //public native void setAudioSessionId(int sessionId) throws IllegalArgumentException, IllegalStateException;
-
-    public void setAudioSessionId(int sessionId) throws IllegalArgumentException, IllegalStateException {
+    //public native void setAudioSessionId(int sessionId)  throws IllegalArgumentException, IllegalStateException;
+    public void setAudioSessionId(int sessionId)  throws IllegalArgumentException, IllegalStateException {
     	if (mAudioTrack != null) {
     		setAudioSessionIdCompat(mAudioTrack, sessionId);
-    	}    	
+    	}
     }
     
     /**
@@ -1260,7 +1269,6 @@ private native void _reset();
      * Note that the audio session ID is 0 only if a problem occured when the MediaPlayer was contructed.
      */
     //public native int getAudioSessionId();
-
     public int getAudioSessionId() {
     	if (mAudioTrack == null) {
     		return 0;
@@ -1269,15 +1277,15 @@ private native void _reset();
     	}    	
     }
     
+    private static Method sMethodRegisterSetAudioSessionId;
     private static Method sMethodRegisterGetAudioSessionId;
-	private static Method sMethodRegisterSetAudioSessionId;
-    
+	
     private static void initializeStaticCompatMethods() {
         try {
-        	sMethodRegisterGetAudioSessionId = AudioTrack.class.getMethod(
-                    "getAudioSessionId");
         	sMethodRegisterSetAudioSessionId = AudioTrack.class.getMethod(
                     "setAudioSessionId", int.class);
+        	sMethodRegisterGetAudioSessionId = AudioTrack.class.getMethod(
+                    "getAudioSessionId");
         } catch (NoSuchMethodException e) {
             // Silently fail when running on an OS before API level 9.
         }
@@ -1573,6 +1581,29 @@ private native void _reset();
 
     };
 
+    /**
+     * Returns an array of track information.
+     *
+     * @return Array of track info. The total number of tracks is the array length.
+     * Must be called again if an external timed text source has been added after any of the
+     * addTimedTextSource methods are called.
+     * @throws IllegalStateException if it is called in an invalid state.
+     */
+    public TrackInfo[] getTrackInfo() throws IllegalStateException {
+        Parcel request = Parcel.obtain();
+        Parcel reply = Parcel.obtain();
+        try {
+            request.writeInterfaceToken(IMEDIA_PLAYER);
+            request.writeInt(INVOKE_ID_GET_TRACK_INFO);
+            invoke(request, reply);
+            TrackInfo trackInfo[] = reply.createTypedArray(TrackInfo.CREATOR);
+            return trackInfo;
+        } finally {
+            request.recycle();
+            reply.recycle();
+        }
+    }
+
     /* Do not change these values without updating their counterparts
      * in include/media/stagefright/MediaDefs.h and media/libstagefright/MediaDefs.cpp!
      */
@@ -1589,6 +1620,104 @@ private native void _reset();
             return true;
         }
         return false;
+    }
+
+    /* TODO: Limit the total number of external timed text source to a reasonable number.
+     */
+    /**
+     * Adds an external timed text source file.
+     *
+     * Currently supported format is SubRip with the file extension .srt, case insensitive.
+     * Note that a single external timed text source may contain multiple tracks in it.
+     * One can find the total number of available tracks using {@link #getTrackInfo()} to see what
+     * additional tracks become available after this method call.
+     *
+     * @param path The file path of external timed text source file.
+     * @param mimeType The mime type of the file. Must be one of the mime types listed above.
+     * @throws IOException if the file cannot be accessed or is corrupted.
+     * @throws IllegalArgumentException if the mimeType is not supported.
+     * @throws IllegalStateException if called in an invalid state.
+     */
+    public void addTimedTextSource(String path, String mimeType)
+            throws IOException, IllegalArgumentException, IllegalStateException {
+        if (!availableMimeTypeForExternalSource(mimeType)) {
+            final String msg = "Illegal mimeType for timed text source: " + mimeType;
+            throw new IllegalArgumentException(msg);
+        }
+
+        File file = new File(path);
+        if (file.exists()) {
+            FileInputStream is = new FileInputStream(file);
+            FileDescriptor fd = is.getFD();
+            addTimedTextSource(fd, mimeType);
+            is.close();
+        } else {
+            // We do not support the case where the path is not a file.
+            throw new IOException(path);
+        }
+    }
+
+    /**
+     * Adds an external timed text source file (Uri).
+     *
+     * Currently supported format is SubRip with the file extension .srt, case insensitive.
+     * Note that a single external timed text source may contain multiple tracks in it.
+     * One can find the total number of available tracks using {@link #getTrackInfo()} to see what
+     * additional tracks become available after this method call.
+     *
+     * @param context the Context to use when resolving the Uri
+     * @param uri the Content URI of the data you want to play
+     * @param mimeType The mime type of the file. Must be one of the mime types listed above.
+     * @throws IOException if the file cannot be accessed or is corrupted.
+     * @throws IllegalArgumentException if the mimeType is not supported.
+     * @throws IllegalStateException if called in an invalid state.
+     */
+    public void addTimedTextSource(Context context, Uri uri, String mimeType)
+            throws IOException, IllegalArgumentException, IllegalStateException {
+        String scheme = uri.getScheme();
+        if(scheme == null || scheme.equals("file")) {
+            addTimedTextSource(uri.getPath(), mimeType);
+            return;
+        }
+
+        AssetFileDescriptor fd = null;
+        try {
+            ContentResolver resolver = context.getContentResolver();
+            fd = resolver.openAssetFileDescriptor(uri, "r");
+            if (fd == null) {
+                return;
+            }
+            addTimedTextSource(fd.getFileDescriptor(), mimeType);
+            return;
+        } catch (SecurityException ex) {
+        } catch (IOException ex) {
+        } finally {
+            if (fd != null) {
+                fd.close();
+            }
+        }
+    }
+
+    /**
+     * Adds an external timed text source file (FileDescriptor).
+     *
+     * It is the caller's responsibility to close the file descriptor.
+     * It is safe to do so as soon as this call returns.
+     *
+     * Currently supported format is SubRip. Note that a single external timed text source may
+     * contain multiple tracks in it. One can find the total number of available tracks
+     * using {@link #getTrackInfo()} to see what additional tracks become available
+     * after this method call.
+     *
+     * @param fd the FileDescriptor for the file you want to play
+     * @param mimeType The mime type of the file. Must be one of the mime types listed above.
+     * @throws IllegalArgumentException if the mimeType is not supported.
+     * @throws IllegalStateException if called in an invalid state.
+     */
+    public void addTimedTextSource(FileDescriptor fd, String mimeType)
+            throws IllegalArgumentException, IllegalStateException {
+        // intentionally less than LONG_MAX
+        addTimedTextSource(fd, 0, 0x7ffffffffffffffL, mimeType);
     }
 
     /**
@@ -1827,30 +1956,25 @@ private native void _reset();
     }
     
     /**
-     * Register a callback to be invoked when the media source is ready
-     * for playback.
-     *
-     * @param listener the callback that will be run
+     * Interface definition of a callback to be invoked indicating buffering
+     * status of a media resource being streamed over the network.
      */
-    public void setOnPreparedListener(OnPreparedListener listener)
+    public interface OnBufferingUpdateListener
     {
-        mOnPreparedListener = listener;
+        /**
+         * Called to update status in buffering a media stream received through
+         * progressive HTTP download. The received buffering percentage
+         * indicates how much of the content has been buffered or played.
+         * For example a buffering update of 80 percent when half the content
+         * has already been played indicates that the next 30 percent of the
+         * content to play has been buffered.
+         *
+         * @param mp      the MediaPlayer the update pertains to
+         * @param percent the percentage (0-100) of the content
+         *                that has been buffered or played thus far
+         */
+        void onBufferingUpdate(FFmpegPlayer mp, int percent);
     }
-
-    private OnPreparedListener mOnPreparedListener;
-
-    /**
-     * Register a callback to be invoked when the end of a media source
-     * has been reached during playback.
-     *
-     * @param listener the callback that will be run
-     */
-    public void setOnCompletionListener(OnCompletionListener listener)
-    {
-        mOnCompletionListener = listener;
-    }
-
-    private OnCompletionListener mOnCompletionListener;
 
     /**
      * Register a callback to be invoked when the status of a network
@@ -1866,6 +1990,20 @@ private native void _reset();
     private OnBufferingUpdateListener mOnBufferingUpdateListener;
 
     /**
+     * Interface definition of a callback to be invoked indicating
+     * the completion of a seek operation.
+     */
+    public interface OnSeekCompleteListener
+    {
+        /**
+         * Called to indicate the completion of a seek operation.
+         *
+         * @param mp the MediaPlayer that issued the seek operation
+         */
+        public void onSeekComplete(FFmpegPlayer mp);
+    }
+
+    /**
      * Register a callback to be invoked when a seek operation has been
      * completed.
      *
@@ -1879,6 +2017,25 @@ private native void _reset();
     private OnSeekCompleteListener mOnSeekCompleteListener;
 
     /**
+     * Interface definition of a callback to be invoked when the
+     * video size is first known or updated
+     */
+    public interface OnVideoSizeChangedListener
+    {
+        /**
+         * Called to indicate the video size
+         *
+         * The video size (width and height) could be 0 if there was no video,
+         * no display surface was set, or the value was not determined yet.
+         *
+         * @param mp        the MediaPlayer associated with this callback
+         * @param width     the width of the video
+         * @param height    the height of the video
+         */
+        public void onVideoSizeChanged(FFmpegPlayer mp, int width, int height);
+    }
+
+    /**
      * Register a callback to be invoked when the video size is
      * known or updated.
      *
@@ -1890,6 +2047,36 @@ private native void _reset();
     }
 
     private OnVideoSizeChangedListener mOnVideoSizeChangedListener;
+
+    /**
+     * Interface definition of a callback to be invoked when a
+     * timed text is available for display.
+     */
+    public interface OnTimedTextListener
+    {
+        /**
+         * Called to indicate an avaliable timed text
+         *
+         * @param mp             the MediaPlayer associated with this callback
+         * @param text           the timed text sample which contains the text
+         *                       needed to be displayed and the display format.
+         */
+    	// TODO: add this code back
+        //public void onTimedText(MediaPlayer mp, TimedText text);
+    }
+
+    /**
+     * Register a callback to be invoked when a timed text is available
+     * for display.
+     *
+     * @param listener the callback that will be run
+     */
+    public void setOnTimedTextListener(OnTimedTextListener listener)
+    {
+        mOnTimedTextListener = listener;
+    }
+
+    private OnTimedTextListener mOnTimedTextListener;
 
 
     /* Do not change these values without updating their counterparts
@@ -1922,50 +2109,6 @@ private native void _reset();
     public static final int MEDIA_ERROR_UNSUPPORTED = -1010;
     /** Some operation takes too long to complete, usually more than 3-5 seconds. */
     public static final int MEDIA_ERROR_TIMED_OUT = -110;
-
-    /**
-     * Interface definition of a callback to be invoked when there
-     * has been an error during an asynchronous operation (other errors
-     * will throw exceptions at method call time).
-     */
-    public interface OnErrorListener
-    {
-        /**
-         * Called to indicate an error.
-         *
-         * @param mp      the MediaPlayer the error pertains to
-         * @param what    the type of error that has occurred:
-         * <ul>
-         * <li>{@link #MEDIA_ERROR_UNKNOWN}
-         * <li>{@link #MEDIA_ERROR_SERVER_DIED}
-         * </ul>
-         * @param extra an extra code, specific to the error. Typically
-         * implementation dependent.
-         * <ul>
-         * <li>{@link #MEDIA_ERROR_IO}
-         * <li>{@link #MEDIA_ERROR_MALFORMED}
-         * <li>{@link #MEDIA_ERROR_UNSUPPORTED}
-         * <li>{@link #MEDIA_ERROR_TIMED_OUT}
-         * </ul>
-         * @return True if the method handled the error, false if it didn't.
-         * Returning false, or not having an OnErrorListener at all, will
-         * cause the OnCompletionListener to be called.
-         */
-        boolean onError(FFmpegPlayer mp, int what, int extra);
-    }
-
-    /**
-     * Register a callback to be invoked when an error has happened
-     * during an asynchronous operation.
-     *
-     * @param listener the callback that will be run
-     */
-    public void setOnErrorListener(OnErrorListener listener)
-    {
-        mOnErrorListener = listener;
-    }
-
-    private OnErrorListener mOnErrorListener;
 
 
     /* Do not change these values without updating their counterparts
