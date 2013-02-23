@@ -4,6 +4,8 @@ WORKING_DIR=`pwd`
 ABS_DIR=$WORKING_DIR/ActionBarSherlock-4.2.0
 ABS_LIBRARY_DIR=$WORKING_DIR/ActionBarSherlock-4.2.0/library
 
+export SDK=`grep sdk.dir local.properties | cut -d'=' -f2`
+
 if [ ! -d $ABS_DIR ]; then
     # Download ActionBarSherlock
     wget https://github.com/JakeWharton/ActionBarSherlock/archive/4.2.0.tar.gz
@@ -14,7 +16,7 @@ if [ ! -d $ABS_DIR ]; then
 
     # Prepare the ActionBarSherlock archive for building
     cd $ABS_LIBRARY_DIR
-    android update project -p .
+    $SDK/tools/android update project -p .
     ant clean debug
 
     cd $WORKING_DIR
