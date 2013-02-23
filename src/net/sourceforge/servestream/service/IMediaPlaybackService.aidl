@@ -17,8 +17,6 @@
 
 package net.sourceforge.servestream.service;
 
-import net.sourceforge.servestream.player.MultiPlayer;
-
 interface IMediaPlaybackService
 {
     void openFile(String path);
@@ -58,7 +56,6 @@ interface IMediaPlaybackService
     String getTrackNumber();
     void setSleepTimerMode(int sleepmode);
     int getSleepTimerMode();
-    MultiPlayer getMediaPlayer();
     boolean isStreaming();
     boolean isCompleteFileAvailable();
     long getCompleteFileDuration();

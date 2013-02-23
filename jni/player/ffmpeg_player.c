@@ -1,6 +1,6 @@
 /*
  * ServeStream: A HTTP stream browser/player for Android
- * Copyright 2012 William Seemann
+ * Copyright 2013 William Seemann
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -66,7 +66,7 @@ static jmethodID fill_buffer;
 
 static JavaVM *m_vm;
 static jobject gClassPathObject;
-static const char *kClassPathName = "net/sourceforge/servestream/player/FFmpegPlayer";
+static const char *kClassPathName = "net/sourceforge/servestream/media/FFmpegPlayer";
 
 jint JNICALL JNI_OnLoad(JavaVM *vm, void *reserved) {
     __android_log_print(ANDROID_LOG_INFO, TAG, "JNI_OnLoad()");
@@ -147,7 +147,7 @@ static int decode_interrupt_cb(void *ctx) {
 }
 
 JNIEXPORT void JNICALL
-Java_net_sourceforge_servestream_player_FFmpegPlayer_native_1init(JNIEnv * env, jclass obj) {
+Java_net_sourceforge_servestream_media_FFmpegPlayer_native_1init(JNIEnv * env, jclass obj) {
     __android_log_write(ANDROID_LOG_INFO, TAG, "native_init");
 
     initClassHelper(env, kClassPathName, &gClassPathObject);
@@ -167,7 +167,7 @@ Java_net_sourceforge_servestream_player_FFmpegPlayer_native_1init(JNIEnv * env, 
 }
 
 JNIEXPORT void JNICALL
-Java_net_sourceforge_servestream_player_FFmpegPlayer_bind_1variables(JNIEnv* env, jobject obj, jbyteArray audioframe, jintArray audioframelength) {
+Java_net_sourceforge_servestream_media_FFmpegPlayer_bind_1variables(JNIEnv* env, jobject obj, jbyteArray audioframe, jintArray audioframelength) {
     __android_log_print(ANDROID_LOG_INFO, TAG, "bind_variables");
 
     if (gAudioFrameRef) {
@@ -231,7 +231,7 @@ Java_net_sourceforge_servestream_player_FFmpegPlayer_bind_1variables(JNIEnv* env
 }
 
 JNIEXPORT void JNICALL
-Java_net_sourceforge_servestream_player_FFmpegPlayer__1setDataSource(JNIEnv* env, jobject obj, jstring path) {
+Java_net_sourceforge_servestream_media_FFmpegPlayer__1setDataSource(JNIEnv* env, jobject obj, jstring path) {
     __android_log_print(ANDROID_LOG_INFO, TAG, "setDataSource");
 
     const char *uri;
@@ -367,14 +367,14 @@ void player_prepare(void * data) {
 }
 
 JNIEXPORT void JNICALL
-Java_net_sourceforge_servestream_player_FFmpegPlayer_prepare(JNIEnv* env, jobject obj) {
+Java_net_sourceforge_servestream_media_FFmpegPlayer_prepare(JNIEnv* env, jobject obj) {
     __android_log_print(ANDROID_LOG_INFO, TAG, "prepare");
     player_prepare(NULL);
 
 }
 
 JNIEXPORT void JNICALL
-Java_net_sourceforge_servestream_player_FFmpegPlayer_prepareAsync(JNIEnv* env, jobject obj) {
+Java_net_sourceforge_servestream_media_FFmpegPlayer_prepareAsync(JNIEnv* env, jobject obj) {
     __android_log_print(ANDROID_LOG_INFO, TAG, "prepareAsync");
 
 	pthread_t prepare_thread;
@@ -382,7 +382,7 @@ Java_net_sourceforge_servestream_player_FFmpegPlayer_prepareAsync(JNIEnv* env, j
 }
 
 JNIEXPORT void JNICALL
-Java_net_sourceforge_servestream_player_FFmpegPlayer__1release(JNIEnv* env, jobject obj) {
+Java_net_sourceforge_servestream_media_FFmpegPlayer__1release(JNIEnv* env, jobject obj) {
     __android_log_print(ANDROID_LOG_INFO, TAG, "release");
 
     // global audio state is null, nothing to do
@@ -412,7 +412,7 @@ Java_net_sourceforge_servestream_player_FFmpegPlayer__1release(JNIEnv* env, jobj
 }
 
 JNIEXPORT void JNICALL
-Java_net_sourceforge_servestream_player_FFmpegPlayer__1reset(JNIEnv* env, jobject obj) {
+Java_net_sourceforge_servestream_media_FFmpegPlayer__1reset(JNIEnv* env, jobject obj) {
     __android_log_print(ANDROID_LOG_INFO, TAG, "reset");
 
     pthread_mutex_lock(lock);
@@ -543,7 +543,7 @@ void player_decode(void * data) {
 }
 
 JNIEXPORT void JNICALL
-Java_net_sourceforge_servestream_player_FFmpegPlayer__1pause(JNIEnv* env, jobject obj) {
+Java_net_sourceforge_servestream_media_FFmpegPlayer__1pause(JNIEnv* env, jobject obj) {
     __android_log_print(ANDROID_LOG_INFO, TAG, "pause");
 
     pthread_mutex_lock(lock);
@@ -552,7 +552,7 @@ Java_net_sourceforge_servestream_player_FFmpegPlayer__1pause(JNIEnv* env, jobjec
 }
 
 JNIEXPORT void JNICALL
-Java_net_sourceforge_servestream_player_FFmpegPlayer__1start(JNIEnv* env, jobject obj) {
+Java_net_sourceforge_servestream_media_FFmpegPlayer__1start(JNIEnv* env, jobject obj) {
     __android_log_print(ANDROID_LOG_INFO, TAG, "start");
 
     pthread_mutex_lock(lock);
@@ -569,7 +569,7 @@ Java_net_sourceforge_servestream_player_FFmpegPlayer__1start(JNIEnv* env, jobjec
 }
 
 JNIEXPORT void JNICALL
-Java_net_sourceforge_servestream_player_FFmpegPlayer__1stop(JNIEnv* env, jobject obj) {
+Java_net_sourceforge_servestream_media_FFmpegPlayer__1stop(JNIEnv* env, jobject obj) {
     __android_log_print(ANDROID_LOG_INFO, TAG, "stop");
 
     pthread_mutex_lock(lock);
@@ -578,12 +578,12 @@ Java_net_sourceforge_servestream_player_FFmpegPlayer__1stop(JNIEnv* env, jobject
 }
 
 JNIEXPORT int JNICALL
-Java_net_sourceforge_servestream_player_FFmpegPlayer_getCurrentPosition(JNIEnv* env, jobject obj) {
+Java_net_sourceforge_servestream_media_FFmpegPlayer_getCurrentPosition(JNIEnv* env, jobject obj) {
 	return (global_audio_state->audio_clock * 1000);
 }
 
 JNIEXPORT int JNICALL
-Java_net_sourceforge_servestream_player_FFmpegPlayer_getDuration(JNIEnv* env, jobject obj) {
+Java_net_sourceforge_servestream_media_FFmpegPlayer_getDuration(JNIEnv* env, jobject obj) {
 	if (global_audio_state->ic && (global_audio_state->ic->duration != AV_NOPTS_VALUE)) {
 		return (global_audio_state->ic->duration / AV_TIME_BASE) * 1000;
 	}
@@ -592,7 +592,7 @@ Java_net_sourceforge_servestream_player_FFmpegPlayer_getDuration(JNIEnv* env, jo
 }
 
 JNIEXPORT void JNICALL
-Java_net_sourceforge_servestream_player_FFmpegPlayer_seekTo(JNIEnv* env, jobject obj, int msec) {
+Java_net_sourceforge_servestream_media_FFmpegPlayer_seekTo(JNIEnv* env, jobject obj, int msec) {
     __android_log_print(ANDROID_LOG_INFO, TAG, "seekTo");
 
     pthread_mutex_lock(lock);
