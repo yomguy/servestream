@@ -1,6 +1,6 @@
 /*
  * ServeStream: A HTTP stream browser/player for Android
- * Copyright 2012 William Seemann
+ * Copyright 2013 William Seemann
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,13 +23,15 @@ package net.sourceforge.servestream.media;
  */
 public class MediaMetadataRetriever
 {
+	private Object mAVFormatContext;
+	
     static {
         System.loadLibrary("media1_jni");
         native_init();
     }
 
     public MediaMetadataRetriever() {
-    
+    	mAVFormatContext = null;
     }
 
     /**
@@ -40,7 +42,11 @@ public class MediaMetadataRetriever
      * @param path The path of the input media file.
      * @throws IllegalArgumentException If the path is invalid.
      */
-    public native void setDataSource(String path) throws IllegalArgumentException;
+    public void setDataSource(String path) throws IllegalArgumentException {
+    	mAVFormatContext = _setDataSource(path, mAVFormatContext);
+    }
+    
+    private native Object _setDataSource(String path, Object context) throws IllegalArgumentException;
     
     /**
      * Call this method after setDataSource(). This method retrieves the 
@@ -53,16 +59,11 @@ public class MediaMetadataRetriever
      * @return The meta data value associate with the given keyCode on success; 
      * null on failure.
      */
-    public native String extractMetadata(String key);
-
-    /**
-     * Call this method after setDataSource(). This method finds the optional
-     * graphic or album/cover art associated associated with the data source. If
-     * there are more than one pictures, (any) one of them is returned.
-     * 
-     * @return null if no such graphic is found.
-     */
-    public native String getEmbeddedPicture(String path);
+    public String extractMetadata(String key) {
+    	return _extractMetadata(key, mAVFormatContext);
+    }
+    
+    private native String _extractMetadata(String key, Object context);
 
     /**
      * Call this method after setDataSource(). This method finds the optional
@@ -72,16 +73,21 @@ public class MediaMetadataRetriever
      * @return null if no such graphic is found.
      */
     public byte[] getEmbeddedPicture() {
-        return _getEmbeddedPicture();
+        return _getEmbeddedPicture(mAVFormatContext);
     }
 
-    private native byte[] _getEmbeddedPicture();
+    private native byte[] _getEmbeddedPicture(Object context);
     
     /**
      * Call it when one is done with the object. This method releases the memory
      * allocated internally.
      */
-    public native void release();
+    public void release() {
+    	_release(mAVFormatContext);
+    	mAVFormatContext = null;
+    }
+    
+    private native void _release(Object context);
     private static native void native_init();
 
     //private native final void native_finalize();

@@ -1,6 +1,6 @@
 /*
  * ServeStream: A HTTP stream browser/player for Android
- * Copyright 2012 William Seemann
+ * Copyright 2013 William Seemann
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,15 +24,12 @@
 const char *TAG = "Java_net_sourceforge_servestream_media_MediaMetadataRetriever";
 const char *DURATION = "duration";
 
-static AVFormatContext *pFormatCtx = NULL;
-
 // Native function definitions
 JNIEXPORT void JNICALL Java_net_sourceforge_servestream_media_MediaMetadataRetriever_native_1init(JNIEnv *env, jclass obj);
-JNIEXPORT void JNICALL Java_net_sourceforge_servestream_media_MediaMetadataRetriever_setDataSource(JNIEnv *env, jclass obj, jstring path);
-JNIEXPORT jstring JNICALL Java_net_sourceforge_servestream_media_MediaMetadataRetriever_extractMetadata(JNIEnv *env, jclass obj, jstring jkey);
-JNIEXPORT jstring JNICALL Java_net_sourceforge_servestream_media_MediaMetadataRetriever_getEmbeddedPicture(JNIEnv* env, jobject obj, jstring jpath);
-JNIEXPORT jbyteArray JNICALL Java_net_sourceforge_servestream_media_MediaMetadataRetriever__1getEmbeddedPicture(JNIEnv* env, jobject obj);
-JNIEXPORT void JNICALL Java_net_sourceforge_servestream_media_MediaMetadataRetriever_release(JNIEnv *env, jclass obj);
+JNIEXPORT jobject JNICALL Java_net_sourceforge_servestream_media_MediaMetadataRetriever__1setDataSource(JNIEnv *env, jclass obj, jstring path, jobject context);
+JNIEXPORT jstring JNICALL Java_net_sourceforge_servestream_media_MediaMetadataRetriever__1extractMetadata(JNIEnv *env, jclass obj, jstring jkey, jobject context);
+JNIEXPORT jbyteArray JNICALL Java_net_sourceforge_servestream_media_MediaMetadataRetriever__1getEmbeddedPicture(JNIEnv* env, jobject obj, jobject context);
+JNIEXPORT void JNICALL Java_net_sourceforge_servestream_media_MediaMetadataRetriever__1release(JNIEnv *env, jclass obj, jobject context);
 
 void jniThrowException(JNIEnv* env, const char* className,
     const char* msg) {
@@ -60,12 +57,18 @@ void getDuration(AVFormatContext *ic, char * value) {
 	sprintf(value, "%d", duration); // %i
 }
 
-JNIEXPORT void JNICALL
-Java_net_sourceforge_servestream_media_MediaMetadataRetriever_setDataSource(JNIEnv *env, jclass obj, jstring jpath) {
+JNIEXPORT jobject JNICALL
+Java_net_sourceforge_servestream_media_MediaMetadataRetriever__1setDataSource(JNIEnv *env, jclass obj, jstring jpath, jobject context) {
 	//__android_log_write(ANDROID_LOG_INFO, TAG, "setDataSource");
 
-	if (pFormatCtx) {
-		avformat_close_input(&pFormatCtx);
+	AVFormatContext *pFormatCtx = NULL;
+
+	if (context) {
+		pFormatCtx = (AVFormatContext *) (*env)->GetDirectBufferAddress(env, context);
+
+		if (pFormatCtx) {
+			avformat_close_input(&pFormatCtx);
+		}
 	}
 
 	char duration[30] = "0";
@@ -79,7 +82,7 @@ Java_net_sourceforge_servestream_media_MediaMetadataRetriever_setDataSource(JNIE
 	    __android_log_write(ANDROID_LOG_INFO, TAG, "Metadata could not be retrieved");
         (*env)->ReleaseStringUTFChars(env, jpath, uri);
     	jniThrowException(env, "java/lang/IllegalArgumentException", NULL);
-    	return;
+    	return NULL;
     }
 
 	if (avformat_find_stream_info(pFormatCtx, NULL) < 0) {
@@ -87,7 +90,7 @@ Java_net_sourceforge_servestream_media_MediaMetadataRetriever_setDataSource(JNIE
 	    avformat_close_input(&pFormatCtx);
         (*env)->ReleaseStringUTFChars(env, jpath, uri);
         jniThrowException(env, "java/lang/IllegalArgumentException", NULL);
-    	return;
+    	return NULL;
 	}
 
 	getDuration(pFormatCtx, duration);
@@ -101,11 +104,18 @@ Java_net_sourceforge_servestream_media_MediaMetadataRetriever_setDataSource(JNIE
     }*/
 
     (*env)->ReleaseStringUTFChars(env, jpath, uri);
+    return (*env)->NewDirectByteBuffer(env, pFormatCtx, 0); // size = 0, you don't want anyone to change it
 }
 
 JNIEXPORT jstring JNICALL
-Java_net_sourceforge_servestream_media_MediaMetadataRetriever_extractMetadata(JNIEnv *env, jclass obj, jstring jkey) {
+Java_net_sourceforge_servestream_media_MediaMetadataRetriever__1extractMetadata(JNIEnv *env, jclass obj, jstring jkey, jobject context) {
 	//__android_log_write(ANDROID_LOG_INFO, TAG, "extractMetadata");
+
+	AVFormatContext *pFormatCtx = NULL;
+
+	if (context) {
+		pFormatCtx = (AVFormatContext *) (*env)->GetDirectBufferAddress(env, context);
+	}
 
     const char *key;
     jstring value = NULL;
@@ -128,54 +138,16 @@ Java_net_sourceforge_servestream_media_MediaMetadataRetriever_extractMetadata(JN
 	return value;
 }
 
-JNIEXPORT jstring JNICALL
-Java_net_sourceforge_servestream_media_MediaMetadataRetriever_getEmbeddedPicture(JNIEnv* env, jobject obj, jstring jpath) {
-	//__android_log_write(ANDROID_LOG_INFO, TAG, "getEmbeddedPicture");
-
-	int i = 0;
-    const char *path;
-
-    path = (*env)->GetStringUTFChars(env, jpath, NULL);
-
-	if (!pFormatCtx) {
-		goto fail;
-	}
-
-    // read the format headers
-    if (pFormatCtx->iformat->read_header(pFormatCtx) < 0) {
-        __android_log_print(ANDROID_LOG_ERROR, TAG, "Could not read the format header");
-    	goto fail;
-    }
-
-    // find the first attached picture, if available
-    for (i = 0; i < pFormatCtx->nb_streams; i++) {
-        if (pFormatCtx->streams[i]->disposition & AV_DISPOSITION_ATTACHED_PIC) {
-        	//__android_log_print(ANDROID_LOG_INFO, TAG, "Found album art");
-
-            FILE *picture = fopen(path, "wb");
-
-            if (picture) {
-            	int ret = fwrite(pFormatCtx->streams[i]->attached_pic.data, pFormatCtx->streams[i]->attached_pic.size, 1, picture);
-                fclose(picture);
-
-                if (ret > 0) {
-                	(*env)->ReleaseStringUTFChars(env, jpath, path);
-                	return jpath;
-                }
-            }
-        }
-    }
-
-	fail:
-	(*env)->ReleaseStringUTFChars(env, jpath, path);
-
-	return NULL;
-}
-
 JNIEXPORT jbyteArray JNICALL
-Java_net_sourceforge_servestream_media_MediaMetadataRetriever__1getEmbeddedPicture(JNIEnv* env, jobject obj) {
+Java_net_sourceforge_servestream_media_MediaMetadataRetriever__1getEmbeddedPicture(JNIEnv* env, jobject obj, jobject context) {
 	//__android_log_write(ANDROID_LOG_INFO, TAG, "getEmbeddedPicture");
 	int i = 0;
+
+	AVFormatContext *pFormatCtx = NULL;
+
+	if (context) {
+		pFormatCtx = (AVFormatContext *) (*env)->GetDirectBufferAddress(env, context);
+	}
 
 	if (!pFormatCtx) {
 		goto fail;
@@ -212,12 +184,18 @@ Java_net_sourceforge_servestream_media_MediaMetadataRetriever__1getEmbeddedPictu
 }
 
 JNIEXPORT void JNICALL
-Java_net_sourceforge_servestream_media_MediaMetadataRetriever_release(JNIEnv *env, jclass obj) {
+Java_net_sourceforge_servestream_media_MediaMetadataRetriever__1release(JNIEnv *env, jclass obj, jobject context) {
 	//__android_log_write(ANDROID_LOG_INFO, TAG, "release");
 
-    if (pFormatCtx) {
-        avformat_close_input(&pFormatCtx);
-    }
+	AVFormatContext *pFormatCtx = NULL;
+
+	if (context) {
+		pFormatCtx = (AVFormatContext *) (*env)->GetDirectBufferAddress(env, context);
+		
+	    if (pFormatCtx) {
+	        avformat_close_input(&pFormatCtx);
+	    }
+	}
 }
 
 
