@@ -50,14 +50,10 @@ interface IMediaPlaybackService
     int getRepeatMode();
     int getAudioSessionId();
     
-    //
+    // custom methods
     int getTrackId();
     String getMediaUri();
     String getTrackNumber();
     void setSleepTimerMode(int sleepmode);
     int getSleepTimerMode();
-    boolean isStreaming();
-    boolean isCompleteFileAvailable();
-    long getCompleteFileDuration();
-    double getPercentDownloaded();
 }

@@ -17,6 +17,7 @@
 
 package net.sourceforge.servestream.media;
 
+import android.content.Context;
 import android.media.MediaPlayer;
 import android.os.Handler;
 import android.os.Parcel;
@@ -43,6 +44,7 @@ public class MultiPlayer implements Parcelable, HTTPRequestListener {
 	private static final String TAG = MultiPlayer.class.getName();
 	
 	private NativePlayer mNativeMediaPlayer = new NativePlayer();
+	private DownloadPlayer mDownloadMediaPlayer;
 	private FFmpegPlayer mFFmpegMediaPlayer;
 	private AbstractMediaPlayer mMediaPlayer = mNativeMediaPlayer;
     private Handler mHandler;
@@ -55,11 +57,15 @@ public class MultiPlayer implements Parcelable, HTTPRequestListener {
     	
     }
 
-    public void setDataSource(String path, boolean isLocalFile, boolean useFFmpegPlayer) {
-    	setDataSource(path, isLocalFile, useFFmpegPlayer, null);
+    public void setDataSource(Context context, long id) {
+    	setDataSource(context, null, id, true, false, null);
     }
     
-    private void setDataSource(String path, boolean isLocalFile, boolean useFFmpegPlayer, String contentType) {
+    public void setDataSource(String path, boolean useFFmpegPlayer) {
+    	setDataSource(null, path, -1, false, useFFmpegPlayer, null);
+    }
+    
+    private void setDataSource(Context context, String path, long id, boolean isLocalFile, boolean useFFmpegPlayer, String contentType) {
         try {
             mMediaPlayer.reset();
             
@@ -70,7 +76,7 @@ public class MultiPlayer implements Parcelable, HTTPRequestListener {
             
             AbstractMediaPlayer player = null;
             if (isLocalFile) {
-            	player = mNativeMediaPlayer;
+            	player = getDownloadPlayer();
             } else {
             	if (useFFmpegPlayer) {
             		player = getFFmpegPlayer();
@@ -84,10 +90,11 @@ public class MultiPlayer implements Parcelable, HTTPRequestListener {
             mMediaPlayer.setOnPreparedListener(onPreparedListener);
             mMediaPlayer.setOnCompletionListener(onCompletionListener);
             mMediaPlayer.setOnErrorListener(onErrorListener);
+            mMediaPlayer.setOnInfoListener(onInfoListener);
             
             if (isLocalFile) {
-                mMediaPlayer.setDataSource(path);
-            	mMediaPlayer.prepare();
+                mMediaPlayer.setDataSource(context, id);
+            	mMediaPlayer.prepareAsync();
             } else {
             	if (path.startsWith(MMS.getProtocolName() + "://")) {
             		path = path.replace(MMS.getProtocolName(), MMSH.getProtocolName());
@@ -129,6 +136,11 @@ public class MultiPlayer implements Parcelable, HTTPRequestListener {
         if (mNativeMediaPlayer != null) {
         	mNativeMediaPlayer.release();
         	mNativeMediaPlayer = null;
+        }
+        
+        if (mDownloadMediaPlayer != null) {
+        	mDownloadMediaPlayer.release();
+        	mDownloadMediaPlayer = null;
         }
         
         if (mFFmpegMediaPlayer != null) {
@@ -185,6 +197,20 @@ public class MultiPlayer implements Parcelable, HTTPRequestListener {
         }
     };
 
+    private AbstractMediaPlayer.OnInfoListener onInfoListener = new AbstractMediaPlayer.OnInfoListener() {
+		@Override
+		public boolean onInfo(AbstractMediaPlayer mp, int what, int extra) {
+			switch (what) {
+				case AbstractMediaPlayer.MEDIA_INFO_METADATA_UPDATE:
+					mHandler.sendMessage(mHandler.obtainMessage(MediaPlaybackService.METADATA_UPDATE));
+					return true;
+    			default:
+    				break;    	
+			}
+    		return false;
+		}
+    };
+    	
     public long duration() {
         return mMediaPlayer.getDuration();
     }
@@ -240,6 +266,16 @@ public class MultiPlayer implements Parcelable, HTTPRequestListener {
 		}
 	}
     
+	private DownloadPlayer getDownloadPlayer() {
+		// allow for lazy initialization of Download player
+		// in case it is never used		
+		if (mDownloadMediaPlayer == null) {
+			mDownloadMediaPlayer = new DownloadPlayer();
+		}
+		
+		return mDownloadMediaPlayer;
+	}
+	
 	private FFmpegPlayer getFFmpegPlayer() {
 		// allow for lazy initialization of FFmpeg player
 		// in case it is never used		
@@ -279,12 +315,12 @@ public class MultiPlayer implements Parcelable, HTTPRequestListener {
 			path = path.replace(HTTP.getProtocolName(), MMSH.getProtocolName());
 		}
 		
-		setDataSource(path, isLocalFile, useFFmpegPlayer, contentType);
+		setDataSource(null, path, -1, isLocalFile, useFFmpegPlayer, contentType);
 	}
 
 	@Override
 	public void onHTTPRequestError(String path, boolean isLocalFile,
 			boolean useFFmpegPlayer) {
-		setDataSource(path, isLocalFile, useFFmpegPlayer, "");
+		setDataSource(null, path, -1, isLocalFile, useFFmpegPlayer, "");
 	}
 }

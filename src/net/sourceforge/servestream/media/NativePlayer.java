@@ -1,16 +1,34 @@
+/*
+ * ServeStream: A HTTP stream browser/player for Android
+ * Copyright 2013 William Seemann
+ * 
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package net.sourceforge.servestream.media;
 
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
+import android.content.Context;
 import android.media.MediaPlayer;
 import android.util.Log;
 
 public class NativePlayer extends AbstractMediaPlayer {
     private static final String TAG = NativePlayer.class.getName();
 	
-	private MediaPlayer mMediaPlayer;
+	protected MediaPlayer mMediaPlayer;
 	
 	public NativePlayer() {
 		mMediaPlayer = new MediaPlayer();
@@ -18,9 +36,8 @@ public class NativePlayer extends AbstractMediaPlayer {
 	}
 	
 	@Override
-	public void setDataSource(String path, boolean isLocalFile) throws IOException,
-		IllegalArgumentException, SecurityException, IllegalStateException {
-		mMediaPlayer.setDataSource(path);
+	public void setDataSource(Context context, long id)
+	  		throws IOException, IllegalArgumentException, SecurityException, IllegalStateException {
 	}
 
 	@Override

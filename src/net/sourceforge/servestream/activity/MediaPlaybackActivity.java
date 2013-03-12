@@ -976,23 +976,7 @@ public class MediaPlaybackActivity extends Activity implements MusicUtils.Defs,
         if(mService == null)
             return 500;
         try {
-        	if (!mService.isStreaming()) {
-        		if (!mService.isCompleteFileAvailable()) {
-                	mProgress.setSecondaryProgress((int) (mService.getPercentDownloaded() * 1000));
-        			mPrevButton.setRepeatListener(null, -1);
-        			mNextButton.setRepeatListener(null, -1);
-        			mProgress.setEnabled(false);
-        		} else {
-        			mDuration = mService.getCompleteFileDuration();
-                	mTotalTime.setText(MusicUtils.makeTimeString(this, mDuration / 1000));
-                	mPrevButton.setRepeatListener(mRewListener, 260);
-                	mNextButton.setRepeatListener(mFfwdListener, 260);
-                	mProgress.setEnabled(true);
-        		}
-        	}
-        	
             long pos = mPosOverride < 0 ? mService.position() : mPosOverride;
-            long remaining = 1000 - (pos % 1000);
             if ((pos >= 0)) {
                 mCurrentTime.setText(MusicUtils.makeTimeString(this, pos / 1000));
                 
@@ -1002,7 +986,7 @@ public class MediaPlaybackActivity extends Activity implements MusicUtils.Defs,
                     // blink the counter
                     int vis = mCurrentTime.getVisibility();
                     mCurrentTime.setVisibility(vis == View.INVISIBLE ? View.VISIBLE : View.INVISIBLE);
-                    remaining = 500;
+                    return 500;
                 }
 
                 if (mDuration > 0) {
@@ -1014,9 +998,19 @@ public class MediaPlaybackActivity extends Activity implements MusicUtils.Defs,
                 mCurrentTime.setText("--:--");
                 mProgress.setProgress(1000);
             }
-            // return the number of milliseconds until the next full second, so
+            // calculate the number of milliseconds until the next full second, so
             // the counter can be updated at just the right time
-            return remaining;
+            long remaining = 1000 - (pos % 1000);
+
+            // approximate how often we would need to refresh the slider to
+            // move it smoothly
+            int width = mProgress.getWidth();
+            if (width == 0) width = 320;
+            long smoothrefreshtime = mDuration / width;
+
+            if (smoothrefreshtime > remaining) return remaining;
+            if (smoothrefreshtime < 20) return 20;
+            return smoothrefreshtime;
         } catch (RemoteException ex) {
         }
         return 500;
@@ -1131,20 +1125,9 @@ public class MediaPlaybackActivity extends Activity implements MusicUtils.Defs,
             }
             
             mArtistAndAlbumName.setText(artistAndAlbumName);
-            
             mAlbumArtHandler.removeMessages(GET_ALBUM_ART);
             mAlbumArtHandler.obtainMessage(GET_ALBUM_ART, new IdWrapper(mService.getTrackId())).sendToTarget();
-            
-            if (mService.isStreaming()) {
-            	mDuration = mService.duration();
-            	mProgress.setSecondaryProgress(0);
-            } else {
-            	if (mService.isCompleteFileAvailable()) {
-            		mDuration = mService.getCompleteFileDuration();
-            	} else {
-            		mDuration = 0;
-            	}
-            }
+            mDuration = mService.duration();
             mTotalTime.setText(MusicUtils.makeTimeString(this, mDuration / 1000));
         } catch (RemoteException ex) {
             finish();

@@ -1,16 +1,36 @@
-package net.sourceforge.servestream.service;
+/*
+ * ServeStream: A HTTP stream browser/player for Android
+ * Copyright 2013 William Seemann
+ * 
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package net.sourceforge.servestream.media;
 
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
 import java.net.URL;
 
 import javax.net.ssl.HttpsURLConnection;
 
+import net.sourceforge.servestream.bean.UriBean;
 import net.sourceforge.servestream.provider.Media;
+import net.sourceforge.servestream.transport.HTTP;
+import net.sourceforge.servestream.transport.HTTPS;
+import net.sourceforge.servestream.transport.TransportFactory;
 import net.sourceforge.servestream.utils.Utils;
 import android.content.Context;
 import android.database.Cursor;
@@ -19,46 +39,97 @@ import android.net.Uri;
 import android.os.AsyncTask;
 import android.util.Log;
 
-public class DownloadManager {
-	private static final String TAG = DownloadManager.class.getName();
-
-	private MediaPlaybackService mMediaPlaybackService = null;
-
+public class DownloadPlayer extends NativePlayer {
+	private static final String TAG = DownloadPlayer.class.getName();
+	
 	private long mTotalSizeInBytes = -1;
 	
+	private URL mUrl = null;
+	private long mId = -1;
 	private long mLength = -1;
 	private File mPartialFile = null;
 	private File mCompleteFile = null;
 	private DownloadTask mDownloadTask = null;
 	private PollingAsyncTask mPollingAsyncTask = null;
 	
-	public DownloadManager(MediaPlaybackService mediaPlaybackService) {
-		mMediaPlaybackService = mediaPlaybackService;
+	public DownloadPlayer() {
+		super();
 	}
 	
-	public void download(long id) {
-		URL url = null;
-		String uri = getUri(mMediaPlaybackService, id);
-		
-		if (uri != null) {
-			try {
-				url = new URL(uri);
-			} catch (MalformedURLException e) {
-				e.printStackTrace();
-				return;
-			}
-		}
+	@Override
+	public void setDataSource(Context context, long id) throws IOException,
+			IllegalArgumentException, SecurityException, IllegalStateException {
+		mId = id;
+		String path = getUri(context, id);		
+		Uri uri = TransportFactory.getUri(path);
 
+		if (uri == null ||
+				(!uri.getScheme().equals(HTTP.getProtocolName()) &&
+				!uri.getScheme().equals(HTTPS.getProtocolName()))) {
+			throw new IllegalArgumentException();
+		}
+		
+		UriBean uriBean = TransportFactory.getTransport(uri.getScheme()).createUri(uri);
+		
+		if (uriBean == null) {
+			throw new IllegalArgumentException();
+		}
+		
+		mUrl = uriBean.getURL();
+	}
+	
+	@Override
+	public void prepareAsync() throws IllegalStateException {
+		download();
+	}
+	
+	@Override
+	public void stop() {
+		super.stop();
+        cancelDownload();
+	}
+	
+	@Override
+	public void seekTo(int msec) throws IllegalStateException {
+		if (isCompleteFileAvailable()) {
+			mMediaPlayer.seekTo(msec);
+		}
+	}
+	
+	@Override
+	public int getDuration() {
+		if (isCompleteFileAvailable()) {
+			return (int) getCompleteFileDuration();
+		} else {
+			return 0;
+		}
+	}
+	
+	@Override
+	public void release() {
+		super.release();
+    	cancelDownload();
+    	Utils.deleteAllFiles();
+	}
+	
+	@Override
+	public void reset() {
+		super.reset();
+    	cancelDownload();
+    	Utils.deleteAllFiles();
+	}
+	
+	private void download() {
 		mTotalSizeInBytes = -1;
 		mLength = -1;
-		mPartialFile = new File(Utils.getDownloadDirectory(), "mediafile" + id + ".partial.dat");
-        mCompleteFile = new File(Utils.getDownloadDirectory(), "mediafile" + id + ".complete.dat");
+		mPartialFile = new File(Utils.getDownloadDirectory(), "mediafile" + mId + ".partial.dat");
+        mCompleteFile = new File(Utils.getDownloadDirectory(), "mediafile" + mId + ".complete.dat");
         Utils.deleteFile(mPartialFile);
         Utils.deleteFile(mCompleteFile);
         
         Log.v(TAG, "=============> " + mPartialFile.toString());
 		mDownloadTask = new DownloadTask(mPartialFile, mCompleteFile);
-        mDownloadTask.execute(url);
+        mDownloadTask.execute(mUrl);
         mPollingAsyncTask = new PollingAsyncTask();
         mPollingAsyncTask.execute();
 	}
@@ -193,6 +264,10 @@ public class DownloadManager {
                 
                 	Utils.copyFile(mPartialFile, mCompleteFile);
         			Log.v(TAG, "download task is complete");
+        			
+        			if (mOnInfoListener != null) {
+        				mOnInfoListener.onInfo(DownloadPlayer.this, AbstractMediaPlayer.MEDIA_INFO_METADATA_UPDATE, 0);
+        			}
             	} catch (IOException e) {
             		e.printStackTrace();
             	} finally {
@@ -255,8 +330,19 @@ public class DownloadManager {
 			}
 			
 			Log.v(TAG, "setDataSource called");
-			//TODO fix this
-			//mMediaPlaybackService.getMediaPlayer().setDataSource(getPartialFile().getPath(), true, false);
+			try {
+				mMediaPlayer.setDataSource(getPartialFile().getPath());
+				mMediaPlayer.prepare();
+				return null;
+			} catch (IllegalArgumentException e) {
+				e.printStackTrace();
+			} catch (SecurityException e) {
+				e.printStackTrace();
+			} catch (IllegalStateException e) {
+				e.printStackTrace();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
 			
 			return null;
 		}
@@ -291,4 +377,4 @@ public class DownloadManager {
 		
 		return uri;
 	}
-}    
+}
