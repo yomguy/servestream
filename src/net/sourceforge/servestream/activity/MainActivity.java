@@ -77,6 +77,7 @@ import android.view.View.OnKeyListener;
 import android.view.ViewGroup;
 import android.view.MenuItem.OnMenuItemClickListener;
 import android.view.View.OnClickListener;
+import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
 
 import android.widget.AdapterView;
@@ -144,6 +145,8 @@ public class MainActivity extends SherlockFragmentActivity implements ServiceCon
 		super.onCreate(icicle);
 		
 		setContentView(R.layout.activity_main);		
+		
+		getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
 		
 		ActionBar actionBar = getSupportActionBar();
 		actionBar.setTitle(R.string.title_url_list);
