@@ -436,7 +436,7 @@ public class MainActivity extends SherlockFragmentActivity implements ServiceCon
 	    	        		   intent.setData(Uri.parse("market://details?id=com.google.zxing.client.android"));
 	    	        		   startActivity(intent);
 	    	        	   } catch (ActivityNotFoundException ex ) {
-	    	        		   // the market couldn't be opening or the application couldn't be found
+	    	        		   // the Google Play store couldn't be opened,
 	    	        		   // lets take the user to the project's webpage instead.
 	    	        		   Intent intent = new Intent(Intent.ACTION_VIEW);
 	    	        		   intent.setData(Uri.parse("http://code.google.com/p/zxing/downloads/list"));
