@@ -126,6 +126,7 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
     public static final int TRACK_WENT_TO_NEXT = 7;
     public static final int PLAYER_PREPARED = 8;
     public static final int PLAYER_ERROR = 9;
+    public static final int METADATA_UPDATE = 10;
     private static final int MAX_HISTORY_SIZE = 100;
     
     private MultiPlayer mPlayer;
@@ -177,8 +178,6 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
 
     private ConnectivityReceiver mConnectivityManager;
     private SHOUTcastMetadata mSHOUTcastMetadata;
-    private DownloadManager mDownloadManager;
-    private boolean mIsStreaming = true;
     
     private Handler mMediaplayerHandler = new Handler() {
         float mCurrentVolume = 1.0f;
@@ -248,6 +247,9 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
                 case PLAYER_ERROR:
                 	// TODO new
                 	handleError();
+                	break;
+                case METADATA_UPDATE:
+                	notifyChange(META_CHANGED);
                 	break;
                     
                 case FOCUSCHANGE:
@@ -388,7 +390,6 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
 		mConnectivityManager = new ConnectivityReceiver(this, lockingWifi);
 		final boolean retrieveSHOUTcastMetadata = mPreferences.getBoolean(PreferenceConstants.RETRIEVE_SHOUTCAST_METADATA, false);
 		mSHOUTcastMetadata = new SHOUTcastMetadata(this, retrieveSHOUTcastMetadata);
-		mDownloadManager = new DownloadManager(this);
 		
         mMediaButtonReceiverComponent = new ComponentName(this, MediaButtonIntentReceiver.class);
 		
@@ -445,7 +446,6 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
         
         mConnectivityManager.cleanup();
         mSHOUTcastMetadata.cleanup();
-    	mDownloadManager.cancelDownload();
     	Utils.deleteAllFiles();
         
         super.onDestroy();
@@ -942,14 +942,12 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
             
             sendStickyBroadcast(new Intent(START_DIALOG));
             
-    		mDownloadManager.cancelDownload();
-            if (mPreferences.getBoolean(PreferenceConstants.PROGRESSIVE_DOWNLOAD, false)) {
-            	mIsStreaming = false;
-            	mDownloadManager.download(mPlayList[mPlayPos]);
+            boolean isLocalFile = mPreferences.getBoolean(PreferenceConstants.PROGRESSIVE_DOWNLOAD, false);
+            boolean useFFmpegPlayer = mPreferences.getBoolean(PreferenceConstants.USE_FFMPEG_PLAYER, false);   	
+            if (isLocalFile) {
+            	mPlayer.setDataSource(this, mPlayList[mPlayPos]);
             } else {
-            	boolean useFFmpegPlayer = mPreferences.getBoolean(PreferenceConstants.USE_FFMPEG_PLAYER, false);   	
-            	mIsStreaming = true;
-            	mPlayer.setDataSource(mFileToPlay, false, useFFmpegPlayer);
+            	mPlayer.setDataSource(mFileToPlay, useFFmpegPlayer);
             }
         }
     }
@@ -1032,8 +1030,6 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
     private void stop(boolean remove_status_icon) {
         if (mPlayer.isInitialized()) {
             mPlayer.stop();
-            // TODO: Modify this code?
-            mDownloadManager.cancelDownload();
         }
         mFileToPlay = null;
         if (mCursor != null) {
@@ -1745,18 +1741,6 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
         public int getSleepTimerMode() {
         	return mService.get().getSleepTimerMode();
         }
-        public boolean isStreaming() {
-        	return mService.get().isStreaming();
-        }
-        public boolean isCompleteFileAvailable() {
-        	return mService.get().isCompleteFileAvailable();
-        }
-        public long getCompleteFileDuration() {
-        	return mService.get().getCompleteFileDuration();
-        }
-        public double getPercentDownloaded() {
-        	return mService.get().getPercentDownloaded();
-        }
     }
 
     @Override
@@ -1824,30 +1808,6 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
     
     public int getSleepTimerMode() {
     	return mSleepTimerMode;
-    }
-    
-    public boolean isStreaming() {
-        synchronized (this) {    	
-        	return mIsStreaming;
-        }
-    }
-
-    public boolean isCompleteFileAvailable() {
-        synchronized (this) {    	
-            return mDownloadManager.isCompleteFileAvailable();
-        }
-    }
-    
-    public long getCompleteFileDuration() {
-        synchronized (this) {    	
-            return mDownloadManager.getLength();
-        }
-    }
-    
-    public double getPercentDownloaded() {
-    	synchronized (this) {
-    		return mDownloadManager.getPercentDownloaded();
-    	}
     }
     
     @Override

@@ -19,7 +19,7 @@ package net.sourceforge.servestream.media;
 
 import java.io.FileDescriptor;
 import java.io.IOException;
-
+import android.content.Context;
 import android.media.AudioManager;
 
 /**
@@ -41,8 +41,8 @@ public abstract class AbstractMediaPlayer {
     /**
      * Sets the data source (file-path or http/rtsp URL) to use.
      *
-     * @param path the path of the file, or the http/rtsp URL of the stream you want to play
-     * @param isLocalFile an indicator if the file is local, or a stream
+     * @param context the current context
+     * @param id the database identifier of the file to play
      *
      * <p>When <code>path</code> refers to a local file, the file may actually be opened by a
      * process other than the calling application.  This implies that the pathname
@@ -51,7 +51,7 @@ public abstract class AbstractMediaPlayer {
      * As an alternative, the application could first open the file for reading,
      * and then use the file descriptor form {@link #setDataSource(FileDescriptor)}.
      */
-    public abstract void setDataSource(String path, boolean isLocalFile)
+    public abstract void setDataSource(Context context, long id)
     		throws IOException, IllegalArgumentException, SecurityException, IllegalStateException;
     
     /**
@@ -326,4 +326,50 @@ public abstract class AbstractMediaPlayer {
     }
 
     protected OnErrorListener mOnErrorListener;
+    
+    /**
+     * Interface definition of a callback to be invoked to communicate some
+     * info and/or warning about the media or its playback.
+     */
+    public interface OnInfoListener
+    {
+        /**
+         * Called to indicate an info or a warning.
+         *
+         * @param mp      the MediaPlayer the info pertains to.
+         * @param what    the type of info or warning.
+         * <ul>
+         * <li>{@link #MEDIA_INFO_UNKNOWN}
+         * <li>{@link #MEDIA_INFO_VIDEO_TRACK_LAGGING}
+         * <li>{@link #MEDIA_INFO_BUFFERING_START}
+         * <li>{@link #MEDIA_INFO_BUFFERING_END}
+         * <li>{@link #MEDIA_INFO_BAD_INTERLEAVING}
+         * <li>{@link #MEDIA_INFO_NOT_SEEKABLE}
+         * <li>{@link #MEDIA_INFO_METADATA_UPDATE}
+         * </ul>
+         * @param extra an extra code, specific to the info. Typically
+         * implementation dependant.
+         * @return True if the method handled the info, false if it didn't.
+         * Returning false, or not having an OnErrorListener at all, will
+         * cause the info to be discarded.
+         */
+        boolean onInfo(AbstractMediaPlayer mp, int what, int extra);
+    }
+
+    /** A new set of metadata is available.
+     * @see android.media.MediaPlayer.OnInfoListener
+     */
+    public static final int MEDIA_INFO_METADATA_UPDATE = 802;
+    
+    /**
+     * Register a callback to be invoked when an info/warning is available.
+     *
+     * @param listener the callback that will be run
+     */
+    public void setOnInfoListener(OnInfoListener listener)
+    {
+        mOnInfoListener = listener;
+    }
+
+    protected OnInfoListener mOnInfoListener;
 }
