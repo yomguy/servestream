@@ -17,19 +17,30 @@
 
 #include <jni.h>
 #include <android/log.h>
+#include <pthread.h>
 #include <libavcodec/avcodec.h>
 #include <libavformat/avformat.h>
 #include <libavutil/dict.h>
 
+typedef struct fields_t {
+    jfieldID context;
+} fields_t;
+
+static fields_t fields;
+static pthread_mutex_t *sLock;
+static const char* const kClassPathName = "net/sourceforge/servestream/media/MediaMetadataRetriever";
+
 const char *TAG = "Java_net_sourceforge_servestream_media_MediaMetadataRetriever";
 const char *DURATION = "duration";
 
-// Native function definitions
+// Native function definitionsdefinitions
 JNIEXPORT void JNICALL Java_net_sourceforge_servestream_media_MediaMetadataRetriever_native_1init(JNIEnv *env, jclass obj);
-JNIEXPORT jobject JNICALL Java_net_sourceforge_servestream_media_MediaMetadataRetriever__1setDataSource(JNIEnv *env, jclass obj, jstring path, jobject context);
-JNIEXPORT jstring JNICALL Java_net_sourceforge_servestream_media_MediaMetadataRetriever__1extractMetadata(JNIEnv *env, jclass obj, jstring jkey, jobject context);
-JNIEXPORT jbyteArray JNICALL Java_net_sourceforge_servestream_media_MediaMetadataRetriever__1getEmbeddedPicture(JNIEnv* env, jobject obj, jobject context);
-JNIEXPORT void JNICALL Java_net_sourceforge_servestream_media_MediaMetadataRetriever__1release(JNIEnv *env, jclass obj, jobject context);
+JNIEXPORT void JNICALL Java_net_sourceforge_servestream_media_MediaMetadataRetriever_setDataSource(JNIEnv *env, jclass obj, jstring path);
+JNIEXPORT jstring JNICALL Java_net_sourceforge_servestream_media_MediaMetadataRetriever_extractMetadata(JNIEnv *env, jclass obj, jstring jkey);
+JNIEXPORT jbyteArray JNICALL Java_net_sourceforge_servestream_media_MediaMetadataRetriever_getEmbeddedPicture(JNIEnv* env, jobject obj);
+JNIEXPORT void JNICALL Java_net_sourceforge_servestream_media_MediaMetadataRetriever_release(JNIEnv *env, jclass obj);
+JNIEXPORT void JNICALL Java_net_sourceforge_servestream_media_MediaMetadataRetriever_native_1finalize(JNIEnv *env, jclass obj);
+JNIEXPORT void JNICALL Java_net_sourceforge_servestream_media_MediaMetadataRetriever_native_1setup(JNIEnv *env, jclass obj);
 
 void jniThrowException(JNIEnv* env, const char* className,
     const char* msg) {
@@ -37,10 +48,35 @@ void jniThrowException(JNIEnv* env, const char* className,
     (*env)->ThrowNew(env, exception, msg);
 }
 
+static AVFormatContext* getRetriever(JNIEnv *env, jobject obj) {
+    // No lock is needed, since it is called internally by other methods that are protected
+	AVFormatContext* retriever = (AVFormatContext*) (*env)->GetIntField(env, obj, fields.context);
+    return retriever;
+}
+
+static void setRetriever(JNIEnv *env, jobject obj, int retriever) {
+    // No lock is needed, since it is called internally by other methods that are protected
+	AVFormatContext *old = (AVFormatContext*) (*env)->GetIntField(env, obj, fields.context);
+    (*env)->SetIntField(env, obj, fields.context, retriever);
+}
+
+// This function gets a field ID, which in turn causes class initialization.
+// It is called from a static block in MediaMetadataRetriever, which won't run until the
+// first time an instance of this class is used.
 JNIEXPORT void JNICALL
 Java_net_sourceforge_servestream_media_MediaMetadataRetriever_native_1init(JNIEnv *env, jclass obj) {
     //__android_log_write(ANDROID_LOG_INFO, TAG, "native_init");
 
+	jclass clazz = (*env)->FindClass(env, kClassPathName);
+	if (clazz == NULL) {
+		return;
+	}
+
+	fields.context = (*env)->GetFieldID(env, clazz, "mNativeContext", "I");
+	if (fields.context == NULL) {
+		return;
+	}
+	
     // Initialize libavformat and register all the muxers, demuxers and protocols.
     av_register_all();
 }
@@ -57,18 +93,14 @@ void getDuration(AVFormatContext *ic, char * value) {
 	sprintf(value, "%d", duration); // %i
 }
 
-JNIEXPORT jobject JNICALL
-Java_net_sourceforge_servestream_media_MediaMetadataRetriever__1setDataSource(JNIEnv *env, jclass obj, jstring jpath, jobject context) {
+JNIEXPORT void JNICALL
+Java_net_sourceforge_servestream_media_MediaMetadataRetriever_setDataSource(JNIEnv *env, jclass obj, jstring jpath) {
 	//__android_log_write(ANDROID_LOG_INFO, TAG, "setDataSource");
 
-	AVFormatContext *pFormatCtx = NULL;
-
-	if (context) {
-		pFormatCtx = (AVFormatContext *) (*env)->GetDirectBufferAddress(env, context);
-
-		if (pFormatCtx) {
-			avformat_close_input(&pFormatCtx);
-		}
+	AVFormatContext* pFormatCtx = getRetriever(env, obj);
+	
+	if (pFormatCtx) {
+		avformat_close_input(&pFormatCtx);
 	}
 
 	char duration[30] = "0";
@@ -82,7 +114,8 @@ Java_net_sourceforge_servestream_media_MediaMetadataRetriever__1setDataSource(JN
 	    __android_log_write(ANDROID_LOG_INFO, TAG, "Metadata could not be retrieved");
         (*env)->ReleaseStringUTFChars(env, jpath, uri);
     	jniThrowException(env, "java/lang/IllegalArgumentException", NULL);
-    	return NULL;
+        setRetriever(env, obj, 0);
+    	return;
     }
 
 	if (avformat_find_stream_info(pFormatCtx, NULL) < 0) {
@@ -90,7 +123,8 @@ Java_net_sourceforge_servestream_media_MediaMetadataRetriever__1setDataSource(JN
 	    avformat_close_input(&pFormatCtx);
         (*env)->ReleaseStringUTFChars(env, jpath, uri);
         jniThrowException(env, "java/lang/IllegalArgumentException", NULL);
-    	return NULL;
+        setRetriever(env, obj, 0);
+    	return;
 	}
 
 	getDuration(pFormatCtx, duration);
@@ -104,19 +138,19 @@ Java_net_sourceforge_servestream_media_MediaMetadataRetriever__1setDataSource(JN
     }*/
 
     (*env)->ReleaseStringUTFChars(env, jpath, uri);
-    return (*env)->NewDirectByteBuffer(env, pFormatCtx, 0); // size = 0, you don't want anyone to change it
+    setRetriever(env, obj, (int) pFormatCtx);
 }
 
 JNIEXPORT jstring JNICALL
-Java_net_sourceforge_servestream_media_MediaMetadataRetriever__1extractMetadata(JNIEnv *env, jclass obj, jstring jkey, jobject context) {
+Java_net_sourceforge_servestream_media_MediaMetadataRetriever_extractMetadata(JNIEnv *env, jclass obj, jstring jkey) {
 	//__android_log_write(ANDROID_LOG_INFO, TAG, "extractMetadata");
 
-	AVFormatContext *pFormatCtx = NULL;
-
-	if (context) {
-		pFormatCtx = (AVFormatContext *) (*env)->GetDirectBufferAddress(env, context);
-	}
-
+	AVFormatContext* pFormatCtx = getRetriever(env, obj);
+    if (pFormatCtx == 0) {
+        jniThrowException(env, "java/lang/IllegalStateException", "No retriever available");
+        return NULL;
+    }
+	
     const char *key;
     jstring value = NULL;
 
@@ -139,16 +173,15 @@ Java_net_sourceforge_servestream_media_MediaMetadataRetriever__1extractMetadata(
 }
 
 JNIEXPORT jbyteArray JNICALL
-Java_net_sourceforge_servestream_media_MediaMetadataRetriever__1getEmbeddedPicture(JNIEnv* env, jobject obj, jobject context) {
+Java_net_sourceforge_servestream_media_MediaMetadataRetriever_getEmbeddedPicture(JNIEnv* env, jobject obj) {
 	//__android_log_write(ANDROID_LOG_INFO, TAG, "getEmbeddedPicture");
 	int i = 0;
 
-	AVFormatContext *pFormatCtx = NULL;
-
-	if (context) {
-		pFormatCtx = (AVFormatContext *) (*env)->GetDirectBufferAddress(env, context);
-	}
-
+	AVFormatContext* pFormatCtx = getRetriever(env, obj);
+    if (pFormatCtx == 0) {
+        jniThrowException(env, "java/lang/IllegalStateException", "No retriever available");
+    }
+	
 	if (!pFormatCtx) {
 		goto fail;
 	}
@@ -184,18 +217,30 @@ Java_net_sourceforge_servestream_media_MediaMetadataRetriever__1getEmbeddedPictu
 }
 
 JNIEXPORT void JNICALL
-Java_net_sourceforge_servestream_media_MediaMetadataRetriever__1release(JNIEnv *env, jclass obj, jobject context) {
+Java_net_sourceforge_servestream_media_MediaMetadataRetriever_release(JNIEnv *env, jclass obj) {
 	//__android_log_write(ANDROID_LOG_INFO, TAG, "release");
 
-	AVFormatContext *pFormatCtx = NULL;
-
-	if (context) {
-		pFormatCtx = (AVFormatContext *) (*env)->GetDirectBufferAddress(env, context);
-		
-	    if (pFormatCtx) {
-	        avformat_close_input(&pFormatCtx);
-	    }
-	}
+    pthread_mutex_lock(sLock);
+	AVFormatContext* pFormatCtx = getRetriever(env, obj);
+    
+    if (pFormatCtx) {
+        avformat_close_input(&pFormatCtx);
+    }
+    
+    setRetriever(env, obj, 0);
+    pthread_mutex_unlock(sLock);
 }
 
+JNIEXPORT void JNICALL
+Java_net_sourceforge_servestream_media_MediaMetadataRetriever_native_1finalize(JNIEnv *env, jobject obj) {
+	//__android_log_write(ANDROID_LOG_INFO, TAG, "native_finalize");
+	
+    // No lock is needed, since android_media_MediaMetadataRetriever_release() is protected
+    Java_net_sourceforge_servestream_media_MediaMetadataRetriever_release(env, obj);
+}
 
+JNIEXPORT void JNICALL
+Java_net_sourceforge_servestream_media_MediaMetadataRetriever_native_1setup(JNIEnv *env, jobject obj) {
+	//__android_log_write(ANDROID_LOG_INFO, TAG, "native_setup");
+    setRetriever(env, obj, 0);
+}
