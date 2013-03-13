@@ -33,7 +33,7 @@ static const char* const kClassPathName = "net/sourceforge/servestream/media/Med
 const char *TAG = "Java_net_sourceforge_servestream_media_MediaMetadataRetriever";
 const char *DURATION = "duration";
 
-// Native function definitionsdefinitions
+// Native function definitions
 JNIEXPORT void JNICALL Java_net_sourceforge_servestream_media_MediaMetadataRetriever_native_1init(JNIEnv *env, jclass obj);
 JNIEXPORT void JNICALL Java_net_sourceforge_servestream_media_MediaMetadataRetriever_setDataSource(JNIEnv *env, jclass obj, jstring path);
 JNIEXPORT jstring JNICALL Java_net_sourceforge_servestream_media_MediaMetadataRetriever_extractMetadata(JNIEnv *env, jclass obj, jstring jkey);
