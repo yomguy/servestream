@@ -82,8 +82,7 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
     public static final int PLAYBACKSERVICE_STATUS = 1;
     
     public static final int SHUFFLE_NONE = 0;
-    public static final int SHUFFLE_NORMAL = 1;
-    public static final int SHUFFLE_AUTO = 2;
+    public static final int SHUFFLE_ON = 1;
     
     public static final int REPEAT_NONE = 0;
     public static final int REPEAT_CURRENT = 1;
@@ -466,7 +465,7 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
         mRepeatMode = repmode;
 
         int shufmode = mPreferences.getInt("shufflemode", SHUFFLE_NONE);
-        if (shufmode != SHUFFLE_NORMAL) {
+        if (shufmode != SHUFFLE_ON) {
         	shufmode = SHUFFLE_NONE;
         }
         mShuffleMode = shufmode;
@@ -713,9 +712,6 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
      */
     public void open(long [] list, int position) {
         synchronized (this) {
-            if (mShuffleMode == SHUFFLE_AUTO) {
-                mShuffleMode = SHUFFLE_NORMAL;
-            }
             long oldId = getAudioId();
             int listlength = list.length;
             boolean newlist = true;
@@ -1103,7 +1099,7 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
 
     public void prev() {
         synchronized (this) {
-            if (mShuffleMode == SHUFFLE_NORMAL) {
+            if (mShuffleMode == SHUFFLE_ON) {
                 // go to previously-played track and remove it from the history
                 int histsize = mHistory.size();
                 if (histsize == 0) {
@@ -1135,7 +1131,7 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
         if (mRepeatMode == REPEAT_CURRENT) {
             if (mPlayPos < 0) return 0;
             return mPlayPos;
-        } else if (mShuffleMode == SHUFFLE_NORMAL) {
+        } else if (mShuffleMode == SHUFFLE_ON) {
             // Pick random next track from the not-yet-played ones
             // TODO: make it work right after adding/removing items in the queue.
 
@@ -1191,9 +1187,6 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
                 }
             }
             return cnt;
-        } else if (mShuffleMode == SHUFFLE_AUTO) {
-            doAutoShuffleUpdate();
-            return mPlayPos + 1;
         } else {
             if (mPlayPos >= mPlayListLen - 1) {
                 // we're at the end of the list
@@ -1433,19 +1426,6 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
                 return;
             }
             mShuffleMode = shufflemode;
-            if (mShuffleMode == SHUFFLE_AUTO) {
-                if (makeAutoShuffleList()) {
-                    mPlayListLen = 0;
-                    doAutoShuffleUpdate();
-                    mPlayPos = 0;
-                    openCurrentAndNext();
-                    notifyChange(META_CHANGED);
-                    return;
-                } else {
-                    // failed to build a list of files to shuffle
-                    mShuffleMode = SHUFFLE_NONE;
-                }
-            }
             saveSettings();
         }
     }
@@ -1505,9 +1485,6 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
             mPlayPos = pos;
             openCurrentAndNext();
             notifyChange(META_CHANGED);
-            if (mShuffleMode == SHUFFLE_AUTO) {
-                doAutoShuffleUpdate();
-            }
         }
     }
 
