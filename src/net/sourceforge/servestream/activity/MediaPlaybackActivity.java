@@ -1117,13 +1117,18 @@ public class MediaPlaybackActivity extends Activity implements MusicUtils.Defs,
             
             String artistName = mService.getArtistName();
             String albumName = mService.getAlbumName();
-            String artistAndAlbumName = null;
+            String artistAndAlbumName = "";
             
-            if ((artistName == null || artistName.equals(Media.UNKNOWN_STRING)) &&
-            		albumName == null || albumName.equals(Media.UNKNOWN_STRING)) {
-            	artistAndAlbumName = "";
-            } else {
-            	artistAndAlbumName = mService.getArtistName() + " - " + mService.getAlbumName();
+            if (artistName != null && !artistName.equals(Media.UNKNOWN_STRING)) {
+            	artistAndAlbumName = artistName;
+            }
+            
+            if (albumName != null && !albumName.equals(Media.UNKNOWN_STRING)) {
+            	if (artistAndAlbumName.equals("")) {
+            		artistAndAlbumName = albumName;
+            	} else {
+            		artistAndAlbumName = artistAndAlbumName + " - " + albumName;
+            	}
             }
             
             mArtistAndAlbumName.setText(artistAndAlbumName);
