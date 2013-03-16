@@ -54,7 +54,7 @@ public class MetadataRetrieverTask extends AsyncTask<long [], Void, Void> {
 	@Override
 	protected Void doInBackground(long [] ... list) {
 		try {
-			Thread.sleep(4000);
+			Thread.sleep(3000);
 		} catch (InterruptedException e) {
 		}
 		
@@ -63,6 +63,10 @@ public class MetadataRetrieverTask extends AsyncTask<long [], Void, Void> {
 		SparseArray<String> uris = getUris(mContext, list[0]);
 		
 		for (int i = 0; i < list[0].length; i++) {
+			if (isCancelled()) {
+				break;
+			}
+			
 			String uri = uris.get((int) list[0][i]);
 			
 			if (uri != null) {
