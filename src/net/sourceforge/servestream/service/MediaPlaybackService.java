@@ -35,6 +35,7 @@ import android.media.audiofx.AudioEffect;
 import android.media.AudioManager;
 import android.media.AudioManager.OnAudioFocusChangeListener;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
@@ -177,6 +178,7 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
 
     private ConnectivityReceiver mConnectivityManager;
     private SHOUTcastMetadata mSHOUTcastMetadata;
+    private MetadataRetrieverTask mMetadataRetrieverTask;
     
     private Handler mMediaplayerHandler = new Handler() {
         float mCurrentVolume = 1.0f;
@@ -309,6 +311,16 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
   	    } else if (key.equals(PreferenceConstants.RETRIEVE_SHOUTCAST_METADATA)) {
 			final boolean retrieveSHOUTcastMetadata = mPreferences.getBoolean(PreferenceConstants.RETRIEVE_SHOUTCAST_METADATA, false);
 			mSHOUTcastMetadata.setShouldRetrieveMetadata(retrieveSHOUTcastMetadata);
+  	    } else if (key.equals(PreferenceConstants.RETRIEVE_METADATA)) {
+  	    	if (mMetadataRetrieverTask != null &&
+  	    			mMetadataRetrieverTask.getStatus() != AsyncTask.Status.FINISHED) {
+  	    		mMetadataRetrieverTask.cancel(false);
+  	    		mMetadataRetrieverTask = null;
+  	    	}
+  	    	if (sharedPreferences.getBoolean(PreferenceConstants.RETRIEVE_METADATA, false)) {
+  	    		mMetadataRetrieverTask = new MetadataRetrieverTask(this);
+  	    		mMetadataRetrieverTask.execute(mPlayList);
+  	    	}
   	    }
   	}
     
@@ -445,6 +457,11 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
         
         mConnectivityManager.cleanup();
         mSHOUTcastMetadata.cleanup();
+		if (mMetadataRetrieverTask != null &&
+	    		mMetadataRetrieverTask.getStatus() != AsyncTask.Status.FINISHED) {
+	    	mMetadataRetrieverTask.cancel(false);
+	    	mMetadataRetrieverTask = null;
+	    }
     	Utils.deleteAllFiles();
         
         super.onDestroy();
@@ -664,8 +681,18 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
             mCursor = null;
             notifyChange(META_CHANGED);
         } else {
+        	long [] newlist = list;
     		if (mPreferences.getBoolean(PreferenceConstants.RETRIEVE_METADATA, false)) {
-    			new MetadataRetrieverTask(this).execute(list);
+    			if (mMetadataRetrieverTask != null &&
+      	    			mMetadataRetrieverTask.getStatus() != AsyncTask.Status.FINISHED) {
+      	    		mMetadataRetrieverTask.cancel(false);
+      	    		mMetadataRetrieverTask = null;
+      	    		newlist = mPlayList;
+      	    	}
+      	    	if (mPreferences.getBoolean(PreferenceConstants.RETRIEVE_METADATA, true)) {
+      	    		mMetadataRetrieverTask = new MetadataRetrieverTask(this);
+      	    		mMetadataRetrieverTask.execute(newlist);
+      	    	}
         	}
         }
     }
