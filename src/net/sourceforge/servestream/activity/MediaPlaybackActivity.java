@@ -1060,8 +1060,10 @@ public class MediaPlaybackActivity extends Activity implements MusicUtils.Defs,
                 queueNextRefresh(1);
             } else if (action.equals(MediaPlaybackService.ART_CHANGED)) {
                 try {
-                	mAlbumArtHandler.removeMessages(REFRESH_ALBUM_ART);
-					mAlbumArtHandler.obtainMessage(REFRESH_ALBUM_ART, new IdWrapper(mService.getTrackId())).sendToTarget();
+                	if (mService != null) {
+                		mAlbumArtHandler.removeMessages(REFRESH_ALBUM_ART);
+                		mAlbumArtHandler.obtainMessage(REFRESH_ALBUM_ART, new IdWrapper(mService.getTrackId())).sendToTarget();
+                	}
 				} catch (RemoteException e) {
 				}
             } else if (action.equals(MediaPlaybackService.PLAYSTATE_CHANGED)) {
