@@ -315,7 +315,7 @@ public class MusicUtils {
         }
         try {
             if (force_shuffle) {
-                sService.setShuffleMode(MediaPlaybackService.SHUFFLE_NORMAL);
+                sService.setShuffleMode(MediaPlaybackService.SHUFFLE_ON);
             }
             long curid = sService.getAudioId();
             int curpos = sService.getQueuePosition();
