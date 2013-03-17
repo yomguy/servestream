@@ -1,6 +1,6 @@
 /*
  * ServeStream: A HTTP stream browser/player for Android
- * Copyright 2012 William Seemann
+ * Copyright 2013 William Seemann
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,11 @@
 
 package net.sourceforge.servestream.activity;
 
+import com.actionbarsherlock.app.SherlockFragmentActivity;
+import com.actionbarsherlock.view.Menu;
+import com.actionbarsherlock.view.MenuInflater;
+import com.actionbarsherlock.view.MenuItem;
+
 import net.sourceforge.servestream.R;
 import net.sourceforge.servestream.button.RepeatingImageButton;
 import net.sourceforge.servestream.provider.Media;
@@ -24,14 +29,15 @@ import net.sourceforge.servestream.service.IMediaPlaybackService;
 import net.sourceforge.servestream.service.MediaPlaybackService;
 import net.sourceforge.servestream.utils.CoverView;
 import net.sourceforge.servestream.utils.CoverView.CoverViewListener;
+import net.sourceforge.servestream.utils.LoadingDialog;
+import net.sourceforge.servestream.utils.LoadingDialog.LoadingDialogListener;
 import net.sourceforge.servestream.utils.MusicUtils;
 import net.sourceforge.servestream.utils.PreferenceConstants;
 import net.sourceforge.servestream.utils.MusicUtils.ServiceToken;
+import net.sourceforge.servestream.utils.SleepTimerDialog;
+import net.sourceforge.servestream.utils.SleepTimerDialog.SleepTimerDialogListener;
 
-import android.app.Activity;
 import android.app.AlertDialog;
-import android.app.Dialog;
-import android.app.ProgressDialog;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
@@ -52,12 +58,11 @@ import android.os.Message;
 import android.os.RemoteException;
 import android.os.SystemClock;
 import android.preference.PreferenceManager;
+import android.support.v4.app.DialogFragment;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentTransaction;
 import android.util.Log;
 import android.view.KeyEvent;
-import android.view.LayoutInflater;
-import android.view.Menu;
-import android.view.MenuInflater;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
@@ -68,20 +73,20 @@ import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.SeekBar.OnSeekBarChangeListener;
 
-public class MediaPlaybackActivity extends Activity implements MusicUtils.Defs,
+public class MediaPlaybackActivity extends SherlockFragmentActivity implements MusicUtils.Defs,
     OnSharedPreferenceChangeListener,
-    CoverViewListener
+    CoverViewListener,
+    LoadingDialogListener,
+    SleepTimerDialogListener
 {
     private static final String TAG = MediaPlaybackActivity.class.getName();
 
-    private static final int MAX_SLEEP_TIMER_MINUTES = 120;
+	private static final String LOADING_DIALOG = "loading_dialog";
+	private static final String SLEEP_TIMER_DIALOG = "sleep_timer_dialog";
     
     private int mParentActivityState = VISIBLE;
     private static int VISIBLE = 1;
     private static int GONE = 2;
-    
-    private final static int PREPARING_MEDIA = 1;
-    private final static int DIALOG_SLEEP_TIMER = 2;
     
     private SharedPreferences mPreferences;
     
@@ -308,7 +313,7 @@ public class MediaPlaybackActivity extends Activity implements MusicUtils.Defs,
     public void onPause() {
     	super.onPause();
     	mParentActivityState = GONE;
-    	removeDialog(PREPARING_MEDIA);
+    	dismissDialog(LOADING_DIALOG);
     }
 
     @Override
@@ -334,7 +339,7 @@ public class MediaPlaybackActivity extends Activity implements MusicUtils.Defs,
     			doStop();
     			return true;
         	case (R.id.menu_item_sleep_timer):
-        		showDialog(DIALOG_SLEEP_TIMER);
+        		showDialog(SLEEP_TIMER_DIALOG);
         		return true;
         	case (R.id.menu_item_settings):
         		startActivity(new Intent(MediaPlaybackActivity.this, SettingsActivity.class));
@@ -354,81 +359,9 @@ public class MediaPlaybackActivity extends Activity implements MusicUtils.Defs,
         return super.onOptionsItemSelected(item);
     }
     
-    protected Dialog onCreateDialog(int id) {
-	    Dialog dialog;
-	    ProgressDialog progressDialog = null;
-	    switch(id) {
-	    	case PREPARING_MEDIA:
-	    		progressDialog = new ProgressDialog(MediaPlaybackActivity.this);
-	    		progressDialog.setMessage(getString(R.string.opening_url_message));
-	    		progressDialog.setCancelable(true);
-	    		return progressDialog;
-	    	case DIALOG_SLEEP_TIMER:
-	    		dialog = null;
-	    		
-	    		if (mService == null) {
-	    			break;
-	    		}
-	    	
-	    		int sleepTimerMode = -1;
-	    	
-	    		try {
-	    			sleepTimerMode = mService.getSleepTimerMode();
-	    		} catch (RemoteException e) {
-	    			break;
-	    		}
-			
-            	LayoutInflater factory = LayoutInflater.from(this);
-            	final View sleepTimerView = factory.inflate(R.layout.alert_dialog_sleep_timer, null);
-            	final TextView sleepTimerText = (TextView) sleepTimerView.findViewById(R.id.sleep_timer_text);
-            	final SeekBar seekbar = (SeekBar) sleepTimerView.findViewById(R.id.seekbar);
-            	seekbar.setMax(MAX_SLEEP_TIMER_MINUTES);
-            	sleepTimerText.setText(makeTimeString(sleepTimerMode));
-            	seekbar.setProgress(sleepTimerMode);
-            	seekbar.setOnSeekBarChangeListener(new OnSeekBarChangeListener() {
-
-            		@Override
-            		public void onProgressChanged(SeekBar seekBar, int progress,
-            				boolean fromUser) {
-            			sleepTimerText.setText(makeTimeString(progress));
-            		}
-
-            		@Override
-            		public void onStartTrackingTouch(SeekBar seekBar) {
-            			
-            		}
-
-            		@Override
-            		public void onStopTrackingTouch(SeekBar seekBar) {
-            			
-            		}
-            	
-            	});
-            	return new AlertDialog.Builder(MediaPlaybackActivity.this)
-                	.setTitle(R.string.menu_sleep_timer)
-                	.setView(sleepTimerView)
-                	.setCancelable(true)
-                	.setPositiveButton(R.string.set_alarm, new DialogInterface.OnClickListener() {
-                		public void onClick(DialogInterface dialog, int whichButton) {
-                			setSleepTimer(seekbar.getProgress());
-                			dialog.dismiss();
-                		}
-                	})
-                	.setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
-                		public void onClick(DialogInterface dialog, int whichButton) {
-                			removeDialog(DIALOG_SLEEP_TIMER);
-                		}
-                	})
-                	.create();
-	    	default:
-	    		dialog = null;
-	    }
-	    return dialog;
-	}
-    
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        MenuInflater inflater = getMenuInflater();
+        MenuInflater inflater = getSupportMenuInflater();
         inflater.inflate(R.menu.activity_media_playback, menu);
         
         // Don't offer the audio effects display when running on an OS
@@ -1069,20 +1002,12 @@ public class MediaPlaybackActivity extends Activity implements MusicUtils.Defs,
             } else if (action.equals(MediaPlaybackService.PLAYSTATE_CHANGED)) {
                 setPauseButtonImage();
             } else if (action.equals(MediaPlaybackService.START_DIALOG)) {
-	        	try {
-	        		if (mParentActivityState == VISIBLE) {
-	        			showDialog(PREPARING_MEDIA);
-	        		}
-	        	} catch (Exception ex) {
-	        	    ex.printStackTrace();	
+	        	if (mParentActivityState == VISIBLE) {
+	        		showDialog(LOADING_DIALOG);
 	        	}
             } else if (action.equals(MediaPlaybackService.STOP_DIALOG)) {
             	if (mParentActivityState == VISIBLE) {
-            		try {
-            			removeDialog(PREPARING_MEDIA);
-    	        	} catch (Exception ex) {
-    	        	    ex.printStackTrace();	
-    	        	}
+            		dismissDialog(LOADING_DIALOG);
             	}
             }
         }
@@ -1214,5 +1139,54 @@ public class MediaPlaybackActivity extends Activity implements MusicUtils.Defs,
 			mAlbumArtHandler.obtainMessage(GET_ALBUM_ART, new IdWrapper(mService.getTrackId())).sendToTarget();
 		} catch (RemoteException e) {
 		}
+	}
+	
+	public void showDialog(String tag) {
+		// DialogFragment.show() will take care of adding the fragment
+		// in a transaction.  We also want to remove any currently showing
+		// dialog, so make our own transaction and take care of that here.
+		FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
+		Fragment prev = getSupportFragmentManager().findFragmentByTag(tag);
+		if (prev != null) {
+			ft.remove(prev);
+		}
+
+		DialogFragment newFragment = null;
+
+		// Create and show the dialog.
+		if (tag.equals(LOADING_DIALOG)) {
+			newFragment = LoadingDialog.newInstance(this, getString(R.string.opening_url_message));
+		} else if (tag.equals(SLEEP_TIMER_DIALOG)) {
+			if (mService == null) {
+				return;
+			}
+			try {
+				newFragment = SleepTimerDialog.newInstance(this, mService.getSleepTimerMode());
+			} catch (RemoteException e) {
+			}
+		}
+
+		ft.add(0, newFragment, tag);
+		ft.commit();
+	}
+
+	public void dismissDialog(String tag) {
+		FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
+		DialogFragment prev = (DialogFragment) getSupportFragmentManager().findFragmentByTag(tag);
+		if (prev != null) {
+			prev.dismiss();
+			ft.remove(prev);
+		}
+		ft.commit();
+	}
+
+	@Override
+	public void onLoadingDialogCancelled(DialogFragment dialog) {
+		
+	}
+	
+	@Override
+	public void onSleepTimerSet(DialogFragment dialog, int pos) {
+		setSleepTimer(pos);
 	}
 }

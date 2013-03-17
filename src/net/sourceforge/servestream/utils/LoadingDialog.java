@@ -17,7 +17,6 @@
 
 package net.sourceforge.servestream.utils;
 
-import net.sourceforge.servestream.R;
 import android.app.Activity;
 import android.app.Dialog;
 import android.app.ProgressDialog;
@@ -26,6 +25,8 @@ import android.os.Bundle;
 import android.support.v4.app.DialogFragment;
 
 public class LoadingDialog extends DialogFragment implements DialogInterface.OnCancelListener {
+	
+	private String mDialogText = null;
 	
     /* The activity that creates an instance of this dialog fragment must
      * implement this interface in order to receive event callbacks.
@@ -44,7 +45,7 @@ public class LoadingDialog extends DialogFragment implements DialogInterface.OnC
      * @throws  ClassCastException if the host activity does not
      *          implement LoadingDialogListener
      */
-    public static LoadingDialog newInstance(Activity activity) {
+    public static LoadingDialog newInstance(Activity activity, String dialogText) {
     	// Verify that the host activity implements the callback interface
         try {
             // Instantiate the LoadingDialogListener so we can send events with it
@@ -55,15 +56,27 @@ public class LoadingDialog extends DialogFragment implements DialogInterface.OnC
                     + " must implement LoadingDialogListener");
         }
     	LoadingDialog frag = new LoadingDialog();
+    	
+   	 	// Supply dialog text as an argument.
+        Bundle args = new Bundle();
+        args.putString("dialog_text", dialogText);
+        frag.setArguments(args);
+    	
         return frag;
     }
 	
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        mDialogText = getArguments().getString("dialog_text");
+    }
+    
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
         // Use the Builder class for convenient dialog construction
 	    ProgressDialog loadingDialog = null;
 	    loadingDialog = new ProgressDialog(getActivity());
-	    loadingDialog.setMessage(getString(R.string.opening_url_message));
+	    loadingDialog.setMessage(mDialogText);
 	    loadingDialog.setCancelable(true);
 	    loadingDialog.setOnCancelListener(this);
         return loadingDialog;
