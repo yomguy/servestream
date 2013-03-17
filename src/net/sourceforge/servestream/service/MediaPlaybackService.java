@@ -1010,7 +1010,9 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
     }
 
     private void updateNotification(boolean updateNotification) {
-        String trackName = getTrackName();
+        String contentText;
+    	
+    	String trackName = getTrackName();
     	if (trackName == null || trackName.equals(Media.UNKNOWN_STRING)) {
     			trackName = getMediaUri();
     	}
@@ -1019,10 +1021,12 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
     	if (artist == null || artist.equals(Media.UNKNOWN_STRING)) {
     		artist = getString(R.string.unknown_artist_name);
     	}
-            
+        
     	String album = getAlbumName();
         if (album == null || album.equals(Media.UNKNOWN_STRING)) {
-            album = getString(R.string.unknown_album_name);
+            contentText = getString(R.string.notification_alt_info, artist);
+        } else {
+        	contentText = getString(R.string.notification_artist_album, artist, album);
         }
         
         PendingIntent contentIntent = PendingIntent.getActivity(this, 0,
@@ -1031,7 +1035,7 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
         
         NotificationCompat.Builder status = new NotificationCompat.Builder(this)
         		.setContentTitle(trackName)
-        		.setContentText(getString(R.string.notification_artist_album, artist, album))
+        		.setContentText(contentText)
                 .setContentIntent(contentIntent)
                 .setWhen(0);
 		

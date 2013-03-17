@@ -136,8 +136,9 @@
     <string name="minute_picker_title">Sleep time</string>
     
 	<!-- Used to display the album and artist in the notification bar -->
-	<string name="notification_artist_album" msgid="2128095771677061443">"<xliff:g id="ALBUM">%2$s</xliff:g>" - "<xliff:g id="ARTIST">%1$s</xliff:g>"</string>
-
+	<string name="notification_artist_album">"<xliff:g id="ALBUM">%2$s</xliff:g>" - "<xliff:g id="ARTIST">%1$s</xliff:g>"</string>
+	<string name="notification_alt_info">"<xliff:g id="INFO">%1$s</xliff:g>"</string>
+	
 	<!-- Title of the media player -->
 	<string name="nowplaying_title">Now playing</string>
 	<string name="play_queue_title">Play Queue</string>
