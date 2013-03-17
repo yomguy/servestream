@@ -795,7 +795,7 @@ public class MainActivity extends SherlockFragmentActivity implements ServiceCon
 
 		// Create and show the dialog.
 		//if (tag.equals(LOADING_DIALOG)) {
-		newFragment = LoadingDialog.newInstance(this);
+		newFragment = LoadingDialog.newInstance(this, getString(R.string.opening_url_message));
 		//}
 
 		ft.add(0, newFragment, tag);
