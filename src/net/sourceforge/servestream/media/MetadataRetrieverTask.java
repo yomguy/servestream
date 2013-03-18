@@ -31,15 +31,22 @@ import android.preference.PreferenceManager;
 import android.util.Log;
 import android.util.SparseArray;
 
-public class MetadataRetrieverTask extends AsyncTask<long [], Void, Void> {
+public class MetadataRetrieverTask implements Runnable {
 	private static final String TAG = MetadataRetrieverTask.class.getName();
 	
+	private boolean mIsCancelled;
+	private AsyncTask.Status mStatus;
 	private Context mContext = null;
+	private long [] mList;
 	private MetadataRetrieverListener mListener;
 		
-	public MetadataRetrieverTask(Context context) {
+	public MetadataRetrieverTask(Context context, long [] list) {
+		mIsCancelled = false;
+		mStatus = AsyncTask.Status.PENDING;
+		
 		mContext = context;
-	    
+	    mList = list;
+		
 		// Verify that the host activity implements the callback interface
 	    try {
 	    	// Instantiate the MetadataRetrieverListener so we can send events to the host
@@ -52,7 +59,9 @@ public class MetadataRetrieverTask extends AsyncTask<long [], Void, Void> {
 	}
 	    
 	@Override
-	protected Void doInBackground(long [] ... list) {
+	public void run() {
+		mStatus = AsyncTask.Status.RUNNING;
+		
 		try {
 			Thread.sleep(3000);
 		} catch (InterruptedException e) {
@@ -60,22 +69,22 @@ public class MetadataRetrieverTask extends AsyncTask<long [], Void, Void> {
 		
 		MediaMetadataRetriever mmr = new MediaMetadataRetriever();
 		
-		SparseArray<String> uris = getUris(mContext, list[0]);
+		SparseArray<String> uris = getUris(mContext, mList);
 		
-		for (int i = 0; i < list[0].length; i++) {
+		for (int i = 0; i < mList.length; i++) {
 			if (isCancelled()) {
 				break;
 			}
 			
-			String uri = uris.get((int) list[0][i]);
+			String uri = uris.get((int) mList[i]);
 			
 			if (uri != null) {
 				try {
 					mmr.setDataSource(uri.toString());
 					
-					if (updateMetadata(mContext, list[0][i], mmr) > 0) {
+					if (updateMetadata(mContext, mList[i], mmr) > 0) {
 						if (mListener != null) {
-							mListener.onMetadataParsed(list[0][i]);
+							mListener.onMetadataParsed(mList[i]);
 						}
 					}
 					
@@ -90,8 +99,8 @@ public class MetadataRetrieverTask extends AsyncTask<long [], Void, Void> {
 		}
 			
 		mmr.release();
-			
-    	return null;
+		
+		mStatus = AsyncTask.Status.FINISHED;
     }
 	
 	private static SparseArray<String> getUris(Context context, long [] list) {
@@ -211,4 +220,25 @@ public class MetadataRetrieverTask extends AsyncTask<long [], Void, Void> {
     public interface MetadataRetrieverListener {
         public void onMetadataParsed(long id);
     }
+    
+	private synchronized boolean isCancelled() {
+		return mIsCancelled;
+	}
+	
+	public synchronized boolean cancel() {
+		if (mStatus != AsyncTask.Status.FINISHED) {
+			mIsCancelled = true;
+			return true;
+		}
+		
+		return false;
+	}
+	
+	public synchronized AsyncTask.Status getStatus() {
+		return mStatus;
+	}
+	
+	public void execute() {
+		new Thread(this, "").start();
+	}
 }
