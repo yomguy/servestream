@@ -912,6 +912,11 @@ public class MediaPlaybackActivity extends SherlockFragmentActivity implements M
             long pos = mPosOverride < 0 ? mService.position() : mPosOverride;
             if ((pos >= 0)) {
                 mCurrentTime.setText(MusicUtils.makeTimeString(this, pos / 1000));
+                if (mDuration > 0) {
+                	mProgress.setProgress((int) (1000 * pos / mDuration));
+                } else {
+                	mProgress.setProgress(1000);
+                }
                 
                 if (mService.isPlaying()) {
                     mCurrentTime.setVisibility(View.VISIBLE);
@@ -920,12 +925,6 @@ public class MediaPlaybackActivity extends SherlockFragmentActivity implements M
                     int vis = mCurrentTime.getVisibility();
                     mCurrentTime.setVisibility(vis == View.INVISIBLE ? View.VISIBLE : View.INVISIBLE);
                     return 500;
-                }
-
-                if (mDuration > 0) {
-                	mProgress.setProgress((int) (1000 * pos / mDuration));
-                } else {
-                	mProgress.setProgress(1000);
                 }
             } else {
                 mCurrentTime.setText("--:--");
