@@ -63,6 +63,7 @@ public class MediaButtonIntentReceiver extends BroadcastReceiver {
 
             int keycode = event.getKeyCode();
             int action = event.getAction();
+            long eventtime = event.getEventTime();
 
             // single quick press: pause/resume. 
             // double press: next track
@@ -102,7 +103,6 @@ public class MediaButtonIntentReceiver extends BroadcastReceiver {
                         // a command.
                         Intent i = new Intent(context, MediaPlaybackService.class);
                         i.setAction(MediaPlaybackService.SERVICECMD);
-                        i.putExtra(MediaPlaybackService.CMDNOTIF, buttonId);
                         if (keycode == KeyEvent.KEYCODE_HEADSETHOOK &&
                                 eventtime - mLastClickTime < 300) {
                             i.putExtra(MediaPlaybackService.CMDNAME, MediaPlaybackService.CMDNEXT);
