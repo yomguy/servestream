@@ -1,6 +1,6 @@
 /*
  * ServeStream: A HTTP stream browser/player for Android
- * Copyright 2010 William Seemann
+ * Copyright 2013 William Seemann
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -63,8 +63,6 @@ public class MediaButtonIntentReceiver extends BroadcastReceiver {
 
             int keycode = event.getKeyCode();
             int action = event.getAction();
-            long eventtime = event.getEventTime();
-            int buttonId = intent.getIntExtra(MediaPlaybackService.CMDNOTIF, 0);
 
             // single quick press: pause/resume. 
             // double press: next track
@@ -83,6 +81,12 @@ public class MediaButtonIntentReceiver extends BroadcastReceiver {
                     break;
                 case KeyEvent.KEYCODE_MEDIA_PREVIOUS:
                     command = MediaPlaybackService.CMDPREVIOUS;
+                    break;
+                case KeyEvent.KEYCODE_MEDIA_PAUSE:
+                    command = MediaPlaybackService.CMDPAUSE;
+                    break;
+                case KeyEvent.KEYCODE_MEDIA_PLAY:
+                    command = MediaPlaybackService.CMDPLAY;
                     break;
             }
 
