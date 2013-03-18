@@ -261,7 +261,7 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
                             if(isPlaying()) {
                                 mPausedByTransientLossOfFocus = false;
                             }
-                            pause();
+                            pause(true);
                             break;
                         case AudioManager.AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK:
                             mMediaplayerHandler.removeMessages(FADEUP);
@@ -272,7 +272,7 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
                             if(isPlaying()) {
                                 mPausedByTransientLossOfFocus = true;
                             }
-                            pause();
+                            pause(true);
                             break;
                         case AudioManager.AUDIOFOCUS_GAIN:
                             Log.v(LOGTAG, "AudioFocus: received AUDIOFOCUS_GAIN");
@@ -335,18 +335,18 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
                 prev();
             } else if (CMDTOGGLEPAUSE.equals(cmd) || TOGGLEPAUSE_ACTION.equals(action)) {
                 if (isPlaying()) {
-                    pause();
+                    pause(true);
                     mPausedByTransientLossOfFocus = false;
                 } else {
                     play();
                 }
             } else if (CMDPAUSE.equals(cmd) || PAUSE_ACTION.equals(action)) {
-                pause();
+                pause(true);
                 mPausedByTransientLossOfFocus = false;
             } else if (CMDPLAY.equals(cmd)) {
                 play();
             } else if (CMDSTOP.equals(cmd)) {
-                pause();
+                pause(true);
                 mPausedByTransientLossOfFocus = false;
                 seek(0);
             } else if (ServeStreamAppWidgetOneProvider.CMDAPPWIDGETUPDATE.equals(cmd)) {
@@ -520,19 +520,24 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
                     play();
                 }
             } else if (CMDTOGGLEPAUSE.equals(cmd) || TOGGLEPAUSE_ACTION.equals(action)) {
+                boolean remove_status_icon =  (intent.getIntExtra(CMDNOTIF, 0) != 2);
                 if (isPlaying()) {
-                    pause();
+                    pause(remove_status_icon);
                     mPausedByTransientLossOfFocus = false;
                 } else {
                     play();
                 }
+                
+                if (!remove_status_icon) {
+                	updateNotification(true);
+                }
             } else if (CMDPAUSE.equals(cmd) || PAUSE_ACTION.equals(action)) {
-                pause();
+                pause(true);
                 mPausedByTransientLossOfFocus = false;
             } else if (CMDPLAY.equals(cmd)) {
                 play();
             } else if (CMDSTOP.equals(cmd)) {
-                pause();
+                pause(true);
                 mPausedByTransientLossOfFocus = false;
                 seek(0);
             }
@@ -1029,6 +1034,17 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
         	contentText = getString(R.string.notification_artist_album, artist, album);
         }
         
+        int icon;
+        if (updateNotification) {
+        	if (isPlaying()) {
+        		icon = android.R.drawable.ic_media_pause;
+        	} else {
+        		icon = android.R.drawable.ic_media_play;
+        	}
+        } else {
+        	icon = android.R.drawable.ic_media_pause;
+        }
+        
         PendingIntent contentIntent = PendingIntent.getActivity(this, 0,
                 new Intent(this, MediaPlaybackActivity.class)
                 .addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP), 0);
@@ -1037,7 +1053,10 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
         		.setContentTitle(trackName)
         		.setContentText(contentText)
                 .setContentIntent(contentIntent)
-                .setWhen(0);
+                .setWhen(0)
+                .addAction(android.R.drawable.ic_media_previous, null, createPendingIntent(1, CMDPREVIOUS))
+                .addAction(icon, null, createPendingIntent(2, CMDTOGGLEPAUSE))
+        		.addAction(android.R.drawable.ic_media_next, null, createPendingIntent(3, CMDNEXT));
 		
 	    if (mPreferences.getBoolean(PreferenceConstants.RETRIEVE_ALBUM_ART, false)) {
 	    	status.setLargeIcon(MusicUtils.getNotificationArtwork(this, getTrackId()));
@@ -1047,11 +1066,19 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
 	    }
         
 		if (!updateNotification) {
-    		startForeground(PLAYBACKSERVICE_STATUS, status.getNotification());
+    		startForeground(PLAYBACKSERVICE_STATUS, status.build());
     	} else {
     		NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-    		notificationManager.notify(PLAYBACKSERVICE_STATUS, status.getNotification());
+    		notificationManager.notify(PLAYBACKSERVICE_STATUS, status.build());
     	}
+    }
+    
+    private PendingIntent createPendingIntent(int requestCode, String command) {
+        Intent intent = new Intent(this, MediaPlaybackService.class);
+        intent.setAction(MediaPlaybackService.SERVICECMD);
+        intent.putExtra(MediaPlaybackService.CMDNOTIF, requestCode);
+        intent.putExtra(MediaPlaybackService.CMDNAME, command);
+		return PendingIntent.getService(this, requestCode, intent, 0);
     }
     
     private void stop(boolean remove_status_icon) {
@@ -1083,12 +1110,16 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
     /**
      * Pauses playback (call play() to resume)
      */
-    public void pause() {
+    public void pause(boolean remove_status_icon) {
         synchronized(this) {
             mMediaplayerHandler.removeMessages(FADEUP);
             if (isPlaying()) {
                 mPlayer.pause();
-                gotoIdleState();
+                if (remove_status_icon) {
+                    gotoIdleState();
+                } else {
+                    stopForeground(false);
+                }
                 mIsSupposedToBePlaying = false;
                 notifyChange(PLAYSTATE_CHANGED);
             }
@@ -1573,7 +1604,7 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
             mService.get().stop();
         }
         public void pause() {
-            mService.get().pause();
+            mService.get().pause(true);
         }
         public void play() {
             mService.get().play();
