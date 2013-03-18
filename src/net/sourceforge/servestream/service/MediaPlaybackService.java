@@ -313,13 +313,13 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
   	    } else if (key.equals(PreferenceConstants.RETRIEVE_METADATA)) {
   	    	if (mMetadataRetrieverTask != null &&
   	    			mMetadataRetrieverTask.getStatus() != AsyncTask.Status.FINISHED) {
-  	    		mMetadataRetrieverTask.cancel(false);
+  	    		mMetadataRetrieverTask.cancel();
   	    		mMetadataRetrieverTask = null;
   	    	}
   	    	if (sharedPreferences.getBoolean(PreferenceConstants.RETRIEVE_METADATA, false) &&
   	    			mPlayList != null && mPlayList.length > 0) {
-  	    		mMetadataRetrieverTask = new MetadataRetrieverTask(this);
-  	    		mMetadataRetrieverTask.execute(mPlayList);
+  	    		mMetadataRetrieverTask = new MetadataRetrieverTask(this, mPlayList);
+  	    		mMetadataRetrieverTask.execute();
   	    	}
   	    }
   	}
@@ -459,7 +459,7 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
         mSHOUTcastMetadata.cleanup();
 		if (mMetadataRetrieverTask != null &&
 	    		mMetadataRetrieverTask.getStatus() != AsyncTask.Status.FINISHED) {
-	    	mMetadataRetrieverTask.cancel(false);
+	    	mMetadataRetrieverTask.cancel();
 	    	mMetadataRetrieverTask = null;
 	    }
     	Utils.deleteAllFiles();
@@ -690,13 +690,13 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
     		if (mPreferences.getBoolean(PreferenceConstants.RETRIEVE_METADATA, false)) {
     			if (mMetadataRetrieverTask != null &&
       	    			mMetadataRetrieverTask.getStatus() != AsyncTask.Status.FINISHED) {
-      	    		mMetadataRetrieverTask.cancel(false);
+      	    		mMetadataRetrieverTask.cancel();
       	    		mMetadataRetrieverTask = null;
       	    		newlist = mPlayList;
       	    	}
       	    	if (mPreferences.getBoolean(PreferenceConstants.RETRIEVE_METADATA, true)) {
-      	    		mMetadataRetrieverTask = new MetadataRetrieverTask(this);
-      	    		mMetadataRetrieverTask.execute(newlist);
+      	    		mMetadataRetrieverTask = new MetadataRetrieverTask(this, newlist);
+      	    		mMetadataRetrieverTask.execute();
       	    	}
         	}
         }
