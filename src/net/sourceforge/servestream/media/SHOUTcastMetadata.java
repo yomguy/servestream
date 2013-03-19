@@ -361,7 +361,7 @@ public class SHOUTcastMetadata extends BroadcastReceiver {
     private void cancel() {
     	if (mPollingAsyncTask != null) {
         	PollingAsyncTask pollingAsyncTask = mPollingAsyncTask;
-        	pollingAsyncTask.cancel(false);
+        	pollingAsyncTask.cancel();
         	mPollingAsyncTask = null;
     	}
     }
@@ -393,14 +393,18 @@ public class SHOUTcastMetadata extends BroadcastReceiver {
 		mMediaPlaybackService.unregisterReceiver(this);
 	}
     
-	private class PollingAsyncTask extends AsyncTask<Void, Void, Boolean> {
+	private class PollingAsyncTask implements Runnable {
+		
+		private boolean mIsCancelled;
+		private AsyncTask.Status mStatus;
 		
 	    public PollingAsyncTask() {
-	        super();
+			mIsCancelled = false;
+			mStatus = AsyncTask.Status.PENDING;
 	    }
 	    
 		@Override
-		protected Boolean doInBackground(Void... Void) {
+		public void run() {
 			int retries = 0;
 			boolean metadataFound = false;
 	
@@ -430,8 +434,23 @@ public class SHOUTcastMetadata extends BroadcastReceiver {
 			} finally {
 				Log.v(TAG, "Stopping polling thread");
 			}
+		}
+		
+		private synchronized boolean isCancelled() {
+			return mIsCancelled;
+		}
+		
+		public synchronized boolean cancel() {
+			if (mStatus != AsyncTask.Status.FINISHED) {
+				mIsCancelled = true;
+				return true;
+			}
 			
-			return true;
+			return false;
+		}
+		
+		public void execute() {
+			new Thread(this, "").start();
 		}
 	}
     
