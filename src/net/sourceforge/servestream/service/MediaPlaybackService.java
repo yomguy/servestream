@@ -1058,8 +1058,9 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
                 .addAction(icon, null, createPendingIntent(2, CMDTOGGLEPAUSE))
         		.addAction(android.R.drawable.ic_media_next, null, createPendingIntent(3, CMDNEXT));
 		
-	    if (mPreferences.getBoolean(PreferenceConstants.RETRIEVE_ALBUM_ART, false)) {
-	    	status.setLargeIcon(MusicUtils.getNotificationArtwork(this, getTrackId()));
+        int trackId = getTrackId();
+	    if (mPreferences.getBoolean(PreferenceConstants.RETRIEVE_ALBUM_ART, false) && trackId != -1) {
+	    	status.setLargeIcon(MusicUtils.getNotificationArtwork(this, trackId));
             status.setSmallIcon(R.drawable.notification_icon);
 	    } else {
 	    	status.setSmallIcon(R.drawable.notification_icon);
