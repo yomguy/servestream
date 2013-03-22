@@ -24,14 +24,13 @@ extern "C" {
 	#include "libavcodec/avcodec.h"
 	#include "libavformat/avformat.h"
 	#include "ffmpeg_mediametadataretriever.h"
-	static AVFormatContext* pFormatCtx;
 }
 
 using namespace std;
 
 MediaMetadataRetriever::MediaMetadataRetriever()
 {
-
+	pFormatCtx = NULL;
 }
 
 MediaMetadataRetriever::~MediaMetadataRetriever()

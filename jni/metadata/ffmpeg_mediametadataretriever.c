@@ -36,7 +36,7 @@ void getDuration(AVFormatContext *ic, char * value) {
 }
 
 int setDataSource(AVFormatContext** ps, const char* path) {
-	//printf("setDataSource\n");
+	printf("setDataSource\n");
 
 	AVFormatContext *pFormatCtx = *ps;
 	
@@ -46,16 +46,16 @@ int setDataSource(AVFormatContext** ps, const char* path) {
 
 	char duration[30] = "0";
 
-    //printf("Path: %s\n", path);
+    printf("Path: %s\n", path);
 
     if (avformat_open_input(&pFormatCtx, path, NULL, NULL) != 0) {
-	    //printf("Metadata could not be retrieved\n");
+	    printf("Metadata could not be retrieved\n");
 		*ps = NULL;
     	return FAILURE;
     }
 
 	if (avformat_find_stream_info(pFormatCtx, NULL) < 0) {
-	    //printf("Metadata could not be retrieved\n");
+	    printf("Metadata could not be retrieved\n");
 	    avformat_close_input(&pFormatCtx);
 		*ps = NULL;
     	return FAILURE;
@@ -77,7 +77,7 @@ int setDataSource(AVFormatContext** ps, const char* path) {
 
 
 const char* extractMetadata(AVFormatContext** ps, const char* key) {
-	//printf("extractMetadata\n");
+	printf("extractMetadata\n");
     char* value = NULL;
 	
 	AVFormatContext *pFormatCtx = *ps;
@@ -98,7 +98,7 @@ const char* extractMetadata(AVFormatContext** ps, const char* key) {
 }
 
 AVPacket* getEmbeddedPicture(AVFormatContext** ps) {
-	//printf("getEmbeddedPicture\n");
+	printf("getEmbeddedPicture\n");
 	int i = 0;
 	AVPacket packet;
 	AVPacket *pkt = NULL;
@@ -111,14 +111,14 @@ AVPacket* getEmbeddedPicture(AVFormatContext** ps) {
 
     // read the format headers
     if (pFormatCtx->iformat->read_header(pFormatCtx) < 0) {
-    	//printf("Could not read the format header\n");
+    	printf("Could not read the format header\n");
     	goto fail;
     }
 
     // find the first attached picture, if available
     for (i = 0; i < pFormatCtx->nb_streams; i++) {
         if (pFormatCtx->streams[i]->disposition & AV_DISPOSITION_ATTACHED_PIC) {
-        	//printf("Found album art");
+        	printf("Found album art");
         	packet = pFormatCtx->streams[i]->attached_pic;
         	pkt = (AVPacket *) malloc(sizeof(packet));
         	pkt->data = packet.data;
@@ -131,7 +131,7 @@ AVPacket* getEmbeddedPicture(AVFormatContext** ps) {
 }
 
 void release(AVFormatContext** ps) {
-	//printf("release\n");
+	printf("release\n");
 
 	AVFormatContext *pFormatCtx = *ps;
 	
