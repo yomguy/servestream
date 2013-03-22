@@ -18,7 +18,7 @@ fi
 
 if [ ! -d ffmpeg ]; then
     # Download FFmpeg
-    wget http://sourceforge.net/p/servestream/code/1175/tree/ffmpeg/ffmpeg-0.11.1-android-2012-09-18.tar.gz?format=raw --output-document=ffmpeg-0.11.1-android-2012-09-18.tar.gz
+    wget http://sourceforge.net/p/servestream/code/1403/tree/ffmpeg/ffmpeg-0.11.1-android-2012-09-18.tar.gz?format=raw --output-document=ffmpeg-0.11.1-android-2012-09-18.tar.gz
 
     # Unpackage the FFmpeg archive
     tar -xvf ffmpeg-0.11.1-android-2012-09-18.tar.gz
