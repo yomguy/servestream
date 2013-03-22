@@ -27,6 +27,7 @@ using namespace std;
 
 class MediaMetadataRetriever
 {
+	AVFormatContext* pFormatCtx;
 public:
     MediaMetadataRetriever();
     ~MediaMetadataRetriever();

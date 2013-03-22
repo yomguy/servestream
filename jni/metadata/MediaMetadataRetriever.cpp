@@ -17,7 +17,6 @@
 
 //#define LOG_NDEBUG 0
 #define LOG_TAG "MediaMetadataRetrieverJNI"
-#define TAG "MediaMetadataRetrieverJNI"
 
 #include <assert.h>
 #include <android/log.h>
@@ -77,7 +76,7 @@ static void setRetriever(JNIEnv* env, jobject thiz, int retriever)
 
 extern "C" JNIEXPORT void JNICALL
 Java_net_sourceforge_servestream_media_MediaMetadataRetriever_setDataSource(JNIEnv *env, jobject thiz, jstring path) {
-	__android_log_write(ANDROID_LOG_INFO, TAG, "setDataSource");
+	//__android_log_write(ANDROID_LOG_INFO, LOG_TAG, "setDataSource");
     MediaMetadataRetriever* retriever = getRetriever(env, thiz);
     if (retriever == 0) {
         jniThrowException(env, "java/lang/IllegalStateException", "No retriever available");
@@ -107,7 +106,7 @@ Java_net_sourceforge_servestream_media_MediaMetadataRetriever_setDataSource(JNIE
 extern "C" JNIEXPORT jbyteArray JNICALL
 Java_net_sourceforge_servestream_media_MediaMetadataRetriever_getEmbeddedPicture(JNIEnv *env, jobject thiz)
 {
-   __android_log_write(ANDROID_LOG_INFO, TAG, "getEmbeddedPicture");
+   //__android_log_write(ANDROID_LOG_INFO, LOG_TAG, "getEmbeddedPicture");
    MediaMetadataRetriever* retriever = getRetriever(env, thiz);
    if (retriever == 0) {
        jniThrowException(env, "java/lang/IllegalStateException", "No retriever available");
@@ -121,9 +120,9 @@ Java_net_sourceforge_servestream_media_MediaMetadataRetriever_getEmbeddedPicture
 	   uint8_t* data = packet->data;
 	   jbyteArray array = env->NewByteArray(size);
 	   if (!array) {  // OutOfMemoryError exception has already been thrown.
-		   __android_log_print(ANDROID_LOG_ERROR, TAG, "getEmbeddedPicture: OutOfMemoryError is thrown.");
+		   //__android_log_print(ANDROID_LOG_ERROR, LOG_TAG, "getEmbeddedPicture: OutOfMemoryError is thrown.");
        } else {
-       	   __android_log_print(ANDROID_LOG_INFO, TAG, "Found album art");
+       	   //__android_log_print(ANDROID_LOG_INFO, LOG_TAG, "getEmbeddedPicture: Found album art.");
     	   jbyte* bytes = env->GetByteArrayElements(array, NULL);
            if (bytes != NULL) {
         	   memcpy(bytes, data, size);
@@ -133,14 +132,14 @@ Java_net_sourceforge_servestream_media_MediaMetadataRetriever_getEmbeddedPicture
        }
    }
 
-   __android_log_write(ANDROID_LOG_INFO, TAG, "getEmbeddedPicture: Call to getEmbeddedPicture failed.");
+   //__android_log_write(ANDROID_LOG_INFO, LOG_TAG, "getEmbeddedPicture: Call to getEmbeddedPicture failed.");
    return NULL;
 }
 
 extern "C" JNIEXPORT jobject JNICALL
 Java_net_sourceforge_servestream_media_MediaMetadataRetriever_extractMetadata(JNIEnv *env, jobject thiz, jstring jkey)
 {
-	__android_log_write(ANDROID_LOG_INFO, TAG, "extractMetadata");
+	//__android_log_write(ANDROID_LOG_INFO, LOG_TAG, "extractMetadata");
     MediaMetadataRetriever* retriever = getRetriever(env, thiz);
     if (retriever == 0) {
         jniThrowException(env, "java/lang/IllegalStateException", "No retriever available");
@@ -159,10 +158,10 @@ Java_net_sourceforge_servestream_media_MediaMetadataRetriever_extractMetadata(JN
 
     const char* value = retriever->extractMetadata(key);
     if (!value) {
-    	__android_log_write(ANDROID_LOG_INFO, TAG, "extractMetadata: Metadata is not found");
+    	//__android_log_write(ANDROID_LOG_INFO, LOG_TAG, "extractMetadata: Metadata is not found");
         return NULL;
     }
-    __android_log_print(ANDROID_LOG_INFO, TAG, "extractMetadata: value (%s) for keyCode(%s)", value, key);
+    //__android_log_print(ANDROID_LOG_INFO, LOG_TAG, "extractMetadata: value (%s) for keyCode(%s)", value, key);
     env->ReleaseStringUTFChars(jkey, key);
     return env->NewStringUTF(value);
 }
@@ -170,7 +169,7 @@ Java_net_sourceforge_servestream_media_MediaMetadataRetriever_extractMetadata(JN
 extern "C" JNIEXPORT void JNICALL
 Java_net_sourceforge_servestream_media_MediaMetadataRetriever_release(JNIEnv *env, jobject thiz)
 {
-    __android_log_write(ANDROID_LOG_INFO, TAG, "release");
+    __android_log_write(ANDROID_LOG_INFO, LOG_TAG, "release");
     //Mutex::Autolock lock(sLock);
     MediaMetadataRetriever* retriever = getRetriever(env, thiz);
     delete retriever;
@@ -180,7 +179,7 @@ Java_net_sourceforge_servestream_media_MediaMetadataRetriever_release(JNIEnv *en
 extern "C" JNIEXPORT void JNICALL
 Java_net_sourceforge_servestream_media_MediaMetadataRetriever_native_1finalize(JNIEnv *env, jobject thiz)
 {
-	__android_log_write(ANDROID_LOG_INFO, TAG, "native_finalize");
+	//__android_log_write(ANDROID_LOG_INFO, LOG_TAG, "native_finalize");
     // No lock is needed, since Java_net_sourceforge_servestream_media_MediaMetadataRetriever_release() is protected
 	Java_net_sourceforge_servestream_media_MediaMetadataRetriever_release(env, thiz);
 }
@@ -188,6 +187,7 @@ Java_net_sourceforge_servestream_media_MediaMetadataRetriever_native_1finalize(J
 extern "C" JNIEXPORT void JNICALL
 Java_net_sourceforge_servestream_media_MediaMetadataRetriever_native_1init(JNIEnv *env, jobject thiz)
 {
+    __android_log_write(ANDROID_LOG_INFO, LOG_TAG, "native_init");
     jclass clazz = env->FindClass(kClassPathName);
     if (clazz == NULL) {
         return;
@@ -206,7 +206,7 @@ Java_net_sourceforge_servestream_media_MediaMetadataRetriever_native_1init(JNIEn
 extern "C" JNIEXPORT void JNICALL
 Java_net_sourceforge_servestream_media_MediaMetadataRetriever_native_1setup(JNIEnv *env, jobject thiz)
 {
-    __android_log_write(ANDROID_LOG_INFO, TAG, "native_setup");
+    __android_log_write(ANDROID_LOG_INFO, LOG_TAG, "native_setup");
     MediaMetadataRetriever* retriever = new MediaMetadataRetriever();
     if (retriever == 0) {
         jniThrowException(env, "java/lang/RuntimeException", "Out of memory");
@@ -214,4 +214,3 @@ Java_net_sourceforge_servestream_media_MediaMetadataRetriever_native_1setup(JNIE
     }
     setRetriever(env, thiz, (int)retriever);
 }
-
