@@ -183,7 +183,8 @@ public class MainActivity extends SherlockFragmentActivity implements ServiceCon
 		});
 		
 		// see if the user wants to rate the application after 5 uses
-		if (getIntent().getType() == null &&
+		if (!mMakingShortcut &&
+				getIntent().getType() == null &&
 				getIntent().getData() == null &&
 				getIntent().getExtras() == null) {
 			int rateApplicationFlag = mPreferences.getInt(PreferenceConstants.RATE_APPLICATION_FLAG, 0);
@@ -192,7 +193,7 @@ public class MainActivity extends SherlockFragmentActivity implements ServiceCon
 				Editor ed = mPreferences.edit();
 				ed.putInt(PreferenceConstants.RATE_APPLICATION_FLAG, rateApplicationFlag);
 				ed.commit();
-				if (rateApplicationFlag == 5) {
+				if (rateApplicationFlag == 10) {
 					showDialog(RATE_APPLICATION);
 				}
 			}
