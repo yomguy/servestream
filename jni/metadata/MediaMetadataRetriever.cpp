@@ -45,9 +45,9 @@ void jniThrowException(JNIEnv* env, const char* className,
 
 static void process_media_retriever_call(JNIEnv *env, int opStatus, const char* exception, const char *message)
 {
-    if (opStatus == -1) {
+    if (opStatus == -2) {
         jniThrowException(env, "java/lang/IllegalStateException", NULL);
-    } else if (opStatus != 0) {
+    } else if (opStatus == -1) {
         if (strlen(message) > 230) {
             // If the message is too long, don't bother displaying the status code.
             jniThrowException( env, exception, message);
@@ -93,10 +93,16 @@ Java_net_sourceforge_servestream_media_MediaMetadataRetriever_setDataSource(JNIE
         return;
     }
 
+    // Don't let somebody trick us in to reading some random block of memory
+    if (strncmp("mem://", tmp, 6) == 0) {
+        jniThrowException(env, "java/lang/IllegalArgumentException", "Invalid pathname");
+        return;
+    }
+
     process_media_retriever_call(
             env,
             retriever->setDataSource(tmp),
-            "java/lang/RuntimeException",
+            "java/lang/IllegalArgumentException",
             "setDataSource failed");
 
     env->ReleaseStringUTFChars(path, tmp);
