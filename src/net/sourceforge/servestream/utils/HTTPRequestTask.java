@@ -21,28 +21,24 @@ import net.sourceforge.servestream.bean.UriBean;
 import net.sourceforge.servestream.transport.AbsTransport;
 import net.sourceforge.servestream.transport.TransportFactory;
 import android.net.Uri;
-import android.os.AsyncTask;
 
-public class HTTPRequestTask extends AsyncTask<Void, Void, String> {
+public class HTTPRequestTask implements Runnable {
     
 	private String mUri;
-	private boolean mIsLocalFile;
 	private boolean mUseFFmpegPlayer;
 	private HTTPRequestListener mListener;
 	
     public HTTPRequestTask(String uri,
-    		boolean isLocalFile,
     		boolean useFFmpegPlayer,
     		HTTPRequestListener listener) {
 		mUri = uri;
-		mIsLocalFile = isLocalFile;
 		mUseFFmpegPlayer = useFFmpegPlayer;
         mListener = listener;
     }
 
 	@Override
-    protected String doInBackground(Void... arg0) {
-	    return processUri();
+    public void run() {
+		onPostExecute(processUri());
 	}
 
 	private String processUri() {
@@ -72,17 +68,20 @@ public class HTTPRequestTask extends AsyncTask<Void, Void, String> {
 		return contentType;
 	}
 	
-    @Override
-    protected void onPostExecute(String result) {
+	public synchronized void execute() {
+		new Thread(this, "").start();
+	}
+	
+    private void onPostExecute(String result) {
     	if (result == null) {
-    		mListener.onHTTPRequestError(mUri, mIsLocalFile, mUseFFmpegPlayer);
+    		mListener.onHTTPRequestError(mUri, mUseFFmpegPlayer);
     	} else {
-    		mListener.onContentTypeObtained(mUri, mIsLocalFile, mUseFFmpegPlayer, result);
+    		mListener.onContentTypeObtained(mUri, mUseFFmpegPlayer, result);
     	}
     }
 	
 	public interface HTTPRequestListener {
-        public void onContentTypeObtained(String path, boolean isLocalFile, boolean useFFmpegPlayer, String contentType);
-        public void onHTTPRequestError(String path, boolean isLocalFile, boolean useFFmpegPlayer);
+        public void onContentTypeObtained(String path, boolean useFFmpegPlayer, String contentType);
+        public void onHTTPRequestError(String path, boolean useFFmpegPlayer);
     }
 }
