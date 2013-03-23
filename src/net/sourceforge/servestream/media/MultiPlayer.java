@@ -78,15 +78,6 @@ public final class MultiPlayer implements HTTPRequestListener {
     	setDataSource(null, path, -1, false, useFFmpegPlayer, null);
     }
     
-    public void setDataSource(FileDescriptor fd, long offset, long length)
-            throws IOException, IllegalArgumentException, IllegalStateException {
-        mMediaPlayer.reset();
-        mMediaPlayer.setDataSource(fd, offset, length);
-        mMediaPlayer.setAudioStreamType(AudioManager.STREAM_ALARM);
-        mMediaPlayer.setLooping(true);
-        mMediaPlayer.prepareAsync();
-	}
-    
     private void setDataSource(Context context, String path, long id, boolean isLocalFile, boolean useFFmpegPlayer, String contentType) {
         try {
             mMediaPlayer.reset();
