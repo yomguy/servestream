@@ -252,6 +252,15 @@ Java_net_sourceforge_servestream_media_FFmpegPlayer__1setDataSource(JNIEnv* env,
     }
 
     uri = (*env)->GetStringUTFChars(env, path, NULL);
+
+    // Workaround for FFmpeg ticket #998
+    // "must convert mms://... streams to mmsh://... for FFmpeg to work"
+    char *restrict_to = strstr(uri, "mms://");
+    if (restrict_to) {
+    	strncpy(restrict_to, "mmsh://", 6);
+    	puts(uri);
+    }
+
     strncpy(global_audio_state->filename, uri, sizeof(global_audio_state->filename));
     (*env)->ReleaseStringUTFChars(env, path, uri);
 }
@@ -302,6 +311,8 @@ void player_prepare(void * data) {
 
     // Get a pointer to the codec context for the audio stream
     avctx = global_audio_state->ic->streams[stream_index]->codec;
+
+    __android_log_print(ANDROID_LOG_INFO, TAG, "avcodec_find_decoder %s--->", avctx->codec_name);
 
     // Find the decoder for the audio stream
     codec = avcodec_find_decoder(avctx->codec_id);
