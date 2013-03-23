@@ -99,6 +99,14 @@ Java_net_sourceforge_servestream_media_MediaMetadataRetriever_setDataSource(JNIE
         return;
     }
 
+    // Workaround for FFmpeg ticket #998
+    // "must convert mms://... streams to mmsh://... for FFmpeg to work"
+    char *restrict_to = strstr(tmp, "mms://");
+    if (restrict_to) {
+    	strncpy(restrict_to, "mmsh://", 6);
+    	puts(tmp);
+    }
+
     process_media_retriever_call(
             env,
             retriever->setDataSource(tmp),
