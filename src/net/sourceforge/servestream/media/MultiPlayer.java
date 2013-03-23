@@ -20,8 +20,6 @@ package net.sourceforge.servestream.media;
 import android.content.Context;
 import android.media.MediaPlayer;
 import android.os.Handler;
-import android.os.Parcel;
-import android.os.Parcelable;
 import android.util.Log;
 
 import java.io.IOException;
@@ -33,6 +31,7 @@ import net.sourceforge.servestream.transport.MMS;
 import net.sourceforge.servestream.transport.MMSH;
 import net.sourceforge.servestream.transport.MMST;
 import net.sourceforge.servestream.transport.RTSP;
+import net.sourceforge.servestream.utils.HTTPRequestTask;
 import net.sourceforge.servestream.utils.HTTPRequestTask.HTTPRequestListener;
 import net.sourceforge.servestream.utils.URLUtils;
 import net.sourceforge.servestream.service.MediaPlaybackService;
@@ -40,7 +39,7 @@ import net.sourceforge.servestream.service.MediaPlaybackService;
 /**
  * Provides a unified interface for dealing with media files.
  */
-public class MultiPlayer implements Parcelable, HTTPRequestListener {
+public class MultiPlayer implements HTTPRequestListener {
 	private static final String TAG = MultiPlayer.class.getName();
 	
 	private NativePlayer mNativeMediaPlayer = new NativePlayer();
@@ -69,10 +68,10 @@ public class MultiPlayer implements Parcelable, HTTPRequestListener {
         try {
             mMediaPlayer.reset();
             
-            /*if (contentType == null && path.startsWith(HTTP.getProtocolName())) {
-            	new HTTPRequestTask(path, isLocalFile, useFFmpegPlayer, this).execute();
+            if (!isLocalFile && contentType == null && path.startsWith(HTTP.getProtocolName())) {
+            	new HTTPRequestTask(path, useFFmpegPlayer, this).execute();
             	return;
-            }*/
+            }
             
             AbstractMediaPlayer player = null;
             if (isLocalFile) {
@@ -96,10 +95,6 @@ public class MultiPlayer implements Parcelable, HTTPRequestListener {
                 mMediaPlayer.setDataSource(context, id);
             	mMediaPlayer.prepareAsync();
             } else {
-            	if (path.startsWith(MMS.getProtocolName() + "://")) {
-            		path = path.replace(MMS.getProtocolName(), MMSH.getProtocolName());
-            	}
-            	
                 mMediaPlayer.setDataSource(URLUtils.encodeURL(path));
             	mMediaPlayer.prepareAsync();
             }
@@ -287,40 +282,18 @@ public class MultiPlayer implements Parcelable, HTTPRequestListener {
 	}
 	
 	@Override
-	public int describeContents() {
-		return 0;
-	}
-
-	@Override
-	public void writeToParcel(Parcel dest, int flags) {
-		
-	}
-	
-	public static final Parcelable.Creator<MultiPlayer> CREATOR = new
-	Parcelable.Creator<MultiPlayer>() {
-	    public MultiPlayer createFromParcel(Parcel in) {
-	    	return null;
-	    }
-
-	    public MultiPlayer[] newArray(int size) {
-	    	return null;
-	    }
-	};
-
-	@Override
-	public void onContentTypeObtained(String path, boolean isLocalFile,
-			boolean useFFmpegPlayer, String contentType) {
+	public void onContentTypeObtained(String path, boolean useFFmpegPlayer, 
+			String contentType) {
 		if (contentType.equalsIgnoreCase("video/x-ms-asf") || 
     		contentType.equalsIgnoreCase("application/vnd.ms-asf")) {
 			path = path.replace(HTTP.getProtocolName(), MMSH.getProtocolName());
 		}
 		
-		setDataSource(null, path, -1, isLocalFile, useFFmpegPlayer, contentType);
+		setDataSource(null, path, -1, false, useFFmpegPlayer, contentType);
 	}
 
 	@Override
-	public void onHTTPRequestError(String path, boolean isLocalFile,
-			boolean useFFmpegPlayer) {
-		setDataSource(null, path, -1, isLocalFile, useFFmpegPlayer, "");
+	public void onHTTPRequestError(String path, boolean useFFmpegPlayer) {
+		setDataSource(null, path, -1, false, useFFmpegPlayer, "");
 	}
 }
