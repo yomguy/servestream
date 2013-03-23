@@ -18,10 +18,11 @@
 package net.sourceforge.servestream.media;
 
 import android.content.Context;
+import android.media.AudioManager;
 import android.media.MediaPlayer;
-import android.os.Handler;
 import android.util.Log;
 
+import java.io.FileDescriptor;
 import java.io.IOException;
 
 import net.sourceforge.servestream.transport.File;
@@ -39,23 +40,36 @@ import net.sourceforge.servestream.service.MediaPlaybackService;
 /**
  * Provides a unified interface for dealing with media files.
  */
-public class MultiPlayer implements HTTPRequestListener {
+public final class MultiPlayer implements HTTPRequestListener {
 	private static final String TAG = MultiPlayer.class.getName();
+	
+	private MultiPlayerListener mListener;
 	
 	private NativePlayer mNativeMediaPlayer = new NativePlayer();
 	private DownloadPlayer mDownloadMediaPlayer;
 	private FFmpegPlayer mFFmpegMediaPlayer;
 	private AbstractMediaPlayer mMediaPlayer = mNativeMediaPlayer;
-    private Handler mHandler;
     private boolean mIsInitialized = false;
 
     /**
      * Default constructor
      */
-    public MultiPlayer() {
+    protected MultiPlayer() {
     	
     }
 
+    public MultiPlayer(Context context) {
+    	// Verify that the host activity implements the callback interface
+        try {
+            // Instantiate the MultiPlayerListener so we can send events with it
+            mListener = (MultiPlayerListener) context;
+        } catch (ClassCastException e) {
+            // The activity doesn't implement the interface, throw exception
+            throw new ClassCastException(context.toString()
+                    + " must implement MultiPlayerListener");
+        }
+    }
+    
     public void setDataSource(Context context, long id) {
     	setDataSource(context, null, id, true, false, null);
     }
@@ -63,6 +77,15 @@ public class MultiPlayer implements HTTPRequestListener {
     public void setDataSource(String path, boolean useFFmpegPlayer) {
     	setDataSource(null, path, -1, false, useFFmpegPlayer, null);
     }
+    
+    public void setDataSource(FileDescriptor fd, long offset, long length)
+            throws IOException, IllegalArgumentException, IllegalStateException {
+        mMediaPlayer.reset();
+        mMediaPlayer.setDataSource(fd, offset, length);
+        mMediaPlayer.setAudioStreamType(AudioManager.STREAM_ALARM);
+        mMediaPlayer.setLooping(true);
+        mMediaPlayer.prepareAsync();
+	}
     
     private void setDataSource(Context context, String path, long id, boolean isLocalFile, boolean useFFmpegPlayer, String contentType) {
         try {
@@ -103,11 +126,15 @@ public class MultiPlayer implements HTTPRequestListener {
         } catch (IOException ex) {
         	Log.v(TAG, "Error initializing media player");
             mIsInitialized = false;
-            mHandler.sendMessageDelayed(mHandler.obtainMessage(MediaPlaybackService.PLAYER_ERROR), 2000);
+            if (mListener != null) {
+            	mListener.onError(this, 0, 0);
+            }
         } catch (IllegalArgumentException ex) {
         	Log.v(TAG, "Error initializing media player");
             mIsInitialized = false;
-            mHandler.sendMessageDelayed(mHandler.obtainMessage(MediaPlaybackService.PLAYER_ERROR), 2000);
+            if (mListener != null) {
+            	mListener.onError(this, 0, 0);
+            }
         }
     }
         
@@ -148,16 +175,14 @@ public class MultiPlayer implements HTTPRequestListener {
         mMediaPlayer.pause();
     }
         
-    public void setHandler(Handler handler) {
-        mHandler = handler;
-    }
-
     private AbstractMediaPlayer.OnPreparedListener onPreparedListener = new AbstractMediaPlayer.OnPreparedListener() {
 		public void onPrepared(AbstractMediaPlayer mp) {
 			Log.i(TAG, "onPreparedListener called");
 			
 	        mIsInitialized = true;
-			mHandler.sendEmptyMessage(MediaPlaybackService.PLAYER_PREPARED);
+            if (mListener != null) {
+            	mListener.onPrepared(MultiPlayer.this);
+            }
 		}
     };
     
@@ -166,7 +191,9 @@ public class MultiPlayer implements HTTPRequestListener {
         	Log.i(TAG, "onCompletionListener called");
         	
             if (mIsInitialized) {
-            	mHandler.sendEmptyMessage(MediaPlaybackService.TRACK_ENDED);
+                if (mListener != null) {
+                	mListener.onCompletion(MultiPlayer.this);
+                }
             }
         }
     };
@@ -180,12 +207,17 @@ public class MultiPlayer implements HTTPRequestListener {
             	case MediaPlayer.MEDIA_ERROR_SERVER_DIED:
             		release();
             		mNativeMediaPlayer = new NativePlayer();
-            		mMediaPlayer = mNativeMediaPlayer; 
-            		mHandler.sendMessageDelayed(mHandler.obtainMessage(MediaPlaybackService.SERVER_DIED), 2000);
+            		mMediaPlayer = mNativeMediaPlayer;
+            		
+                    if (mListener != null) {
+                    	mListener.onError(MultiPlayer.this, MediaPlaybackService.SERVER_DIED, 0);
+                    }
             		return true;
             	default:
             		mIsInitialized = false;
-            		mHandler.sendEmptyMessage(MediaPlaybackService.PLAYER_ERROR);
+                    if (mListener != null) {
+                    	mListener.onError(MultiPlayer.this, 0, 0);
+                    }
             		break;
             }
             return false;
@@ -197,7 +229,9 @@ public class MultiPlayer implements HTTPRequestListener {
 		public boolean onInfo(AbstractMediaPlayer mp, int what, int extra) {
 			switch (what) {
 				case AbstractMediaPlayer.MEDIA_INFO_METADATA_UPDATE:
-					mHandler.sendMessage(mHandler.obtainMessage(MediaPlaybackService.METADATA_UPDATE));
+                    if (mListener != null) {
+                    	mListener.onInfo(MultiPlayer.this, 0, 0);
+                    }
 					return true;
     			default:
     				break;    	
@@ -295,5 +329,12 @@ public class MultiPlayer implements HTTPRequestListener {
 	@Override
 	public void onHTTPRequestError(String path, boolean useFFmpegPlayer) {
 		setDataSource(null, path, -1, false, useFFmpegPlayer, "");
+	}
+	
+	public interface MultiPlayerListener {
+        void onPrepared(MultiPlayer mp);
+        void onCompletion(MultiPlayer mp);
+        void onError(MultiPlayer mp, int what, int extra);
+        void onInfo(MultiPlayer mp, int what, int extra);
 	}
 }
