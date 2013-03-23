@@ -56,6 +56,7 @@ import net.sourceforge.servestream.activity.MediaPlaybackActivity;
 import net.sourceforge.servestream.media.MetadataRetrieverTask;
 import net.sourceforge.servestream.media.MultiPlayer;
 import net.sourceforge.servestream.media.MetadataRetrieverTask.MetadataRetrieverListener;
+import net.sourceforge.servestream.media.MultiPlayer.MultiPlayerListener;
 import net.sourceforge.servestream.media.SHOUTcastMetadata;
 import net.sourceforge.servestream.provider.Media;
 import net.sourceforge.servestream.receiver.ConnectivityReceiver;
@@ -70,8 +71,10 @@ import net.sourceforge.servestream.widget.ServeStreamAppWidgetOneProvider;
  * Provides "background" audio playback capabilities, allowing the
  * user to switch between activities without stopping playback.
  */
-public class MediaPlaybackService extends Service implements OnSharedPreferenceChangeListener,
-		MetadataRetrieverListener {
+public class MediaPlaybackService extends Service implements 
+		OnSharedPreferenceChangeListener,
+		MetadataRetrieverListener,
+		MultiPlayerListener {
 
     /** used to specify whether enqueue() should start playing
      * the new list of files right away, next or once all the currently
@@ -124,9 +127,6 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
     private static final int FADEDOWN = 5;
     private static final int FADEUP = 6;
     public static final int TRACK_WENT_TO_NEXT = 7;
-    public static final int PLAYER_PREPARED = 8;
-    public static final int PLAYER_ERROR = 9;
-    public static final int METADATA_UPDATE = 10;
     private static final int MAX_HISTORY_SIZE = 100;
     
     private MultiPlayer mPlayer;
@@ -202,17 +202,6 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
                     }
                     mPlayer.setVolume(mCurrentVolume);
                     break;
-                case SERVER_DIED:
-                    if (mIsSupposedToBePlaying) {
-                        gotoNext(true);
-                    } else {
-                        // the server died when we were idle, so just
-                        // reopen the same song (it will start again
-                        // from the beginning though when the user
-                        // restarts)
-                        openCurrentAndNext();
-                    }
-                    break;
                 case TRACK_WENT_TO_NEXT:
                     mPlayPos = mNextPlayPos;
                     if (mCursor != null) {
@@ -224,33 +213,6 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
                     updateNotification(false);
                     setNextTrack();
                     break;
-                case TRACK_ENDED:
-                    if (mRepeatMode == REPEAT_CURRENT) {
-                        seek(0);
-                        play();
-                    } else {
-                        gotoNext(false);
-                    }
-                    break;
-                case PLAYER_PREPARED:
-                	// TODO new
-                    Intent i = new Intent("android.media.action.OPEN_AUDIO_EFFECT_CONTROL_SESSION");
-                    i.putExtra("android.media.extra.AUDIO_SESSION", getAudioSessionId());
-                    i.putExtra("android.media.extra.PACKAGE_NAME", getPackageName());
-                    sendBroadcast(i);
-                	removeStickyBroadcast(new Intent(START_DIALOG));
-                    sendBroadcast(new Intent(STOP_DIALOG));
-                    play();
-                    notifyChange(META_CHANGED);
-                    notifyChange(PLAYBACK_STARTED);
-                	break;
-                case PLAYER_ERROR:
-                	// TODO new
-                	handleError();
-                	break;
-                case METADATA_UPDATE:
-                	notifyChange(META_CHANGED);
-                	break;
                     
                 case FOCUSCHANGE:
                     // This code is here so we can better synchronize it with the code that
@@ -297,6 +259,51 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
         }
     };
 
+    @Override
+	public void onPrepared(MultiPlayer mp) {
+        Intent i = new Intent("android.media.action.OPEN_AUDIO_EFFECT_CONTROL_SESSION");
+        i.putExtra("android.media.extra.AUDIO_SESSION", getAudioSessionId());
+        i.putExtra("android.media.extra.PACKAGE_NAME", getPackageName());
+        sendBroadcast(i);
+    	removeStickyBroadcast(new Intent(START_DIALOG));
+        sendBroadcast(new Intent(STOP_DIALOG));
+        play();
+        notifyChange(META_CHANGED);
+        notifyChange(PLAYBACK_STARTED);
+	}
+
+	@Override
+	public void onCompletion(MultiPlayer mp) {
+        if (mRepeatMode == REPEAT_CURRENT) {
+            seek(0);
+            play();
+        } else {
+            gotoNext(false);
+        }
+	}
+
+	@Override
+	public void onError(MultiPlayer mp, int what, int extra) {
+		if (what == SERVER_DIED) {
+			if (mIsSupposedToBePlaying) {
+				gotoNext(true);
+            } else {
+            	// the server died when we were idle, so just
+                // reopen the same song (it will start again
+                // from the beginning though when the user
+                // restarts)
+                openCurrentAndNext();
+            }
+		} else {
+			handleError();
+		}
+	}
+
+	@Override
+	public void onInfo(MultiPlayer mp, int what, int extra) {
+    	notifyChange(META_CHANGED);
+	}
+    
 	/* (non-Javadoc)
 	 * @see android.content.SharedPreferences.OnSharedPreferenceChangeListener#onSharedPreferenceChanged(android.content.SharedPreferences, java.lang.String)
 	 */
@@ -405,8 +412,7 @@ public class MediaPlaybackService extends Service implements OnSharedPreferenceC
         mMediaButtonReceiverComponent = new ComponentName(this, MediaButtonIntentReceiver.class);
 		
         // Needs to be done in this thread, since otherwise ApplicationContext.getPowerManager() crashes.
-        mPlayer = new MultiPlayer();
-        mPlayer.setHandler(mMediaplayerHandler);
+        mPlayer = new MultiPlayer(this);
 
         reloadSettings();
         notifyChange(QUEUE_CHANGED);

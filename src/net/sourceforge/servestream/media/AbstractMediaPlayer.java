@@ -71,6 +71,19 @@ public abstract class AbstractMediaPlayer {
             throws IOException, IllegalArgumentException, SecurityException, IllegalStateException;
     
     /**
+     * Sets the data source (FileDescriptor) to use.  The FileDescriptor must be
+     * seekable (N.B. a LocalSocket is not seekable). It is the caller's responsibility
+     * to close the file descriptor. It is safe to do so as soon as this call returns.
+     *
+     * @param fd the FileDescriptor for the file you want to play
+     * @param offset the offset into the file where the data to be played starts, in bytes
+     * @param length the length in bytes of the data to be played
+     * @throws IllegalStateException if it is called in an invalid state
+     */
+    public abstract void setDataSource(FileDescriptor fd, long offset, long length)
+            throws IOException, IllegalArgumentException, IllegalStateException;
+    
+    /**
      * Prepares the player for playback, synchronously.
      *
      * After setting the datasource and the display surface, you need to either
@@ -188,6 +201,24 @@ public abstract class AbstractMediaPlayer {
      * data source and calling prepare().
      */
     public abstract void reset();
+    
+    /**
+     * Sets the audio stream type for this MediaPlayer. See {@link AudioManager}
+     * for a list of stream types. Must call this method before prepare() or
+     * prepareAsync() in order for the target stream type to become effective
+     * thereafter.
+     *
+     * @param streamtype the audio stream type
+     * @see android.media.AudioManager
+     */
+    public abstract void setAudioStreamType(int streamtype);
+
+    /**
+     * Sets the player to be looping or non-looping.
+     *
+     * @param looping whether to loop or not
+     */
+    public abstract void setLooping(boolean looping);
     
     /**
      * Sets the volume on this player.
