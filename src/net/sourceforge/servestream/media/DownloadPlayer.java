@@ -36,10 +36,9 @@ import android.content.Context;
 import android.database.Cursor;
 import android.media.MediaPlayer;
 import android.net.Uri;
-import android.os.AsyncTask;
 import android.util.Log;
 
-public class DownloadPlayer extends NativePlayer {
+public class DownloadPlayer extends FFmpegPlayer {
 	private static final String TAG = DownloadPlayer.class.getName();
 	
 	private long mTotalSizeInBytes = -1;
@@ -92,14 +91,14 @@ public class DownloadPlayer extends NativePlayer {
 	@Override
 	public void seekTo(int msec) throws IllegalStateException {
 		if (isCompleteFileAvailable()) {
-			mMediaPlayer.seekTo(msec);
+			super.seekTo(msec);
 		}
 	}
 	
 	@Override
 	public int getDuration() {
 		if (isCompleteFileAvailable()) {
-			return (int) getCompleteFileDuration();
+			return super.getDuration();
 		} else {
 			return 0;
 		}
@@ -128,8 +127,8 @@ public class DownloadPlayer extends NativePlayer {
         Utils.deleteFile(mCompleteFile);
         
         Log.v(TAG, "=============> " + mPartialFile.toString());
-		mDownloadTask = new DownloadTask(mPartialFile, mCompleteFile);
-        mDownloadTask.execute(mUrl);
+		mDownloadTask = new DownloadTask(mUrl, mPartialFile, mCompleteFile);
+        mDownloadTask.execute();
         mPollingAsyncTask = new PollingAsyncTask();
         mPollingAsyncTask.execute();
 	}
@@ -137,7 +136,7 @@ public class DownloadPlayer extends NativePlayer {
 	public void cancelDownload() {
 		if (mDownloadTask != null) {
 	    	DownloadTask downloadTask = mDownloadTask;
-	    	downloadTask.cancel(false);
+	    	downloadTask.cancel();
 	    	mDownloadTask = null;
 		}
 	}
@@ -145,7 +144,7 @@ public class DownloadPlayer extends NativePlayer {
 	public void cancelPollingTask() {
 		if (mPollingAsyncTask != null) {
 			PollingAsyncTask pollingAsyncTask = mPollingAsyncTask;
-			pollingAsyncTask.cancel(false);
+			pollingAsyncTask.cancel();
 	    	mPollingAsyncTask = null;
 		}
 	}
@@ -166,6 +165,7 @@ public class DownloadPlayer extends NativePlayer {
 			mediaPlayer.setDataSource(getCompleteFile().toString());
 			mediaPlayer.prepare();
 			duration = mediaPlayer.getDuration();
+			mediaPlayer.release();
 		} catch (Exception e) {
 		}
 		
@@ -220,18 +220,23 @@ public class DownloadPlayer extends NativePlayer {
 		return length;
 	}
 	
-	private class DownloadTask extends AsyncTask<URL, Void, Void> {
+	private class DownloadTask implements Runnable {
 		
+		private boolean mIsCancelled;
+	
+		private URL mUrl = null;
 		private File mPartialFile = null;
 		private File mCompleteFile = null;
 		
-		public DownloadTask(File partialFile, File completeFile) {
+		public DownloadTask(URL url, File partialFile, File completeFile) {
+	    	mIsCancelled = false;
+	    	mUrl = url;
 			mPartialFile = partialFile;
 			mCompleteFile = completeFile;
 		}
 		
 		@Override
-		protected Void doInBackground(URL... url) {
+		public void run() {
         	HttpURLConnection conn = null;
         	BufferedInputStream in = null;
             FileOutputStream out = null;
@@ -243,7 +248,7 @@ public class DownloadPlayer extends NativePlayer {
 			Log.v(TAG, "starting download task");
             while (!mCompleteFile.exists() && !isCancelled()) {
             	try {
-                	conn = determineRange(url[0], mPartialFile.length());
+                	conn = determineRange(mUrl, mPartialFile.length());
             
                 	if (conn.getResponseCode() == HttpURLConnection.HTTP_PARTIAL) {
                 		appendToFile = true;
@@ -276,8 +281,6 @@ public class DownloadPlayer extends NativePlayer {
             		Utils.closeOutputStream(out);
             	}
             }
-            
-            return null;
         }
 	
         private HttpURLConnection determineRange(URL url, long bytesProcessed) {
@@ -306,19 +309,33 @@ public class DownloadPlayer extends NativePlayer {
 		
         	return conn;
         }
+        
+		private synchronized boolean isCancelled() {
+			return mIsCancelled;
+		}
+		
+		public synchronized void cancel() {
+			mIsCancelled = true;
+		}
+		
+		public synchronized void execute() {
+			new Thread(this, "").start();
+		}
 	}
         
-	private class PollingAsyncTask extends AsyncTask<Void, Void, Void> {
+	private class PollingAsyncTask implements Runnable {
+		
+		private boolean mIsCancelled;
 		
 		//int INITIAL_BUFFER = Math.max(100000, 160 * 1024 / 8 * 5);
 		int INITIAL_BUFFER = 81920;
 		
 	    public PollingAsyncTask() {
-	        super();
+	    	mIsCancelled = false;
 	    }
 	    
 		@Override
-		protected Void doInBackground(Void... stream) {  
+		public void run() {
 			Log.v(TAG, "polling task started");
 			
 			while (!bufferingComplete() && !isCancelled()) {
@@ -331,9 +348,8 @@ public class DownloadPlayer extends NativePlayer {
 			
 			Log.v(TAG, "setDataSource called");
 			try {
-				mMediaPlayer.setDataSource(getPartialFile().getPath());
-				mMediaPlayer.prepare();
-				return null;
+				DownloadPlayer.super.setDataSource(getPartialFile().getPath());
+				DownloadPlayer.super.prepareAsync();
 			} catch (IllegalArgumentException e) {
 				e.printStackTrace();
 			} catch (SecurityException e) {
@@ -343,12 +359,22 @@ public class DownloadPlayer extends NativePlayer {
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
-			
-			return null;
 		}
 		
 		private boolean bufferingComplete() {
 			return getPartialFile().length() >= INITIAL_BUFFER;
+		}
+		
+		private synchronized boolean isCancelled() {
+			return mIsCancelled;
+		}
+		
+		public synchronized void cancel() {
+			mIsCancelled = true;
+		}
+		
+		public synchronized void execute() {
+			new Thread(this, "").start();
 		}
 	}
 	
