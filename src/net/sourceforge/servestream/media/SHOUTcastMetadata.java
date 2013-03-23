@@ -98,7 +98,7 @@ public class SHOUTcastMetadata extends BroadcastReceiver {
 				(!action.equals(MediaPlaybackService.PLAYBACK_STARTED) &&
 				!action.equals(MediaPlaybackService.PLAYSTATE_CHANGED) &&
 				!action.equals(MediaPlaybackService.PLAYBACK_COMPLETE))) {
-           Log.w(TAG, "onReceived() called: " + intent);
+           //Log.w(TAG, "onReceived() called: " + intent);
            return;
 		}
 
