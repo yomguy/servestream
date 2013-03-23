@@ -84,6 +84,8 @@ public class MediaPlaybackActivity extends SherlockFragmentActivity implements M
 	private static final String LOADING_DIALOG = "loading_dialog";
 	private static final String SLEEP_TIMER_DIALOG = "sleep_timer_dialog";
     
+	private DialogFragment mLoadingDialog;
+	
     private int mParentActivityState = VISIBLE;
     private static int VISIBLE = 1;
     private static int GONE = 2;
@@ -313,7 +315,7 @@ public class MediaPlaybackActivity extends SherlockFragmentActivity implements M
     public void onPause() {
     	super.onPause();
     	mParentActivityState = GONE;
-    	dismissDialog(LOADING_DIALOG);
+    	dismissLoadingDialog();
     }
 
     @Override
@@ -1002,11 +1004,11 @@ public class MediaPlaybackActivity extends SherlockFragmentActivity implements M
                 setPauseButtonImage();
             } else if (action.equals(MediaPlaybackService.START_DIALOG)) {
 	        	if (mParentActivityState == VISIBLE) {
-	        		showDialog(LOADING_DIALOG);
+	        		showLoadingDialog();
 	        	}
             } else if (action.equals(MediaPlaybackService.STOP_DIALOG)) {
             	if (mParentActivityState == VISIBLE) {
-            		dismissDialog(LOADING_DIALOG);
+            		dismissLoadingDialog();
             	}
             }
         }
@@ -1140,6 +1142,18 @@ public class MediaPlaybackActivity extends SherlockFragmentActivity implements M
 		}
 	}
 	
+	public synchronized void showLoadingDialog() {
+		mLoadingDialog = LoadingDialog.newInstance(this, getString(R.string.opening_url_message));
+		mLoadingDialog.show(getSupportFragmentManager(), LOADING_DIALOG);
+	}
+	
+	public synchronized void dismissLoadingDialog() {
+		if (mLoadingDialog != null) {
+			mLoadingDialog.dismiss();
+			mLoadingDialog = null;
+		}
+	}
+	
 	public void showDialog(String tag) {
 		// DialogFragment.show() will take care of adding the fragment
 		// in a transaction.  We also want to remove any currently showing
@@ -1153,9 +1167,7 @@ public class MediaPlaybackActivity extends SherlockFragmentActivity implements M
 		DialogFragment newFragment = null;
 
 		// Create and show the dialog.
-		if (tag.equals(LOADING_DIALOG)) {
-			newFragment = LoadingDialog.newInstance(this, getString(R.string.opening_url_message));
-		} else if (tag.equals(SLEEP_TIMER_DIALOG)) {
+		if (tag.equals(SLEEP_TIMER_DIALOG)) {
 			if (mService == null) {
 				return;
 			}
