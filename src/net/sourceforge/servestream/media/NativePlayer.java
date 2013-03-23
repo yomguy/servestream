@@ -48,12 +48,6 @@ public class NativePlayer extends AbstractMediaPlayer {
 	}
 
 	@Override
-    public void setDataSource(FileDescriptor fd, long offset, long length)
-            throws IOException, IllegalArgumentException, IllegalStateException {
-		mMediaPlayer.setDataSource(fd, offset, length);
-    }
-	
-	@Override
 	public void prepare() throws IOException, IllegalStateException {
 		mMediaPlayer.prepare();
 		
@@ -106,16 +100,6 @@ public class NativePlayer extends AbstractMediaPlayer {
 		mMediaPlayer.reset();
 	}
 
-	@Override
-    public void setAudioStreamType(int streamtype) {
-		mMediaPlayer.setAudioStreamType(streamtype);
-	}
-
-	@Override
-    public void setLooping(boolean looping) {
-		mMediaPlayer.setLooping(looping);
-	}
-	
 	@Override
 	public void setVolume(float leftVolume, float rightVolume) {
 		mMediaPlayer.setVolume(leftVolume, rightVolume);
