@@ -196,7 +196,7 @@ AVPacket* getEmbeddedPicture(State **ps) {
     // find the first attached picture, if available
     for (i = 0; i < state->pFormatCtx->nb_streams; i++) {
         if (state->pFormatCtx->streams[i]->disposition & AV_DISPOSITION_ATTACHED_PIC) {
-        	printf("Found album art");
+        	printf("Found album art\n");
         	packet = &state->pFormatCtx->streams[i]->attached_pic;
         }
     }
