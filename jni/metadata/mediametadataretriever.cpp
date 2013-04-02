@@ -30,25 +30,25 @@ using namespace std;
 
 MediaMetadataRetriever::MediaMetadataRetriever()
 {
-	pFormatCtx = NULL;
+	state = NULL;
 }
 
 MediaMetadataRetriever::~MediaMetadataRetriever()
 {
-	::release(&pFormatCtx);
+	::release(&state);
 }
 
 int MediaMetadataRetriever::setDataSource(const char *srcUrl)
 {
-	return ::setDataSource(&pFormatCtx, srcUrl);
+	return ::setDataSource(&state, srcUrl);
 }
 
 const char* MediaMetadataRetriever::extractMetadata(const char *key)
 {
-    return ::extractMetadata(&pFormatCtx, key);
+    return ::extractMetadata(&state, key);
 }
 
 AVPacket* MediaMetadataRetriever::extractAlbumArt()
 {
-    return ::getEmbeddedPicture(&pFormatCtx);
+    return ::getEmbeddedPicture(&state);
 }

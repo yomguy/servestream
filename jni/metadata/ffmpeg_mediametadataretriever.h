@@ -21,9 +21,18 @@
 #include <libavcodec/avcodec.h>
 #include <libavformat/avformat.h>
 
-int setDataSource(AVFormatContext** ps, const char* path);
-const char* extractMetadata(AVFormatContext** ps, const char* key);
-AVPacket* getEmbeddedPicture(AVFormatContext** ps);
-void release(AVFormatContext** ps);
+typedef struct State {
+	AVFormatContext *pFormatCtx;
+	int             audio_stream;
+	int             video_stream;
+	AVStream        *audio_st;
+	AVStream        *video_st;
+} State;
+
+int setDataSource(State **ps, const char* path);
+const char* extractMetadata(State **ps, const char* key);
+AVPacket* getEmbeddedPicture(State **ps);
+AVPacket* getFrameAtTime(State **ps, long timeUs);
+void release(State **ps);
 
 #endif /*FFMPEG_MEDIAMETADATARETRIEVER_H_*/
