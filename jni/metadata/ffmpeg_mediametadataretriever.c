@@ -142,12 +142,12 @@ int setDataSource(State **ps, const char* path) {
 		return FAILURE;
 	}*/
 
-	printf("Found metadata\n");
+	/*printf("Found metadata\n");
 	AVDictionaryEntry *tag = NULL;
 	while ((tag = av_dict_get(state->pFormatCtx->metadata, "", tag, AV_DICT_IGNORE_SUFFIX))) {
     	printf("Key %s: \n", tag->key);
     	printf("Value %s: \n", tag->value);
-    }
+    }*/
 	
 	*ps = state;
 	return SUCCESS;
