@@ -128,11 +128,12 @@ Java_net_sourceforge_servestream_media_MediaMetadataRetriever_getEmbeddedPicture
    }
 
    AVPacket* packet = retriever->extractAlbumArt();
+   jbyteArray array = NULL;
 
    if (packet) {
 	   int size = packet->size;
 	   uint8_t* data = packet->data;
-	   jbyteArray array = env->NewByteArray(size);
+	   array = env->NewByteArray(size);
 	   if (!array) {  // OutOfMemoryError exception has already been thrown.
 		   //__android_log_print(ANDROID_LOG_ERROR, LOG_TAG, "getEmbeddedPicture: OutOfMemoryError is thrown.");
        } else {
@@ -141,13 +142,14 @@ Java_net_sourceforge_servestream_media_MediaMetadataRetriever_getEmbeddedPicture
            if (bytes != NULL) {
         	   memcpy(bytes, data, size);
                env->ReleaseByteArrayElements(array, bytes, 0);
-               return array;
            }
        }
+
+	   av_free_packet(packet);
    }
 
    //__android_log_write(ANDROID_LOG_INFO, LOG_TAG, "getEmbeddedPicture: Call to getEmbeddedPicture failed.");
-   return NULL;
+   return array;
 }
 
 extern "C" JNIEXPORT jobject JNICALL
