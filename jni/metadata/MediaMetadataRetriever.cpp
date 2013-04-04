@@ -118,6 +118,40 @@ Java_net_sourceforge_servestream_media_MediaMetadataRetriever_setDataSource(JNIE
 }
 
 extern "C" JNIEXPORT jbyteArray JNICALL
+Java_net_sourceforge_servestream_media_MediaMetadataRetriever__1getFrameAtTime(JNIEnv *env, jobject thiz, jlong timeUs)
+{
+   //__android_log_write(ANDROID_LOG_INFO, LOG_TAG, "getFrameAtTime");
+   MediaMetadataRetriever* retriever = getRetriever(env, thiz);
+   if (retriever == 0) {
+       jniThrowException(env, "java/lang/IllegalStateException", "No retriever available");
+       return NULL;
+   }
+
+   AVPacket* packet = retriever->getFrameAtTime(timeUs);
+   jbyteArray array = NULL;
+
+   if (packet) {
+	   int size = packet->size;
+	   uint8_t* data = packet->data;
+	   array = env->NewByteArray(size);
+	   if (!array) {  // OutOfMemoryError exception has already been thrown.
+		   __android_log_print(ANDROID_LOG_ERROR, LOG_TAG, "getFrameAtTime: OutOfMemoryError is thrown.");
+       } else {
+       	   //__android_log_print(ANDROID_LOG_INFO, LOG_TAG, "getFrameAtTime: Got frame.");
+    	   jbyte* bytes = env->GetByteArrayElements(array, NULL);
+           if (bytes != NULL) {
+        	   memcpy(bytes, data, size);
+               env->ReleaseByteArrayElements(array, bytes, 0);
+           }
+       }
+
+	   av_free_packet(packet);
+   }
+
+   return array;
+}
+
+extern "C" JNIEXPORT jbyteArray JNICALL
 Java_net_sourceforge_servestream_media_MediaMetadataRetriever_getEmbeddedPicture(JNIEnv *env, jobject thiz)
 {
    //__android_log_write(ANDROID_LOG_INFO, LOG_TAG, "getEmbeddedPicture");
@@ -148,7 +182,6 @@ Java_net_sourceforge_servestream_media_MediaMetadataRetriever_getEmbeddedPicture
 	   av_free_packet(packet);
    }
 
-   //__android_log_write(ANDROID_LOG_INFO, LOG_TAG, "getEmbeddedPicture: Call to getEmbeddedPicture failed.");
    return array;
 }
 

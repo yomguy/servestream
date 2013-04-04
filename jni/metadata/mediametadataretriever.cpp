@@ -40,15 +40,20 @@ MediaMetadataRetriever::~MediaMetadataRetriever()
 
 int MediaMetadataRetriever::setDataSource(const char *srcUrl)
 {
-	return ::setDataSource(&state, srcUrl);
+	return ::set_data_source(&state, srcUrl);
+}
+
+AVPacket* MediaMetadataRetriever::getFrameAtTime(int64_t timeUs)
+{
+    return ::get_frame_at_time(&state, timeUs);
 }
 
 const char* MediaMetadataRetriever::extractMetadata(const char *key)
 {
-    return ::extractMetadata(&state, key);
+    return ::extract_metadata(&state, key);
 }
 
 AVPacket* MediaMetadataRetriever::extractAlbumArt()
 {
-    return ::getEmbeddedPicture(&state);
+    return ::get_embedded_picture(&state);
 }
