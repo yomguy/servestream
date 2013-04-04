@@ -17,6 +17,9 @@
 
 package net.sourceforge.servestream.media;
 
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+
 /**
  * MediaMetadataRetriever class provides a unified interface for retrieving
  * frame and meta data from an input media file.
@@ -58,6 +61,62 @@ public class MediaMetadataRetriever
      */
     public native String extractMetadata(String key);
 
+    /**
+     * Call this method after setDataSource(). This method finds a
+     * representative frame close to the given time position if possible,
+     * and returns it as a bitmap. This is useful for generating a thumbnail
+     * for an input data source. Call this method if one does not care
+     * how the frame is found as long as it is close to the given time;
+     * otherwise, please call {@link #getFrameAtTime(long, int)}.
+     *
+     * @param timeUs The time position where the frame will be retrieved.
+     * When retrieving the frame at the given time position, there is no
+     * guarentee that the data source has a frame located at the position.
+     * When this happens, a frame nearby will be returned. If timeUs is
+     * negative, time position and option will ignored, and any frame
+     * that the implementation considers as representative may be returned.
+     *
+     * @return A Bitmap containing a representative video frame, which
+     *         can be null, if such a frame cannot be retrieved.
+     *
+     * @see #getFrameAtTime(long, int)
+     */
+    public Bitmap getFrameAtTime(long timeUs) {
+    	Bitmap b = null;
+    	
+        BitmapFactory.Options bitmapOptionsCache = new BitmapFactory.Options();
+        bitmapOptionsCache.inPreferredConfig = Bitmap.Config.RGB_565;
+        bitmapOptionsCache.inDither = false;
+    	
+        byte [] picture = _getFrameAtTime(timeUs);
+        
+        if (picture != null) {
+        	b = BitmapFactory.decodeByteArray(picture, 0, picture.length, bitmapOptionsCache);
+        }
+        
+        return b;
+    }
+    
+    /**
+     * Call this method after setDataSource(). This method finds a
+     * representative frame at any time position if possible,
+     * and returns it as a bitmap. This is useful for generating a thumbnail
+     * for an input data source. Call this method if one does not
+     * care about where the frame is located; otherwise, please call
+     * {@link #getFrameAtTime(long)} or {@link #getFrameAtTime(long, int)}
+     *
+     * @return A Bitmap containing a representative video frame, which
+     *         can be null, if such a frame cannot be retrieved.
+     *
+     * @see #getFrameAtTime(long)
+     * @see #getFrameAtTime(long, int)
+     */
+    public Bitmap getFrameAtTime() {
+        return getFrameAtTime(-1);
+    }
+    
+    private native byte [] _getFrameAtTime(long timeUs);
+    
     /**
      * Call this method after setDataSource(). This method finds the optional
      * graphic or album/cover art associated associated with the data source. If

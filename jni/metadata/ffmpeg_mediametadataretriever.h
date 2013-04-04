@@ -29,10 +29,10 @@ typedef struct State {
 	AVStream        *video_st;
 } State;
 
-int setDataSource(State **ps, const char* path);
-const char* extractMetadata(State **ps, const char* key);
-AVPacket* getEmbeddedPicture(State **ps);
-AVPacket* getFrameAtTime(State **ps, long timeUs);
+int set_data_source(State **ps, const char* path);
+const char* extract_metadata(State **ps, const char* key);
+AVPacket* get_embedded_picture(State **ps);
+AVPacket* get_frame_at_time(State **ps, long timeUs);
 void release(State **ps);
 
 #endif /*FFMPEG_MEDIAMETADATARETRIEVER_H_*/

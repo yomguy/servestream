@@ -24,7 +24,7 @@ const char *DURATION = "duration";
 const int SUCCESS = 0;
 const int FAILURE = -1;
 
-void getDuration(AVFormatContext *ic, char * value) {
+void get_duration(AVFormatContext *ic, char * value) {
 	int duration = 0;
 
 	if (ic) {
@@ -80,11 +80,10 @@ int stream_component_open(State *s, int stream_index) {
 	return SUCCESS;
 }
 
-int setDataSource(State **ps, const char* path) {
-	printf("setDataSource\n");
-
-	int video_index = -1;
+int set_data_source(State **ps, const char* path) {
+	printf("set_data_source\n");
 	int audio_index = -1;
+	int video_index = -1;
 	int i;
 
 	State *state = *ps;
@@ -97,6 +96,12 @@ int setDataSource(State **ps, const char* path) {
 		state = av_mallocz(sizeof(State));
 	}
 
+	state->pFormatCtx = NULL;
+	state->audio_stream = -1;
+	state->video_stream = -1;
+	state->audio_st = NULL;
+	state->video_st = NULL;
+	
 	char duration[30] = "0";
 
     printf("Path: %s\n", path);
@@ -114,9 +119,11 @@ int setDataSource(State **ps, const char* path) {
     	return FAILURE;
 	}
 
-	getDuration(state->pFormatCtx, duration);
+	get_duration(state->pFormatCtx, duration);
 	av_dict_set(&state->pFormatCtx->metadata, DURATION, duration, 0);
 
+	//av_dump_format(state->pFormatCtx, 0, path, 0);
+	
     // Find the first audio and video stream
 	for (i = 0; i < state->pFormatCtx->nb_streams; i++) {
 		if (state->pFormatCtx->streams[i]->codec->codec_type == AVMEDIA_TYPE_VIDEO && video_index < 0) {
@@ -130,13 +137,13 @@ int setDataSource(State **ps, const char* path) {
 
 	/*if (audio_index >= 0) {
 		stream_component_open(state, audio_index);
-	}
+	}*/
 
 	if (video_index >= 0) {
 		stream_component_open(state, video_index);
 	}
 
-	if(state->video_stream < 0 || state->audio_stream < 0) {
+	/*if(state->video_stream < 0 || state->audio_stream < 0) {
 	    avformat_close_input(&state->pFormatCtx);
 		*ps = NULL;
 		return FAILURE;
@@ -154,8 +161,8 @@ int setDataSource(State **ps, const char* path) {
 }
 
 
-const char* extractMetadata(State **ps, const char* key) {
-	printf("extractMetadata\n");
+const char* extract_metadata(State **ps, const char* key) {
+	printf("extract_metadata\n");
     char* value = NULL;
 	
 	State *state = *ps;
@@ -175,120 +182,117 @@ const char* extractMetadata(State **ps, const char* key) {
 	return value;
 }
 
-AVPacket* getEmbeddedPicture(State **ps) {
-	printf("getEmbeddedPicture\n");
+AVPacket* get_embedded_picture(State **ps) {
+	printf("get_embedded_picture\n");
 	int i = 0;
-	AVPacket pkt, *packet = &pkt;
-	packet = NULL;
+	AVPacket packet;
+	AVPacket *pkt = NULL;
 	
 	State *state = *ps;
 	
 	if (!state || !state->pFormatCtx) {
-		goto fail;
+		return pkt;
 	}
 
     // read the format headers
     if (state->pFormatCtx->iformat->read_header(state->pFormatCtx) < 0) {
     	printf("Could not read the format header\n");
-    	goto fail;
+    	return pkt;
     }
 
     // find the first attached picture, if available
     for (i = 0; i < state->pFormatCtx->nb_streams; i++) {
         if (state->pFormatCtx->streams[i]->disposition & AV_DISPOSITION_ATTACHED_PIC) {
         	printf("Found album art\n");
-        	packet = &state->pFormatCtx->streams[i]->attached_pic;
+        	packet = state->pFormatCtx->streams[i]->attached_pic;
+        	pkt = (AVPacket *) malloc(sizeof(packet));
+        	av_init_packet(pkt);
+        	pkt->data = packet.data;
+        	pkt->size = packet.size;
         }
     }
 
-	fail:
-	return packet;
+	return pkt;
 }
 
-/*AVPacket* convert_to_jpeg(AVCodecContext *pCodecCtx, AVFrame *pFrame) {
+void convert_to_jpeg(AVCodecContext *pCodecCtx, AVFrame *pFrame, AVPacket *avpkt, int *got_packet_ptr) {
 	AVCodecContext *codecCtx;
 	AVCodec *codec;
-	uint8_t *Buffer;
-	int BufSiz;
-	int BufSizActual;
-	int ImgFmt = PIX_FMT_YUVJ420P;
-	FILE *JPEGFile;
-	char JPEGFName[256];
+	
+	*got_packet_ptr = 0;
 
-	BufSiz = avpicture_get_size(ImgFmt, pCodecCtx->width, pCodecCtx->height);
-
-	Buffer = (uint8_t *)malloc ( BufSiz );
-	if ( Buffer == NULL )
-		return ( 0 );
-	memset ( Buffer, 0, BufSiz );
-
+	int pix_fmt = PIX_FMT_YUVJ420P;
+	
+	//int pix_fmt = PIX_FMT_BGR24;
+	//codec = avcodec_find_encoder(CODEC_ID_BMP);
+	
 	codec = avcodec_find_encoder(CODEC_ID_MJPEG);
 	if (!codec) {
-	    printf("avcodec_find_decoder() failed to find audio decoder\n");
-		free(Buffer);
-		return NULL;
+	    printf("avcodec_find_decoder() failed to find video decoder\n");
+		goto fail;
 	}
 
     codecCtx = avcodec_alloc_context3(codec);
 	if (!codecCtx) {
 		printf("avcodec_alloc_context3 failed\n");
-		free(Buffer);
-		return NULL;
+		goto fail;
 	}
 
 	codecCtx->bit_rate = pCodecCtx->bit_rate;
 	codecCtx->width = pCodecCtx->width;
 	codecCtx->height = pCodecCtx->height;
-	codecCtx->pix_fmt = ImgFmt;
+	codecCtx->pix_fmt = pix_fmt;
 	codecCtx->codec_type = AVMEDIA_TYPE_VIDEO;
 	codecCtx->time_base.num = pCodecCtx->time_base.num;
 	codecCtx->time_base.den = pCodecCtx->time_base.den;
 
 	if (!codec || avcodec_open2(codecCtx, codec, NULL) < 0) {
 	  	printf("avcodec_open2() failed\n");
-		free(Buffer);
-		return NULL;
+		goto fail;
 	}
 
-	codecCtx->mb_lmin = codecCtx->lmin = codecCtx->qmin * FF_QP2LAMBDA;
-	codecCtx->mb_lmax = codecCtx->lmax = codecCtx->qmax * FF_QP2LAMBDA;
-	codecCtx->flags = CODEC_FLAG_QSCALE;
-	codecCtx->global_quality = codecCtx->qmin * FF_QP2LAMBDA;
-
-	pFrame->pts = 1;
-	pFrame->quality = codecCtx->global_quality;
-	BufSizActual = avcodec_encode_video(codecCtx,Buffer,BufSiz,pFrame);
-
-	sprintf(JPEGFName, "/home/wseemann/Desktop/one.jpg");
-	JPEGFile = fopen(JPEGFName, "wb");
-	fwrite(Buffer, 1, BufSizActual, JPEGFile);
-	fclose(JPEGFile);
-
+	int ret = avcodec_encode_video2(codecCtx, avpkt, pFrame, got_packet_ptr);
+	
+	if (ret < 0) {
+		*got_packet_ptr = 0;
+	}
+	
 	avcodec_close(codecCtx);
-	free(Buffer);
-	return NULL;
+	
+	// TODO is this right?
+	fail:
+	if (ret < 0 || !*got_packet_ptr) {
+		av_free_packet(avpkt);
+	}
 }
 
-AVPacket* decode_frame(State *state) {
-	int frameFinished;
-	AVFrame *pFrame;
+void decode_frame(State *state, AVPacket *avpkt, int *got_frame) {
+	AVFrame *frame;
 	AVPacket packet;
-	AVPacket *pkt = NULL;
 
+	*got_frame = 0;
+	
 	// Allocate video frame
-	pFrame = avcodec_alloc_frame();
+	frame = avcodec_alloc_frame();
 
-	// Read frames and save first five frames to disk
+	if (!frame) {
+		return;
+	}
+	
+	// Read frames and return the first one found
 	while (av_read_frame(state->pFormatCtx, &packet) >= 0) {
 
 		// Is this a packet from the video stream?
-		if (packet.stream_index == state->videoStream) {
+		if (packet.stream_index == state->video_stream) {
 			// Decode video frame
-			avcodec_decode_video2(state->video_st->codec, pFrame, &frameFinished, &packet);
+			if (avcodec_decode_video2(state->video_st->codec, frame, got_frame, &packet) < 0) {
+				*got_frame = 0;
+				break;
+			}
 
 			// Did we get a video frame?
-			if (frameFinished) {
-				pkt = convert_to_jpeg(state->video_st->codec, pFrame);
+			if (got_frame) {
+				convert_to_jpeg(state->video_st->codec, frame, avpkt, got_frame);
 				break;
 			}
 		}
@@ -298,44 +302,71 @@ AVPacket* decode_frame(State *state) {
 	}
 
 	// Free the frame
-	av_free(pFrame);
-
-	return pkt;
+	av_freep(&frame);
  }
 
-AVPacket* getFrameAtTime(State **ps, long timeUs) {
-	printf("getFrameAtTime\n");
+AVPacket* get_frame_at_time(State **ps, long timeUs) {
+	printf("get_frame_at_time\n");
+	int got_packet;
+	AVPacket packet;
 	AVPacket *pkt = NULL;
-
+	
     State *state = *ps;
 
-	if (!state || !state->pFormatCtx) {
-		goto fail;
+	if (!state || !state->pFormatCtx || state->video_stream < 0) {
+		return pkt;
 	}
 
-    int64_t seek_rel = timeUs * 1000;
-    int64_t seek_target = timeUs * 1000;
+    if (timeUs != -1) {
+    	int64_t seek_target = timeUs * 1000;
 
-    int64_t seek_min = seek_rel > 0 ? seek_target - seek_rel + 2: INT64_MIN;
-    int64_t seek_max = seek_rel < 0 ? seek_target - seek_rel - 2: INT64_MAX;
-
-    int ret = avformat_seek_file(state->pFormatCtx, -1, seek_min, seek_target, seek_max, AVSEEK_FLAG_FRAME);
-
-    if (ret >= 0) {
-    	pkt = decode_frame(state);
+    	if (avformat_seek_file(state->pFormatCtx, -1, INT64_MIN, seek_target, INT64_MAX, 0) < 0) {
+    		return pkt;
+    	} else {
+            if (state->audio_stream >= 0) {
+            	avcodec_flush_buffers(state->audio_st->codec);
+            }
+    		
+            if (state->video_stream >= 0) {
+            	avcodec_flush_buffers(state->video_st->codec);
+            }
+    	}
     }
-
-	fail:
+    
+    av_init_packet(&packet);
+    packet.data = NULL;
+    packet.size = 0;
+    
+    decode_frame(state, &packet, &got_packet);
+    
+    if (got_packet) {
+    	//const char *JPEGFName = "/home/seemann/Desktop/one.jpg";
+    	//FILE *picture = fopen(JPEGFName, "wb");
+    	//fwrite(packet.data, packet.size, 1, picture);
+    	//fclose(picture);
+    	
+    	pkt = (AVPacket *) malloc(sizeof(packet));
+    	av_init_packet(pkt);
+    	pkt->data = packet.data;
+    	pkt->size = packet.size;
+    	
+    	//av_free_packet(&packet);
+    }
+    
     return pkt;
-}*/
+}
 
 void release(State **ps) {
 	printf("release\n");
 
 	State *state = *ps;
 	
-    if (state && state->pFormatCtx) {
-        avformat_close_input(&state->pFormatCtx);
+    if (state) {
+    	if (state->pFormatCtx) {
+    		avformat_close_input(&state->pFormatCtx);
+    	}
+    	
+    	av_freep(&state);
         ps = NULL;
     }
 }
