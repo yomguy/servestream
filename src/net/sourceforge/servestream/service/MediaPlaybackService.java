@@ -97,7 +97,9 @@ public class MediaPlaybackService extends Service implements
     public static final String META_RETRIEVED = "net.sourceforge.servestream.meta_retrieved";
     public static final String ART_CHANGED = "net.sourceforge.servestream.artchanged";
     public static final String QUEUE_CHANGED = "net.sourceforge.servestream.queuechanged";
-
+    private static final String AVRCP_PLAYSTATE_CHANGED = "com.android.music.playstatechanged";
+    private static final String AVRCP_META_CHANGED = "com.android.music.metachanged";
+    
     public static final String PLAYBACK_STARTED = "net.sourceforge.servestream.playbackstarted";
     public static final String PLAYBACK_COMPLETE = "net.sourceforge.servestream.playbackcomplete";
     public static final String START_DIALOG = "net.sourceforge.servestream.startdialog";
@@ -627,6 +629,8 @@ public class MediaPlaybackService extends Service implements
         i.putExtra("track", getTrackName());
         i.putExtra("playing", isPlaying());
         sendStickyBroadcast(i);
+        
+        bluetoothNotifyChange(what);
 
         if (what.equals(PLAYSTATE_CHANGED)) {
             mRemoteControlClientCompat.setPlaybackState(isPlaying() ?
@@ -648,6 +652,28 @@ public class MediaPlaybackService extends Service implements
         mAppWidgetProvider.notifyChange(this, what);
     }
 
+    private void bluetoothNotifyChange(String what) {
+    	Intent i = null;
+    	
+        if (what.equals(PLAYSTATE_CHANGED)) {
+        	i = new Intent(AVRCP_PLAYSTATE_CHANGED);
+        } else if (what.equals(META_CHANGED) || what.equals(META_RETRIEVED)) {
+        	i = new Intent(AVRCP_META_CHANGED);
+        } else {
+        	return;
+        }
+        
+        i.putExtra("id", Long.valueOf(getAudioId()));
+        i.putExtra("artist", getArtistName());
+        i.putExtra("album",getAlbumName());
+        i.putExtra("track", getTrackName());
+        i.putExtra("playing", isPlaying());        
+        i.putExtra("ListSize", getQueue());
+		i.putExtra("duration", duration());
+		i.putExtra("position", position());
+        sendBroadcast(i);
+    }
+    
     private void ensurePlayListCapacity(int size) {
         if (mPlayList == null || size > mPlayList.length) {
             // reallocate at 2x requested size so we don't
