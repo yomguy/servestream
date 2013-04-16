@@ -24,7 +24,6 @@ import net.sourceforge.servestream.service.MediaPlaybackService;
 import net.sourceforge.servestream.utils.MusicUtils;
 import net.sourceforge.servestream.utils.MusicUtils.ServiceToken;
 
-import android.app.Activity;
 import android.content.AsyncQueryHandler;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
@@ -45,16 +44,12 @@ import android.provider.MediaStore;
 import android.util.Log;
 import android.view.ContextMenu;
 import android.view.KeyEvent;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.Window;
 import android.view.ContextMenu.ContextMenuInfo;
 import android.view.MenuItem.OnMenuItemClickListener;
-import android.view.View.OnClickListener;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
-import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
@@ -62,17 +57,21 @@ import android.widget.AdapterView.AdapterContextMenuInfo;
 
 import java.util.Arrays;
 
+import com.actionbarsherlock.app.ActionBar;
+import com.actionbarsherlock.app.SherlockActivity;
+import com.actionbarsherlock.view.MenuItem;
 import com.mobeta.android.dslv.DragSortController;
 import com.mobeta.android.dslv.DragSortListView;
 import com.mobeta.android.dslv.SimpleDragSortCursorAdapter;
 
-public class NowPlayingActivity extends Activity implements View.OnCreateContextMenuListener, MusicUtils.Defs, ServiceConnection
-{
+public class NowPlayingActivity extends SherlockActivity implements
+			View.OnCreateContextMenuListener,
+			MusicUtils.Defs, ServiceConnection {
+	
     private static final String TAG = NowPlayingActivity.class.getName();
     
     private static boolean mDeletedOneRow = false;
     private String mCurrentTrackName;
-    private ImageButton mCloseButton;
     private static DragSortListView mList;
     private static Cursor mTrackCursor;
     private TrackListAdapter mAdapter;
@@ -91,24 +90,16 @@ public class NowPlayingActivity extends Activity implements View.OnCreateContext
     
     /** Called when the activity is first created. */
     @Override
-    public void onCreate(Bundle icicle)
-    {
+    public void onCreate(Bundle icicle) {
         super.onCreate(icicle);
-        
-        requestWindowFeature(Window.FEATURE_NO_TITLE);
         setContentView(R.layout.activity_now_playing);
+
+		ActionBar actionBar = getSupportActionBar();
+		actionBar.setTitle(R.string.play_queue_title);
+		actionBar.setDisplayHomeAsUpEnabled(true);
         
         setVolumeControlStream(AudioManager.STREAM_MUSIC);
 		
-        mCloseButton = (ImageButton) findViewById(R.id.close);
-        mCloseButton.setOnClickListener(new OnClickListener() {
-
-			@Override
-			public void onClick(View v) {
-				finish();
-			}
-        });
-        
 		mList = (DragSortListView) this.findViewById(android.R.id.list);
 		mList.setOnItemClickListener(new OnItemClickListener() {
 			@Override
@@ -158,8 +149,7 @@ public class NowPlayingActivity extends Activity implements View.OnCreateContext
         mToken = MusicUtils.bindToService(this, this);
     }
 
-    public void onServiceConnected(ComponentName name, IBinder service)
-    {
+    public void onServiceConnected(ComponentName name, IBinder service) {
         if (mAdapter == null) {
             //Log.i("@@@", "starting query");
             mAdapter = new TrackListAdapter(
@@ -240,6 +230,17 @@ public class NowPlayingActivity extends Activity implements View.OnCreateContext
         }
     }
     
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+        	case android.R.id.home:
+        		finish();
+        		return true;
+        	default:
+        		return super.onOptionsItemSelected(item);
+        }
+    }
+    
     public void init(Cursor newCursor, boolean isLimited) {
 
         if (mAdapter == null) {
@@ -248,7 +249,6 @@ public class NowPlayingActivity extends Activity implements View.OnCreateContext
         mAdapter.changeCursor(newCursor); // also sets mTrackCursor
         
         if (mTrackCursor == null) {
-            //MusicUtils.displayDatabaseError(this);
             closeContextMenu();
             return;
         }
@@ -269,13 +269,6 @@ public class NowPlayingActivity extends Activity implements View.OnCreateContext
         }
     }
     
-    /*private TouchInterceptor.RemoveListener mRemoveListener =
-        new TouchInterceptor.RemoveListener() {
-        public void remove(int which) {
-            removePlaylistItem(which);
-        }
-    };*/
-
     private void removePlaylistItem(int which) {
         View v = mList.getChildAt(which - mList.getFirstVisiblePosition());
         if (v == null) {
@@ -352,9 +345,9 @@ public class NowPlayingActivity extends Activity implements View.OnCreateContext
         
         menu.setHeaderTitle(mCurrentTrackName);
         
-        MenuItem remove = menu.add(R.string.remove_from_playlist);
+        android.view.MenuItem remove = menu.add(R.string.remove_from_playlist);
         remove.setOnMenuItemClickListener(new OnMenuItemClickListener() {
-			public boolean onMenuItemClick(MenuItem arg0) {
+			public boolean onMenuItemClick(android.view.MenuItem arg0) {
 				removePlaylistItem(mSelectedPosition);
 				return true;
 			}
