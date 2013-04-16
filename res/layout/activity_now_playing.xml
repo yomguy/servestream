@@ -62,13 +62,10 @@
         
     </LinearLayout>
     
-    <net.sourceforge.servestream.utils.TouchInterceptor
-        android:id="@android:id/list"
-        android:layout_width="match_parent"
+ 	<com.mobeta.android.dslv.DragSortListView
+	    android:id="@android:id/list"
+	    android:layout_width="match_parent"
         android:layout_height="0dip"
-        android:layout_weight="1"
-        android:textSize="18sp"
-        android:drawSelectorOnTop="false"
-        android:fastScrollEnabled="true" /> 
+        android:layout_weight="1" />
 
 </LinearLayout>

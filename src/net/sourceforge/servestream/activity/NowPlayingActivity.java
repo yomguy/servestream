@@ -23,9 +23,8 @@ import net.sourceforge.servestream.service.IMediaPlaybackService;
 import net.sourceforge.servestream.service.MediaPlaybackService;
 import net.sourceforge.servestream.utils.MusicUtils;
 import net.sourceforge.servestream.utils.MusicUtils.ServiceToken;
-import net.sourceforge.servestream.utils.TouchInterceptor;
 
-import android.app.ListActivity;
+import android.app.Activity;
 import android.content.AsyncQueryHandler;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
@@ -53,24 +52,29 @@ import android.view.Window;
 import android.view.ContextMenu.ContextMenuInfo;
 import android.view.MenuItem.OnMenuItemClickListener;
 import android.view.View.OnClickListener;
+import android.widget.AdapterView;
+import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.ListView;
-import android.widget.SimpleCursorAdapter;
 import android.widget.TextView;
 import android.widget.AdapterView.AdapterContextMenuInfo;
 
 import java.util.Arrays;
 
-public class NowPlayingActivity extends ListActivity implements View.OnCreateContextMenuListener, MusicUtils.Defs, ServiceConnection
+import com.mobeta.android.dslv.DragSortController;
+import com.mobeta.android.dslv.DragSortListView;
+import com.mobeta.android.dslv.SimpleDragSortCursorAdapter;
+
+public class NowPlayingActivity extends Activity implements View.OnCreateContextMenuListener, MusicUtils.Defs, ServiceConnection
 {
     private static final String TAG = NowPlayingActivity.class.getName();
     
-    private boolean mDeletedOneRow = false;
+    private static boolean mDeletedOneRow = false;
     private String mCurrentTrackName;
     private ImageButton mCloseButton;
-    private ListView mTrackList;
-    private Cursor mTrackCursor;
+    private static DragSortListView mList;
+    private static Cursor mTrackCursor;
     private TrackListAdapter mAdapter;
     private boolean mAdapterSent = false;
     private int mSelectedPosition;
@@ -105,18 +109,50 @@ public class NowPlayingActivity extends ListActivity implements View.OnCreateCon
 			}
         });
         
-        mTrackList = getListView();
-        mTrackList.setOnCreateContextMenuListener(this);
-        mTrackList.setCacheColorHint(0);
-        ((TouchInterceptor) mTrackList).setDropListener(mDropListener);
-        ((TouchInterceptor) mTrackList).setRemoveListener(mRemoveListener);
-        mTrackList.setDivider(null);
-        mTrackList.setSelector(R.drawable.list_selector_background);
+		mList = (DragSortListView) this.findViewById(android.R.id.list);
+		mList.setOnItemClickListener(new OnItemClickListener() {
+			@Override
+			public void onItemClick(AdapterView<?> arg0, View arg1, int position,
+					long arg3) {
+				if (mTrackCursor.getCount() == 0) {
+		            return;
+		        }
+		        
+		        // When selecting a track from the queue, just jump there instead of
+		        // reloading the queue. This is both faster, and prevents accidentally
+		        // dropping out of party shuffle.
+		        if (MusicUtils.sService != null) {
+		            try {
+		                int queuePosition = MusicUtils.sService.getQueuePosition();
+		                	
+		                if (position == queuePosition) {
+		                	if (MusicUtils.sService.isPlaying()) {
+		                        MusicUtils.sService.pause();
+		                    } else {
+		                        MusicUtils.sService.play();
+		                    }
+		                } else {
+		                	MusicUtils.sService.setQueuePosition(position);
+		                }
+		            } catch (RemoteException ex) {
+		            }
+		        }
+				
+			}
+		});
+		
+	    DragSortController controller = new DragSortController(mList);
+		controller.setDragInitMode(DragSortController.ON_DRAG);
+		controller.setDragHandleId(R.id.icon);
+		mList.setDivider(null);
+		mList.setOnTouchListener(controller);
+		mList.setOnCreateContextMenuListener(this);
+		
         mAdapter = (TrackListAdapter) getLastNonConfigurationInstance();
         
         if (mAdapter != null) {
             mAdapter.setActivity(this);
-            setListAdapter(mAdapter);
+            mList.setAdapter(mAdapter);
         }
         
         mToken = MusicUtils.bindToService(this, this);
@@ -133,7 +169,7 @@ public class NowPlayingActivity extends ListActivity implements View.OnCreateCon
                     null, // cursor
                     new String[] {},
                     new int[] {});
-            setListAdapter(mAdapter);
+            mList.setAdapter(mAdapter);
             getTrackCursor(mAdapter.getQueryHandler(), null, true);
         } else {
             mTrackCursor = mAdapter.getCursor();
@@ -164,12 +200,12 @@ public class NowPlayingActivity extends ListActivity implements View.OnCreateCon
     
     @Override
     public void onDestroy() {
-        ListView lv = getListView();
+        ListView lv = mList;
         
         if (lv != null) {
             // clear the listeners so we won't get any more callbacks
-            ((TouchInterceptor) lv).setDropListener(null);
-            ((TouchInterceptor) lv).setRemoveListener(null);
+            ((DragSortListView) lv).setDropListener(null);
+            ((DragSortListView) lv).setRemoveListener(null);
         }
 
         MusicUtils.unbindFromService(mToken);
@@ -190,7 +226,7 @@ public class NowPlayingActivity extends ListActivity implements View.OnCreateCon
         // Because we pass the adapter to the next activity, we need to make
         // sure it doesn't keep a reference to this activity. We can do this
         // by clearing its DatasetObservers, which setListAdapter(null) does.
-        setListAdapter(null);
+        mList.setAdapter(null);
         mAdapter = null;
         super.onDestroy();
     }
@@ -200,7 +236,7 @@ public class NowPlayingActivity extends ListActivity implements View.OnCreateCon
         super.onResume();
         
         if (mTrackCursor != null) {
-            getListView().invalidateViews();
+        	mList.invalidateViews();
         }
     }
     
@@ -226,34 +262,22 @@ public class NowPlayingActivity extends ListActivity implements View.OnCreateCon
         f.addAction(MediaPlaybackService.PLAYSTATE_CHANGED);
         try {
             int cur = MusicUtils.sService.getQueuePosition();
-            setSelection(cur);
+            mList.setSelection(cur);
             registerReceiver(mNowPlayingListener, new IntentFilter(f));
             mNowPlayingListener.onReceive(this, new Intent(MediaPlaybackService.META_CHANGED));
         } catch (RemoteException ex) {
         }
     }
     
-    private TouchInterceptor.DropListener mDropListener =
-        new TouchInterceptor.DropListener() {
-        public void drop(int from, int to) {
-            // update the currently playing list
-            NowPlayingCursor c = (NowPlayingCursor) mTrackCursor;
-            c.moveItem(from, to);
-            ((TrackListAdapter)getListAdapter()).notifyDataSetChanged();
-            getListView().invalidateViews();
-            mDeletedOneRow = true;
-        }
-    };
-    
-    private TouchInterceptor.RemoveListener mRemoveListener =
+    /*private TouchInterceptor.RemoveListener mRemoveListener =
         new TouchInterceptor.RemoveListener() {
         public void remove(int which) {
             removePlaylistItem(which);
         }
-    };
+    };*/
 
     private void removePlaylistItem(int which) {
-        View v = mTrackList.getChildAt(which - mTrackList.getFirstVisiblePosition());
+        View v = mList.getChildAt(which - mList.getFirstVisiblePosition());
         if (v == null) {
             Log.d(TAG, "No view when removing playlist item " + which);
             return;
@@ -268,17 +292,17 @@ public class NowPlayingActivity extends ListActivity implements View.OnCreateCon
             mDeletedOneRow = true;
         }
         v.setVisibility(View.GONE);
-        mTrackList.invalidateViews();
+        mList.invalidateViews();
         ((NowPlayingCursor)mTrackCursor).removeItem(which);
         v.setVisibility(View.VISIBLE);
-        mTrackList.invalidateViews();
+        mList.invalidateViews();
     }
 
     private BroadcastReceiver mNowPlayingListener = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
             if (intent.getAction().equals(MediaPlaybackService.META_CHANGED)) {
-            	getListView().invalidateViews();
+            	mList.invalidateViews();
             } else if (intent.getAction().equals(MediaPlaybackService.META_RETRIEVED)) {
                 if (mAdapter != null) {
                     Cursor c = new NowPlayingCursor(MusicUtils.sService, mCursorCols);
@@ -313,7 +337,7 @@ public class NowPlayingActivity extends ListActivity implements View.OnCreateCon
                     mAdapter.changeCursor(c);
                 }
             } else if (intent.getAction().equals(MediaPlaybackService.PLAYSTATE_CHANGED)) {
-            	getListView().invalidateViews();
+            	mList.invalidateViews();
             }
         }
     };
@@ -362,7 +386,7 @@ public class NowPlayingActivity extends ListActivity implements View.OnCreateCon
 
     private void removeItem() {
         int curcount = mTrackCursor.getCount();
-        int curpos = mTrackList.getSelectedItemPosition();
+        int curpos = mList.getSelectedItemPosition();
         
         if (curcount == 0 || curpos < 0) {
             return;
@@ -379,17 +403,17 @@ public class NowPlayingActivity extends ListActivity implements View.OnCreateCon
         } catch (RemoteException ex) {
         }
         
-        View v = mTrackList.getSelectedView();
+        View v = mList.getSelectedView();
         v.setVisibility(View.GONE);
-        mTrackList.invalidateViews();
+        mList.invalidateViews();
         ((NowPlayingCursor)mTrackCursor).removeItem(curpos);
         v.setVisibility(View.VISIBLE);
-        mTrackList.invalidateViews();
+        mList.invalidateViews();
     }
     
     private void moveItem(boolean up) {
         int curcount = mTrackCursor.getCount(); 
-        int curpos = mTrackList.getSelectedItemPosition();
+        int curpos = mList.getSelectedItemPosition();
        
         if ( (up && curpos < 1) || (!up  && curpos >= curcount - 1)) {
             return;
@@ -397,45 +421,17 @@ public class NowPlayingActivity extends ListActivity implements View.OnCreateCon
 
         NowPlayingCursor c = (NowPlayingCursor) mTrackCursor;
         c.moveItem(curpos, up ? curpos - 1 : curpos + 1);
-        ((TrackListAdapter)getListAdapter()).notifyDataSetChanged();
-        getListView().invalidateViews();
+        ((TrackListAdapter)mList.getAdapter()).notifyDataSetChanged();
+        mList.invalidateViews();
         mDeletedOneRow = true;
         
         if (up) {
-            mTrackList.setSelection(curpos - 1);
+        	mList.setSelection(curpos - 1);
         } else {
-            mTrackList.setSelection(curpos + 1);
+        	mList.setSelection(curpos + 1);
         }
     }
     
-    @Override
-    protected void onListItemClick(ListView l, View v, int position, long id)
-    {
-        if (mTrackCursor.getCount() == 0) {
-            return;
-        }
-        
-        // When selecting a track from the queue, just jump there instead of
-        // reloading the queue. This is both faster, and prevents accidentally
-        // dropping out of party shuffle.
-        if (MusicUtils.sService != null) {
-            try {
-                int queuePosition = MusicUtils.sService.getQueuePosition();
-                	
-                if (position == queuePosition) {
-                	if (MusicUtils.sService.isPlaying()) {
-                        MusicUtils.sService.pause();
-                    } else {
-                        MusicUtils.sService.play();
-                    }
-                } else {
-                	MusicUtils.sService.setQueuePosition(position);
-                }
-            } catch (RemoteException ex) {
-            }
-        }
-    }
-
     private Cursor getTrackCursor(TrackListAdapter.TrackQueryHandler queryhandler, String filter,
             boolean async) {
 
@@ -658,14 +654,6 @@ public class NowPlayingActivity extends ListActivity implements View.OnCreateCon
         }
         
         @Override
-        public void deactivate()
-        {
-            if (mCurrentPlaylistCursor != null) {
-                mCurrentPlaylistCursor.deactivate();
-            }
-        }
-
-        @Override
         public boolean requery()
         {
             makeNowPlayingCursor();
@@ -689,7 +677,7 @@ public class NowPlayingActivity extends ListActivity implements View.OnCreateCon
         private IMediaPlaybackService mService;
     }
     
-    static class TrackListAdapter extends SimpleCursorAdapter {
+    static class TrackListAdapter extends SimpleDragSortCursorAdapter {
 
     	int mUriIdx;
         int mTitleIdx;
@@ -795,8 +783,6 @@ public class NowPlayingActivity extends ListActivity implements View.OnCreateCon
         @Override
         public View newView(Context context, Cursor cursor, ViewGroup parent) {
             View v = super.newView(context, cursor, parent);
-            ImageView iv = (ImageView) v.findViewById(R.id.icon);
-            iv.setVisibility(View.GONE);
             
             ViewHolder vh = new ViewHolder();
             vh.line1 = (TextView) v.findViewById(R.id.line1);
@@ -905,6 +891,16 @@ public class NowPlayingActivity extends ListActivity implements View.OnCreateCon
             mConstraint = s;
             mConstraintIsValid = true;
             return c;
+        }
+        
+        @Override
+        public void drop(int from, int to) {
+        	// update the currently playing list
+            NowPlayingCursor c = (NowPlayingCursor) mTrackCursor;
+            c.moveItem(from, to);
+            //((DragSortListView.AdapterWrapper)mList.getAdapter()).notifyDataSetChanged();
+            mList.invalidateViews();
+            mDeletedOneRow = true;
         }
     }
 }

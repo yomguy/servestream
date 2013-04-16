@@ -665,7 +665,7 @@ public class MediaPlaybackService extends Service implements
         
         i.putExtra("id", Long.valueOf(getAudioId()));
         i.putExtra("artist", getArtistName());
-        i.putExtra("album",getAlbumName());
+        i.putExtra("album", getAlbumName());
         i.putExtra("track", getTrackName());
         i.putExtra("playing", isPlaying());        
         i.putExtra("ListSize", getQueue());
