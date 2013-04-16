@@ -67,10 +67,6 @@
 				<category android:name="android.intent.category.LAUNCHER" />
 			</intent-filter>
 			<intent-filter>
-				<action android:name="android.intent.action.CREATE_SHORTCUT" />
-				<category android:name="android.intent.category.DEFAULT" />
-			</intent-filter>
-			<intent-filter>
   				<action android:name="android.intent.action.SEND" />
   				<category android:name="android.intent.category.DEFAULT" />
   				<data android:mimeType="text/plain" />
@@ -113,11 +109,21 @@
     		</intent-filter>
 		</activity>
 
+		<activity android:name=".activity.AddUrlActivity" />
 		<activity android:name=".activity.BrowseActivity" android:configChanges="keyboardHidden|orientation" />
 		<activity android:name=".activity.HelpActivity" android:configChanges="keyboardHidden|orientation" />
 		<activity android:name=".activity.HelpTopicActivity" android:configChanges="keyboardHidden|orientation" />
 		<activity android:name=".activity.NowPlayingActivity" />
 		<activity android:name=".activity.SettingsActivity" android:configChanges="keyboardHidden|orientation" />
+		
+		<activity
+		    android:name=".activity.ShortcutActivity" >
+			<intent-filter>
+				<action android:name="android.intent.action.CREATE_SHORTCUT" />
+				<category android:name="android.intent.category.DEFAULT" />
+			</intent-filter>
+		</activity>
+		
 		<activity android:name=".activity.StreamEditorActivity" android:configChanges="keyboardHidden|orientation" />
 
 		<service
