@@ -17,6 +17,7 @@
 
 package net.sourceforge.servestream.activity;
 
+import com.actionbarsherlock.app.ActionBar;
 import com.actionbarsherlock.app.SherlockFragmentActivity;
 import com.actionbarsherlock.view.Menu;
 import com.actionbarsherlock.view.MenuInflater;
@@ -64,7 +65,6 @@ import android.support.v4.app.FragmentTransaction;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
-import android.view.Window;
 import android.view.WindowManager;
 import android.widget.ImageButton;
 import android.widget.ProgressBar;
@@ -74,11 +74,11 @@ import android.widget.Toast;
 import android.widget.SeekBar.OnSeekBarChangeListener;
 
 public class MediaPlaybackActivity extends SherlockFragmentActivity implements MusicUtils.Defs,
-    OnSharedPreferenceChangeListener,
-    CoverViewListener,
-    LoadingDialogListener,
-    SleepTimerDialogListener
-{
+    		OnSharedPreferenceChangeListener,
+    		CoverViewListener,
+    		LoadingDialogListener,
+    		SleepTimerDialogListener {
+	
     private static final String TAG = MediaPlaybackActivity.class.getName();
 
 	private static final String LOADING_DIALOG = "loading_dialog";
@@ -97,8 +97,6 @@ public class MediaPlaybackActivity extends SherlockFragmentActivity implements M
     private long mStartSeekPos = 0;
     private long mLastSeekEventTime;
     private IMediaPlaybackService mService = null;
-    private ImageButton mCloseButton = null;
-    private ImageButton mPlayQueue = null;
     private RepeatingImageButton mPrevButton;
     private ImageButton mPauseButton;
     private RepeatingImageButton mNextButton;
@@ -117,9 +115,14 @@ public class MediaPlaybackActivity extends SherlockFragmentActivity implements M
 
     /** Called when the activity is first created. */
     @Override
-    public void onCreate(Bundle icicle)
-    {
+    public void onCreate(Bundle icicle) {
         super.onCreate(icicle);
+        setContentView(R.layout.activity_media_player);
+        
+		ActionBar actionBar = getSupportActionBar();
+		actionBar.setTitle(R.string.nowplaying_title);
+		actionBar.setDisplayHomeAsUpEnabled(true);
+        
         setVolumeControlStream(AudioManager.STREAM_MUSIC);
 
         mAlbumArtWorker = new Worker("album art worker");
@@ -128,9 +131,6 @@ public class MediaPlaybackActivity extends SherlockFragmentActivity implements M
         mPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         mPreferences.registerOnSharedPreferenceChangeListener(this);
         
-        requestWindowFeature(Window.FEATURE_NO_TITLE);
-        setContentView(R.layout.activity_media_player);
-
         mCurrentTime = (TextView) findViewById(R.id.position_text);
         mTotalTime = (TextView) findViewById(R.id.duration_text);
         mProgress = (ProgressBar) findViewById(R.id.seek_bar);
@@ -142,11 +142,6 @@ public class MediaPlaybackActivity extends SherlockFragmentActivity implements M
         mArtistAndAlbumName.setSelected(true);
         mTrackNumber = (TextView) findViewById(R.id.track_number_text);
 
-        mCloseButton = (ImageButton) findViewById(R.id.close);
-        mCloseButton.setOnClickListener(mCloseListener);
-        mPlayQueue = (ImageButton) findViewById(R.id.play_queue);
-        mPlayQueue.setOnClickListener(mPlayQueueListener);
-        
         mPrevButton = (RepeatingImageButton) findViewById(R.id.previous_button);
         mPrevButton.setOnClickListener(mPrevListener);
         mPrevButton.setRepeatListener(mRewListener, 260);
@@ -212,18 +207,6 @@ public class MediaPlaybackActivity extends SherlockFragmentActivity implements M
         }
     };
 
-    private View.OnClickListener mCloseListener = new View.OnClickListener() {
-        public void onClick(View v) {
-        	finish();
-        }
-    };
-    
-    private View.OnClickListener mPlayQueueListener = new View.OnClickListener() {
-        public void onClick(View v) {
-        	startActivity(new Intent(MediaPlaybackActivity.this, NowPlayingActivity.class));
-        }
-    };
-    
     private View.OnClickListener mShuffleListener = new View.OnClickListener() {
         public void onClick(View v) {
             toggleShuffle();
@@ -337,6 +320,9 @@ public class MediaPlaybackActivity extends SherlockFragmentActivity implements M
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
     	switch(item.getItemId()) {
+    	case (R.id.menu_play_queue):
+    			startActivity(new Intent(MediaPlaybackActivity.this, NowPlayingActivity.class));
+    			return true;
     		case (R.id.menu_item_stop):
     			doStop();
     			return true;
