@@ -22,7 +22,8 @@
     <color name="appwidgetone_text">#ffffffff</color>
     <color name="blue">#ff00c8ff</color>
     <color name="bg_pressed">@color/blue</color>
-    <color name="bg_transparent">#00000000</color>
-    <color name="transparent">#00000000</color>
+    <color name="selection_background_color_dark">#FEBB20</color>
+    <color name="selection_background_color_light">#FEBB20</color>
+    <color name="bright_blue">#33B5E5</color>
 </resources>
 

@@ -325,6 +325,12 @@
     <!-- context menu item to remove the selected item from the playlist -->
     <string name="remove_from_playlist">Remove from playlist</string>
     	
+    <string name="url_label_hint">http://</string>
+    <string name="url_label_text">Type in the URL of the stream or server here:</string>
+    
+    <string name="import_text">Type in the URL of the stream or server here:</string>
+    <string name="json_import_txt">You can also import a JSON file:</string>
+    
     <!-- End Music Code Strings -->
 	
 	<!-- Begin Alarm Code Strings -->

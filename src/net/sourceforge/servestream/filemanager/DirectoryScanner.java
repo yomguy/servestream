@@ -22,8 +22,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import net.sourceforge.servestream.R;
-import net.sourceforge.servestream.activity.BrowseActivity;
 import net.sourceforge.servestream.bean.UriBean;
+import net.sourceforge.servestream.fragment.BrowseFragment;
 import net.sourceforge.servestream.utils.WebpageParser;
 import net.sourceforge.servestream.utils.URLUtils;
 
@@ -141,7 +141,7 @@ public class DirectoryScanner extends Thread {
 
 			contents.setListFiles(listFiles);
 
-			Message msg = handler.obtainMessage(BrowseActivity.MESSAGE_SHOW_DIRECTORY_CONTENTS);
+			Message msg = handler.obtainMessage(BrowseFragment.MESSAGE_SHOW_DIRECTORY_CONTENTS);
 			msg.obj = contents;
 			msg.sendToTarget();
 		}

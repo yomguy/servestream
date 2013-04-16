@@ -1,6 +1,6 @@
 /*
  * ServeStream: A HTTP stream browser/player for Android
- * Copyright 2010 William Seemann
+ * Copyright 2013 William Seemann
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,7 +40,6 @@ import android.os.Bundle;
 import android.preference.CheckBoxPreference;
 import android.preference.ListPreference;
 import android.preference.Preference;
-import android.view.Window;
 
 public class StreamEditorActivity extends SherlockPreferenceActivity implements OnSharedPreferenceChangeListener {
 	public class CursorPreferenceHack implements SharedPreferences {

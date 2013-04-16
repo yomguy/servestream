@@ -23,6 +23,7 @@ import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.os.Bundle;
 import android.support.v4.app.DialogFragment;
+import android.support.v4.app.Fragment;
 
 public class LoadingDialog extends DialogFragment implements DialogInterface.OnCancelListener {
 	
@@ -65,6 +66,33 @@ public class LoadingDialog extends DialogFragment implements DialogInterface.OnC
         return frag;
     }
 	
+    /* Call this to instantiate a new LoadingDialog.
+     * @param activity  The activity hosting the dialog, which must implement the
+     *                  LoadingDialogListener to receive event callbacks.
+     * @returns A new instance of LoadingDialog.
+     * @throws  ClassCastException if the host activity does not
+     *          implement LoadingDialogListener
+     */
+    public static LoadingDialog newInstance(Fragment fragment, String dialogText) {
+    	// Verify that the host activity implements the callback interface
+        try {
+            // Instantiate the LoadingDialogListener so we can send events with it
+            mListener = (LoadingDialogListener) fragment;
+        } catch (ClassCastException e) {
+            // The activity doesn't implement the interface, throw exception
+            throw new ClassCastException(fragment.toString()
+                    + " must implement LoadingDialogListener");
+        }
+    	LoadingDialog frag = new LoadingDialog();
+    	
+   	 	// Supply dialog text as an argument.
+        Bundle args = new Bundle();
+        args.putString("dialog_text", dialogText);
+        frag.setArguments(args);
+    	
+        return frag;
+    }
+    
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -81,6 +109,15 @@ public class LoadingDialog extends DialogFragment implements DialogInterface.OnC
 	    loadingDialog.setOnCancelListener(this);
         return loadingDialog;
     }
+    
+	@Override
+	public void onDestroyView() {
+		if (getDialog() != null) {
+			getDialog().setDismissMessage(null);
+		}
+		
+	  	super.onDestroyView();
+	}
     
     public void onCancel(DialogInterface dialog) {
 		mListener.onLoadingDialogCancelled(LoadingDialog.this);
