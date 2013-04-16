@@ -1,0 +1,514 @@
+/*
+ * ServeStream: A HTTP stream browser/player for Android
+ * Copyright 2013 William Seemann
+ * 
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this.getActivity() file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package net.sourceforge.servestream.fragment;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import com.actionbarsherlock.app.SherlockFragment;
+import com.actionbarsherlock.app.SherlockFragmentActivity;
+import com.actionbarsherlock.view.Menu;
+import com.actionbarsherlock.view.MenuInflater;
+import com.actionbarsherlock.view.MenuItem;
+
+import net.sourceforge.servestream.transport.AbsTransport;
+import net.sourceforge.servestream.transport.TransportFactory;
+import net.sourceforge.servestream.utils.LoadingDialog;
+import net.sourceforge.servestream.utils.LoadingDialog.LoadingDialogListener;
+import net.sourceforge.servestream.utils.MusicUtils;
+import net.sourceforge.servestream.utils.UrlListAdapter;
+
+import net.sourceforge.servestream.R;
+import net.sourceforge.servestream.activity.AlarmClockActivity;
+import net.sourceforge.servestream.activity.HelpActivity;
+import net.sourceforge.servestream.activity.SettingsActivity;
+import net.sourceforge.servestream.activity.StreamEditorActivity;
+import net.sourceforge.servestream.alarm.Alarm;
+import net.sourceforge.servestream.bean.UriBean;
+import net.sourceforge.servestream.dbutils.StreamDatabase;
+import net.sourceforge.servestream.utils.PreferenceConstants;
+
+import android.app.Activity;
+import android.app.AlertDialog;
+import android.app.Dialog;
+import android.content.ActivityNotFoundException;
+import android.content.ContentResolver;
+import android.content.DialogInterface;
+import android.content.Intent;
+import android.content.SharedPreferences.Editor;
+import android.content.SharedPreferences;
+import android.net.Uri;
+import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
+import android.preference.PreferenceManager;
+import android.support.v4.app.DialogFragment;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentTransaction;
+import android.util.Log;
+
+import android.view.ContextMenu;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.view.MenuItem.OnMenuItemClickListener;
+
+import android.widget.AdapterView;
+import android.widget.ListView;
+import android.widget.Toast;
+import android.widget.AdapterView.OnItemClickListener;
+
+import net.sourceforge.servestream.utils.DetermineActionTask;
+
+public class UrlListFragment extends SherlockFragment implements
+				DetermineActionTask.MusicRetrieverPreparedListener,
+				LoadingDialogListener {
+	
+	public final static String TAG = UrlListFragment.class.getName();	
+	
+    private final static String LOADING_DIALOG = "loading_dialog";
+	
+	public static final String ARG_TARGET_URI = "target_uri";
+	
+	private final static int MISSING_BARCODE_SCANNER = 2;
+	private final static int UNSUPPORTED_SCANNED_INTENT = 3;
+	private final static int RATE_APPLICATION = 4;
+	
+	private ListView mList = null;
+	
+	private StreamDatabase mStreamdb = null;
+	
+	private boolean mSortedByName = false;
+	private SharedPreferences mPreferences = null;
+    private DetermineActionTask mDetermineActionTask;
+    
+    private BrowseIntentListener mListener;
+    
+	protected Handler mQueueHandler = new Handler() {
+		@Override
+		public void handleMessage(Message msg) {
+			MusicUtils.addToCurrentPlaylist(UrlListFragment.this.getActivity(), (long []) msg.obj);
+		}
+	};
+	
+    @Override
+    public void onAttach(Activity activity) {
+    	super.onAttach(activity);
+       
+    	try {
+            mListener = (BrowseIntentListener) activity;
+        } catch (ClassCastException e) {
+            throw new ClassCastException(activity.toString() + " must implement BrowseIntentListener");
+        }
+    	
+		// connect with streams database and populate list
+		mStreamdb = new StreamDatabase(this.getActivity());
+    }
+	
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        
+        // Tell the framework to try to keep this fragment around
+        // during a configuration change.
+        setRetainInstance(true);
+        setHasOptionsMenu(true);
+    }
+	
+	@Override
+	public View onCreateView(LayoutInflater inflater, ViewGroup container,
+			Bundle savedInstanceState) {
+		View result = inflater.inflate(R.layout.fragment_uri_list, container, false);
+		mList = (ListView) result.findViewById(android.R.id.list);
+		mList.setEmptyView(result.findViewById(android.R.id.empty));
+		
+		return result;
+	}
+	
+	public void refresh(Bundle args) {
+		// If the intent is a request to create a shortcut, we'll do that and exit
+		String targetUri = args.getString(ARG_TARGET_URI);
+		
+		processUri(targetUri);
+	}
+	
+	@Override
+	public void onViewCreated(View view, Bundle savedInstanceState) {
+		super.onViewCreated(view, savedInstanceState);
+		
+		mPreferences = PreferenceManager.getDefaultSharedPreferences(this.getActivity());
+		
+		String targetUri = getArguments().getString(ARG_TARGET_URI);
+		
+		// see if the user wants to rate the application after 5 uses
+		if (targetUri == null) {
+			int rateApplicationFlag = mPreferences.getInt(PreferenceConstants.RATE_APPLICATION_FLAG, 0);
+			if (rateApplicationFlag != -1) {
+				rateApplicationFlag++;
+				Editor ed = mPreferences.edit();
+				ed.putInt(PreferenceConstants.RATE_APPLICATION_FLAG, rateApplicationFlag);
+				ed.commit();
+				if (rateApplicationFlag == 10) {
+					getActivity().showDialog(RATE_APPLICATION);
+				}
+			}
+		}
+		
+		mSortedByName = mPreferences.getBoolean(PreferenceConstants.SORT_BY_NAME, false);
+        
+		mList.setOnItemClickListener(new OnItemClickListener() {
+			public synchronized void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+
+				UriBean uriBean = (UriBean) parent.getAdapter().getItem(position);
+				processUri(uriBean.getUri().toString());
+			}
+		});
+
+		registerForContextMenu(mList);
+
+		processUri(targetUri);
+	}
+	
+	@Override
+	public void onResume() {
+		super.onResume();
+		
+		updateList();
+	}
+	
+	@Override
+	public void onDetach () {
+		super.onDetach();
+		
+		mStreamdb.close();
+	}
+	
+	@Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+    	switch(item.getItemId()) {
+    		case (R.id.menu_item_sort_by_name):
+				mSortedByName = true;
+				updateList();
+    			break;
+    		case (R.id.menu_item_sort_by_date):
+				mSortedByName = false;
+				updateList();
+    			break;
+        	case (R.id.menu_item_settings):
+        		startActivity(new Intent(getActivity(), SettingsActivity.class));
+        		break;
+        	case (R.id.menu_item_help):
+        		startActivity(new Intent(getActivity(), HelpActivity.class));
+        		break;
+            case (R.id.menu_item_alarms):
+                startActivity(new Intent(this.getActivity(), AlarmClockActivity.class));
+                return true;
+            case (R.id.menu_item_scan):
+            	try {
+            		Intent intent = new Intent("com.google.zxing.client.android.SCAN");
+            		intent.setPackage("com.google.zxing.client.android");
+            		intent.putExtra("SCAN_MODE", "QR_CODE_MODE");
+            		startActivityForResult(intent, 0);
+            	} catch (ActivityNotFoundException ex) {
+            		getActivity().showDialog(MISSING_BARCODE_SCANNER);
+            	}
+            	return true;
+    	}
+    	
+		return false;
+    }
+
+	protected Dialog onCreateDialog(int id) {
+	    Dialog dialog;
+    	AlertDialog.Builder builder;
+    	AlertDialog alertDialog;
+	    switch(id) {
+	    case MISSING_BARCODE_SCANNER:
+	    	builder = new AlertDialog.Builder(this.getActivity());
+	    	builder.setMessage(R.string.find_barcode_scanner_message)
+	    	       .setCancelable(true)
+	    	       .setPositiveButton(R.string.find_pos, new DialogInterface.OnClickListener() {
+	    	           public void onClick(DialogInterface dialog, int id) {
+	    	        	   try {
+	    	        		   Intent intent = new Intent(Intent.ACTION_VIEW);
+	    	        		   intent.setData(Uri.parse("market://details?id=com.google.zxing.client.android"));
+	    	        		   startActivity(intent);
+	    	        	   } catch (ActivityNotFoundException ex ) {
+	    	        		   // the Google Play store couldn't be opened,
+	    	        		   // lets take the user to the project's webpage instead.
+	    	        		   Intent intent = new Intent(Intent.ACTION_VIEW);
+	    	        		   intent.setData(Uri.parse("http://code.google.com/p/zxing/downloads/list"));
+	    	        		   startActivity(intent);
+	    	        	   }
+	    	           }
+	    	       })
+	    	       .setNegativeButton(R.string.find_neg, new DialogInterface.OnClickListener() {
+	    	           public void onClick(DialogInterface dialog, int id) {
+	    	                dialog.cancel();
+	    	           }
+	    	       });
+	    	alertDialog = builder.create();
+	    	return alertDialog;
+	    case UNSUPPORTED_SCANNED_INTENT:
+	    	builder = new AlertDialog.Builder(this.getActivity());
+	    	builder.setMessage(R.string.unsupported_scanned_intent_message)
+	    	       .setCancelable(true)
+	    	       .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
+	    	           public void onClick(DialogInterface dialog, int id) {
+	    	                dialog.cancel();
+	    	           }
+	    	       });
+	    	alertDialog = builder.create();
+	    	return alertDialog;
+	    case RATE_APPLICATION:
+	        Editor ed = mPreferences.edit();
+	        ed.putInt(PreferenceConstants.RATE_APPLICATION_FLAG, -1);
+	        ed.commit();
+	    	builder = new AlertDialog.Builder(this.getActivity());
+	    	builder.setMessage(R.string.rate_application)
+	    	       .setCancelable(true)
+	    	       .setPositiveButton(R.string.rate_pos, new DialogInterface.OnClickListener() {
+	    	           public void onClick(DialogInterface dialog, int id) {
+	    	        	   try {
+	    	        		   Intent intent = new Intent(Intent.ACTION_VIEW);
+	    	        		   intent.setData(Uri.parse("market://details?id=net.sourceforge.servestream"));
+	    	        		   startActivity(intent);
+	    	        	   } catch (ActivityNotFoundException ex ) {
+	    	        		   // the market couldn't be opening or the application couldn't be found
+	    	        		   // lets take the user to the project's webpage instead.
+	    	        		   Intent intent = new Intent(Intent.ACTION_VIEW);
+	    	        		   intent.setData(Uri.parse("http://sourceforge.net/projects/servestream/"));
+	    	        		   startActivity(intent);
+	    	        	   }
+	    	           }
+	    	       })
+	    	       .setNegativeButton(R.string.rate_neg, new DialogInterface.OnClickListener() {
+	    	           public void onClick(DialogInterface dialog, int id) {
+	    	                dialog.cancel();
+	    	           }
+	    	       });
+	    	alertDialog = builder.create();
+	    	return alertDialog;
+	    default:
+	        dialog = null;
+	    }
+	    return dialog;
+	}
+	
+	@Override
+	public void onPrepareOptionsMenu(Menu menu) {
+		super.onPrepareOptionsMenu(menu);
+
+		menu.getItem(0).setVisible(!mSortedByName);
+		menu.getItem(1).setVisible(mSortedByName);
+	}
+	
+    @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        inflater.inflate(R.menu.url_list_menu, menu);
+        super.onCreateOptionsMenu(menu, inflater);
+    }
+	
+	@Override
+	public void onCreateContextMenu(ContextMenu menu, View v, ContextMenu.ContextMenuInfo menuInfo) {
+		// create menu to handle editing, deleting and sharing of URLs
+		AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo) menuInfo;
+		final UriBean uri = (UriBean) mList.getItemAtPosition(info.position);
+
+		// set the menu to the name of the URL
+		menu.setHeaderTitle(uri.getNickname());
+
+		// edit the URL
+		android.view.MenuItem edit = menu.add(R.string.edit);
+		edit.setOnMenuItemClickListener(new OnMenuItemClickListener() {
+			public boolean onMenuItemClick(android.view.MenuItem arg0) {
+				Intent intent = new Intent(getActivity(), StreamEditorActivity.class);
+				intent.putExtra(Intent.EXTRA_TITLE, uri.getId());
+				getActivity().startActivity(intent);
+				return true;
+			}
+		});
+		
+		// delete the URL
+		android.view.MenuItem delete = menu.add(R.string.delete);
+		delete.setOnMenuItemClickListener(new OnMenuItemClickListener() {
+			public boolean onMenuItemClick(android.view.MenuItem item) {
+				// prompt user to make sure they really want this.getActivity()
+				new AlertDialog.Builder(getActivity())
+					.setMessage(getString(R.string.delete_message, uri.getNickname()))
+					.setPositiveButton(R.string.delete_pos, new DialogInterface.OnClickListener() {
+						public void onClick(DialogInterface dialog, int which) {
+							mStreamdb.deleteUri(uri);
+							ContentResolver resolver = getActivity().getContentResolver();
+							resolver.update(
+									Alarm.Columns.CONTENT_URI,
+									null, null, new String[] { String.valueOf(uri.getId()) });
+							updateList();
+						}
+						})
+					.setNegativeButton(android.R.string.cancel, null).create().show();
+				return true;
+			}
+		});
+		
+		// add to playlist
+		android.view.MenuItem add = menu.add(R.string.add_to_playlist);
+		add.setOnMenuItemClickListener(new OnMenuItemClickListener() {
+			public boolean onMenuItemClick(android.view.MenuItem item) {
+				MusicUtils.addToCurrentPlaylistFromURL(getActivity(), uri, mQueueHandler);
+				return true;
+			}
+		});
+		
+		// share the URL
+		android.view.MenuItem share = menu.add(R.string.share);
+		share.setOnMenuItemClickListener(new OnMenuItemClickListener() {
+			public boolean onMenuItemClick(android.view.MenuItem item) {
+				String url = uri.getUri().toString();
+				String appName = getString(R.string.app_name);
+				
+				Intent intent = new Intent(Intent.ACTION_SEND);
+				intent.setType("text/plain");
+				intent.putExtra(Intent.EXTRA_TEXT, getString(R.string.share_signature, url, appName));
+				startActivity(Intent.createChooser(intent, getString(R.string.title_share)));
+				return true;
+			}
+		});
+	}
+
+	public void onActivityResult(int requestCode, int resultCode, Intent intent) {
+	    if (requestCode == 0) {
+	        if (resultCode == SherlockFragmentActivity.RESULT_OK) {
+	            String contents = intent.getStringExtra("SCAN_RESULT");
+	            String format = intent.getStringExtra("SCAN_RESULT_FORMAT");
+	            // Handle successful scan
+	            Log.v(TAG, contents.toString());
+	            Log.v(TAG, format.toString());
+	        } else if (resultCode == SherlockFragmentActivity.RESULT_CANCELED) {
+	            // Handle cancel
+	        }
+	    }
+	}
+	
+	private boolean processUri(String input) {
+		Uri uri = TransportFactory.getUri(input);
+
+		if (uri == null) {
+			return false;
+		}
+
+		UriBean uriBean = TransportFactory.findUri(mStreamdb, uri);
+		if (uriBean == null) {
+			uriBean = TransportFactory.getTransport(uri.getScheme()).createUri(uri);
+			
+			AbsTransport transport = TransportFactory.getTransport(uriBean.getProtocol());
+			transport.setUri(uriBean);
+			if (mPreferences.getBoolean(PreferenceConstants.AUTOSAVE, true) && transport.shouldSave()) {
+				mStreamdb.saveUri(uriBean);
+			}
+		}
+		
+	    showDialog(LOADING_DIALOG);
+	    mDetermineActionTask = new DetermineActionTask(this.getActivity(), uriBean, this);
+	    mDetermineActionTask.execute();
+		
+		return true;
+	}
+	
+	public void updateList() {
+		if (mPreferences.getBoolean(PreferenceConstants.SORT_BY_NAME, false) != mSortedByName) {
+			Editor edit = mPreferences.edit();
+			edit.putBoolean(PreferenceConstants.SORT_BY_NAME, mSortedByName);
+			edit.commit();
+		}
+		
+		List<UriBean> uris = new ArrayList<UriBean>();
+
+		uris = mStreamdb.getUris(mSortedByName);
+
+		UrlListAdapter adapter = new UrlListAdapter(this.getActivity(), uris);
+
+		mList.setAdapter(adapter);
+	}
+	
+	private void showUrlNotOpenedToast() {
+		Toast.makeText(this.getActivity(), R.string.url_not_opened_message, Toast.LENGTH_SHORT).show();
+	}
+	
+	public void onMusicRetrieverPrepared(String action, UriBean uri, long[] list) {
+		dismissDialog(LOADING_DIALOG);
+		
+		if (action.equals(DetermineActionTask.URL_ACTION_UNDETERMINED)) {
+			showUrlNotOpenedToast();
+		} else if (action.equals(DetermineActionTask.URL_ACTION_BROWSE)) {
+			if (mPreferences.getBoolean(PreferenceConstants.AUTOSAVE, true)) {
+				mStreamdb.touchUri(uri);
+			}
+			
+			mListener.browseToUri(uri.getScrubbedUri());
+		} else if (action.equals(DetermineActionTask.URL_ACTION_PLAY)) {
+			if (mPreferences.getBoolean(PreferenceConstants.AUTOSAVE, true)) {
+				mStreamdb.touchUri(uri);
+			}
+			
+			MusicUtils.playAll(getActivity(), list, 0);        
+		}
+	}
+
+	public void showDialog(String tag) {
+		// DialogFragment.show() will take care of adding the fragment
+		// in a transaction.  We also want to remove any currently showing
+		// dialog, so make our own transaction and take care of that here.
+		FragmentTransaction ft = getChildFragmentManager().beginTransaction();
+		Fragment prev = getChildFragmentManager().findFragmentByTag(tag);
+		if (prev != null) {
+			ft.remove(prev);
+		}
+
+		DialogFragment newFragment = null;
+
+		// Create and show the dialog.
+		newFragment = LoadingDialog.newInstance(this, getString(R.string.opening_url_message));
+
+		ft.add(0, newFragment, tag);
+		ft.commit();
+	}
+
+	public void dismissDialog(String tag) {
+		FragmentTransaction ft = getChildFragmentManager().beginTransaction();
+		DialogFragment prev = (DialogFragment) getChildFragmentManager().findFragmentByTag(tag);
+		if (prev != null) {
+			prev.dismiss();
+			ft.remove(prev);
+		}
+		ft.commit();
+	}
+	
+	@Override
+	public void onLoadingDialogCancelled(DialogFragment dialog) {
+		if (mDetermineActionTask != null) {
+			mDetermineActionTask.cancel(true);
+			mDetermineActionTask = null;
+		}
+	}
+	
+    // Container Activity must implement this interface
+    public interface BrowseIntentListener {
+        public void browseToUri(Uri uri);
+    }
+}

@@ -1,6 +1,6 @@
 /*
  * ServeStream: A HTTP stream browser/player for Android
- * Copyright 2012 William Seemann
+ * Copyright 2013 William Seemann
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,14 +15,12 @@
  * limitations under the License.
  */
 
-package net.sourceforge.servestream.activity;
+package net.sourceforge.servestream.fragment;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 
-import com.actionbarsherlock.app.ActionBar;
-import com.actionbarsherlock.app.SherlockListActivity;
+import com.actionbarsherlock.app.SherlockListFragment;
 import com.actionbarsherlock.view.Menu;
 import com.actionbarsherlock.view.MenuInflater;
 import com.actionbarsherlock.view.MenuItem;
@@ -32,49 +30,44 @@ import net.sourceforge.servestream.activity.SettingsActivity;
 import net.sourceforge.servestream.bean.UriBean;
 import net.sourceforge.servestream.dbutils.StreamDatabase;
 import net.sourceforge.servestream.filemanager.*;
-import net.sourceforge.servestream.service.MediaPlaybackService;
 import net.sourceforge.servestream.transport.TransportFactory;
 import net.sourceforge.servestream.utils.DetermineActionTask;
+import net.sourceforge.servestream.utils.LoadingDialog;
+import net.sourceforge.servestream.utils.LoadingDialog.LoadingDialogListener;
 import net.sourceforge.servestream.utils.MusicUtils;
-import net.sourceforge.servestream.utils.MusicUtils.ServiceToken;
 
 import android.app.AlertDialog;
-import android.app.Dialog;
-import android.app.ProgressDialog;
-import android.content.BroadcastReceiver;
-import android.content.ComponentName;
-import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.IntentFilter;
-import android.content.ServiceConnection;
-import android.media.AudioManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
-import android.os.IBinder;
 import android.os.Message;
-import android.util.Log;
+import android.support.v4.app.DialogFragment;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentTransaction;
+import android.util.SparseArray;
 import android.view.ContextMenu;
 import android.view.MenuItem.OnMenuItemClickListener;
-import android.view.KeyEvent;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
+import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-public class BrowseActivity extends SherlockListActivity implements ServiceConnection,
-				DetermineActionTask.MusicRetrieverPreparedListener {
+public class BrowseFragment extends SherlockListFragment implements
+				DetermineActionTask.MusicRetrieverPreparedListener,
+				LoadingDialogListener {
 
-	private final static String TAG = BrowseActivity.class.getName();
-
+    private final static String LOADING_DIALOG = "loading_dialog";
+	
  	public static final int MESSAGE_SHOW_DIRECTORY_CONTENTS = 1;
     public static final int MESSAGE_PARSE_WEBPAGE = 2;
 	
-    private final static int DETERMINE_INTENT_TASK = 1;
-    
 	/** Contains directories and files together */
     private ArrayList<IconifiedText> directoryEntries = new ArrayList<IconifiedText>();
 
@@ -87,105 +80,107 @@ public class BrowseActivity extends SherlockListActivity implements ServiceConne
     private TextView mEmptyText;
      
     private DirectoryScanner mDirectoryScanner;
-    private HashMap<Integer, UriBean> mPreviousDirectory = new HashMap<Integer, UriBean>();
+    private SparseArray<UriBean> mPreviousDirectory = new SparseArray<UriBean>();
     
 	private InputMethodManager mInputManager = null;
 	private StreamDatabase mStreamdb = null;
 
-    private ServiceToken mToken;
-	
 	protected Handler mHandler = new Handler() {
 		@Override
 		public void handleMessage(Message msg) {			
-			BrowseActivity.this.handleMessage(msg);
+			BrowseFragment.this.handleMessage(msg);
 		}
 	};
 	
 	protected Handler mQueueHandler = new Handler() {
 		@Override
 		public void handleMessage(Message msg) {
-			MusicUtils.addToCurrentPlaylist(BrowseActivity.this, (long []) msg.obj);
+			MusicUtils.addToCurrentPlaylist(BrowseFragment.this.getActivity(), (long []) msg.obj);
 		}
 	};
 	
-    /** Called when the activity is first created. */ 
-    @Override 
-    public void onCreate(Bundle icicle) { 
-    	super.onCreate(icicle); 
-
-        setContentView(R.layout.activity_browse);
-    	
-		ActionBar actionBar = getSupportActionBar();
-		actionBar.setTitle(R.string.title_stream_browse);
-		actionBar.setDisplayHomeAsUpEnabled(true);
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
         
-        setVolumeControlStream(AudioManager.STREAM_MUSIC);
+        // Tell the framework to try to keep this fragment around
+        // during a configuration change.
+        setRetainInstance(true);
+        setHasOptionsMenu(true);
+    }
+	
+	@Override
+	public View onCreateView(LayoutInflater inflater, ViewGroup container,
+			Bundle savedInstanceState) {
+		View result = inflater.inflate(R.layout.fragment_browse, container, false);
 		
+		return result;
+	}
+	
+	@Override
+	public void onViewCreated(View view, Bundle savedInstanceState) {
+		super.onViewCreated(view, savedInstanceState);
+
+		// connect with streams database
+		this.mStreamdb = new StreamDatabase(this.getActivity());
+        
+		ListView list = this.getListView();
+		list.setOnCreateContextMenuListener(this);
+		list.setEmptyView(this.getActivity().findViewById(R.id.empty));
+		list.setFastScrollEnabled(true);
+	    list.setTextFilterEnabled(true);
+	    list.setOnItemClickListener(new OnItemClickListener() {
+
+			@Override
+			public void onItemClick(AdapterView<?> arg0, View arg1, int position,
+					long arg3) {
+		        IconifiedTextListAdapter adapter = (IconifiedTextListAdapter) getListAdapter();
+		          
+		        if (adapter == null) {
+		        	return;
+		        }
+		        
+		        IconifiedText text = (IconifiedText) adapter.getItem(position);
+		        browseTo(text.getUri());
+			}
+	    });
+        
+        mEmptyText = (TextView) this.getActivity().findViewById(R.id.empty_text);
+        mEmptyText.setVisibility(View.VISIBLE);
+	    
+		//mInputManager = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+    }
+  
+	public void browseTo(Uri uri) {
 		try {
-			Log.v(TAG, getIntent().getData().toString());
 			mStepsBack = 0;
 			mDirectory = new UriBean[1000];
-			Uri uri = TransportFactory.getUri(getIntent().getData().toString());
 			mDirectory[mStepsBack] = TransportFactory.getTransport(uri.getScheme()).createUri(uri);
 		} catch (Exception ex) {
 			ex.printStackTrace();
 		}
 		
-		// connect with streams database
-		this.mStreamdb = new StreamDatabase(this);
-        
-		ListView list = this.getListView();
-		list.setOnCreateContextMenuListener(this);
-		list.setEmptyView(findViewById(R.id.empty));
-		list.setFastScrollEnabled(true);
-	    list.setTextFilterEnabled(true);
-        
-        mEmptyText = (TextView) findViewById(R.id.empty_text);
-        mEmptyText.setVisibility(View.GONE);
-	    
-		mInputManager = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
-	    
 		refreshList();
-    }
-  
+	}
+	
 	@Override
 	public void onStart() {
 		super.onStart();
 		
-        mToken = MusicUtils.bindToService(this, this);
-		
 		// connect to the stream database if we don't
 		// already have a connection
 		if(this.mStreamdb == null)
-			this.mStreamdb = new StreamDatabase(this);
+			this.mStreamdb = new StreamDatabase(this.getActivity());
 		
 		// if the current URL exists in the stream database
 		// update its timestamp
-		UriBean uri = TransportFactory.findUri(mStreamdb, mDirectory[mStepsBack].getUri());
+		//UriBean uri = TransportFactory.findUri(mStreamdb, mDirectory[mStepsBack].getUri());
 		
-		if (uri != null) {
-	        mStreamdb.touchUri(uri);
-		}
+		//if (uri != null) {
+	      //  mStreamdb.touchUri(uri);
+		//}
 	}
     
-	@Override
-	public void onResume() {
-		super.onResume();
-		
-        IntentFilter f = new IntentFilter();
-        f.addAction(MediaPlaybackService.PLAYSTATE_CHANGED);
-        f.addAction(MediaPlaybackService.META_CHANGED);
-        f.addAction(MediaPlaybackService.QUEUE_CHANGED);
-        registerReceiver(mTrackListListener, f);
-	}
-	
-	@Override
-	public void onPause() {
-		super.onResume();
-		
-        unregisterReceiver(mTrackListListener);
-	}
-	
 	@Override
 	public void onStop() {
 		super.onStop();
@@ -195,8 +190,6 @@ public class BrowseActivity extends SherlockListActivity implements ServiceConne
 			this.mStreamdb.close();
 			this.mStreamdb = null;
 		}
-		
-        MusicUtils.unbindFromService(mToken);
 	}
 	
 	@Override
@@ -211,52 +204,24 @@ public class BrowseActivity extends SherlockListActivity implements ServiceConne
     	mDirectoryScanner = null;
     }
 	
-    private BroadcastReceiver mTrackListListener = new BroadcastReceiver() {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            MusicUtils.updateNowPlaying(BrowseActivity.this);
-        }
-    };
-	
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
-        	case android.R.id.home:
-                Intent intent = new Intent(this, MainActivity.class);
-                intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-                startActivity(intent);
-        		return true;
             case (R.id.menu_item_refresh):
             	refreshList();
             	return true;
             case (R.id.menu_item_settings):
-            	startActivity(new Intent(BrowseActivity.this, SettingsActivity.class));
+            	startActivity(new Intent(BrowseFragment.this.getActivity(), SettingsActivity.class));
         		return true;
         	default:
         		return super.onOptionsItemSelected(item);
         }
     }
 	
-	protected Dialog onCreateDialog(int id) {
-	    Dialog dialog;
-	    ProgressDialog progressDialog = null;
-	    switch(id) {
-	    case DETERMINE_INTENT_TASK:
-	    	progressDialog = new ProgressDialog(BrowseActivity.this);
-	    	progressDialog.setMessage(getString(R.string.loading_message));
-	    	progressDialog.setCancelable(true);
-	    	return progressDialog;
-	    default:
-	        dialog = null;
-	    }
-	    return dialog;
-	}
-	
     @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        MenuInflater inflater = getSupportMenuInflater();
-        inflater.inflate(R.menu.stream_browse_menu, menu);
-        return true;
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        inflater.inflate(R.menu.browse_menu, menu);
+        super.onCreateOptionsMenu(menu, inflater);
     }
     
     @Override
@@ -281,7 +246,7 @@ public class BrowseActivity extends SherlockListActivity implements ServiceConne
 		save.setOnMenuItemClickListener(new OnMenuItemClickListener() {
 			public boolean onMenuItemClick(android.view.MenuItem arg0) {
 				// prompt user to make sure they really want this
-				new AlertDialog.Builder(BrowseActivity.this)
+				new AlertDialog.Builder(BrowseFragment.this.getActivity())
 					.setMessage(getString(R.string.save_message, streamURL))
 					.setPositiveButton(R.string.save_pos, new DialogInterface.OnClickListener() {
 						public void onClick(DialogInterface dialog, int which) {
@@ -298,7 +263,7 @@ public class BrowseActivity extends SherlockListActivity implements ServiceConne
 		view.setOnMenuItemClickListener(new OnMenuItemClickListener() {
 			public boolean onMenuItemClick(android.view.MenuItem arg0) {
 				// display the URL
-				new AlertDialog.Builder(BrowseActivity.this)
+				new AlertDialog.Builder(BrowseFragment.this.getActivity())
 					.setMessage(streamURL)
 					.setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
 						public void onClick(DialogInterface dialog, int which) {
@@ -317,7 +282,7 @@ public class BrowseActivity extends SherlockListActivity implements ServiceConne
 		android.view.MenuItem add = menu.add(R.string.add_to_playlist);
 		add.setOnMenuItemClickListener(new OnMenuItemClickListener() {
 			public boolean onMenuItemClick(android.view.MenuItem item) {
-				MusicUtils.addToCurrentPlaylistFromURL(BrowseActivity.this, uri, mQueueHandler);
+				MusicUtils.addToCurrentPlaylistFromURL(BrowseFragment.this.getActivity(), uri, mQueueHandler);
 				return true;
 			}
 		});
@@ -360,7 +325,7 @@ public class BrowseActivity extends SherlockListActivity implements ServiceConne
     	 
         addAllElements(directoryEntries, mListFiles);
 
-        IconifiedTextListAdapter itla = new IconifiedTextListAdapter(this); 
+        IconifiedTextListAdapter itla = new IconifiedTextListAdapter(this.getActivity()); 
         itla.setListItems(directoryEntries, getListView().hasTextFilter());          
         setListAdapter(itla);
 	    getListView().requestFocus();
@@ -369,10 +334,7 @@ public class BrowseActivity extends SherlockListActivity implements ServiceConne
 	    
     	mEmptyText.setVisibility(View.VISIBLE);
     	
-		try {
-			removeDialog(DETERMINE_INTENT_TASK);
-		} catch (Exception ex) {
-		}
+		dismissDialog(LOADING_DIALOG);
     }
       
     /** 
@@ -388,12 +350,12 @@ public class BrowseActivity extends SherlockListActivity implements ServiceConne
     }
      
     private void browseTo(UriBean uri) {
-	    showDialog(DETERMINE_INTENT_TASK);
-        new DetermineActionTask(this, uri, this).execute();
+	    showDialog(LOADING_DIALOG);
+        new DetermineActionTask(this.getActivity(), uri, this).execute();
     }
 
     private void refreshList() {
-    	showDialog(DETERMINE_INTENT_TASK);
+    	showDialog(LOADING_DIALOG);
     	
     	// Cancel an existing scanner, if applicable.
     	DirectoryScanner scanner = mDirectoryScanner;
@@ -405,14 +367,12 @@ public class BrowseActivity extends SherlockListActivity implements ServiceConne
     	directoryEntries.clear(); 
         mListFiles.clear();
           
-        //setProgressBarIndeterminateVisibility(true);
-          
         // Don't show the "folder empty" text since we're scanning.
         mEmptyText.setVisibility(View.GONE);
           
         setListAdapter(null); 
           
-        mDirectoryScanner = new DirectoryScanner(mDirectory[mStepsBack], this, mHandler);
+        mDirectoryScanner = new DirectoryScanner(mDirectory[mStepsBack], this.getActivity(), mHandler);
 	    mDirectoryScanner.start();
     }
 
@@ -439,33 +399,12 @@ public class BrowseActivity extends SherlockListActivity implements ServiceConne
     	}
     }
      
-    @Override 
-    protected void onListItemClick(ListView l, View v, int position, long id) { 
-        super.onListItemClick(l, v, position, id); 
-          
-        IconifiedTextListAdapter adapter = (IconifiedTextListAdapter) getListAdapter();
-          
-        if (adapter == null) {
-        	return;
-        }
-        
-        IconifiedText text = (IconifiedText) adapter.getItem(position);
-        browseTo(text.getUri());
-    }
-	
-	@Override
-	public boolean onKeyDown(int keyCode, KeyEvent event) {
-		if (keyCode == KeyEvent.KEYCODE_BACK) {
-			if (mStepsBack > 0) {
-				upOneLevel();
-				return true;
-			}
-		} else if (keyCode == KeyEvent.KEYCODE_SEARCH) {
-			mInputManager.toggleSoftInput(InputMethodManager.SHOW_FORCED, 0);
-            return true;
+	public void onBackKeyPressed() {
+		if (mStepsBack > 0) {
+			upOneLevel();
+		} else {
+			getActivity().finish();
 		}
-		
-		return super.onKeyDown(keyCode, event);
 	}
 	
 	/**
@@ -480,23 +419,12 @@ public class BrowseActivity extends SherlockListActivity implements ServiceConne
 	}
 	
 	private void showUrlNotOpenedToast() {
-		Toast.makeText(this, R.string.url_not_opened_message, Toast.LENGTH_SHORT).show();
-	}
-	
-	public void onServiceConnected(ComponentName arg0, IBinder arg1) {
-		MusicUtils.updateNowPlaying(this);
-	}
-
-	public void onServiceDisconnected(ComponentName arg0) {
-		
+		Toast.makeText(this.getActivity(), R.string.url_not_opened_message, Toast.LENGTH_SHORT).show();
 	}
 	
 	public void onMusicRetrieverPrepared(String action, UriBean uri, long[] list) {
 		if (action.equals(DetermineActionTask.URL_ACTION_UNDETERMINED)) {
-			try {
-				removeDialog(DETERMINE_INTENT_TASK);
-			} catch (Exception ex) {
-			}
+			dismissDialog(LOADING_DIALOG);
 			showUrlNotOpenedToast();
 		} else if (action.equals(DetermineActionTask.URL_ACTION_BROWSE)) {
 			mPreviousDirectory.put(mStepsBack, uri);
@@ -505,11 +433,45 @@ public class BrowseActivity extends SherlockListActivity implements ServiceConne
 			mDirectory[mStepsBack] = uri;
 			refreshList();
 		} else if (action.equals(DetermineActionTask.URL_ACTION_PLAY)) {
-			try {
-				removeDialog(DETERMINE_INTENT_TASK);
-			} catch (Exception ex) {
-			}
-			MusicUtils.playAll(BrowseActivity.this, list, 0);        
+			dismissDialog(LOADING_DIALOG);
+			MusicUtils.playAll(BrowseFragment.this.getActivity(), list, 0);        
 		}
+	}
+	
+	public void showDialog(String tag) {
+		// DialogFragment.show() will take care of adding the fragment
+		// in a transaction.  We also want to remove any currently showing
+		// dialog, so make our own transaction and take care of that here.
+		FragmentTransaction ft = getChildFragmentManager().beginTransaction();
+		Fragment prev = getChildFragmentManager().findFragmentByTag(tag);
+		if (prev != null) {
+			ft.remove(prev);
+		}
+
+		DialogFragment newFragment = null;
+
+		// Create and show the dialog.
+		//if (tag.equals(LOADING_DIALOG)) {
+		newFragment = LoadingDialog.newInstance(this, getString(R.string.opening_url_message));
+		//}
+
+		ft.add(0, newFragment, tag);
+		ft.commit();
+	}
+
+	public void dismissDialog(String tag) {
+		FragmentTransaction ft = getChildFragmentManager().beginTransaction();
+		DialogFragment prev = (DialogFragment) getChildFragmentManager().findFragmentByTag(tag);
+		if (prev != null) {
+			prev.dismiss();
+			ft.remove(prev);
+		}
+		ft.commit();
+	}
+
+	@Override
+	public void onLoadingDialogCancelled(DialogFragment dialog) {
+		// TODO Auto-generated method stub
+		
 	}
 }
