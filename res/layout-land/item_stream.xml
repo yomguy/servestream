@@ -2,7 +2,7 @@
 <!--
 /*
  * ServeStream: A HTTP stream browser/player for Android
- * Copyright 2010 William Seemann
+ * Copyright 2013 William Seemann
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,28 +22,35 @@
 	android:id="@android:id/content"
 	android:layout_width="fill_parent"
 	android:layout_height="wrap_content"
-	android:padding="10dip"
-	>
-
-	<TextView
-		android:id="@android:id/text2"
-		android:layout_width="wrap_content"
+	android:paddingLeft="10dip"
+	android:paddingTop="10dip" >
+	
+    <Spinner
+        android:id="@+id/spinner"
+        android:layout_width="48dp"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentRight="true" />
+    
+    <LinearLayout
+		android:layout_width="fill_parent"
 		android:layout_height="wrap_content"
-		android:layout_alignParentRight="true"
-		android:layout_centerVertical="true"
-		android:paddingLeft="10dip"
-		android:textAppearance="?android:attr/textAppearanceSmall"
-		/>
+		android:orientation="vertical"
+		android:paddingBottom="10dip"
+		android:layout_toLeftOf="@+id/spinner" >
+    
+		<TextView
+			android:id="@android:id/text1"
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:textAppearance="?android:attr/textAppearanceLarge" />
 
-	<TextView
-		android:id="@android:id/text1"
-		android:layout_width="wrap_content"
-		android:layout_height="wrap_content"
-		android:layout_alignParentLeft="true"
-		android:layout_toLeftOf="@android:id/text2"
-    	android:singleLine="true"
-		android:ellipsize="end"
-		android:textAppearance="?android:attr/textAppearanceLarge"
-		/>
+		<TextView
+			android:id="@android:id/text2"
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:textAppearance="?android:attr/textAppearanceSmall" />
 
+	</LinearLayout>
+	
 </RelativeLayout>

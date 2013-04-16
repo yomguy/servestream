@@ -25,22 +25,21 @@
     android:orientation="vertical"
     android:baselineAligned="false">
 
-    <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="66dip"
         android:gravity="center_vertical"
         android:ignoreGravity="@+id/icon"
-        android:background="@drawable/playlist_tile"
-        android:paddingLeft="47dip"
-        >
+        android:background="@drawable/playlist_tile_normal" >
 
         <!-- icon is used for albumart, the grabber in edit playlist mode, and the playlist icon in the list of playlists -->
     	<ImageView android:id="@+id/icon"
         	android:layout_alignParentLeft="true"
         	android:layout_alignParentTop="true"
         	android:layout_alignParentBottom="true"
-        	android:layout_width="wrap_content"
-        	android:layout_height="wrap_content"/>
+        	android:layout_width="47dip"
+        	android:layout_height="wrap_content"
+        	android:background="@android:color/transparent" />
 
     	<TextView android:id="@+id/duration"
         	android:textSize="12sp"
