@@ -120,7 +120,6 @@ public class MediaPlayerActivity extends SherlockFragmentActivity implements Mus
         setContentView(R.layout.activity_media_player);
         
 		ActionBar actionBar = getSupportActionBar();
-		actionBar.setTitle(R.string.nowplaying_title);
 		actionBar.setDisplayHomeAsUpEnabled(true);
         
         setVolumeControlStream(AudioManager.STREAM_MUSIC);
@@ -320,7 +319,13 @@ public class MediaPlayerActivity extends SherlockFragmentActivity implements Mus
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
     	switch(item.getItemId()) {
-    	case (R.id.menu_play_queue):
+    		case android.R.id.home:
+    			Intent intent = new Intent(this, MainActivity.class);
+    			intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+    			startActivity(intent);
+    			finish();
+    			return true;
+    		case (R.id.menu_play_queue):
     			startActivity(new Intent(MediaPlayerActivity.this, NowPlayingActivity.class));
     			return true;
     		case (R.id.menu_item_stop):
@@ -330,9 +335,9 @@ public class MediaPlayerActivity extends SherlockFragmentActivity implements Mus
         		showDialog(SLEEP_TIMER_DIALOG);
         		return true;
         	case (R.id.menu_item_settings):
-        		startActivity(new Intent(MediaPlayerActivity.this, SettingsActivity.class));
+        		startActivity(new Intent(MediaPlayerActivity.this, PreferenceActivity.class));
         		return true;
-        	 case EFFECTS_PANEL: {
+        	case EFFECTS_PANEL: {
                 try {
                 	Intent i = new Intent("android.media.action.DISPLAY_AUDIO_EFFECT_CONTROL_PANEL");
 					i.putExtra("android.media.extra.AUDIO_SESSION", mService.getAudioSessionId());
@@ -348,20 +353,38 @@ public class MediaPlayerActivity extends SherlockFragmentActivity implements Mus
     }
     
     @Override
+	public boolean onPrepareOptionsMenu(Menu menu) {
+		super.onPrepareOptionsMenu(menu);
+
+		if (Build.VERSION.SDK_INT >= 9) {
+			// Don't offer the audio effects display when running on an OS
+			// before API level 9 because it relies on the getAudioSessionId method,
+			// which isn't available until after API 8
+			if (menu.findItem(EFFECTS_PANEL) == null) {
+				Intent i = new Intent("android.media.action.DISPLAY_AUDIO_EFFECT_CONTROL_PANEL");
+				if (getPackageManager().resolveActivity(i, 0) != null) {
+					menu.add(0, EFFECTS_PANEL, 0, R.string.list_menu_effects).setIcon(R.drawable.ic_menu_eq);
+				}
+			} else {
+				MenuItem item = menu.findItem(EFFECTS_PANEL);
+				
+				if (item != null) {
+					if (MusicUtils.getCurrentAudioId() >= 0) {
+						item.setVisible(true);
+					} else {
+						item.setVisible(false);
+					}
+				}
+			}
+		}
+		
+		return true;
+	}
+    
+    @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         MenuInflater inflater = getSupportMenuInflater();
         inflater.inflate(R.menu.media_player, menu);
-        
-        // Don't offer the audio effects display when running on an OS
-        // before API level 9 because it relies on the getAudioSessionId method,
-        // which isn't available until after API 8
-        if (Build.VERSION.SDK_INT >= 9 && MusicUtils.getCurrentAudioId() >= 0) {
-            Intent i = new Intent("android.media.action.DISPLAY_AUDIO_EFFECT_CONTROL_PANEL");
-            if (getPackageManager().resolveActivity(i, 0) != null) {
-                menu.add(0, EFFECTS_PANEL, 0, R.string.list_menu_effects).setIcon(R.drawable.ic_menu_eq);
-            }
-        }
-        
         return true;
     }
 
@@ -1059,6 +1082,7 @@ public class MediaPlayerActivity extends SherlockFragmentActivity implements Mus
         public AlbumArtHandler(Looper looper) {
             super(looper);
         }
+        
         @Override
         public void handleMessage(Message msg)
         {

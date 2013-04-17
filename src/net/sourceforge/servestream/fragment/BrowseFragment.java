@@ -26,7 +26,7 @@ import com.actionbarsherlock.view.MenuInflater;
 import com.actionbarsherlock.view.MenuItem;
 
 import net.sourceforge.servestream.R;
-import net.sourceforge.servestream.activity.SettingsActivity;
+import net.sourceforge.servestream.activity.PreferenceActivity;
 import net.sourceforge.servestream.bean.UriBean;
 import net.sourceforge.servestream.dbutils.StreamDatabase;
 import net.sourceforge.servestream.filemanager.*;
@@ -152,13 +152,9 @@ public class BrowseFragment extends SherlockListFragment implements
     }
   
 	public void browseTo(Uri uri) {
-		try {
-			mStepsBack = 0;
-			mDirectory = new UriBean[1000];
-			mDirectory[mStepsBack] = TransportFactory.getTransport(uri.getScheme()).createUri(uri);
-		} catch (Exception ex) {
-			ex.printStackTrace();
-		}
+		mStepsBack = 0;
+		mDirectory = new UriBean[1000];
+		mDirectory[mStepsBack] = TransportFactory.getTransport(uri.getScheme()).createUri(uri);
 		
 		refreshList();
 	}
@@ -211,7 +207,7 @@ public class BrowseFragment extends SherlockListFragment implements
             	refreshList();
             	return true;
             case (R.id.menu_item_settings):
-            	startActivity(new Intent(BrowseFragment.this.getActivity(), SettingsActivity.class));
+            	startActivity(new Intent(BrowseFragment.this.getActivity(), PreferenceActivity.class));
         		return true;
         	default:
         		return super.onOptionsItemSelected(item);
@@ -355,6 +351,10 @@ public class BrowseFragment extends SherlockListFragment implements
     }
 
     private void refreshList() {
+    	if (mDirectory == null) {
+    		return;
+    	}
+    	
     	showDialog(LOADING_DIALOG);
     	
     	// Cancel an existing scanner, if applicable.
@@ -438,7 +438,7 @@ public class BrowseFragment extends SherlockListFragment implements
 		}
 	}
 	
-	public void showDialog(String tag) {
+	private void showDialog(String tag) {
 		// DialogFragment.show() will take care of adding the fragment
 		// in a transaction.  We also want to remove any currently showing
 		// dialog, so make our own transaction and take care of that here.
@@ -459,7 +459,7 @@ public class BrowseFragment extends SherlockListFragment implements
 		ft.commit();
 	}
 
-	public void dismissDialog(String tag) {
+	private void dismissDialog(String tag) {
 		FragmentTransaction ft = getChildFragmentManager().beginTransaction();
 		DialogFragment prev = (DialogFragment) getChildFragmentManager().findFragmentByTag(tag);
 		if (prev != null) {

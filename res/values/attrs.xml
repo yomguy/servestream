@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <attr name="spinner_button" format="reference" />
-
+    <attr name="content_new" format="reference" />
+    <attr name="navigation_refresh" format="reference" />
+    
 </resources>

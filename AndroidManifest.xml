@@ -109,14 +109,30 @@
     		</intent-filter>
 		</activity>
 
-		<activity android:name=".activity.AddUrlActivity" />
-		<activity android:name=".activity.BrowseActivity" android:configChanges="keyboardHidden|orientation" />
-		<activity android:name=".activity.HelpActivity" android:configChanges="keyboardHidden|orientation" />
-		<activity android:name=".activity.HelpTopicActivity" android:configChanges="keyboardHidden|orientation" />
-		<activity android:name=".activity.NowPlayingActivity" />
-		<activity android:name=".activity.OrganizeUrlsActivity" />
-		<activity android:name=".activity.SettingsActivity" android:configChanges="keyboardHidden|orientation" />
-		
+		<activity
+            android:name=".activity.AboutActivity"
+            android:label="@string/about_pref" >
+        </activity>
+		<activity
+            android:name=".activity.AddUrlActivity"
+            android:configChanges="keyboardHidden|orientation"
+            android:label="@string/add_new_url_label"
+            android:windowSoftInputMode="adjustResize" >
+        </activity>
+		<activity
+		    android:name=".activity.NowPlayingActivity"
+			android:label="@string/now_playing_label" >
+		</activity>
+		<activity
+            android:name=".activity.OrganizeUrlsActivity"
+            android:configChanges="orientation"
+            android:label="@string/organize_urls_label" >
+        </activity>
+		<activity
+            android:name=".activity.PreferenceActivity"
+            android:configChanges="keyboardHidden|orientation"
+            android:label="@string/settings_label" >
+        </activity>
 		<activity
 		    android:name=".activity.ShortcutActivity" >
 			<intent-filter>
@@ -134,6 +150,7 @@
 
         <activity
             android:name=".activity.MediaPlayerActivity"
+            android:label="@string/media_player_label"
             android:launchMode="singleTop"
             android:exported="false" >
             <intent-filter>

@@ -94,26 +94,36 @@
 			android:defaultValue="false" />
 
 	</PreferenceCategory>
-	
-	<PreferenceScreen
-    	android:title="@string/pref_backup_and_restore"
-        android:persistent="false" >   
 	    
-	    <Preference
-	        android:key="backup"
-	        android:title="@string/pref_backup" >
-		</Preference>
+	<PreferenceCategory
+		android:title="@string/other_pref" >
 	
-	    <Preference
-	        android:key="restore"
-	        android:title="@string/pref_restore" >
-		</Preference>
+		<PreferenceScreen
+    		android:title="@string/pref_backup_and_restore"
+        	android:persistent="false" >   
+	    
+	    	<Preference
+	        	android:key="backup"
+	        	android:title="@string/pref_backup" >
+			</Preference>
+	
+	    	<Preference
+	        	android:key="restore"
+	        	android:title="@string/pref_restore" >
+			</Preference>
 	    	
-    </PreferenceScreen>
+    	</PreferenceScreen>
 	
-    <Preference
-        android:key="donate"
-		android:title="@string/pref_donate" >
-    </Preference>
+		<Preference 
+	    	android:key="about"
+			android:title="@string/about_pref" >
+		</Preference>
 	
+    	<Preference
+        	android:key="donate"
+			android:title="@string/pref_donate" >
+    	</Preference>
+
+	</PreferenceCategory>
+    		
 </PreferenceScreen>

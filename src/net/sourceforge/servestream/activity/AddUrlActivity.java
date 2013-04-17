@@ -23,7 +23,6 @@ import net.sourceforge.servestream.dbutils.StreamDatabase;
 import net.sourceforge.servestream.transport.AbsTransport;
 import net.sourceforge.servestream.transport.TransportFactory;
 
-import android.app.ProgressDialog;
 import android.net.Uri;
 import android.os.Bundle;
 import android.view.KeyEvent;
@@ -41,12 +40,12 @@ import com.actionbarsherlock.view.MenuItem;
 public class AddUrlActivity extends SherlockActivity {
 	
 	private EditText mUrlEditText;
-	private Button mImportButton;
+	//private Button mImportButton;
 	private Button mConfirmButton;
 	private Button mCancelButton;
 
 	@Override
-	protected void onCreate(Bundle savedInstanceState) {
+	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_add_uri);
 
@@ -73,7 +72,7 @@ public class AddUrlActivity extends SherlockActivity {
 			
 		});
 		
-		mImportButton = (Button) findViewById(R.id.import_button);
+		//mImportButton = (Button) findViewById(R.id.import_button);
 		mCancelButton = (Button) findViewById(R.id.cancel_button);
 		mCancelButton.setOnClickListener(new OnClickListener() {
 
