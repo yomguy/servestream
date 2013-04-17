@@ -28,16 +28,19 @@ import com.actionbarsherlock.view.MenuItem;
 
 import net.sourceforge.servestream.transport.AbsTransport;
 import net.sourceforge.servestream.transport.TransportFactory;
+import net.sourceforge.servestream.utils.DownloadScannerDialog;
 import net.sourceforge.servestream.utils.LoadingDialog;
 import net.sourceforge.servestream.utils.LoadingDialog.LoadingDialogListener;
 import net.sourceforge.servestream.utils.MusicUtils;
-import net.sourceforge.servestream.utils.UrlListAdapter;
+import net.sourceforge.servestream.utils.RateDialog;
 
 import net.sourceforge.servestream.R;
 import net.sourceforge.servestream.activity.AlarmClockActivity;
 import net.sourceforge.servestream.activity.HelpActivity;
+import net.sourceforge.servestream.activity.OrganizeUrlsActivity;
 import net.sourceforge.servestream.activity.SettingsActivity;
 import net.sourceforge.servestream.activity.StreamEditorActivity;
+import net.sourceforge.servestream.adapter.UrlListAdapter;
 import net.sourceforge.servestream.alarm.Alarm;
 import net.sourceforge.servestream.bean.UriBean;
 import net.sourceforge.servestream.dbutils.StreamDatabase;
@@ -82,18 +85,17 @@ public class UrlListFragment extends SherlockFragment implements
 	public final static String TAG = UrlListFragment.class.getName();	
 	
     private final static String LOADING_DIALOG = "loading_dialog";
+	private final static String RATE_DIALOG = "rate_dialog";
+	private final static String DOWNLOAD_SCANNER_DIALOG = "download_scanner_dialog";
 	
 	public static final String ARG_TARGET_URI = "target_uri";
 	
-	private final static int MISSING_BARCODE_SCANNER = 2;
 	private final static int UNSUPPORTED_SCANNED_INTENT = 3;
-	private final static int RATE_APPLICATION = 4;
 	
 	private ListView mList = null;
 	
 	private StreamDatabase mStreamdb = null;
 	
-	private boolean mSortedByName = false;
 	private SharedPreferences mPreferences = null;
     private DetermineActionTask mDetermineActionTask;
     
@@ -164,13 +166,11 @@ public class UrlListFragment extends SherlockFragment implements
 				ed.putInt(PreferenceConstants.RATE_APPLICATION_FLAG, rateApplicationFlag);
 				ed.commit();
 				if (rateApplicationFlag == 10) {
-					getActivity().showDialog(RATE_APPLICATION);
+					showDialog(RATE_DIALOG);
 				}
 			}
 		}
 		
-		mSortedByName = mPreferences.getBoolean(PreferenceConstants.SORT_BY_NAME, false);
-        
 		mList.setOnItemClickListener(new OnItemClickListener() {
 			public synchronized void onItemClick(AdapterView<?> parent, View view, int position, long id) {
 
@@ -201,13 +201,8 @@ public class UrlListFragment extends SherlockFragment implements
 	@Override
     public boolean onOptionsItemSelected(MenuItem item) {
     	switch(item.getItemId()) {
-    		case (R.id.menu_item_sort_by_name):
-				mSortedByName = true;
-				updateList();
-    			break;
-    		case (R.id.menu_item_sort_by_date):
-				mSortedByName = false;
-				updateList();
+    		case (R.id.menu_item_organize_urls):
+    			startActivity(new Intent(getActivity(), OrganizeUrlsActivity.class));
     			break;
         	case (R.id.menu_item_settings):
         		startActivity(new Intent(getActivity(), SettingsActivity.class));
@@ -225,7 +220,7 @@ public class UrlListFragment extends SherlockFragment implements
             		intent.putExtra("SCAN_MODE", "QR_CODE_MODE");
             		startActivityForResult(intent, 0);
             	} catch (ActivityNotFoundException ex) {
-            		getActivity().showDialog(MISSING_BARCODE_SCANNER);
+            		showDialog(DOWNLOAD_SCANNER_DIALOG);
             	}
             	return true;
     	}
@@ -238,66 +233,11 @@ public class UrlListFragment extends SherlockFragment implements
     	AlertDialog.Builder builder;
     	AlertDialog alertDialog;
 	    switch(id) {
-	    case MISSING_BARCODE_SCANNER:
-	    	builder = new AlertDialog.Builder(this.getActivity());
-	    	builder.setMessage(R.string.find_barcode_scanner_message)
-	    	       .setCancelable(true)
-	    	       .setPositiveButton(R.string.find_pos, new DialogInterface.OnClickListener() {
-	    	           public void onClick(DialogInterface dialog, int id) {
-	    	        	   try {
-	    	        		   Intent intent = new Intent(Intent.ACTION_VIEW);
-	    	        		   intent.setData(Uri.parse("market://details?id=com.google.zxing.client.android"));
-	    	        		   startActivity(intent);
-	    	        	   } catch (ActivityNotFoundException ex ) {
-	    	        		   // the Google Play store couldn't be opened,
-	    	        		   // lets take the user to the project's webpage instead.
-	    	        		   Intent intent = new Intent(Intent.ACTION_VIEW);
-	    	        		   intent.setData(Uri.parse("http://code.google.com/p/zxing/downloads/list"));
-	    	        		   startActivity(intent);
-	    	        	   }
-	    	           }
-	    	       })
-	    	       .setNegativeButton(R.string.find_neg, new DialogInterface.OnClickListener() {
-	    	           public void onClick(DialogInterface dialog, int id) {
-	    	                dialog.cancel();
-	    	           }
-	    	       });
-	    	alertDialog = builder.create();
-	    	return alertDialog;
 	    case UNSUPPORTED_SCANNED_INTENT:
 	    	builder = new AlertDialog.Builder(this.getActivity());
 	    	builder.setMessage(R.string.unsupported_scanned_intent_message)
 	    	       .setCancelable(true)
 	    	       .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
-	    	           public void onClick(DialogInterface dialog, int id) {
-	    	                dialog.cancel();
-	    	           }
-	    	       });
-	    	alertDialog = builder.create();
-	    	return alertDialog;
-	    case RATE_APPLICATION:
-	        Editor ed = mPreferences.edit();
-	        ed.putInt(PreferenceConstants.RATE_APPLICATION_FLAG, -1);
-	        ed.commit();
-	    	builder = new AlertDialog.Builder(this.getActivity());
-	    	builder.setMessage(R.string.rate_application)
-	    	       .setCancelable(true)
-	    	       .setPositiveButton(R.string.rate_pos, new DialogInterface.OnClickListener() {
-	    	           public void onClick(DialogInterface dialog, int id) {
-	    	        	   try {
-	    	        		   Intent intent = new Intent(Intent.ACTION_VIEW);
-	    	        		   intent.setData(Uri.parse("market://details?id=net.sourceforge.servestream"));
-	    	        		   startActivity(intent);
-	    	        	   } catch (ActivityNotFoundException ex ) {
-	    	        		   // the market couldn't be opening or the application couldn't be found
-	    	        		   // lets take the user to the project's webpage instead.
-	    	        		   Intent intent = new Intent(Intent.ACTION_VIEW);
-	    	        		   intent.setData(Uri.parse("http://sourceforge.net/projects/servestream/"));
-	    	        		   startActivity(intent);
-	    	        	   }
-	    	           }
-	    	       })
-	    	       .setNegativeButton(R.string.rate_neg, new DialogInterface.OnClickListener() {
 	    	           public void onClick(DialogInterface dialog, int id) {
 	    	                dialog.cancel();
 	    	           }
@@ -310,17 +250,9 @@ public class UrlListFragment extends SherlockFragment implements
 	    return dialog;
 	}
 	
-	@Override
-	public void onPrepareOptionsMenu(Menu menu) {
-		super.onPrepareOptionsMenu(menu);
-
-		menu.getItem(0).setVisible(!mSortedByName);
-		menu.getItem(1).setVisible(mSortedByName);
-	}
-	
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
-        inflater.inflate(R.menu.url_list_menu, menu);
+        inflater.inflate(R.menu.url_list, menu);
         super.onCreateOptionsMenu(menu, inflater);
     }
 	
@@ -431,15 +363,9 @@ public class UrlListFragment extends SherlockFragment implements
 	}
 	
 	public void updateList() {
-		if (mPreferences.getBoolean(PreferenceConstants.SORT_BY_NAME, false) != mSortedByName) {
-			Editor edit = mPreferences.edit();
-			edit.putBoolean(PreferenceConstants.SORT_BY_NAME, mSortedByName);
-			edit.commit();
-		}
-		
 		List<UriBean> uris = new ArrayList<UriBean>();
 
-		uris = mStreamdb.getUris(mSortedByName);
+		uris = mStreamdb.getUris();
 
 		UrlListAdapter adapter = new UrlListAdapter(this.getActivity(), uris);
 
@@ -483,7 +409,13 @@ public class UrlListFragment extends SherlockFragment implements
 		DialogFragment newFragment = null;
 
 		// Create and show the dialog.
-		newFragment = LoadingDialog.newInstance(this, getString(R.string.opening_url_message));
+		if (tag.equals(LOADING_DIALOG)) {
+			newFragment = LoadingDialog.newInstance(this, getString(R.string.opening_url_message));
+		} else if (tag.equals(RATE_DIALOG)) {
+			newFragment = RateDialog.newInstance();
+		} else if (tag.equals(DOWNLOAD_SCANNER_DIALOG)) {
+			newFragment = DownloadScannerDialog.newInstance();
+		}
 
 		ft.add(0, newFragment, tag);
 		ft.commit();

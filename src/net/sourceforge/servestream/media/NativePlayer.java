@@ -17,7 +17,6 @@
 
 package net.sourceforge.servestream.media;
 
-import java.io.FileDescriptor;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;

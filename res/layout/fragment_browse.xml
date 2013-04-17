@@ -19,30 +19,29 @@
 -->
 
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="fill_parent"
-    android:layout_height="fill_parent"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
     android:orientation="vertical"
-    >
+    android:gravity="center_vertical" >
 
-    <ListView android:id="@android:id/list"
-        android:layout_width="fill_parent"
-        android:layout_height="0dip"
-        android:layout_weight="1"
-        android:drawSelectorOnTop="false"/>
+	<ListView
+		android:id="@android:id/list"
+		android:layout_width="fill_parent"
+		android:layout_height="0dip"
+		android:layout_weight="1" />
 
-	<LinearLayout android:id="@+id/empty"
+	<LinearLayout
+	    android:id="@+id/empty"
         android:layout_width="fill_parent" 
-        android:layout_height="fill_parent"
-        >
+        android:layout_height="fill_parent" >
         
-        <TextView android:id="@+id/empty_text"
-            android:layout_width="fill_parent" 
-            android:layout_height="fill_parent"
-            android:text="Folder is empty"
-        	android:textAppearance="?android:attr/textAppearanceMedium"
-        	android:gravity="center"
-        	/>
-        	
+	    <TextView
+			android:id="@+id/empty_text"
+			android:layout_width="fill_parent"
+			android:layout_height="fill_parent"
+			android:text="@string/no_items_label"
+			android:gravity="center" />
+	    
     </LinearLayout>
 	
 </LinearLayout>

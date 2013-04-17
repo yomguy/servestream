@@ -101,27 +101,19 @@
 	<!-- Context menu item -->
 	<string name="view_url">View URL</string>
 	
-	<!-- Note that the '\n' splits the lines so it's actually "quick-connect box above to connect" -->
-	<string name="list_stream_empty">Use the quick-connect box\nabove to open a media stream.</string>
-
 	<string name="list_menu_backup">Backup</string>
     <string name="list_menu_effects">Sound effects</string>
     <string name="list_menu_help">Help</string>
     <string name="list_menu_now_playing">Now playing</string>
+    <string name="list_menu_organize_urls">Organize urls</string>
 	<string name="list_menu_refresh">Refresh</string>
 	<string name="list_menu_repeat">Repeat</string>
 	<string name="list_menu_scan">Scan</string>
 	<string name="list_menu_settings">Settings</string>
     <string name="list_menu_shuffle">Shuffle on/off</string>
     <string name="list_menu_sleep_timer">Sleep timer</string>
-    <string name="list_menu_sort_by_name">Sort by name</string>
-    <string name="list_menu_sort_by_date">Sort by date</string>
     <string name="list_menu_stop">Stop</string>
 	
- 	<!-- Frequency for which to check for program updates. -->
- 	<!-- Frequency for which to check for program updates. -->
- 	<!-- Frequency for which to check for program updates. -->
-
 	<!-- The dialog message when loading a URL -->
 	<string name="loading_message">Loading. Please wait...</string>
 
@@ -326,10 +318,14 @@
     <string name="remove_from_playlist">Remove from playlist</string>
     	
     <string name="url_label_hint">http://</string>
-    <string name="url_label_text">Type in the URL of the stream or server here:</string>
+    <string name="url_label_text">Type in the URL of a stream or server here:</string>
     
     <string name="import_text">Type in the URL of the stream or server here:</string>
     <string name="json_import_txt">You can also import a JSON file:</string>
+    
+    <!-- Empty list labels -->
+    <string name="no_items_label">There are no items in this list.</string>
+    <string name="no_urls_label">You haven\'t entered any urls yet.</string>
     
     <!-- End Music Code Strings -->
 	

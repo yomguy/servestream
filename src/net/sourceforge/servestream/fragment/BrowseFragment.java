@@ -126,7 +126,7 @@ public class BrowseFragment extends SherlockListFragment implements
         
 		ListView list = this.getListView();
 		list.setOnCreateContextMenuListener(this);
-		list.setEmptyView(this.getActivity().findViewById(R.id.empty));
+		list.setEmptyView(getActivity().findViewById(R.id.empty));
 		list.setFastScrollEnabled(true);
 	    list.setTextFilterEnabled(true);
 	    list.setOnItemClickListener(new OnItemClickListener() {
@@ -220,7 +220,7 @@ public class BrowseFragment extends SherlockListFragment implements
 	
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
-        inflater.inflate(R.menu.browse_menu, menu);
+        inflater.inflate(R.menu.browse, menu);
         super.onCreateOptionsMenu(menu, inflater);
     }
     

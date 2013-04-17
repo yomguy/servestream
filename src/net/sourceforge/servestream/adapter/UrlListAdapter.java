@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package net.sourceforge.servestream.utils;
+package net.sourceforge.servestream.adapter;
 
 import java.util.List;
 
@@ -35,7 +35,7 @@ public class UrlListAdapter extends ArrayAdapter<UriBean> {
     private List<UriBean> rowItems;
  
     public UrlListAdapter(Context context, List<UriBean> rowItems) {
-		super(context, R.layout.item_stream, rowItems);
+		super(context, R.layout.url_list_item, rowItems);
         this.context = context;
         this.rowItems = rowItems;
     }
@@ -52,7 +52,7 @@ public class UrlListAdapter extends ArrayAdapter<UriBean> {
         LayoutInflater mInflater = (LayoutInflater)
             context.getSystemService(Activity.LAYOUT_INFLATER_SERVICE);
         if (convertView == null) {
-            convertView = mInflater.inflate(R.layout.item_stream, null);
+            convertView = mInflater.inflate(R.layout.url_list_item, null);
             holder = new ViewHolder();
 			holder.nickname = (TextView) convertView.findViewById(android.R.id.text1);
 			holder.caption = (TextView) convertView.findViewById(android.R.id.text2);

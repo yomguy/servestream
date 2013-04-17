@@ -73,13 +73,13 @@ import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.SeekBar.OnSeekBarChangeListener;
 
-public class MediaPlaybackActivity extends SherlockFragmentActivity implements MusicUtils.Defs,
+public class MediaPlayerActivity extends SherlockFragmentActivity implements MusicUtils.Defs,
     		OnSharedPreferenceChangeListener,
     		CoverViewListener,
     		LoadingDialogListener,
     		SleepTimerDialogListener {
 	
-    private static final String TAG = MediaPlaybackActivity.class.getName();
+    private static final String TAG = MediaPlayerActivity.class.getName();
 
 	private static final String LOADING_DIALOG = "loading_dialog";
 	private static final String SLEEP_TIMER_DIALOG = "sleep_timer_dialog";
@@ -109,7 +109,7 @@ public class MediaPlaybackActivity extends SherlockFragmentActivity implements M
 
     private TextView mTrackNumber;
     
-    public MediaPlaybackActivity()
+    public MediaPlayerActivity()
     {
     }
 
@@ -321,7 +321,7 @@ public class MediaPlaybackActivity extends SherlockFragmentActivity implements M
     public boolean onOptionsItemSelected(MenuItem item) {
     	switch(item.getItemId()) {
     	case (R.id.menu_play_queue):
-    			startActivity(new Intent(MediaPlaybackActivity.this, NowPlayingActivity.class));
+    			startActivity(new Intent(MediaPlayerActivity.this, NowPlayingActivity.class));
     			return true;
     		case (R.id.menu_item_stop):
     			doStop();
@@ -330,7 +330,7 @@ public class MediaPlaybackActivity extends SherlockFragmentActivity implements M
         		showDialog(SLEEP_TIMER_DIALOG);
         		return true;
         	case (R.id.menu_item_settings):
-        		startActivity(new Intent(MediaPlaybackActivity.this, SettingsActivity.class));
+        		startActivity(new Intent(MediaPlayerActivity.this, SettingsActivity.class));
         		return true;
         	 case EFFECTS_PANEL: {
                 try {
@@ -350,7 +350,7 @@ public class MediaPlaybackActivity extends SherlockFragmentActivity implements M
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         MenuInflater inflater = getSupportMenuInflater();
-        inflater.inflate(R.menu.activity_media_playback, menu);
+        inflater.inflate(R.menu.media_player, menu);
         
         // Don't offer the audio effects display when running on an OS
         // before API level 9 because it relies on the getAudioSessionId method,
@@ -948,7 +948,7 @@ public class MediaPlaybackActivity extends SherlockFragmentActivity implements M
                 case QUIT:
                     // This can be moved back to onCreate once the bug that prevents
                     // Dialogs from being started from onCreate/onResume is fixed.
-                    new AlertDialog.Builder(MediaPlaybackActivity.this)
+                    new AlertDialog.Builder(MediaPlayerActivity.this)
                             .setTitle(R.string.service_start_error_title)
                             .setMessage(R.string.service_start_error_msg)
                             .setPositiveButton(android.R.string.ok,

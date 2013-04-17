@@ -52,7 +52,7 @@ import java.util.Random;
 import java.util.Vector;
 
 import net.sourceforge.servestream.R;
-import net.sourceforge.servestream.activity.MediaPlaybackActivity;
+import net.sourceforge.servestream.activity.MediaPlayerActivity;
 import net.sourceforge.servestream.media.MetadataRetrieverTask;
 import net.sourceforge.servestream.media.MultiPlayer;
 import net.sourceforge.servestream.media.MetadataRetrieverTask.MetadataRetrieverListener;
@@ -1078,7 +1078,7 @@ public class MediaPlaybackService extends Service implements
         }
         
         PendingIntent contentIntent = PendingIntent.getActivity(this, 0,
-                new Intent(this, MediaPlaybackActivity.class)
+                new Intent(this, MediaPlayerActivity.class)
                 .addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP), 0);
         
         NotificationCompat.Builder status = new NotificationCompat.Builder(this)

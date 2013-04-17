@@ -36,7 +36,7 @@ import net.sourceforge.jplaylistparser.parser.AutoDetectParser;
 import net.sourceforge.jplaylistparser.playlist.Playlist;
 import net.sourceforge.jplaylistparser.playlist.PlaylistEntry;
 import net.sourceforge.servestream.R;
-import net.sourceforge.servestream.activity.MediaPlaybackActivity;
+import net.sourceforge.servestream.activity.MediaPlayerActivity;
 import net.sourceforge.servestream.bean.UriBean;
 import net.sourceforge.servestream.provider.Media;
 import net.sourceforge.servestream.service.IMediaPlaybackService;
@@ -735,7 +735,7 @@ public class MusicUtils {
                 	@Override
                     public void onClick(View v) {
                         Context c = v.getContext();
-                        c.startActivity(new Intent(c, MediaPlaybackActivity.class));
+                        c.startActivity(new Intent(c, MediaPlayerActivity.class));
                     }
                 });
                 
