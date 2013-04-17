@@ -42,22 +42,22 @@ public class DownloadScannerDialog extends DialogFragment {
     	AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
     	builder.setMessage(R.string.find_barcode_scanner_message)
     	       .setCancelable(true)
-    	       .setPositiveButton(R.string.find_pos, new DialogInterface.OnClickListener() {
+    	       .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
     	           public void onClick(DialogInterface dialog, int id) {
     	        	   try {
     	        		   Intent intent = new Intent(Intent.ACTION_VIEW);
-    	        		   intent.setData(Uri.parse("market://details?id=com.google.zxing.client.android"));
+    	        		   intent.setData(Uri.parse(Constants.ZXING_PLAYSTORE_URI));
     	        		   startActivity(intent);
     	        	   } catch (ActivityNotFoundException ex ) {
     	        		   // the Google Play store couldn't be opened,
     	        		   // lets take the user to the project's webpage instead.
     	        		   Intent intent = new Intent(Intent.ACTION_VIEW);
-    	        		   intent.setData(Uri.parse("http://code.google.com/p/zxing/downloads/list"));
+    	        		   intent.setData(Uri.parse(Constants.ZXING_PROJECT_PAGE));
     	        		   startActivity(intent);
     	        	   }
     	           }
     	       })
-    	       .setNegativeButton(R.string.find_neg, new DialogInterface.OnClickListener() {
+    	       .setNegativeButton(android.R.string.no, new DialogInterface.OnClickListener() {
     	           public void onClick(DialogInterface dialog, int id) {
     	                dialog.cancel();
     	           }

@@ -46,13 +46,13 @@ public class RateDialog extends DialogFragment {
     	           public void onClick(DialogInterface dialog, int id) {
     	        	   try {
     	        		   Intent intent = new Intent(Intent.ACTION_VIEW);
-    	        		   intent.setData(Uri.parse("market://details?id=net.sourceforge.servestream"));
+    	        		   intent.setData(Uri.parse(Constants.SERVESTREAM_PLAYSTORE_URI));
     	        		   startActivity(intent);
     	        	   } catch (ActivityNotFoundException ex ) {
     	        		   // the market couldn't be opening or the application couldn't be found
     	        		   // lets take the user to the project's webpage instead.
     	        		   Intent intent = new Intent(Intent.ACTION_VIEW);
-    	        		   intent.setData(Uri.parse("http://sourceforge.net/projects/servestream/"));
+    	        		   intent.setData(Uri.parse(Constants.SERVESTREAM_PROJECT_PAGE));
     	        		   startActivity(intent);
     	        	   }
     	           }

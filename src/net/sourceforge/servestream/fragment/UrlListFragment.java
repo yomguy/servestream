@@ -22,23 +22,15 @@ import java.util.List;
 
 import com.actionbarsherlock.app.SherlockFragment;
 import com.actionbarsherlock.app.SherlockFragmentActivity;
-import com.actionbarsherlock.view.Menu;
-import com.actionbarsherlock.view.MenuInflater;
-import com.actionbarsherlock.view.MenuItem;
 
 import net.sourceforge.servestream.transport.AbsTransport;
 import net.sourceforge.servestream.transport.TransportFactory;
-import net.sourceforge.servestream.utils.DownloadScannerDialog;
 import net.sourceforge.servestream.utils.LoadingDialog;
 import net.sourceforge.servestream.utils.LoadingDialog.LoadingDialogListener;
 import net.sourceforge.servestream.utils.MusicUtils;
 import net.sourceforge.servestream.utils.RateDialog;
 
 import net.sourceforge.servestream.R;
-import net.sourceforge.servestream.activity.AlarmClockActivity;
-import net.sourceforge.servestream.activity.HelpActivity;
-import net.sourceforge.servestream.activity.OrganizeUrlsActivity;
-import net.sourceforge.servestream.activity.SettingsActivity;
 import net.sourceforge.servestream.activity.StreamEditorActivity;
 import net.sourceforge.servestream.adapter.UrlListAdapter;
 import net.sourceforge.servestream.alarm.Alarm;
@@ -49,7 +41,6 @@ import net.sourceforge.servestream.utils.PreferenceConstants;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
-import android.content.ActivityNotFoundException;
 import android.content.ContentResolver;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -86,7 +77,6 @@ public class UrlListFragment extends SherlockFragment implements
 	
     private final static String LOADING_DIALOG = "loading_dialog";
 	private final static String RATE_DIALOG = "rate_dialog";
-	private final static String DOWNLOAD_SCANNER_DIALOG = "download_scanner_dialog";
 	
 	public static final String ARG_TARGET_URI = "target_uri";
 	
@@ -198,36 +188,6 @@ public class UrlListFragment extends SherlockFragment implements
 		mStreamdb.close();
 	}
 	
-	@Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-    	switch(item.getItemId()) {
-    		case (R.id.menu_item_organize_urls):
-    			startActivity(new Intent(getActivity(), OrganizeUrlsActivity.class));
-    			break;
-        	case (R.id.menu_item_settings):
-        		startActivity(new Intent(getActivity(), SettingsActivity.class));
-        		break;
-        	case (R.id.menu_item_help):
-        		startActivity(new Intent(getActivity(), HelpActivity.class));
-        		break;
-            case (R.id.menu_item_alarms):
-                startActivity(new Intent(this.getActivity(), AlarmClockActivity.class));
-                return true;
-            case (R.id.menu_item_scan):
-            	try {
-            		Intent intent = new Intent("com.google.zxing.client.android.SCAN");
-            		intent.setPackage("com.google.zxing.client.android");
-            		intent.putExtra("SCAN_MODE", "QR_CODE_MODE");
-            		startActivityForResult(intent, 0);
-            	} catch (ActivityNotFoundException ex) {
-            		showDialog(DOWNLOAD_SCANNER_DIALOG);
-            	}
-            	return true;
-    	}
-    	
-		return false;
-    }
-
 	protected Dialog onCreateDialog(int id) {
 	    Dialog dialog;
     	AlertDialog.Builder builder;
@@ -249,12 +209,6 @@ public class UrlListFragment extends SherlockFragment implements
 	    }
 	    return dialog;
 	}
-	
-    @Override
-    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
-        inflater.inflate(R.menu.url_list, menu);
-        super.onCreateOptionsMenu(menu, inflater);
-    }
 	
 	@Override
 	public void onCreateContextMenu(ContextMenu menu, View v, ContextMenu.ContextMenuInfo menuInfo) {
@@ -396,7 +350,7 @@ public class UrlListFragment extends SherlockFragment implements
 		}
 	}
 
-	public void showDialog(String tag) {
+	private void showDialog(String tag) {
 		// DialogFragment.show() will take care of adding the fragment
 		// in a transaction.  We also want to remove any currently showing
 		// dialog, so make our own transaction and take care of that here.
@@ -413,15 +367,13 @@ public class UrlListFragment extends SherlockFragment implements
 			newFragment = LoadingDialog.newInstance(this, getString(R.string.opening_url_message));
 		} else if (tag.equals(RATE_DIALOG)) {
 			newFragment = RateDialog.newInstance();
-		} else if (tag.equals(DOWNLOAD_SCANNER_DIALOG)) {
-			newFragment = DownloadScannerDialog.newInstance();
 		}
 
 		ft.add(0, newFragment, tag);
 		ft.commit();
 	}
 
-	public void dismissDialog(String tag) {
+	private void dismissDialog(String tag) {
 		FragmentTransaction ft = getChildFragmentManager().beginTransaction();
 		DialogFragment prev = (DialogFragment) getChildFragmentManager().findFragmentByTag(tag);
 		if (prev != null) {

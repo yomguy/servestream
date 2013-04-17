@@ -1,6 +1,6 @@
 /*
  * ServeStream: A HTTP stream browser/player for Android
- * Copyright 2012 William Seemann
+ * Copyright 2013 William Seemann
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,9 +35,6 @@ public final class PreferenceConstants {
 	public static final String RETRIEVE_SHOUTCAST_METADATA = "retrieveshoutcastmetadata";
 	public static final String SEND_SCROBBLER_INFO = "sendscrobblerinfo";
 	public static final String RATE_APPLICATION_FLAG = "rateapplicationflag";
-	public static final String BACKUP = "backup";
-	public static final String RESTORE = "restore";
-	public static final String DONATE = "donate";
 	
 	/* Backup identifiers */
 	public static final String BACKUP_PREF_KEY = "prefs";

@@ -94,7 +94,6 @@ public class NowPlayingActivity extends SherlockListActivity implements
         setContentView(R.layout.activity_now_playing);
 
 		ActionBar actionBar = getSupportActionBar();
-		actionBar.setTitle(R.string.play_queue_title);
 		actionBar.setDisplayHomeAsUpEnabled(true);
         
         setVolumeControlStream(AudioManager.STREAM_MUSIC);
@@ -133,6 +132,8 @@ public class NowPlayingActivity extends SherlockListActivity implements
 		
 	    DragSortController controller = new DragSortController(list);
 		controller.setDragInitMode(DragSortController.ON_DRAG);
+		controller.setRemoveMode(DragSortController.FLING_REMOVE);
+        controller.setRemoveEnabled(true);
 		controller.setDragHandleId(R.id.icon);
 		list.setDivider(null);
 		list.setOnTouchListener(controller);
@@ -893,6 +894,11 @@ public class NowPlayingActivity extends SherlockListActivity implements
             //((DragSortListView.AdapterWrapper)getListView().getAdapter()).notifyDataSetChanged();
             NowPlayingActivity.this.getListView().invalidateViews();
             mDeletedOneRow = true;
+        }
+        
+        @Override
+        public void remove(int which) {
+			removePlaylistItem(which);
         }
     }
 }

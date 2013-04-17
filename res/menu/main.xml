@@ -2,8 +2,22 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android" >
     <item
         android:id="@+id/add_uri"
-        android:title="Add URI"
-        android:icon="@android:drawable/ic_menu_add"
-        android:showAsAction="ifRoom|collapseActionView">
-    </item>
+        android:icon="?attr/content_new"
+        android:showAsAction="ifRoom|collapseActionView"/>
+    <item
+        android:id="@+id/menu_item_organize_urls"
+        android:title="@string/list_menu_organize_urls"
+        android:icon="@android:drawable/ic_menu_share"/>
+    <item
+        android:id="@+id/menu_item_settings"
+        android:title="@string/list_menu_settings"
+        android:icon="@android:drawable/ic_menu_preferences"/>
+    <item
+        android:id="@+id/menu_item_alarms"
+        android:title="@string/alarm_list_title"
+        android:icon="@drawable/ic_menu_alarms"/>
+    <item
+        android:id="@+id/menu_item_scan"
+        android:title="@string/list_menu_scan"
+        android:icon="@drawable/ic_menu_scan"/>
 </menu>

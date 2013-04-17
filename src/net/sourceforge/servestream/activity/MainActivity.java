@@ -24,9 +24,11 @@ import net.sourceforge.servestream.fragment.BrowseFragment;
 import net.sourceforge.servestream.fragment.UrlListFragment;
 import net.sourceforge.servestream.fragment.UrlListFragment.BrowseIntentListener;
 import net.sourceforge.servestream.service.MediaPlaybackService;
+import net.sourceforge.servestream.utils.DownloadScannerDialog;
 import net.sourceforge.servestream.utils.MusicUtils;
 import net.sourceforge.servestream.utils.MusicUtils.ServiceToken;
 
+import android.content.ActivityNotFoundException;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
@@ -37,6 +39,7 @@ import android.media.AudioManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.IBinder;
+import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.app.FragmentTransaction;
@@ -54,6 +57,9 @@ import com.actionbarsherlock.view.MenuItem;
 public class MainActivity extends SherlockFragmentActivity implements
 			ServiceConnection,
 			BrowseIntentListener {
+	
+	private final static String DOWNLOAD_SCANNER_DIALOG = "download_scanner_dialog";
+	
 	private static UrlListFragment mUrlListFragment;
 	private static BrowseFragment mBrowseFragment;
 	
@@ -76,16 +82,16 @@ public class MainActivity extends SherlockFragmentActivity implements
 
 		viewpager.setAdapter(pagerAdapter);
 
-		Tab feedsTab = getSupportActionBar().newTab();
-		feedsTab.setText(getString(R.string.title_url_list));
-		Tab episodesTab = getSupportActionBar().newTab();
-		episodesTab.setText(getString(R.string.title_stream_browse));
+		Tab urlsTab = getSupportActionBar().newTab();
+		urlsTab.setText(getString(R.string.url_label));
+		Tab browseTab = getSupportActionBar().newTab();
+		browseTab.setText(getString(R.string.browse_label));
 
 		Bundle args = new Bundle();
 		args.putString(UrlListFragment.ARG_TARGET_URI, getUri());
 		
-		pagerAdapter.addTab(feedsTab, UrlListFragment.class, args);
-		pagerAdapter.addTab(episodesTab, BrowseFragment.class, null);
+		pagerAdapter.addTab(urlsTab, UrlListFragment.class, args);
+		pagerAdapter.addTab(browseTab, BrowseFragment.class, null);
 		
 		if (savedInstanceState != null) {
 			getSupportActionBar().setSelectedNavigationItem(
@@ -169,11 +175,45 @@ public class MainActivity extends SherlockFragmentActivity implements
 	}
 	
 	@Override
+	public void onActivityResult(int requestCode, int resultCode, Intent intent) {
+	    if (requestCode == 0) {
+	        if (resultCode == RESULT_OK) {
+	            String contents = intent.getStringExtra("SCAN_RESULT");
+	            // Handle successful scan
+				Bundle args = new Bundle();
+				args.putString(UrlListFragment.ARG_TARGET_URI, contents);
+				mUrlListFragment.refresh(args);
+	        } else if (resultCode == RESULT_CANCELED) {
+	            // Handle cancel
+	        }
+	    }
+	}
+	
+	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
 		switch (item.getItemId()) {
 			case R.id.add_uri:
 				startActivity(new Intent(this, AddUrlActivity.class));
 				return true;
+			case (R.id.menu_item_organize_urls):
+    			startActivity(new Intent(this, OrganizeUrlsActivity.class));
+				return true;
+        	case (R.id.menu_item_settings):
+        		startActivity(new Intent(this, PreferenceActivity.class));
+    			return true;
+            case (R.id.menu_item_alarms):
+                startActivity(new Intent(this, AlarmClockActivity.class));
+                return true;
+            case (R.id.menu_item_scan):
+            	try {
+            		Intent intent = new Intent("com.google.zxing.client.android.SCAN");
+            		intent.setPackage("com.google.zxing.client.android");
+            		intent.putExtra("SCAN_MODE", "QR_CODE_MODE");
+            		startActivityForResult(intent, 0);
+            	} catch (ActivityNotFoundException ex) {
+            		showDialog(DOWNLOAD_SCANNER_DIALOG);
+            	}
+            	return true;
 			default:
 				return super.onOptionsItemSelected(item);
 		}
@@ -307,5 +347,24 @@ public class MainActivity extends SherlockFragmentActivity implements
 	public void browseToUri(Uri uri) {
 		getSupportActionBar().setSelectedNavigationItem(1);
 		mBrowseFragment.browseTo(uri);
+	}
+	
+	private void showDialog(String tag) {
+		// DialogFragment.show() will take care of adding the fragment
+		// in a transaction.  We also want to remove any currently showing
+		// dialog, so make our own transaction and take care of that here.
+		FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
+		Fragment prev = getSupportFragmentManager().findFragmentByTag(tag);
+		if (prev != null) {
+			ft.remove(prev);
+		}
+
+		DialogFragment newFragment = null;
+
+		// Create and show the dialog.
+		newFragment = DownloadScannerDialog.newInstance();
+
+		ft.add(0, newFragment, tag);
+		ft.commit();
 	}
 }

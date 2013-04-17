@@ -19,18 +19,18 @@
 -->
 
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
-    <item android:id="@+id/menu_play_queue"
+    <item
+        android:id="@+id/menu_play_queue"
         android:icon="@drawable/icn_play_queue"
         android:showAsAction="always"/>
-    <item android:id="@+id/menu_item_stop"
+    <item
+        android:id="@+id/menu_item_stop"
         android:title="@string/list_menu_stop"
         android:icon="@android:drawable/ic_menu_close_clear_cancel"/>
-    <item android:id="@+id/menu_item_sleep_timer"
+    <item
+        android:id="@+id/menu_item_sleep_timer"
         android:title="@string/list_menu_sleep_timer"
         android:icon="@drawable/ic_menu_sleep_timer"/>
-    <item android:id="@+id/menu_item_settings"
-        android:title="@string/list_menu_settings"
-        android:icon="@android:drawable/ic_menu_preferences"/>
 </menu>
 
 
