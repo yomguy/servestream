@@ -114,6 +114,7 @@
 		<activity android:name=".activity.HelpActivity" android:configChanges="keyboardHidden|orientation" />
 		<activity android:name=".activity.HelpTopicActivity" android:configChanges="keyboardHidden|orientation" />
 		<activity android:name=".activity.NowPlayingActivity" />
+		<activity android:name=".activity.OrganizeUrlsActivity" />
 		<activity android:name=".activity.SettingsActivity" android:configChanges="keyboardHidden|orientation" />
 		
 		<activity
@@ -132,7 +133,7 @@
 			android:description="@string/media_service_desc" />
 
         <activity
-            android:name=".activity.MediaPlaybackActivity"
+            android:name=".activity.MediaPlayerActivity"
             android:launchMode="singleTop"
             android:exported="false" >
             <intent-filter>

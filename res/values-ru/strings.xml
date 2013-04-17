@@ -101,9 +101,6 @@
 	<!-- Context menu item -->
 	<string name="view_url">Посмотреть URL</string>
 	
-	<!-- Note that the '\n' splits the lines so it's actually "quick-connect box above to connect" -->
-	<string name="list_stream_empty">Используй quick-connect box\nвыше для открытия медиа потока.</string>
-
 	<string name="list_menu_backup">Сохранение</string>
 	<string name="list_menu_effects">Звуковые эффекты</string>
     <string name="list_menu_help">Помощь</string>
@@ -114,14 +111,8 @@
 	<string name="list_menu_settings">Настройки</string>
     <string name="list_menu_shuffle">(Не)Перемешать</string>
     <string name="list_menu_sleep_timer">Таймер сна</string>
-    <string name="list_menu_sort_by_name">Сортировать по имени</string>
-    <string name="list_menu_sort_by_date">Сортировать по дате</string>
     <string name="list_menu_stop">Стоп</string>  
 	
- 	<!-- Frequency for which to check for program updates. -->
- 	<!-- Frequency for which to check for program updates. -->
- 	<!-- Frequency for which to check for program updates. -->
-
 	<!-- The dialog message when loading a URL -->
 	<string name="loading_message">Загружается, подождите...</string>
 

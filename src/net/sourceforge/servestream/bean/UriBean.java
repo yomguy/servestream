@@ -43,6 +43,7 @@ public class UriBean {
 	private String protocol = null;
 	private long lastConnect = -1;
 	private String contentType = null;
+	private int listPosition = -1;
 
 	public UriBean() {
 
@@ -124,6 +125,12 @@ public class UriBean {
 	public String getContentType() {
 		return contentType;
 	}
+	public void setListPosition(int listPosition) {
+		this.listPosition = listPosition;
+	}
+	public int getListPosition() {
+		return listPosition;
+	}
 	
 	public String getDescription() {
 		String description = String.format("%s@%s", username, hostname);
@@ -147,6 +154,7 @@ public class UriBean {
 		values.put(StreamDatabase.FIELD_STREAM_QUERY, query);
 		values.put(StreamDatabase.FIELD_STREAM_REFERENCE, reference);
 		values.put(StreamDatabase.FIELD_STREAM_LASTCONNECT, lastConnect);
+		values.put(StreamDatabase.FIELD_STREAM_LIST_POSITION, listPosition);
 
 		return values;
 	}

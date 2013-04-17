@@ -101,9 +101,6 @@
 	<!-- Context menu item -->
 	<string name="view_url">Ver URL</string>
 	
-	<!-- Note that the '\n' splits the lines so it's actually "quick-connect box above to connect" -->
-	<string name="list_stream_empty">Utilize la caja para conexión-rápida\narriba para abrir una sesión multimedia.</string>
-
 	<string name="list_menu_backup">Recuperar</string>
     <string name="list_menu_effects">Efectos sonido</string>
     <string name="list_menu_donate">Donar</string>
@@ -115,13 +112,7 @@
 	<string name="list_menu_settings">Configuración</string>
     <string name="list_menu_shuffle">Activar/Deactivar orden aleatorio</string>
     <string name="list_menu_sleep_timer">Apagador automático</string>
-    <string name="list_menu_sort_by_name">Ordenar por nombre</string>
-    <string name="list_menu_sort_by_date">Ordenar por fecha</string>    
 	
- 	<!-- Frequency for which to check for program updates. -->
- 	<!-- Frequency for which to check for program updates. -->
- 	<!-- Frequency for which to check for program updates. -->
-
 	<!-- The dialog message when loading a URL -->
 	<string name="loading_message">Cargando. Por favor espere...</string>
 

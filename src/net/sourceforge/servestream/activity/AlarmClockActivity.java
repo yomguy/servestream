@@ -255,7 +255,7 @@ public class AlarmClockActivity extends SherlockActivity implements OnItemClickL
     public void onCreateContextMenu(ContextMenu menu, View view,
             ContextMenuInfo menuInfo) {
         // Inflate the menu from xml.
-        getMenuInflater().inflate(R.menu.context_menu, menu);
+        getMenuInflater().inflate(R.menu.alarm_clock_context_menu, menu);
 
         // Use the current item to create a custom view for the header.
         final AdapterContextMenuInfo info = (AdapterContextMenuInfo) menuInfo;
@@ -303,7 +303,7 @@ public class AlarmClockActivity extends SherlockActivity implements OnItemClickL
     
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        getSupportMenuInflater().inflate(R.menu.alarm_list_menu, menu);
+        getSupportMenuInflater().inflate(R.menu.alarm_clock_menu, menu);
         return super.onCreateOptionsMenu(menu);
     }
 

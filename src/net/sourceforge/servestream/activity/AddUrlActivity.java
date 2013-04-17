@@ -26,8 +26,11 @@ import net.sourceforge.servestream.transport.TransportFactory;
 import android.app.ProgressDialog;
 import android.net.Uri;
 import android.os.Bundle;
+import android.view.KeyEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
+import android.view.View.OnKeyListener;
+import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.EditText;
 
@@ -42,18 +45,34 @@ public class AddUrlActivity extends SherlockActivity {
 	private Button mConfirmButton;
 	private Button mCancelButton;
 
-	private ProgressDialog progDialog;
-
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
-		//setTheme(UserPreferences.getTheme());
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_add_uri);
 
+		getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
+		
 		ActionBar actionBar = getSupportActionBar();
 		actionBar.setDisplayHomeAsUpEnabled(true);		
 
 		mUrlEditText = (EditText) findViewById(R.id.url_edittext);
+		mUrlEditText.setOnKeyListener(new OnKeyListener() {
+
+			public boolean onKey(View v, int keyCode, KeyEvent event) {
+
+				if(event.getAction() == KeyEvent.ACTION_UP)
+					return false;
+				
+				if(keyCode != KeyEvent.KEYCODE_ENTER)
+					return false;
+			    
+				processUri();
+				
+			    return true;
+			}
+			
+		});
+		
 		mImportButton = (Button) findViewById(R.id.import_button);
 		mCancelButton = (Button) findViewById(R.id.cancel_button);
 		mCancelButton.setOnClickListener(new OnClickListener() {
@@ -70,7 +89,7 @@ public class AddUrlActivity extends SherlockActivity {
 
 			@Override
 			public void onClick(View v) {
-				processUri(mUrlEditText.getText().toString());
+				processUri();
 			}
 			
 		});
@@ -88,18 +107,17 @@ public class AddUrlActivity extends SherlockActivity {
         return super.onOptionsItemSelected(item);
     }
     
-    private boolean processUri(String input) {
-		//hideKeyboard();
-		
-		StreamDatabase streamdb = new StreamDatabase(this);
+    private void processUri() {
+		String input = mUrlEditText.getText().toString();
 		
 		Uri uri = TransportFactory.getUri(input);
 
 		if (uri == null) {
 			mUrlEditText.setError(getString(R.string.invalid_url_message));
-			return false;
+			return;
 		}
 
+		StreamDatabase streamdb = new StreamDatabase(this);
 		UriBean uriBean = TransportFactory.findUri(streamdb, uri);
 		if (uriBean == null) {
 			uriBean = TransportFactory.getTransport(uri.getScheme()).createUri(uri);
@@ -110,7 +128,6 @@ public class AddUrlActivity extends SherlockActivity {
 		}
 		
 		streamdb.close();
-		
-		return true;
+		finish();
 	}
 }

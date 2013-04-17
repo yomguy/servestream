@@ -18,11 +18,9 @@
 package net.sourceforge.servestream.media;
 
 import android.content.Context;
-import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.util.Log;
 
-import java.io.FileDescriptor;
 import java.io.IOException;
 
 import net.sourceforge.servestream.transport.File;

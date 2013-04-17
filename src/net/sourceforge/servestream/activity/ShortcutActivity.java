@@ -23,9 +23,9 @@ import java.util.List;
 import com.actionbarsherlock.app.SherlockListActivity;
 
 import net.sourceforge.servestream.R;
+import net.sourceforge.servestream.adapter.UrlListAdapter;
 import net.sourceforge.servestream.bean.UriBean;
 import net.sourceforge.servestream.dbutils.StreamDatabase;
-import net.sourceforge.servestream.utils.UrlListAdapter;
 import android.content.Intent;
 import android.content.Intent.ShortcutIconResource;
 import android.os.Bundle;
@@ -37,13 +37,13 @@ import android.widget.AdapterView.OnItemClickListener;
 public class ShortcutActivity extends SherlockListActivity {
 
 	@Override
-	protected void onCreate(Bundle savedInstanceState) {
+	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_shortcut);
 		
 		getSupportActionBar();
 		
-		ListView list = (ListView) findViewById(android.R.id.list);
+		ListView list = getListView();
 		list.setOnItemClickListener(new OnItemClickListener() {
 			public synchronized void onItemClick(AdapterView<?> parent, View view, int position, long id) {
 				UriBean uriBean = (UriBean) parent.getAdapter().getItem(position);				
@@ -67,7 +67,7 @@ public class ShortcutActivity extends SherlockListActivity {
 		
 		StreamDatabase streamdb = new StreamDatabase(this);
 		List<UriBean> uris = new ArrayList<UriBean>();
-		uris = streamdb.getUris(false);
+		uris = streamdb.getUris();
 		UrlListAdapter adapter = new UrlListAdapter(this, uris);
 		list.setAdapter(adapter);
 		streamdb.close();

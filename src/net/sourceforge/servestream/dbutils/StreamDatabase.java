@@ -1,6 +1,6 @@
 /*
  * ServeStream: A HTTP stream browser/player for Android
- * Copyright 2010 William Seemann
+ * Copyright 2013 William Seemann
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -52,9 +52,10 @@ public class StreamDatabase extends SQLiteOpenHelper {
 	public final static String FIELD_STREAM_LASTCONNECT = "lastconnect";
 	public final static String FIELD_STREAM_COLOR = "color";
 	public final static String FIELD_STREAM_FONTSIZE = "fontsize";
+	public final static String FIELD_STREAM_LIST_POSITION = "listposition";
 	
 	public static final String	DATABASE_NAME = "servestream.db";
-    private static final int DATABASE_VERSION = 4;
+    private static final int DATABASE_VERSION = 5;
     
     private static final String STREAM_TABLE_CREATE =
                 "CREATE TABLE " + TABLE_STREAMS + " (" +
@@ -70,7 +71,8 @@ public class StreamDatabase extends SQLiteOpenHelper {
 				FIELD_STREAM_REFERENCE + " TEXT, " +
 				FIELD_STREAM_LASTCONNECT + " INTEGER, " +
                 FIELD_STREAM_COLOR + " TEXT, " +
-	            FIELD_STREAM_FONTSIZE + " INTEGER);";
+	            FIELD_STREAM_FONTSIZE + " INTEGER, " +
+                FIELD_STREAM_LIST_POSITION + " INTEGER);";
 
     public StreamDatabase(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
@@ -110,6 +112,25 @@ public class StreamDatabase extends SQLiteOpenHelper {
 				db.execSQL("ALTER TABLE " + TABLE_STREAMS
 						+ " ADD COLUMN " + FIELD_STREAM_REFERENCE + " TEXT DEFAULT ''");
 				break;
+			case 4:
+				db.execSQL("ALTER TABLE " + TABLE_STREAMS
+						+ " ADD COLUMN " + FIELD_STREAM_LIST_POSITION + " INTEGER");
+				
+			    Cursor c = db.query(TABLE_STREAMS, null, null, null, null, null, FIELD_STREAM_ID + " ASC");
+
+			    List<UriBean> uris = createUriBeans(c);
+
+			    c.close();
+				
+				ContentValues values = new ContentValues();
+				
+				for (int i = 0; i < uris.size(); i++) {
+					UriBean uri = uris.get(i);
+					values.clear();
+					values.put(StreamDatabase.FIELD_STREAM_LIST_POSITION, uri.getId());
+					db.update(TABLE_STREAMS, values, FIELD_STREAM_ID + " = ?", new String [] { String.valueOf(uri.getId()) });
+				}
+				break;
 		}
 	}
 	
@@ -131,6 +152,19 @@ public class StreamDatabase extends SQLiteOpenHelper {
 		}
 	}
 	
+	/**
+	 * Touch a specific stream to update its "last connected" field.
+	 * 
+	 * @param stream Nickname field of stream to update
+	 */
+	public void updateUri(UriBean uri, ContentValues values) {
+		synchronized (dbLock) {
+			SQLiteDatabase db = this.getWritableDatabase();
+
+			db.update(TABLE_STREAMS, values, FIELD_STREAM_ID + " = ?", new String[] { String.valueOf(uri.getId()) });
+		}
+	}
+	
 	private List<UriBean> createUriBeans(Cursor c) {
 		List<UriBean> uris = new ArrayList<UriBean>();
 
@@ -144,7 +178,8 @@ public class StreamDatabase extends SQLiteOpenHelper {
 			COL_PATH = c.getColumnIndexOrThrow(FIELD_STREAM_PATH),
 			COL_QUERY = c.getColumnIndexOrThrow(FIELD_STREAM_QUERY),
 			COL_REFERENCE = c.getColumnIndexOrThrow(FIELD_STREAM_REFERENCE),
-			COL_LASTCONNECT = c.getColumnIndexOrThrow(FIELD_STREAM_LASTCONNECT);
+			COL_LASTCONNECT = c.getColumnIndexOrThrow(FIELD_STREAM_LASTCONNECT),
+			COL_LISTPOSITION = c.getColumnIndexOrThrow(FIELD_STREAM_LIST_POSITION);
 
 		while (c.moveToNext()) {
 			UriBean uri = new UriBean();
@@ -160,6 +195,7 @@ public class StreamDatabase extends SQLiteOpenHelper {
 			uri.setQuery(c.getString(COL_QUERY));
 			uri.setReference(c.getString(COL_REFERENCE));
 			uri.setLastConnect(c.getLong(COL_LASTCONNECT));
+			uri.setListPosition(c.getInt(COL_LISTPOSITION));
 
 			uris.add(uri);
 		}
@@ -168,18 +204,12 @@ public class StreamDatabase extends SQLiteOpenHelper {
 	}
 	
 	public List<UriBean> getUris() {
-		return getUris(false);
-	}
-	
-	
-	public List<UriBean> getUris(boolean sortByName) {
-		String sortField = sortByName ? FIELD_STREAM_NICKNAME : FIELD_STREAM_ID;
 		List<UriBean> uris = new ArrayList<UriBean>();
 		
 		synchronized (dbLock) {
 			SQLiteDatabase db = this.getWritableDatabase();
 
-		    Cursor c = db.query(TABLE_STREAMS, null, null, null, null, null, sortField + " ASC");
+		    Cursor c = db.query(TABLE_STREAMS, null, null, null, null, null, FIELD_STREAM_LIST_POSITION + " ASC");
 
 		    uris = createUriBeans(c);
 
@@ -280,9 +310,14 @@ public class StreamDatabase extends SQLiteOpenHelper {
 			SQLiteDatabase db = this.getWritableDatabase();
 
 			id = db.insert(TABLE_STREAMS, null, uri.getValues());
+			
+			ContentValues values = new ContentValues();
+			values.put(StreamDatabase.FIELD_STREAM_LIST_POSITION, id);
+			db.update(TABLE_STREAMS, values, FIELD_STREAM_ID + " = ?", new String [] { String.valueOf(id) });
 		}
 
 		uri.setId(id);
+		uri.setListPosition((int) id);
 		
         Log.v("TAG", "Uri wrote to database");
 		return uri;
