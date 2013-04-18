@@ -60,6 +60,7 @@ public class MainActivity extends SherlockFragmentActivity implements
 	
 	private final static String DOWNLOAD_SCANNER_DIALOG = "download_scanner_dialog";
 	
+	private static Bundle mSavedInstanceState;
 	private static UrlListFragment mUrlListFragment;
 	private static BrowseFragment mBrowseFragment;
 	
@@ -82,21 +83,7 @@ public class MainActivity extends SherlockFragmentActivity implements
 
 		viewpager.setAdapter(pagerAdapter);
 
-		Tab urlsTab = getSupportActionBar().newTab();
-		urlsTab.setText(getString(R.string.url_label));
-		Tab browseTab = getSupportActionBar().newTab();
-		browseTab.setText(getString(R.string.browse_label));
-
-		Bundle args = new Bundle();
-		args.putString(UrlListFragment.ARG_TARGET_URI, getUri());
-		
-		pagerAdapter.addTab(urlsTab, UrlListFragment.class, args);
-		pagerAdapter.addTab(browseTab, BrowseFragment.class, null);
-		
-		if (savedInstanceState != null) {
-			getSupportActionBar().setSelectedNavigationItem(
-					savedInstanceState.getInt("tab", 0));
-		}
+		mSavedInstanceState = savedInstanceState;
 		
         mToken = MusicUtils.bindToService(this, this);
 	}
@@ -336,6 +323,24 @@ public class MainActivity extends SherlockFragmentActivity implements
 	@Override
 	public void onServiceConnected(ComponentName name, IBinder service) {
 		MusicUtils.updateNowPlaying(this);
+		
+		Tab urlsTab = getSupportActionBar().newTab();
+		urlsTab.setText(getString(R.string.url_label));
+		Tab browseTab = getSupportActionBar().newTab();
+		browseTab.setText(getString(R.string.browse_label));
+
+		Bundle args = new Bundle();
+		args.putString(UrlListFragment.ARG_TARGET_URI, getUri());
+		
+		pagerAdapter.addTab(urlsTab, UrlListFragment.class, args);
+		pagerAdapter.addTab(browseTab, BrowseFragment.class, null);
+		
+		if (mSavedInstanceState != null) {
+			getSupportActionBar().setSelectedNavigationItem(
+					mSavedInstanceState.getInt("tab", 0));
+		}
+		
+		mSavedInstanceState = null;
 	}
 
 	@Override
