@@ -18,6 +18,7 @@
 package net.sourceforge.servestream.activity;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import com.actionbarsherlock.app.ActionBar;
 import com.actionbarsherlock.app.SherlockListActivity;
@@ -90,7 +91,10 @@ public class OrganizeUrlsActivity extends SherlockListActivity {
 	
 	private void updateList() {
 		mAdapter.clear();
-		mAdapter.addAll(mStreamdb.getUris());
+		List<UriBean> uris = mStreamdb.getUris();
+		for (int i = 0; i < uris.size(); i++) {
+			mAdapter.add(uris.get(i));
+		}
 		mAdapter.notifyDataSetChanged();
 	}
 	

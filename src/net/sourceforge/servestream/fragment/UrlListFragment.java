@@ -40,7 +40,6 @@ import net.sourceforge.servestream.utils.PreferenceConstants;
 
 import android.app.Activity;
 import android.app.AlertDialog;
-import android.app.Dialog;
 import android.content.ContentResolver;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -79,8 +78,6 @@ public class UrlListFragment extends SherlockFragment implements
 	private final static String RATE_DIALOG = "rate_dialog";
 	
 	public static final String ARG_TARGET_URI = "target_uri";
-	
-	private final static int UNSUPPORTED_SCANNED_INTENT = 3;
 	
 	private ListView mList = null;
 	
@@ -186,28 +183,6 @@ public class UrlListFragment extends SherlockFragment implements
 		super.onDetach();
 		
 		mStreamdb.close();
-	}
-	
-	protected Dialog onCreateDialog(int id) {
-	    Dialog dialog;
-    	AlertDialog.Builder builder;
-    	AlertDialog alertDialog;
-	    switch(id) {
-	    case UNSUPPORTED_SCANNED_INTENT:
-	    	builder = new AlertDialog.Builder(this.getActivity());
-	    	builder.setMessage(R.string.unsupported_scanned_intent_message)
-	    	       .setCancelable(true)
-	    	       .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
-	    	           public void onClick(DialogInterface dialog, int id) {
-	    	                dialog.cancel();
-	    	           }
-	    	       });
-	    	alertDialog = builder.create();
-	    	return alertDialog;
-	    default:
-	        dialog = null;
-	    }
-	    return dialog;
 	}
 	
 	@Override
