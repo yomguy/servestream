@@ -18,26 +18,21 @@
  */
 -->
 
-<LinearLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="fill_parent"
     android:layout_height="wrap_content"
-    android:orientation="horizontal">
+    android:orientation="horizontal" >
 
-    <!-- I can't use a normal checkbox here for a couple reasons:
-         1. The checkbox button resources cannot contain layouts so I have to
-            use 2 views for the clock and the bar.
-         2. The normal checkbox has a really messed up layout. Using the button
-            attribute produces a left-aligned image that has some kind of
-            minimum height. If the bar is a checkbox, it is too tall and is
-            clipped on the right.
-    -->
-    <LinearLayout android:id="@+id/indicator"
-        style="@style/alarm_list_left_column"
+    <LinearLayout
+        android:id="@+id/indicator"
+        android:layout_width="68dip"
+        android:layout_height="68dip"
         android:background="?attr/borderless_button"
         android:gravity="center"
-        android:orientation="vertical">
-        <CheckBox android:id="@+id/clock_onoff"
+        android:orientation="vertical" >
+        
+        <CheckBox
+            android:id="@+id/clock_onoff"
             android:focusable="false"
             android:clickable="false"
             android:background="@drawable/indicator_clock_onoff"
@@ -46,15 +41,17 @@
             android:layout_width="wrap_content"
             android:layout_gravity="center"
             android:button="@null" />
-        <ImageView android:id="@+id/bar_onoff"
+        
+        <ImageView
+            android:id="@+id/bar_onoff"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
             android:paddingTop="4dip"
             android:src="@drawable/ic_indicator_off" />
+        
     </LinearLayout>
 
-    <!-- Changed layout_width from "wrap_content" to "1dip" to prevent layout issue in Jelly Bean -->
     <ImageView
         android:src="@drawable/divider_vertical_dark"
         android:background="?android:attr/windowBackground"
@@ -65,39 +62,40 @@
         android:scaleType="fitXY"
         android:gravity="fill_vertical" />
 
-    <!-- A layout that displays the time.  Shows time, am/pm (if 12-hour),
-         and an optional line below, used for day/days of week -->
     <net.sourceforge.servestream.alarm.DigitalClock android:id="@+id/digitalClock"
-        android:layout_width="wrap_content"
+        android:layout_width="0dip"
         android:layout_height="fill_parent"
         android:gravity="center_vertical"
         android:layout_weight="1"
         android:orientation="vertical"
         android:paddingLeft="16dip"
-        android:paddingRight="16dip">
+        android:paddingRight="16dip" >
 
         <LinearLayout
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
-            android:baselineAligned="true">
+            android:baselineAligned="true" >
 
-            <TextView android:id="@+id/timeDisplay"
+            <TextView
+                android:id="@+id/timeDisplay"
                 android:includeFontPadding="false"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:paddingRight="6dip"
                 android:textSize="28sp"
-                android:textColor="?android:attr/textColorPrimary"/>
+                android:textColor="?android:attr/textColorPrimary" />
 
-            <TextView android:id="@+id/am_pm"
+            <TextView
+                android:id="@+id/am_pm"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:textAppearance="?android:attr/textAppearanceSmall"
                 android:textStyle="bold"
-                android:textColor="?android:attr/textColorPrimary"/>
+                android:textColor="?android:attr/textColorPrimary" />
 
-            <TextView android:id="@+id/label"
-                android:layout_width="wrap_content"
+            <TextView
+                android:id="@+id/label"
+                android:layout_width="0dip"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:paddingLeft="8dip"
@@ -105,16 +103,17 @@
                 android:textColor="?android:attr/textColorTertiary"
                 android:textStyle="bold"
                 android:gravity="right"
-                android:singleLine="true"/>
+                android:singleLine="true" />
 
         </LinearLayout>
 
-        <TextView android:id="@+id/daysOfWeek"
+        <TextView
+            android:id="@+id/daysOfWeek"
             android:includeFontPadding="false"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
             android:textAppearance="?android:attr/textAppearanceSmall"
-            android:textColor="?android:attr/textColorSecondary"/>
+            android:textColor="?android:attr/textColorSecondary" />
 
     </net.sourceforge.servestream.alarm.DigitalClock>
 

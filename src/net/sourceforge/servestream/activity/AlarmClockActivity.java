@@ -85,7 +85,7 @@ public class AlarmClockActivity extends SherlockActivity implements OnItemClickL
         }
 
         public View newView(Context context, Cursor cursor, ViewGroup parent) {
-            View ret = mFactory.inflate(R.layout.alarm_time, parent, false);
+            View ret = mFactory.inflate(R.layout.alarm_time_item, parent, false);
 
             DigitalClock digitalClock =
                     (DigitalClock) ret.findViewById(R.id.digitalClock);
