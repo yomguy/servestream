@@ -166,7 +166,7 @@ public class AlarmClockActivity extends SherlockActivity implements OnItemClickL
                 // Confirm that the alarm will be deleted.
                 new AlertDialog.Builder(this)
                         .setTitle(getString(R.string.delete_alarm))
-                        .setMessage(getString(R.string.delete_alarm_confirm))
+                        .setMessage(getString(R.string.alarm_delete_confirmation_msg))
                         .setPositiveButton(android.R.string.ok,
                                 new DialogInterface.OnClickListener() {
                                     public void onClick(DialogInterface d,
@@ -216,7 +216,6 @@ public class AlarmClockActivity extends SherlockActivity implements OnItemClickL
         setContentView(R.layout.activity_alarm_clock);
         
 		ActionBar actionBar = getSupportActionBar();
-		actionBar.setTitle(R.string.title_alarm_clock);
 		actionBar.setDisplayHomeAsUpEnabled(true);
         
         mAlarmsList = (ListView) findViewById(R.id.alarms_list);

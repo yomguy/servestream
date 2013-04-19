@@ -29,7 +29,7 @@
         android:icon="@android:drawable/ic_menu_close_clear_cancel"/>
     <item
         android:id="@+id/menu_item_sleep_timer"
-        android:title="@string/list_menu_sleep_timer"
+        android:title="@string/set_sleeptimer_label"
         android:icon="@drawable/ic_menu_sleep_timer"/>
 </menu>
 

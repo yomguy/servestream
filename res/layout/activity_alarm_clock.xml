@@ -27,7 +27,7 @@
     <LinearLayout android:id="@+id/add_alarm"
         android:clickable="true"
         android:focusable="true"
-        android:background="@android:drawable/list_selector_background"
+        android:background="?attr/borderless_button"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal">

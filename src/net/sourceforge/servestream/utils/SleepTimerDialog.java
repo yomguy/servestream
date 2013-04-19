@@ -112,11 +112,11 @@ public class SleepTimerDialog extends DialogFragment implements DialogInterface.
         // Use the Builder class for convenient dialog construction
 	    AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
 	    builder = new AlertDialog.Builder(getActivity());
-	    builder.setTitle(R.string.menu_sleep_timer);
+	    builder.setTitle(R.string.sleep_timer_label);
 	    builder.setCancelable(true);
 	    builder.setView(sleepTimerView);
 	    builder.setOnCancelListener(this);
-    	builder.setPositiveButton(R.string.set_alarm, new DialogInterface.OnClickListener() {
+    	builder.setPositiveButton(R.string.enable_sleeptimer_label, new DialogInterface.OnClickListener() {
     		public void onClick(DialogInterface dialog, int whichButton) {
     			mListener.onSleepTimerSet(SleepTimerDialog.this, seekbar.getProgress());
     		}
@@ -132,7 +132,7 @@ public class SleepTimerDialog extends DialogFragment implements DialogInterface.
     	String minuteText;
     	
     	if (pos == MediaPlaybackService.SLEEP_TIMER_OFF) {
-	    	minuteText = getResources().getString(R.string.minute_picker_cancel);
+	    	minuteText = getResources().getString(R.string.disable_sleeptimer_label);
 	    } else if (pos == 1) {
 	    	minuteText = getResources().getString(R.string.minute);
 	    } else if (pos % 60 == 0 && pos > 60) {

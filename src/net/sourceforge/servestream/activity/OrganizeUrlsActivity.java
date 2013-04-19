@@ -102,6 +102,10 @@ public class OrganizeUrlsActivity extends SherlockListActivity {
 
 		@Override
 		public void drop(int from, int to) {
+        	if (from == to) {
+        		return;
+        	}
+			
 			UriBean fromUri = (UriBean) getListView().getAdapter().getItem(from);
 			UriBean toUri = (UriBean) getListView().getAdapter().getItem(to);
 			updateUris(fromUri, toUri);

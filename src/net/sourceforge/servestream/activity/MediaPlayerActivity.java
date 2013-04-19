@@ -760,7 +760,7 @@ public class MediaPlayerActivity extends SherlockFragmentActivity implements Mus
     	String minuteText;
     	
     	if (pos == MediaPlaybackService.SLEEP_TIMER_OFF) {
-	    	minuteText = getResources().getString(R.string.minute_picker_cancel);
+	    	minuteText = getResources().getString(R.string.disable_sleeptimer_label);
 	    } else if (pos == 1) {
 	    	minuteText = getResources().getString(R.string.minute);
 	    } else if (pos % 60 == 0 && pos > 60) {

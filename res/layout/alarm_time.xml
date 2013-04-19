@@ -32,9 +32,9 @@
             minimum height. If the bar is a checkbox, it is too tall and is
             clipped on the right.
     -->
-    <net.sourceforge.servestream.alarm.DontPressWithParentLayout android:id="@+id/indicator"
+    <LinearLayout android:id="@+id/indicator"
         style="@style/alarm_list_left_column"
-        android:background="@drawable/clock_selector"
+        android:background="?attr/borderless_button"
         android:gravity="center"
         android:orientation="vertical">
         <CheckBox android:id="@+id/clock_onoff"
@@ -52,7 +52,7 @@
             android:layout_gravity="center"
             android:paddingTop="4dip"
             android:src="@drawable/ic_indicator_off" />
-    </net.sourceforge.servestream.alarm.DontPressWithParentLayout>
+    </LinearLayout>
 
     <!-- Changed layout_width from "wrap_content" to "1dip" to prevent layout issue in Jelly Bean -->
     <ImageView

@@ -39,11 +39,10 @@
 	<application
 		android:icon="@drawable/icon"
 		android:label="@string/app_name"
-		android:description="@string/app_desc"
 		android:allowBackup="true"
 		android:backupAgent=".service.BackupAgent"
 		android:killAfterRestore="true"
-		android:theme="@style/Theme.ServeStream" >
+		android:theme="@style/Theme.ServeStream.Dark" >
 
 		<meta-data
 		    android:name="com.google.android.backup.api_key"
@@ -140,8 +139,10 @@
 				<category android:name="android.intent.category.DEFAULT" />
 			</intent-filter>
 		</activity>
-		
-		<activity android:name=".activity.StreamEditorActivity" android:configChanges="keyboardHidden|orientation" />
+		<activity
+		    android:name=".activity.StreamEditorActivity"
+		    android:configChanges="keyboardHidden|orientation" >
+		</activity>
 
 		<service
 		    android:name=".service.MediaPlaybackService"
@@ -200,20 +201,23 @@
 		<!-- Alarm Activities -->
 
         <activity android:name=".activity.AlarmClockActivity"
-                android:label="@string/alarm_list_title"
+                android:label="@string/alarm_clock_label"
                 android:taskAffinity=""
                 android:excludeFromRecents="true"
                 android:configChanges="orientation|keyboardHidden|keyboard|navigation"
                 android:exported="false" />
 
-        <activity android:name=".activity.SetAlarmActivity" android:label="@string/set_alarm"
-                android:configChanges="orientation|keyboardHidden|keyboard|navigation" />
+        <activity
+            android:name=".activity.SetAlarmActivity"
+            android:label="@string/set_alarm_label"
+            android:configChanges="orientation|keyboardHidden|keyboard|navigation" />
                 
-        <activity android:name=".alarm.AlarmAlert"
-                android:excludeFromRecents="true"
-                android:launchMode="singleInstance"
-                android:taskAffinity=""
-                android:configChanges="orientation|keyboardHidden|keyboard|navigation"/>
+        <activity
+            android:name=".alarm.AlarmAlert"
+        	android:excludeFromRecents="true"
+        	android:launchMode="singleInstance"
+        	android:taskAffinity=""
+       		android:configChanges="orientation|keyboardHidden|keyboard|navigation"/>
 
         <!-- This activity is basically the same as AlarmAlert but with a more
              generic theme. It also shows as full screen (with status bar) but

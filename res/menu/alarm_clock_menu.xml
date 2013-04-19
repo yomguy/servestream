@@ -22,7 +22,8 @@
     <item
         android:id="@+id/menu_item_add_alarm"
         android:title="@string/add_alarm"
-        android:icon="@drawable/ic_menu_add"/>
+        android:icon="?attr/content_new"
+        android:showAsAction="always|withText"/>
 </menu>
 
 

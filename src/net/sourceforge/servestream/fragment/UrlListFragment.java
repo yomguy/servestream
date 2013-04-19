@@ -20,8 +20,8 @@ package net.sourceforge.servestream.fragment;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.actionbarsherlock.app.SherlockFragment;
 import com.actionbarsherlock.app.SherlockFragmentActivity;
+import com.actionbarsherlock.app.SherlockListFragment;
 
 import net.sourceforge.servestream.transport.AbsTransport;
 import net.sourceforge.servestream.transport.TransportFactory;
@@ -58,8 +58,8 @@ import android.util.Log;
 import android.view.ContextMenu;
 import android.view.LayoutInflater;
 import android.view.View;
-import android.view.ViewGroup;
 import android.view.MenuItem.OnMenuItemClickListener;
+import android.view.ViewGroup;
 
 import android.widget.AdapterView;
 import android.widget.ListView;
@@ -68,7 +68,7 @@ import android.widget.AdapterView.OnItemClickListener;
 
 import net.sourceforge.servestream.utils.DetermineActionTask;
 
-public class UrlListFragment extends SherlockFragment implements
+public class UrlListFragment extends SherlockListFragment implements
 				DetermineActionTask.MusicRetrieverPreparedListener,
 				LoadingDialogListener {
 	
@@ -79,12 +79,12 @@ public class UrlListFragment extends SherlockFragment implements
 	
 	public static final String ARG_TARGET_URI = "target_uri";
 	
-	private ListView mList = null;
-	
 	private StreamDatabase mStreamdb = null;
 	
 	private SharedPreferences mPreferences = null;
     private DetermineActionTask mDetermineActionTask;
+    
+    private UrlListAdapter mAdapter;
     
     private BrowseIntentListener mListener;
     
@@ -119,21 +119,21 @@ public class UrlListFragment extends SherlockFragment implements
         setHasOptionsMenu(true);
     }
 	
-	@Override
-	public View onCreateView(LayoutInflater inflater, ViewGroup container,
-			Bundle savedInstanceState) {
-		View result = inflater.inflate(R.layout.fragment_uri_list, container, false);
-		mList = (ListView) result.findViewById(android.R.id.list);
-		mList.setEmptyView(result.findViewById(android.R.id.empty));
-		
-		return result;
-	}
-	
 	public void refresh(Bundle args) {
 		// If the intent is a request to create a shortcut, we'll do that and exit
 		String targetUri = args.getString(ARG_TARGET_URI);
 		
 		processUri(targetUri);
+	}
+	
+	@Override
+	public View onCreateView(LayoutInflater inflater, ViewGroup container,
+			Bundle savedInstanceState) {
+		View result = inflater.inflate(R.layout.fragment_uri_list, container, false);
+		ListView list = (ListView) result.findViewById(android.R.id.list);
+		list.setEmptyView(result.findViewById(android.R.id.empty));
+		
+		return result;
 	}
 	
 	@Override
@@ -158,7 +158,8 @@ public class UrlListFragment extends SherlockFragment implements
 			}
 		}
 		
-		mList.setOnItemClickListener(new OnItemClickListener() {
+		ListView list = getListView();
+		list.setOnItemClickListener(new OnItemClickListener() {
 			public synchronized void onItemClick(AdapterView<?> parent, View view, int position, long id) {
 
 				UriBean uriBean = (UriBean) parent.getAdapter().getItem(position);
@@ -166,8 +167,11 @@ public class UrlListFragment extends SherlockFragment implements
 			}
 		});
 
-		registerForContextMenu(mList);
+		registerForContextMenu(list);
 
+		mAdapter = new UrlListAdapter(this.getActivity(), new ArrayList<UriBean>());
+		setListAdapter(mAdapter);
+		
 		processUri(targetUri);
 	}
 	
@@ -189,13 +193,13 @@ public class UrlListFragment extends SherlockFragment implements
 	public void onCreateContextMenu(ContextMenu menu, View v, ContextMenu.ContextMenuInfo menuInfo) {
 		// create menu to handle editing, deleting and sharing of URLs
 		AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo) menuInfo;
-		final UriBean uri = (UriBean) mList.getItemAtPosition(info.position);
+		final UriBean uri = (UriBean) getListView().getItemAtPosition(info.position);
 
 		// set the menu to the name of the URL
 		menu.setHeaderTitle(uri.getNickname());
 
 		// edit the URL
-		android.view.MenuItem edit = menu.add(R.string.edit);
+		android.view.MenuItem edit = menu.add(R.string.edit_label);
 		edit.setOnMenuItemClickListener(new OnMenuItemClickListener() {
 			public boolean onMenuItemClick(android.view.MenuItem arg0) {
 				Intent intent = new Intent(getActivity(), StreamEditorActivity.class);
@@ -211,8 +215,8 @@ public class UrlListFragment extends SherlockFragment implements
 			public boolean onMenuItemClick(android.view.MenuItem item) {
 				// prompt user to make sure they really want this.getActivity()
 				new AlertDialog.Builder(getActivity())
-					.setMessage(getString(R.string.delete_message, uri.getNickname()))
-					.setPositiveButton(R.string.delete_pos, new DialogInterface.OnClickListener() {
+					.setMessage(getString(R.string.url_delete_confirmation_msg, uri.getNickname()))
+					.setPositiveButton(R.string.confirm_label, new DialogInterface.OnClickListener() {
 						public void onClick(DialogInterface dialog, int which) {
 							mStreamdb.deleteUri(uri);
 							ContentResolver resolver = getActivity().getContentResolver();
@@ -222,13 +226,13 @@ public class UrlListFragment extends SherlockFragment implements
 							updateList();
 						}
 						})
-					.setNegativeButton(android.R.string.cancel, null).create().show();
+					.setNegativeButton(R.string.cancel_label, null).create().show();
 				return true;
 			}
 		});
 		
 		// add to playlist
-		android.view.MenuItem add = menu.add(R.string.add_to_playlist);
+		android.view.MenuItem add = menu.add(R.string.add_to_playlist_label);
 		add.setOnMenuItemClickListener(new OnMenuItemClickListener() {
 			public boolean onMenuItemClick(android.view.MenuItem item) {
 				MusicUtils.addToCurrentPlaylistFromURL(getActivity(), uri, mQueueHandler);
@@ -237,7 +241,7 @@ public class UrlListFragment extends SherlockFragment implements
 		});
 		
 		// share the URL
-		android.view.MenuItem share = menu.add(R.string.share);
+		android.view.MenuItem share = menu.add(R.string.share_label);
 		share.setOnMenuItemClickListener(new OnMenuItemClickListener() {
 			public boolean onMenuItemClick(android.view.MenuItem item) {
 				String url = uri.getUri().toString();
@@ -246,7 +250,7 @@ public class UrlListFragment extends SherlockFragment implements
 				Intent intent = new Intent(Intent.ACTION_SEND);
 				intent.setType("text/plain");
 				intent.putExtra(Intent.EXTRA_TEXT, getString(R.string.share_signature, url, appName));
-				startActivity(Intent.createChooser(intent, getString(R.string.title_share)));
+				startActivity(Intent.createChooser(intent, getString(R.string.share_label)));
 				return true;
 			}
 		});
@@ -291,14 +295,15 @@ public class UrlListFragment extends SherlockFragment implements
 		return true;
 	}
 	
-	public void updateList() {
-		List<UriBean> uris = new ArrayList<UriBean>();
-
-		uris = mStreamdb.getUris();
-
-		UrlListAdapter adapter = new UrlListAdapter(this.getActivity(), uris);
-
-		mList.setAdapter(adapter);
+	private void updateList() {
+		mAdapter.clear();
+		
+		List<UriBean> uris = mStreamdb.getUris();
+		for (int i = 0; i < uris.size(); i++) {
+			mAdapter.add(uris.get(i));
+		}
+		
+		mAdapter.notifyDataSetChanged();
 	}
 	
 	private void showUrlNotOpenedToast() {
