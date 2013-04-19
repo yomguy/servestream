@@ -79,7 +79,6 @@ public class SetAlarmActivity extends SherlockPreferenceActivity
         setContentView(R.layout.activity_set_alarm);
 
 		ActionBar actionBar = getSupportActionBar();
-		actionBar.setTitle(R.string.title_set_alarm);
 		actionBar.setDisplayHomeAsUpEnabled(true);
         
         addPreferencesFromResource(R.xml.alarm_prefs);
@@ -312,7 +311,7 @@ public class SetAlarmActivity extends SherlockPreferenceActivity
     private void deleteAlarm() {
         new AlertDialog.Builder(this)
                 .setTitle(getString(R.string.delete_alarm))
-                .setMessage(getString(R.string.delete_alarm_confirm))
+                .setMessage(getString(R.string.alarm_delete_confirmation_msg))
                 .setPositiveButton(android.R.string.ok,
                         new DialogInterface.OnClickListener() {
                             public void onClick(DialogInterface d, int w) {

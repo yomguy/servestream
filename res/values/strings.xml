@@ -2,7 +2,7 @@
 <!--
 /*
  * ServeStream: A HTTP stream browser/player for Android
- * Copyright 2010 William Seemann
+ * Copyright 2013 William Seemann
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,16 +20,6 @@
 
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
 	
-	<string name="app_desc">An Open-Source HTTP Media Stream Browser and Player.</string>
-	
-	<!-- Toasts after adding song(s) to playlists -->
-    <plurals name="NNNtrackstoplaylist">
-        <!-- message shown when one song was added -->
-        <item quantity="one">1 song added to playlist.</item>
-        <!-- message shown when zero or more than one song was added -->
-        <item quantity="other"><xliff:g id="number" example="27">%d</xliff:g> songs added to playlist.</item>
-    </plurals>
-	
     <!-- Activitiy titles -->
     <string name="url_label">URLS</string>
     <string name="browse_label">BROWSE</string>
@@ -37,108 +27,69 @@
     <string name="settings_label">Settings</string>
     <string name="add_new_url_label">Add a new URL</string>
     <string name="now_playing_label">Play queue</string>
-    <string name="organize_urls_label">Organize urls</string>
+    <string name="organize_urls_label">Organize</string>
     <string name="media_player_label">Now playing</string>
+	<string name="alarm_clock_label">Alarm Clock</string>
+	<string name="set_alarm_label">Set Alarm</string>
     
-	<string name="media_service_desc">"Allows media to play in the background"</string>
-	
-	<!-- Displayed to indicate a stream has never been connected to. -->
-	<string name="bind_never">Never connected</string>
-	<!-- The time that has elapsed since a stream was connected to when it has been less than an hour. -->
-	<string name="bind_minutes">%1$s minutes ago</string>
-	<!-- The time that has elapsed since a stream was connected to when it has been less than a day. -->
-	<string name="bind_hours">%1$s hours ago</string>
-	<!-- The time that has elapsed since a stream was connected to when it has been a day or more. -->
-	<string name="bind_days">%1$s days ago</string>
-
-	<string name="cannot_play_media_title">Cannot play media file</string>
-	<string name="cannot_play_media_message">Sorry, this media file cannot be played.</string>
-
-	<string name="delete_message">Are you sure you want to delete \'%1$s\'?</string>
-	<string name="delete_pos">Yes, delete</string>
-
-    <!--
-    This string is used as the format string in a String.format call,
-    and 5 additional arguments are available for printing:
-    1 - hours
-    2 - minutes
-    3 - minutes%60
-    4 - seconds
-    5 - second%60
-    -->
-    <skip/>
-    <!-- Do not translate. Duration format for duration < 1 hour -->
-    <string name="durationformatshort" translatable="false"><xliff:g id="format">%2$d:%5$02d</xliff:g></string>
-    <!-- Do not translate. Duration format for duration >= 1 hour -->
-    <string name="durationformatlong" translatable="false"><xliff:g id="format">%1$d:%3$02d:%5$02d</xliff:g></string>
-
-    <!-- Toast after selecting an empty playlist -->
-    <string name="emptyplaylist">Selected playlist is empty.</string>
-
-	<!-- Displayed when a user tries to use the scan menu option without having ZXing barcode scanner installed. -->
+    <!-- Other -->
+    <string name="confirm_label">Confirm</string>
+    <string name="cancel_label">Cancel</string>
+    <string name="unknown_artist_name">Unknown artist</string>
+    <string name="unknown_album_name">Unknown album</string>
+    <string name="opening_url_message">Opening URL&#8230;</string>
+    <string name="url_not_opened_message">The url could not be opened.</string>
 	<string name="find_barcode_scanner_message">This feature requires the ZXing barcode scanner. Find this application?</string>
-
-	<string name="rate_application">Would you like to rate this application in the Android market? Feedback is appreciated.</string>
+    <string name="rate_application">Would you like to rate this application in the Android market? Feedback is appreciated.</string>
 	<string name="rate_pos">"Yes, take me to the market"</string>
 	<string name="rate_neg">"No, and don\'t ask again"</string>
-	
-	<string name="invalid_playlist_title">Cannot play playlist file</string>
-	<string name="invalid_playlist_message">Sorry, the selected playlist file has no valid entries.</string>
-
-	<string name="invalid_url_message">Enter a valid URL</string>
-
-	<string name="url_not_opened_message">The url could not be opened.</string>
-
-	<string name="save_message">Are you sure you want to save \'%1$s\'?</string>
-	<string name="save_pos">Yes, save</string>
-
-	<string name="share_signature">%1$s \n\n\n\nSent using %2$s</string>
-	
- 	<!-- Context menu item -->
-    <string name="add_to_playlist">Add to playlist</string>
-    <!-- Context menu item -->
-	<string name="edit">Edit</string>
-	<!-- Context menu item -->
-	<string name="delete">Delete</string>
-	<!-- Context menu item -->
-	<string name="save">Save</string>
-	<!-- Context menu item -->
-	<string name="share">Share</string>
-	<!-- Context menu item -->
-	<string name="view_url">View URL</string>
-	
-	<string name="list_menu_backup">Backup</string>
+    <string name="list_menu_backup">Backup</string>
     <string name="list_menu_effects">Sound effects</string>
-    <string name="list_menu_organize_urls">Organize urls</string>
 	<string name="list_menu_refresh">Refresh</string>
 	<string name="list_menu_scan">Scan</string>
-	<string name="list_menu_settings">Settings</string>
-    <string name="list_menu_sleep_timer">Sleep timer</string>
     <string name="list_menu_stop">Stop</string>
 	
-	<!-- The dialog message when loading a URL -->
-	<string name="loading_message">Loading. Please wait...</string>
+    <!-- Bind -->
+	<string name="bind_never">Never connected</string>
+	<string name="bind_minutes">%1$s minutes ago</string>
+	<string name="bind_hours">%1$s hours ago</string>
+	<string name="bind_days">%1$s days ago</string>
 
-    <!-- Title of sleep timer menu entry -->
-    <string name="menu_sleep_timer">Sleep Timer</string>
-
-    <!-- Button name in minute picker -->
-    <string name="minute_picker_cancel">Off</string>
-    <!-- Button name in minute picker -->
-    <string name="minute_picker_set">Set</string>
-    <!-- Title of minute picker -->
-    <string name="minute_picker_title">Sleep time</string>
-    
-	<!-- Used to display the album and artist in the notification bar -->
-	<string name="notification_artist_album">"<xliff:g id="ALBUM">%2$s</xliff:g>" - "<xliff:g id="ARTIST">%1$s</xliff:g>"</string>
-	<string name="notification_alt_info">"<xliff:g id="INFO">%1$s</xliff:g>"</string>
+	<!-- Share messages -->
+	<string name="share_label">Share via</string>
+	<string name="share_signature">%1$s \n\n\n\nSent using %2$s</string>
 	
-	<!-- The dialog message when opening a URL -->
-	<string name="opening_url_message">Opening URL...</string>
-
-    <!-- Shown as a transient message whenever a file fails to play -->
+	<!-- Actions on URLs -->
+    <string name="add_to_playlist_label">Add to playlist</string>
+	<string name="edit_label">Edit</string>
+	<string name="delete_label">Delete</string>
+	<string name="save_label">Save</string>
+	<string name="share_label">Share</string>
+	<string name="view_url_label">View URL</string>
+	<string name="url_delete_confirmation_msg">Are you sure you want to delete \'%1$s\'?</string>
+	<string name="url_save_confirmation_msg">Are you sure you want to save \'%1$s\'?</string>
+	
+	<!-- Mediaplayer messages -->
+	<string name="buffering_message">Buffering. Please wait&#8230;</string>
     <string name="playback_failed">Sorry, the player does not support this type of media file.</string>
+    <string name="service_start_error_title">Playback problem</string>
+    <string name="service_start_error_msg">Sorry, the media could not be played.</string>
+    
+	<string name="cannot_play_media_title">Cannot play media file</string>
+	<string name="cannot_play_media_message">Sorry, this media file cannot be played.</string>
+	
+    <string name="notification_artist_album">"<xliff:g id="ALBUM">%2$s</xliff:g>" - "<xliff:g id="ARTIST">%1$s</xliff:g>"</string>
+	<string name="notification_alt_info">"<xliff:g id="INFO">%1$s</xliff:g>"</string>
+    
+	<!-- Shuffle -->
+    <string name="shuffle_on_notif">Shuffle is on</string>
+    <string name="shuffle_off_notif">Shuffle is off</string>
 
+    <!-- Repeat -->
+    <string name="repeat_off_notif">Repeat is off</string>
+    <string name="repeat_current_notif">Repeating current media</string>
+    <string name="repeat_all_notif">Repeating all media</string>
+	
     <!-- Preferences -->
     <string name="other_pref">Other</string>
     <string name="about_pref">About</string>
@@ -171,187 +122,71 @@
 	<string name="pref_wifilock_title">"Keep Wi-Fi active"</string>
 	<string name="pref_wifilock_summary">"Prevent Wi-Fi from turning off when a session is active"</string>
 
-    <!-- Toast after turning repeat off -->
-    <string name="repeat_off_notif">Repeat is off</string>
-    <!-- Toast after turning single repeat on -->
-    <string name="repeat_current_notif">Repeating current media</string>
-    <!-- Toast after turning repeat all on -->
-    <string name="repeat_all_notif">Repeating all media</string>
-
-    <!-- Dialog box title -->
-    <string name="service_start_error_title">Playback problem</string>
-    <!-- Dialog box message -->
-    <string name="service_start_error_msg">Sorry, the media could not be played.</string>
-    <!-- Dialog box button -->
-
-    <!-- Toast after turning sleep timer off -->
+    <!-- Sleep timer -->
+    <string name="set_sleeptimer_label">Sleep timer</string>
+    <string name="disable_sleeptimer_label">Off</string>
+    <string name="enable_sleeptimer_label">Set</string>
+    <string name="sleep_timer_label">Sleep Timer</string>
     <string name="sleep_timer_on_notif">Sleep timer is set for</string>
-    <!-- Toast after turning sleep timer on -->
     <string name="sleep_timer_off_notif">Sleep timer is off</string>
 
-    <!-- Toast after turning shuffle on -->
-    <string name="shuffle_on_notif">Shuffle is on</string>
-    <!-- Toast after turning shuffle off -->
-    <string name="shuffle_off_notif">Shuffle is off</string>
-
-	<!-- Stream nickname field preference title -->
+    <!-- Stream preferences -->
 	<string name="streampref_nickname_title">Nickname</string>
-
-	<!-- Stream preference category title for connection settings -->
 	<string name="streampref_connection_category">Connection settings</string>
-
-	<!-- Protocol field title for stream editor preference -->
 	<string name="streampref_protocol_title">Protocol</string>
-
-	<!-- Username field title for stream editor preference -->
 	<string name="streampref_username_title">Username</string>
-
-	<!-- Password field title for stream editor preference -->
 	<string name="streampref_password_title">Password</string>
-
-	<!-- Hostname field title for stream editor preference -->
 	<string name="streampref_hostname_title">Hostname</string>
-
-	<!-- Port field title for stream editor preference -->
 	<string name="streampref_port_title">Port</string>
-
-	<!-- Path field title for stream editor preference -->
 	<string name="streampref_path_title">Path</string>
-
-	<!-- Query field title for stream editor preference -->
 	<string name="streampref_query_title">Query</string>
-
-	<!-- Reference field title for stream editor preference -->
 	<string name="streampref_reference_title">Reference</string>
 
-    <!-- Window title for the Stream List -->
-    <string name="text_go_button">Go</string>
-
-	<!-- Window title for Help index -->
-	<string name="title_help">Help</string>
-
-	<!-- Dialog title for the share intent -->
-	<string name="title_share">Share via</string>
-	
-    <!-- Default name of artist that doesn't have a name in the metadata -->
-    <string name="unknown_artist_name">Unknown artist</string>
-    
-    <!-- Default name of album that doesn't have a name in the metadata -->
-    <string name="unknown_album_name">Unknown album</string>
-
-	<!-- Message to display when a user attempts to scan a URL that is unsupported -->
-	<string name="unsupported_scanned_intent_message">The scanned QR code did not return a supported URL</string>
-	
-	<!-- Dialog title when a new version of ServeStream is detected. -->
-	<string name="upgrade">"New version"</string>
-	<!-- Button selection to upgrade to the latest ServeStream when one is available. -->
-	<string name="upgrade_pos">"Yes, upgrade"</string>
-	<!-- Button selection to skip upgrading to the latest ServeStream when one is available. -->
-	<string name="upgrade_neg">"Not right now"</string>
-	
-	<!-- Text shown on widget one when first loaded -->
+    <!--  Widget -->
 	<string name="widget_one_initial_text">"Touch to select media."</string>
-	
-	<!-- Text shown on widget one when first loaded -->
 	<string name="widget_one_track_info_unavailable">"No track info available"</string>
-
-	<!-- Window title for Alarm Clock -->
-	<string name="title_alarm_clock">Alarm Clock</string>
-
-	<!-- Window title for Set Alarm -->
-	<string name="title_set_alarm">Set Alarm</string>
-
-	<!-- Begin Music Code String -->
-	
-	<!-- Do not translate. Background color for albums in the artists list view. -->
-    <color name="expanding_child_background">#ff404040</color>
-	
-    <!-- context menu item to remove the selected item from the playlist -->
-    <string name="remove_from_playlist">Remove from playlist</string>
-    	
-    <string name="url_label_hint">http://</string>
-    <string name="url_label_text">Type in the URL of a stream or server here:</string>
     
-    <string name="import_text">Type in the URL of the stream or server here:</string>
-    <string name="json_import_txt">You can also import a JSON file:</string>
+    <!-- 'Add URL' Activity labels -->
+    <string name="url_hint">http://</string>
+    <string name="text_url_label">Type in the URL of a stream or server here:</string>
+    <string name="error_url_label">Enter a valid URL</string>
     
     <!-- Empty list labels -->
     <string name="no_items_label">There are no items in this list.</string>
     <string name="no_urls_label">You haven\'t entered any urls yet.</string>
     
-    <!-- End Music Code Strings -->
-	
-	<!-- Begin Alarm Code Strings -->
-	
     <!-- Title for AlarmClock activity -->
     <string name="alarm_list_title">Alarms</string>
 
-    <!-- Menu item on Alarm Clock screen: Add alarm -->
+    <!-- Actions on alarms -->
     <string name="add_alarm">Add alarm</string>
-
-    <!-- Menu item on Alarm Clock screen: Edit alarm -->
     <string name="menu_edit_alarm">Edit alarm</string>
-
-    <!-- Context Menu Item on Alarm Settings screen: Delete alarm -->
     <string name="delete_alarm">Delete alarm</string>
-
-    <!-- Context Menu Item on Alarm Settings screen: Enable alarm -->
     <string name="enable_alarm">Turn alarm on</string>
-
-    <!-- Context Menu Item on Alarm Settings screen: Disable alarm -->
     <string name="disable_alarm">Turn alarm off</string>
+    <string name="alarm_delete_confirmation_msg">This alarm will be deleted.</string>
+    <string name="done">Done</string>
+    <string name="revert">Revert</string>
+    <string name="delete">Delete</string>
 
-    <!-- Delete alarm confirmation dialog message. -->
-    <string name="delete_alarm_confirm">This alarm will be deleted.</string>
-
-    <!-- Setting label on Set alarm screen: Label -->
-    <string name="label">Label</string>
-
-    <!-- Default label to display for an alarm -->
-    <string name="default_label">Alarm</string>
-
-    <!-- Preference category on Alarm Settings screen: Set alarm -->
-    <string name="set_alarm">Set alarm</string>
-
-    <!-- Setting labels on Set alarm screen: Vibration on or off -->
-    <string name="alarm_vibrate">Vibrate</string>
-
-    <!-- Setting labels on Set alarm screen: Repeat -->
-    <string name="alarm_repeat">Repeat</string>
-
-    <!-- Setting labels on Set alarm screen: Select alarm ringtone  -->
-    <string name="alert">Ringtone</string>
-
-    <!-- Setting labels on Set alarm screen: Set time  -->
+    <!-- Alarm preferences -->
     <string name="time">Time</string>
-
-    <!-- Button labels on the alarm dialog: Dismiss -->
+    <string name="alarm_repeat">Repeat</string>
+    <string name="alert">Ringtone</string>
+    <string name="silent_alarm_summary">Silent</string>
+    <string name="alarm_vibrate">Vibrate</string>
+    <string name="label">Label</string>
+    <string name="default_label">Alarm</string>
+    
+    <!-- Alarm alert -->
     <string name="alarm_alert_dismiss_text">Dismiss</string>
-
-    <!-- Alarm Alert screen: this message is shown after an alarm rung
-         unattended for a number of minutes.  It tells the user that
-         the alarm has been silenced.-->
     <string name="alarm_alert_alert_silenced">Alarm silenced after <xliff:g id="minutes">%d</xliff:g> minutes</string>
-
-    <!-- Button labels on the alarm dialog: Snooze -->
     <string name="alarm_alert_snooze_text">Snooze</string>
-
-    <!-- Toast that appears after Alarm is snoozed from the Alarm
-         dialog. Says the alarm will snooze for xxx minutes.  -->
     <string name="alarm_alert_snooze_set">Snoozing for <xliff:g id="minutes">%d</xliff:g> minutes.</string>
-
-    <!-- 0: nothing
-         1: days
-         2:      hours
-         3: days hours
-         4:            minutes
-         5: days       minutes
-         6:      hours minutes
-         7: days hours minutes
-    --><skip />
-
-    <!-- Alarm confirmation toast: Describes how long from now until
-         alarm fires -->
+    <string name="alarm_notify_text">Select to snooze or dismiss this alarm.</string>
+    <string name="alarm_notify_snooze_label"><xliff:g id="label">%s</xliff:g> (snoozed)</string>
+    <string name="alarm_notify_snooze_text">Alarm set for <xliff:g id="time">%s</xliff:g>. Select to cancel.</string>
+    
     <string-array name="alarm_set">
         <item>This alarm is set for less than 1 minute from now.</item>
         <item>This alarm is set for <xliff:g id="DAYS" example="2 days">%1$s</xliff:g> from now.</item>
@@ -363,66 +198,30 @@
         <item>This alarm is set for <xliff:g id="DAYS" example="2 days">%1$s</xliff:g>, <xliff:g id="HOURS" example="2 hours">%2$s</xliff:g>, and <xliff:g id="MINUTES" example="2 minutes">%3$s</xliff:g> from now.</item>
     </string-array>
 
-    <!-- Alarm confirmation toast: singular day -->
     <string name="day">"1 day"</string>
-
-    <!-- Alarm confirmation toast: plural days -->
     <string name="days">"<xliff:g id="days">%s</xliff:g> days"</string>
-
-    <!-- Alarm confirmation toast: singular hour -->
     <string name="hour">1 hour</string>
-
-    <!-- Alarm confirmation toast: plural hours -->
     <string name="hours"><xliff:g id="hours">%s</xliff:g> hours</string>
-
-    <!-- Alarm confirmation toast: singular minute  -->
     <string name="minute">"1 minute"</string>
-
-    <!-- Alarm confirmation toast: plural minutes  -->
     <string name="minutes">"<xliff:g id="minutes">%s</xliff:g> minutes"</string>
-
-    <!-- Repeat options that appear under an alarm on main Alarm Clock
-         screen to identify repetition schedule: special case for when
-         the alarm is set to repeat every day -->
     <string name="every_day">every day</string>
-
-    <!-- Repeat options that appear under an alarm on main Alarm Clock
-         screen to identify repetition schedule: special case for when
-         the alarm is set to never repeat -->
     <string name="never">Never</string>
-
-    <!-- Repeat options that appear under an alarm on main Alarm Clock
-         screen to identify repetition schedule: concatenate days with
-         this character, i.e. "Mon, Tue, Wed" -->
     <string name="day_concat">", "</string>
 
-    <!-- Done button when editing an alarm. -->
-    <string name="done">Done</string>
+    <!-- Service descriptions -->
+    <string name="media_service_desc">"Allows media to play in the background"</string>
+    <string name="alarm_klaxon_service_desc">Sound playback service for alarms.</string>
 
-    <!-- Revert button when editing an alarm. -->
-    <string name="revert">Revert</string>
-
-    <!-- Setting title for changing the alarm volume. -->
-    <string name="alarm_volume_title">Alarm volume</string>
-
-    <!-- Setting summary for changing the alarm volume. -->
-    <string name="alarm_volume_summary">Set the volume of alarms</string>
-
-    <!-- Summary for the alarm preference when silent is chosen. -->
-    <string name="silent_alarm_summary">Silent</string>
-
-    <!-- Text to display in the small text of the notification -->
-    <string name="alarm_notify_text">Select to snooze or dismiss this alarm.</string>
-
-    <!-- Text to display in the notification ticker and label -->
-    <string name="alarm_notify_snooze_label"><xliff:g id="label">%s</xliff:g> (snoozed)</string>
-
-    <!-- Text to display in the notification when the alarm has been snoozed -->
-    <string name="alarm_notify_snooze_text">Alarm set for <xliff:g id="time">%s</xliff:g>. Select to cancel.</string>
-
-    <string name="alarm_klaxon_service_desc">Sound playback service for alarms set in DeskClock.</string>
-
-	<!-- End Alarm Code Strings -->
-
+    <!-- Playlist actions -->
+    <string name="remove_from_playlist">Remove from playlist</string>
+    <string name="emptyplaylist">Selected playlist is empty.</string>
+    
+    <plurals name="NNNtrackstoplaylist">
+        <!-- message shown when one song was added -->
+        <item quantity="one">1 song added to playlist.</item>
+        <!-- message shown when zero or more than one song was added -->
+        <item quantity="other"><xliff:g id="number" example="27">%d</xliff:g> songs added to playlist.</item>
+    </plurals>
+    
 </resources>
 

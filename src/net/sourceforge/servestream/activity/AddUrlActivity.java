@@ -112,7 +112,7 @@ public class AddUrlActivity extends SherlockActivity {
 		Uri uri = TransportFactory.getUri(input);
 
 		if (uri == null) {
-			mUrlEditText.setError(getString(R.string.invalid_url_message));
+			mUrlEditText.setError(getString(R.string.error_url_label));
 			return;
 		}
 

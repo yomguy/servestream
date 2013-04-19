@@ -18,8 +18,7 @@
  */
 -->
 
-<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
-        android:title="@string/set_alarm">
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
     <CheckBoxPreference android:key="enabled"
         android:persistent="false"
         android:title="@string/enable_alarm" />

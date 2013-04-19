@@ -66,7 +66,7 @@
                 android:layout_margin="8dp"
                 android:focusable="true"
                 android:focusableInTouchMode="true"
-                android:text="@string/url_label_text" />
+                android:text="@string/text_url_label" />
 
             <EditText
                 android:id="@+id/url_edittext"
@@ -74,26 +74,8 @@
                 android:layout_height="wrap_content"
                 android:layout_below="@+id/url_text"
                 android:layout_margin="8dp"
-                android:hint="@string/url_label_hint"
+                android:hint="@string/url_hint"
                 android:inputType="textUri" />
-
-            <TextView
-                android:id="@+id/import_text"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_below="@+id/url_edittext"
-                android:layout_margin="8dp"
-                android:text="@string/json_import_txt" />
-
-            <Button
-                android:id="@+id/import_button"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_below="@+id/import_text"
-                android:layout_marginBottom="8dp"
-                android:layout_marginLeft="8dp"
-                android:layout_marginRight="8dp"
-                android:text="@string/pref_restore" />
         
         </RelativeLayout>
         

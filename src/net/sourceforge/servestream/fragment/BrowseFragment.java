@@ -238,13 +238,13 @@ public class BrowseFragment extends SherlockListFragment implements
 		menu.setHeaderTitle(uri.getNickname());
 
 		// save the URL
-		android.view.MenuItem save = menu.add(R.string.save);
+		android.view.MenuItem save = menu.add(R.string.save_label);
 		save.setOnMenuItemClickListener(new OnMenuItemClickListener() {
 			public boolean onMenuItemClick(android.view.MenuItem arg0) {
 				// prompt user to make sure they really want this
 				new AlertDialog.Builder(BrowseFragment.this.getActivity())
-					.setMessage(getString(R.string.save_message, streamURL))
-					.setPositiveButton(R.string.save_pos, new DialogInterface.OnClickListener() {
+					.setMessage(getString(R.string.url_save_confirmation_msg, streamURL))
+					.setPositiveButton(R.string.confirm_label, new DialogInterface.OnClickListener() {
 						public void onClick(DialogInterface dialog, int which) {
                             saveUri(uri);
 						}
@@ -255,7 +255,7 @@ public class BrowseFragment extends SherlockListFragment implements
 		});
 	
 		// view the URL
-		android.view.MenuItem view = menu.add(R.string.view_url);
+		android.view.MenuItem view = menu.add(R.string.view_url_label);
 		view.setOnMenuItemClickListener(new OnMenuItemClickListener() {
 			public boolean onMenuItemClick(android.view.MenuItem arg0) {
 				// display the URL
@@ -275,7 +275,7 @@ public class BrowseFragment extends SherlockListFragment implements
 		}
 		
 		// add to playlist
-		android.view.MenuItem add = menu.add(R.string.add_to_playlist);
+		android.view.MenuItem add = menu.add(R.string.add_to_playlist_label);
 		add.setOnMenuItemClickListener(new OnMenuItemClickListener() {
 			public boolean onMenuItemClick(android.view.MenuItem item) {
 				MusicUtils.addToCurrentPlaylistFromURL(BrowseFragment.this.getActivity(), uri, mQueueHandler);
@@ -284,7 +284,7 @@ public class BrowseFragment extends SherlockListFragment implements
 		});
 		
 		// share the URL
-		android.view.MenuItem share = menu.add(R.string.share);
+		android.view.MenuItem share = menu.add(R.string.share_label);
 		share.setOnMenuItemClickListener(new OnMenuItemClickListener() {
 			public boolean onMenuItemClick(android.view.MenuItem item) {
 				String url = uri.getUri().toString();
@@ -293,7 +293,7 @@ public class BrowseFragment extends SherlockListFragment implements
 				Intent intent = new Intent(Intent.ACTION_SEND);
 				intent.setType("text/plain");
 				intent.putExtra(Intent.EXTRA_TEXT, getString(R.string.share_signature, url, appName));
-				startActivity(Intent.createChooser(intent, getString(R.string.title_share)));
+				startActivity(Intent.createChooser(intent, getString(R.string.share_label)));
 				return true;
 			}
 		});

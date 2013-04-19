@@ -35,7 +35,7 @@
     	android:layout_height="57.0dip"
     	android:gravity="bottom"
     	android:orientation="horizontal"
-        android:background="@drawable/bg_actionbar_item" >
+        android:background="?attr/borderless_button" >
     
     	<ImageView
         	android:id="@+id/coverart"
@@ -78,7 +78,7 @@
         	android:layout_height="56.0dip"
         	android:gravity="center"
         	android:visibility="gone"
-        	android:background="@drawable/bg_actionbar_item" />
+        	android:background="?attr/borderless_button" />
 
 	</LinearLayout>
     	

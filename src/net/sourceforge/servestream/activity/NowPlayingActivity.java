@@ -70,6 +70,8 @@ public class NowPlayingActivity extends SherlockListActivity implements
 	
     private static final String TAG = NowPlayingActivity.class.getName();
     
+    private boolean mIsDragging = false;
+    private boolean mShouldRefresh = false;
     private static boolean mDeletedOneRow = false;
     private String mCurrentTrackName;
     private static Cursor mTrackCursor;
@@ -297,15 +299,20 @@ public class NowPlayingActivity extends SherlockListActivity implements
             if (intent.getAction().equals(MediaPlaybackService.META_CHANGED)) {
             	getListView().invalidateViews();
             } else if (intent.getAction().equals(MediaPlaybackService.META_RETRIEVED)) {
-                if (mAdapter != null) {
-                    Cursor c = new NowPlayingCursor(MusicUtils.sService, mCursorCols);
-                    if (c.getCount() == 0) {
-                    	c.close();
-                        finish();
-                        return;
-                    }
-                    mAdapter.changeCursor(c);
-                }
+            	if (isDragging()) {
+            	    mShouldRefresh = true;
+            	    System.out.println("dsdsdsssssssssssss=================>");
+            	} else {
+                	if (mAdapter != null) {
+                		Cursor c = new NowPlayingCursor(MusicUtils.sService, mCursorCols);
+                		if (c.getCount() == 0) {
+                			c.close();
+                			finish();
+                			return;
+                		}
+                		mAdapter.changeCursor(c);
+                	}
+            	}
             } else if (intent.getAction().equals(MediaPlaybackService.QUEUE_CHANGED)) {
                 if (mDeletedOneRow) {
                     // This is the notification for a single row that was
@@ -888,6 +895,26 @@ public class NowPlayingActivity extends SherlockListActivity implements
         
         @Override
         public void drop(int from, int to) {
+        	setDragging(false);
+        	
+        	if (from == to) {
+        		return;
+        	}
+        	
+        	if (mShouldRefresh) {
+        		if (mAdapter != null) {
+        			Cursor c = new NowPlayingCursor(MusicUtils.sService, mCursorCols);
+        			if (c.getCount() == 0) {
+        				c.close();
+        				finish();
+        				return;
+        			}
+        			mAdapter.changeCursor(c);
+        		}
+        	}
+        	
+        	mShouldRefresh = false;
+        	
         	// update the currently playing list
             NowPlayingCursor c = (NowPlayingCursor) mTrackCursor;
             c.moveItem(from, to);
@@ -900,6 +927,22 @@ public class NowPlayingActivity extends SherlockListActivity implements
         public void remove(int which) {
 			removePlaylistItem(which);
         }
+        
+        /**
+         * Does nothing. Just completes DragSortListener interface.
+         */
+        @Override
+        public void drag(int from, int to) {
+        	setDragging(true);
+        }
+    }
+    
+    private synchronized void setDragging(boolean isDragging) {
+    	mIsDragging = isDragging;
+    }
+    
+    private synchronized boolean isDragging() {
+    	return mIsDragging;
     }
 }
 
