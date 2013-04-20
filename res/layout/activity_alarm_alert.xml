@@ -50,7 +50,9 @@
             android:layout_marginRight="10dip"/>
 
         <net.sourceforge.servestream.alarm.DigitalClock
-            style="@style/clock"
+            android:layout_width="fill_parent"
+        	android:layout_height="fill_parent"
+        	android:layout_gravity="center_horizontal"
             android:paddingTop="30dip"
             android:paddingBottom="30dip"
             android:baselineAligned="true"
