@@ -345,7 +345,7 @@ public class AlarmKlaxon extends Service implements ServiceConnection,
 
 	public void onMusicRetrieverPrepared(String action, UriBean uri, long[] list) {
 		if (action.equals(DetermineActionTask.URL_ACTION_PLAY)) {
-			MusicUtils.playAll(AlarmKlaxon.this, list, 0);        
+			MusicUtils.playAllFromService(AlarmKlaxon.this, list, 0);        
 		} else {
 			mHandler.sendEmptyMessage(FALLBACK);
 		}
