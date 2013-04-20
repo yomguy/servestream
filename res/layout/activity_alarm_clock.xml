@@ -24,7 +24,8 @@
     android:layout_height="fill_parent"
     android:orientation="vertical"> 
 
-    <LinearLayout android:id="@+id/add_alarm"
+    <LinearLayout
+        android:id="@+id/add_alarm"
         android:clickable="true"
         android:focusable="true"
         android:background="?attr/borderless_button"
@@ -33,7 +34,8 @@
         android:orientation="horizontal">
 
         <ImageView
-            style="@style/alarm_list_left_column"
+            android:layout_width="68dip"
+            android:layout_height="68dip"
             android:duplicateParentState="true"
             android:gravity="center"
             android:scaleType="center"
@@ -69,9 +71,10 @@
         android:orientation="horizontal" >
 
         <net.sourceforge.servestream.alarm.DigitalClock
-            style="@style/ButtonStripRight"
-            android:layout_width="fill_parent"
-            android:layout_height="fill_parent">
+        	android:layout_width="fill_parent"
+        	android:layout_height="fill_parent"
+       		android:gravity="center"
+        	android:background="@drawable/btn_strip_trans_right" >
 
             <LinearLayout
                 android:layout_width="fill_parent"
