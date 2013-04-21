@@ -40,9 +40,12 @@ import net.sourceforge.servestream.utils.PreferenceConstants;
 
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.content.BroadcastReceiver;
 import android.content.ContentResolver;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences.Editor;
 import android.content.SharedPreferences;
 import android.net.Uri;
@@ -73,6 +76,8 @@ public class UrlListFragment extends SherlockListFragment implements
 				LoadingDialogListener {
 	
 	public final static String TAG = UrlListFragment.class.getName();	
+	
+    public static final String UPDATE_LIST = "net.sourceforge.servestream.updatelist";
 	
     private final static String LOADING_DIALOG = "loading_dialog";
 	private final static String RATE_DIALOG = "rate_dialog";
@@ -176,10 +181,26 @@ public class UrlListFragment extends SherlockListFragment implements
 	}
 	
 	@Override
+	public void onStart() {
+		super.onStart();
+		
+		 IntentFilter f = new IntentFilter();
+	     f.addAction(UPDATE_LIST);
+	     getActivity().registerReceiver(mUpdateListListener, f);
+	}
+	
+	@Override
 	public void onResume() {
 		super.onResume();
 		
 		updateList();
+	}
+	
+	@Override
+	public void onStop() {
+		super.onStop();
+		
+        getActivity().unregisterReceiver(mUpdateListListener);
 	}
 	
 	@Override
@@ -285,6 +306,7 @@ public class UrlListFragment extends SherlockListFragment implements
 			transport.setUri(uriBean);
 			if (mPreferences.getBoolean(PreferenceConstants.AUTOSAVE, true) && transport.shouldSave()) {
 				mStreamdb.saveUri(uriBean);
+				updateList();
 			}
 		}
 		
@@ -295,7 +317,7 @@ public class UrlListFragment extends SherlockListFragment implements
 		return true;
 	}
 	
-	private void updateList() {
+	public void updateList() {
 		mAdapter.clear();
 		
 		List<UriBean> uris = mStreamdb.getUris();
@@ -350,7 +372,7 @@ public class UrlListFragment extends SherlockListFragment implements
 		}
 
 		ft.add(0, newFragment, tag);
-		ft.commit();
+		ft.commitAllowingStateLoss();
 	}
 
 	private void dismissDialog(String tag) {
@@ -360,7 +382,7 @@ public class UrlListFragment extends SherlockListFragment implements
 			prev.dismiss();
 			ft.remove(prev);
 		}
-		ft.commit();
+		ft.commitAllowingStateLoss();
 	}
 	
 	@Override
@@ -370,6 +392,13 @@ public class UrlListFragment extends SherlockListFragment implements
 			mDetermineActionTask = null;
 		}
 	}
+	
+	private BroadcastReceiver mUpdateListListener = new BroadcastReceiver() {
+		@Override
+	    public void onReceive(Context context, Intent intent) {
+			updateList();
+	    }
+	};
 	
     // Container Activity must implement this interface
     public interface BrowseIntentListener {

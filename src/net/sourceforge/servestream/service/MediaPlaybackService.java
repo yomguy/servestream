@@ -451,6 +451,16 @@ public class MediaPlaybackService extends Service implements
         if (isPlaying()) {
             Log.e(LOGTAG, "Service being destroyed while still playing.");
         }
+        
+        mConnectivityManager.cleanup();
+        mSHOUTcastMetadata.cleanup();
+        
+		if (mMetadataRetrieverTask != null &&
+	    		mMetadataRetrieverTask.getStatus() != AsyncTask.Status.FINISHED) {
+	    	mMetadataRetrieverTask.cancel();
+	    	mMetadataRetrieverTask = null;
+	    }
+        
         // release all MediaPlayer resources, including the native player and wakelocks
         Intent i = new Intent(AudioEffect.ACTION_CLOSE_AUDIO_EFFECT_CONTROL_SESSION);
         i.putExtra(AudioEffect.EXTRA_AUDIO_SESSION, getAudioSessionId());
@@ -474,13 +484,6 @@ public class MediaPlaybackService extends Service implements
 
         unregisterReceiver(mIntentReceiver);
         
-        mConnectivityManager.cleanup();
-        mSHOUTcastMetadata.cleanup();
-		if (mMetadataRetrieverTask != null &&
-	    		mMetadataRetrieverTask.getStatus() != AsyncTask.Status.FINISHED) {
-	    	mMetadataRetrieverTask.cancel();
-	    	mMetadataRetrieverTask = null;
-	    }
     	Utils.deleteAllFiles();
         
         super.onDestroy();
