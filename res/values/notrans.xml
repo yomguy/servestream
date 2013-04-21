@@ -19,6 +19,7 @@
 -->
 
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
+    
 	<string name="app_name">ServeStream</string>
 	
 	<string name="url_hint">http://</string>

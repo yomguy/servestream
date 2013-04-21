@@ -2,7 +2,7 @@
 <!--
 /*
  * ServeStream: A HTTP stream browser/player for Android
- * Copyright 2012 William Seemann
+ * Copyright 2013 William Seemann
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,371 +20,168 @@
 
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
 	
-	<string name="app_desc">Браузер и плеер потокового контента HTTP, с открытым кодом.</string>
+    <!-- Activitiy titles -->
+    <string name="url_label">URLS</string>
+    <string name="browse_label">Просматривать</string>
+    <string name="settings_label">Настройки</string>
+    <string name="add_new_url_label">Add a new URL</string>
+    <string name="now_playing_label">Сейчас играет</string>
+    <string name="organize_urls_label">Упорядочить</string>
+    <string name="media_player_label">Сейчас в программе</string>
+	<string name="alarm_clock_label">Будильник</string>
+	<string name="set_alarm_label">Установить сигнал</string>
 	
-	<!-- Toasts after adding song(s) to playlists -->
-    <plurals name="NNNtrackstoplaylist">
-        <!-- message shown when one song was added -->
-        <item quantity="one">1 песня добавлена в плей-лист.</item>
-        <!-- message shown when zero or more than one song was added -->
-        <item quantity="other"><xliff:g id="number" example="27">%d</xliff:g> песен добавлено в плей-лист.</item>
-    </plurals>
-	
-	<string name="media_service_desc">Позволить композиции звучать в фоне</string>
-	
-	<string name="help_intro">Please select a topic below for more information on a particular subject.</string>
-
-	<!-- Displayed to indicate a stream has never been connected to. -->
-	<string name="bind_never">Никогда не соединялся</string>
-	<!-- The time that has elapsed since a stream was connected to when it has been less than an hour. -->
-	<string name="bind_minutes">%1$s минут тому назад</string>
-	<!-- The time that has elapsed since a stream was connected to when it has been less than a day. -->
-	<string name="bind_hours">%1$s часов тому назад</string>
-	<!-- The time that has elapsed since a stream was connected to when it has been a day or more. -->
-	<string name="bind_days">%1$s дней тому назад</string>
-
-	<string name="cannot_play_media_title">Не могу воспроизвести медиа-файл</string>
-	<string name="cannot_play_media_message">Извините, этот файл не воспроизводится.</string>
-
-	<string name="delete_message">Вы уверены, что хотите удалить \'%1$s\'?</string>
-	<string name="delete_pos">Да, удалить</string>
-
-    <!--
-    This string is used as the format string in a String.format call,
-    and 5 additional arguments are available for printing:
-    1 - hours
-    2 - minutes
-    3 - minutes%60
-    4 - seconds
-    5 - second%60
-    -->
-    <skip/>
-    <!-- Do not translate. Duration format for duration < 1 hour -->
-    <string name="durationformatshort" translatable="false"><xliff:g id="format">%2$d:%5$02d</xliff:g></string>
-    <!-- Do not translate. Duration format for duration >= 1 hour -->
-    <string name="durationformatlong" translatable="false"><xliff:g id="format">%1$d:%3$02d:%5$02d</xliff:g></string>
-
-    <!-- Toast after selecting an empty playlist -->
-    <string name="emptyplaylist">Выбранный список воспроизведения пуст.</string>
-
-	<!-- Displayed when a user tries to use the scan menu option without having ZXing barcode scanner installed. -->
-	<string name="find_barcode_scanner_message">Эта особенность требует сканера штрих-кода ZXing. Найти это приложение?</string>
-	<string name="find_pos">Да</string>
-	<string name="find_neg">Нет</string>
-
-	<string name="rate_application">Хотите повлиять на рейтинг программы на Маркете? Ваш отзыв важен.</string>
+    <!-- Other -->
+    <string name="confirm_label">Подтвердить</string>
+    <string name="cancel_label">Отменить</string>
+    <string name="unknown_artist_name">Неизвестный артист</string>
+    <string name="unknown_album_name">Неизвестный альбом</string>
+    <string name="opening_url_message">Открываю URL&#8230;</string>
+    <string name="url_not_opened_message">Не могу открыть этот URL.</string>
+   	<string name="find_barcode_scanner_message">Эта особенность требует сканера штрих-кода ZXing. Найти это приложение?</string>
+  	<string name="rate_application">Хотите повлиять на рейтинг программы на Маркете? Ваш отзыв важен.</string>
 	<string name="rate_pos">"Да, переведите меня на Маркет"</string>
 	<string name="rate_neg">"Нет, и не спрашивать больше"</string>
-	
-	<string name="invalid_playlist_title">Не могу воспроизвести это плей-лист</string>
-	<string name="invalid_playlist_message">Извините, в данном плей-листе нет корректых записей.</string>
-
-	<string name="invalid_url_message">Введите корректый URL</string>
-
-	<string name="url_not_opened_message">Не могу открыть этот URL.</string>
-
-	<string name="save_message">Вы уверены, что хотите сохранить \'%1$s\'?</string>
-	<string name="save_pos">Да, сохранить</string>
-
-	<string name="share_signature">%1$s \n\n\n\nSent using %2$s</string>
-	
- 	<!-- Context menu item -->
-    <string name="add_to_playlist">Добавить в плей-лист</string>
-    <!-- Context menu item -->
-	<string name="edit">Редактировать</string>
-	<!-- Context menu item -->
-	<string name="delete">Удалить</string>
-	<!-- Context menu item -->
-	<string name="save">Сохранить</string>
-	<!-- Context menu item -->
-	<string name="share">Поделиться</string>
-	<!-- Context menu item -->
-	<string name="view_url">Посмотреть URL</string>
-	
-	<string name="list_menu_backup">Сохранение</string>
+    <string name="list_menu_backup">Сохранение</string>
 	<string name="list_menu_effects">Звуковые эффекты</string>
-    <string name="list_menu_help">Помощь</string>
-    <string name="list_menu_now_playing">Сейчас играет</string>
 	<string name="list_menu_refresh">Обновить</string>
-	<string name="list_menu_repeat">Повтор</string>
 	<string name="list_menu_scan">Сканировать</string>
-	<string name="list_menu_settings">Настройки</string>
-    <string name="list_menu_shuffle">(Не)Перемешать</string>
-    <string name="list_menu_sleep_timer">Таймер сна</string>
     <string name="list_menu_stop">Стоп</string>  
-	
-	<!-- The dialog message when loading a URL -->
-	<string name="loading_message">Загружается, подождите...</string>
-
-    <!-- Title of sleep timer menu entry -->
-    <string name="menu_sleep_timer">Таймер сна</string>
-
-    <!-- Button name in minute picker -->
-    <string name="minute_picker_cancel">Выкл</string>
-    <!-- Button name in minute picker -->
-    <string name="minute_picker_set">Установить</string>
-    <!-- Title of minute picker -->
-    <string name="minute_picker_title">Время сна</string>
     
-	<!-- Title of the media player -->
-	<string name="nowplaying_title">Сейчас играет</string>
-    <string name="play_queue_title">Воспроизвести очередь</string>
+    <!-- Bind -->
+	<string name="bind_never">Никогда не соединялся</string>
+	<string name="bind_minutes">%1$s минут тому назад</string>
+	<string name="bind_hours">%1$s часов тому назад</string>
+	<string name="bind_days">%1$s дней тому назад</string>
 
-	<!-- The dialog message when opening a URL -->
-	<string name="opening_url_message">Открываю URL...</string>
-
-    <!-- Shown as a transient message whenever a file fails to play -->
+	<!-- Share messages -->
+	<string name="share_label">Поделиться через</string>	
+	<string name="share_signature">%1$s \n\n\n\nSent using %2$s</string>	
+	
+	<!-- Actions on URLs -->
+    <string name="add_to_playlist_label">Добавить в плей-лист</string>
+	<string name="edit_label">Редактировать</string>
+	<string name="delete_label">Удалить</string>
+	<string name="save_label">Сохранить</string>
+	<string name="share_label">Поделиться</string>
+	<string name="view_url_label">Посмотреть URL</string>
+	<string name="url_delete_confirmation_msg">Вы уверены, что хотите удалить \'%1$s\'?</string>
+	<string name="url_save_confirmation_msg">Вы уверены, что хотите сохранить \'%1$s\'?</string>
+	
+	<!-- Mediaplayer messages -->
+	<string name="buffering_message">Buffering. Please wait&#8230;</string>
     <string name="playback_failed">Извините, плеер не поддерживает этот тип медиа-файла.</string>
+    <string name="service_start_error_title">Проблемы воспроизведения</string>
+    <string name="service_start_error_msg">Извините, не могу воспроизвести эту композицию</string>
+    
+	<string name="cannot_play_media_title">Не могу воспроизвести медиа-файл</string>
+	<string name="cannot_play_media_message">Извините, этот файл не воспроизводится.</string>
+	
+	<!-- Shuffle -->
+    <string name="shuffle_on_notif">Перемешивание включено</string>
+    <string name="shuffle_off_notif">Перемешивание выключено</string>
 
+    <!-- Repeat -->
+    <string name="repeat_off_notif">Повтор выключен</string>
+    <string name="repeat_current_notif">Повторяем текущую композицию</string>
+    <string name="repeat_all_notif">Повторяем все композиции</string>
+    
+    <!-- Preferences -->
+    <string name="other_pref">Прочее</string>
+    <string name="about_pref">О программе</string>
     <string name="pref_backup_and_restore">Сохранить &amp; Восстановить</string>
     <string name="pref_backup">Сохранить в JSON файл</string>
     <string name="pref_restore">Восстановить из JSON файла</string>
-    
     <string name="pref_donate">Пожертвования</string>
-    
-	<!-- The category title for general settings preferences -->
 	<string name="pref_general_settings_category">Общие настройки</string>
-
-	<!-- The category title for playback preferences -->
 	<string name="pref_playback_category">Настройки воспроизведения</string>
-
-	<!-- The category title for social media preferences -->
 	<string name="pref_social_media_category">Настройки Social media</string>
-	
-	<!-- The category title for user interface preferences -->
 	<string name="pref_ui_category">Интерфейс пользователя</string>
-
-	<!-- Name for the auto save preference -->
 	<string name="pref_autosave_title">Автосохранение потоков</string>
-	<!-- Summary for the rotation mode preference -->
 	<string name="pref_autosave_summary">Автоматически сохранять введенные потоки</string>
-
-	<!-- Name for the headphone preference -->
 	<string name="pref_headphonepause_title">Пауза наушников</string>
-	<!-- Summary for the headphone preference -->
 	<string name="pref_headphonepause_summary">Приостанавливать воспроизведение при отключении наушников</string>
-	
-	<!-- Name for the progressive download preference -->
 	<string name="pref_progressivedownload_title">Прогрессивная загрузка</string>
-	<!-- Summary for the progressive download preference -->
 	<string name="pref_progressivedownload_summary">Использовать прогрессивную загрузку для воспроизведения</string>
-
 	<string name="pref_ffmpegplayer_title">Применить FFmpeg</string>
 	<string name="pref_ffmpegplayer_summary">Использовать для воспроизведения плеер на основе FFmpeg</string>
-
-	<!-- Name for the retrieve metadata preference -->
 	<string name="pref_retrievemetadata_title">Извлекать мета-данные</string>
-	<!-- Summary for the retrieve metadata preference -->
 	<string name="pref_retrievemetadata_summary">Читать и показывать мета-данные(для поддерживаемых типов файлов)</string>
-
-	<!-- Name for the retrieve metadata preference -->
 	<string name="pref_retrievealbumart_title">Получить обложку альбома</string>
-	<!-- Summary for the retrieve metadata preference -->
 	<string name="pref_retrievealbumart_summary">Отображение и хранение встроенных обложек альбомов</string>
-	
-	<!-- Name for the retrieve shoutcast metadata preference -->
 	<string name="pref_retrieveshoutcastmetadata_title">Извлекать SHOUTcast мета-данные</string>
-	<!-- Summary for the retrieve shoutcast metadata preference -->
 	<string name="pref_retrieveshoutcastmetadata_summary">Читать и отображать мета-данные SHOUTcast потоков (экспериментально)</string>
-
-	<!-- Name for the send scrobbler info preference -->
 	<string name="pref_sendscrobblerinfo_title">"Last.fm Scrobbling"</string>
-	<!-- Summary for the send scrobbler info preference -->
 	<string name="pref_sendscrobblerinfo_summary">"Использовать Last.fm Scrobbling. Должен быть установлен \"Simple LastFM Scrobbler\"."</string>
-		
-	<!-- Name for the update check preference -->
-	<!-- Summary for the update check preference -->
-
-	<!-- Name for the wake lock preference -->
 	<string name="pref_wakelock_title">Не выключать экран</string>
-	<!-- Summary for the rotation mode preference -->
 	<string name="pref_wakelock_summary">Не давать экрану тускнеть и выключаться</string>
-
-	<!-- Name for the Wi-Fi lock preference -->
 	<string name="pref_wifilock_title">Не выключать Wi-Fi</string>
-	<!-- Summary for the Wi-Fi lock preference -->
 	<string name="pref_wifilock_summary">При воспроизведении через Wi-Fi, не давать ему выключаться.</string>
-
-    <!-- Toast after turning repeat off -->
-    <string name="repeat_off_notif">Повтор выключен</string>
-    <!-- Toast after turning single repeat on -->
-    <string name="repeat_current_notif">Повторяем текущую композицию</string>
-    <!-- Toast after turning repeat all on -->
-    <string name="repeat_all_notif">Повторяем все композиции</string>
-
-    <!-- Dialog box title -->
-    <string name="service_start_error_title">Проблемы воспроизведения</string>
-    <!-- Dialog box message -->
-    <string name="service_start_error_msg">Извините, не могу воспроизвести эту композицию</string>
-    <!-- Dialog box button -->
-
-    <!-- Toast after turning sleep timer off -->
+    
+    <!-- Sleep timer -->
+    <string name="set_sleeptimer_label">Таймер сна</string>
+    <string name="disable_sleeptimer_label">Off</string>
+    <string name="enable_sleeptimer_label">Set</string>
+    <string name="sleep_timer_label">Таймер сна</string>
     <string name="sleep_timer_on_notif">Таймер сна включен</string>
-    <!-- Toast after turning sleep timer on -->
     <string name="sleep_timer_off_notif">Таймер сна выключен</string>
-
-    <!-- Toast after turning shuffle on -->
-    <string name="shuffle_on_notif">Перемешивание включено</string>
-    <!-- Toast after turning shuffle off -->
-    <string name="shuffle_off_notif">Перемешивание выключено</string>
-
-	<!-- Stream nickname field preference title -->
+    
+    <!-- Stream preferences -->
 	<string name="streampref_nickname_title">Псевдоним</string>
-
-	<!-- Stream preference category title for connection settings -->
 	<string name="streampref_connection_category">Настройки соединения</string>
-
-	<!-- Protocol field title for stream editor preference -->
 	<string name="streampref_protocol_title">Протокол</string>
-
-	<!-- Username field title for stream editor preference -->
 	<string name="streampref_username_title">Пользователь</string>
-
-	<!-- Password field title for stream editor preference -->
 	<string name="streampref_password_title">Пароль</string>
-
-	<!-- Hostname field title for stream editor preference -->
 	<string name="streampref_hostname_title">Имя хоста</string>
-
-	<!-- Port field title for stream editor preference -->
 	<string name="streampref_port_title">Порт</string>
-
-	<!-- Path field title for stream editor preference -->
 	<string name="streampref_path_title">Путь</string>
-
-	<!-- Query field title for stream editor preference -->
 	<string name="streampref_query_title">Запрос</string>
-
-	<!-- Reference field title for stream editor preference -->
 	<string name="streampref_reference_title">Reference</string>
 
-    <!-- Window title for the Stream List -->
-    <string name="text_go_button">Вперед</string>
-
-	<!-- Window title for Help index -->
-	<string name="title_help">Помощь</string>
-
-	<!-- Window title for Now Playing Activity -->
-	<string name="title_now_playing">Сейчас играет</string>
-
-	<!-- Dialog title for the share intent -->
-	<string name="title_share">Поделиться через</string>
-	
-	<!-- Window title for main URL list -->
-	<string name="title_url_list">URLs</string>
-
-	<!-- Window title for Browsing Streams List -->
-	<string name="title_stream_browse">Просматривать</string>
-
-    <!-- Default name of artist that doesn't have a name in the metadata -->
-    <string name="unknown_artist_name">Неизвестный артист</string>
-    
-    <!-- Default name of album that doesn't have a name in the metadata -->
-    <string name="unknown_album_name">Неизвестный альбом</string>
-
-	<!-- Message to display when a user attempts to scan a URL that is unsupported -->
-	<string name="unsupported_scanned_intent_message">Сканированный QR код не содержит корректый URL</string>
-	
-	<!-- Dialog title when a new version of ServeStream is detected. -->
-	<string name="upgrade">Есть новая версия</string>
-	<!-- Button selection to upgrade to the latest ServeStream when one is available. -->
-	<string name="upgrade_pos">Да, обновиться</string>
-	<!-- Button selection to skip upgrading to the latest ServeStream when one is available. -->
-	<string name="upgrade_neg">Не сейчас</string>
-	
-	<!-- Text shown on widget one when first loaded -->
+    <!--  Widget -->
 	<string name="widget_one_initial_text">Прикоснитесь для выбора композиции</string>
-	
-	<!-- Text shown on widget one when first loaded -->
 	<string name="widget_one_track_info_unavailable">Нет информации о дорожке</string>
-
-	<!-- Window title for Alarm Clock -->
-	<string name="title_alarm_clock">Будильник</string>
-
-	<!-- Window title for Set Alarm -->
-	<string name="title_set_alarm">Установить сигнал</string>
-
-	<!-- Begin Music Code String -->
 	
-	<!-- Do not translate. Background color for albums in the artists list view. -->
-    <color name="expanding_child_background">#ff404040</color>
-	
-    <!-- context menu item to remove the selected item from the playlist -->
-    <string name="remove_from_playlist">Удалить из списка воспроизведения</string>
-    	
-    <!-- End Music Code Strings -->
-	
-	<!-- Begin Alarm Code Strings -->
-	
+    <!-- 'Add URL' Activity labels -->
+    <string name="text_url_label">Введите URL потока или сервера здесь:</string>
+    <string name="error_url_label">Введите корректый URL</string>
+    
+    <!-- Empty list labels -->
+    <string name="no_items_label">Список пуст</string>
+    <string name="no_urls_label">Вы не ввели любые URL-адреса еще.</string>
+    
     <!-- Title for AlarmClock activity -->
     <string name="alarm_list_title">Будильник</string>
 
-    <!-- Menu item on Alarm Clock screen: Add alarm -->
+    <!-- Actions on alarms -->
     <string name="add_alarm">Добавить сигнал</string>
-
-    <!-- Menu item on Alarm Clock screen: Edit alarm -->
     <string name="menu_edit_alarm">Изменить сигнал</string>
-
-    <!-- Context Menu Item on Alarm Settings screen: Delete alarm -->
     <string name="delete_alarm">Удалить сигнал</string>
-
-    <!-- Context Menu Item on Alarm Settings screen: Enable alarm -->
     <string name="enable_alarm">Включить будильник</string>
-
-    <!-- Context Menu Item on Alarm Settings screen: Disable alarm -->
     <string name="disable_alarm">Выключить будильник</string>
+    <string name="alarm_delete_confirmation_msg">Этот сигнал будет удален.</string>
+    <string name="done">Готово</string>
+    <string name="revert">Обратно</string>
+    <string name="delete">Удалить</string>
 
-    <!-- Delete alarm confirmation dialog message. -->
-    <string name="delete_alarm_confirm">Этот сигнал будет удален.</string>
-
-    <!-- Setting label on Set alarm screen: Label -->
-    <string name="label">Метка</string>
-
-    <!-- Default label to display for an alarm -->
-    <string name="default_label">Сигнал</string>
-
-    <!-- Preference category on Alarm Settings screen: Set alarm -->
-    <string name="set_alarm">Установить сигнал</string>
-
-    <!-- Setting labels on Set alarm screen: Vibration on or off -->
-    <string name="alarm_vibrate">Вибрация</string>
-
-    <!-- Setting labels on Set alarm screen: Repeat -->
-    <string name="alarm_repeat">Повтор</string>
-
-    <!-- Setting labels on Set alarm screen: Select alarm ringtone  -->
-    <string name="alert">Звонок</string>
-
-    <!-- Setting labels on Set alarm screen: Set time  -->
+    <!-- Alarm preferences -->
     <string name="time">Время</string>
-
-    <!-- Button labels on the alarm dialog: Dismiss -->
+    <string name="alarm_repeat">Повтор</string>
+    <string name="alert">Звонок</string>
+    <string name="silent_alarm_summary">Беззвучный</string>
+    <string name="alarm_vibrate">Вибрация</string>
+    <string name="label">Метка</string>
+    <string name="default_label">Сигнал</string>
+    
+    <!-- Alarm alert -->
     <string name="alarm_alert_dismiss_text">Отклонить</string>
-
-    <!-- Alarm Alert screen: this message is shown after an alarm rung
-         unattended for a number of minutes.  It tells the user that
-         the alarm has been silenced.-->
     <string name="alarm_alert_alert_silenced">Сигнал приглушен после <xliff:g id="minutes">%d</xliff:g> минут</string>
-
-    <!-- Button labels on the alarm dialog: Snooze -->
     <string name="alarm_alert_snooze_text">Отложить</string>
-
-    <!-- Toast that appears after Alarm is snoozed from the Alarm
-         dialog. Says the alarm will snooze for xxx minutes.  -->
     <string name="alarm_alert_snooze_set">Отложен на <xliff:g id="minutes">%d</xliff:g> минут.</string>
-
-    <!-- 0: nothing
-         1: days
-         2:      hours
-         3: days hours
-         4:            minutes
-         5: days       minutes
-         6:      hours minutes
-         7: days hours minutes
-    --><skip />
-
-    <!-- Alarm confirmation toast: Describes how long from now until
-         alarm fires -->
+    <string name="alarm_notify_text">Отложить или отменить этот сигнал.</string>
+    <string name="alarm_notify_snooze_label"><xliff:g id="label">%s</xliff:g> (отложен)</string>
+    <string name="alarm_notify_snooze_text">Сигнал установлен на <xliff:g id="time">%s</xliff:g>. Выберите для отмены.</string>
+    
     <string-array name="alarm_set">
         <item>Сигнал сработает менее чем через 1 минуту.</item>
         <item>Сигнал сработает через <xliff:g id="DAYS" example="2 days">%1$s</xliff:g>.</item>
@@ -396,66 +193,30 @@
         <item>Сигнал сработает через <xliff:g id="DAYS" example="2 days">%1$s</xliff:g>, <xliff:g id="HOURS" example="2 hours">%2$s</xliff:g>, and <xliff:g id="MINUTES" example="2 minutes">%3$s</xliff:g> .</item>
     </string-array>
 
-    <!-- Alarm confirmation toast: singular day -->
     <string name="day">"1 день"</string>
-
-    <!-- Alarm confirmation toast: plural days -->
     <string name="days">"<xliff:g id="days">%s</xliff:g> дней"</string>
-
-    <!-- Alarm confirmation toast: singular hour -->
     <string name="hour">1 час</string>
-
-    <!-- Alarm confirmation toast: plural hours -->
     <string name="hours"><xliff:g id="hours">%s</xliff:g> часов</string>
-
-    <!-- Alarm confirmation toast: singular minute  -->
     <string name="minute">"1 минута"</string>
-
-    <!-- Alarm confirmation toast: plural minutes  -->
     <string name="minutes">"<xliff:g id="minutes">%s</xliff:g> минут"</string>
-
-    <!-- Repeat options that appear under an alarm on main Alarm Clock
-         screen to identify repetition schedule: special case for when
-         the alarm is set to repeat every day -->
     <string name="every_day">ежедневно</string>
-
-    <!-- Repeat options that appear under an alarm on main Alarm Clock
-         screen to identify repetition schedule: special case for when
-         the alarm is set to never repeat -->
     <string name="never">Никогда</string>
-
-    <!-- Repeat options that appear under an alarm on main Alarm Clock
-         screen to identify repetition schedule: concatenate days with
-         this character, i.e. "Mon, Tue, Wed" -->
     <string name="day_concat">", "</string>
 
-    <!-- Done button when editing an alarm. -->
-    <string name="done">Готово</string>
-
-    <!-- Revert button when editing an alarm. -->
-    <string name="revert">Обратно</string>
-
-    <!-- Setting title for changing the alarm volume. -->
-    <string name="alarm_volume_title">Громкость сигнала</string>
-
-    <!-- Setting summary for changing the alarm volume. -->
-    <string name="alarm_volume_summary">Установить громкость сигнала</string>
-
-    <!-- Summary for the alarm preference when silent is chosen. -->
-    <string name="silent_alarm_summary">Беззвучный</string>
-
-    <!-- Text to display in the small text of the notification -->
-    <string name="alarm_notify_text">Отложить или отменить этот сигнал.</string>
-
-    <!-- Text to display in the notification ticker and label -->
-    <string name="alarm_notify_snooze_label"><xliff:g id="label">%s</xliff:g> (отложен)</string>
-
-    <!-- Text to display in the notification when the alarm has been snoozed -->
-    <string name="alarm_notify_snooze_text">Сигнал установлен на <xliff:g id="time">%s</xliff:g>. Выберите для отмены.</string>
-
+    <!-- Service descriptions -->
+  	<string name="media_service_desc">Позволить композиции звучать в фоне</string>
     <string name="alarm_klaxon_service_desc">Воспроизведение звука для сигналов установлено в DeskClock.</string>
-
-	<!-- End Alarm Code Strings -->
-
+    
+    <!-- Playlist actions -->
+    <string name="remove_from_playlist">Удалить из списка воспроизведения</string>
+    <string name="emptyplaylist">Выбранный список воспроизведения пуст.</string>
+    
+    <plurals name="NNNtrackstoplaylist">
+        <!-- message shown when one song was added -->
+        <item quantity="one">1 песня добавлена в плей-лист.</item>
+        <!-- message shown when zero or more than one song was added -->
+        <item quantity="other"><xliff:g id="number" example="27">%d</xliff:g> песен добавлено в плей-лист.</item>
+    </plurals>
+    
 </resources>
 
