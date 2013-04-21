@@ -23,7 +23,6 @@
     <!-- Activitiy titles -->
     <string name="url_label">URLS</string>
     <string name="browse_label">BROWSE</string>
-    <string name="new_label">New</string>
     <string name="settings_label">Settings</string>
     <string name="add_new_url_label">Add a new URL</string>
     <string name="now_playing_label">Play queue</string>
@@ -78,9 +77,6 @@
 	<string name="cannot_play_media_title">Cannot play media file</string>
 	<string name="cannot_play_media_message">Sorry, this media file cannot be played.</string>
 	
-    <string name="notification_artist_album">"<xliff:g id="ALBUM">%2$s</xliff:g>" - "<xliff:g id="ARTIST">%1$s</xliff:g>"</string>
-	<string name="notification_alt_info">"<xliff:g id="INFO">%1$s</xliff:g>"</string>
-    
 	<!-- Shuffle -->
     <string name="shuffle_on_notif">Shuffle is on</string>
     <string name="shuffle_off_notif">Shuffle is off</string>
@@ -147,7 +143,6 @@
 	<string name="widget_one_track_info_unavailable">"No track info available"</string>
     
     <!-- 'Add URL' Activity labels -->
-    <string name="url_hint">http://</string>
     <string name="text_url_label">Type in the URL of a stream or server here:</string>
     <string name="error_url_label">Enter a valid URL</string>
     
