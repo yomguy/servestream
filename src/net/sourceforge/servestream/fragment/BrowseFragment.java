@@ -247,6 +247,7 @@ public class BrowseFragment extends SherlockListFragment implements
 					.setPositiveButton(R.string.confirm_label, new DialogInterface.OnClickListener() {
 						public void onClick(DialogInterface dialog, int which) {
                             saveUri(uri);
+                            BrowseFragment.this.getActivity().sendBroadcast(new Intent(UrlListFragment.UPDATE_LIST));
 						}
 						})
 					.setNegativeButton(android.R.string.cancel, null).create().show();

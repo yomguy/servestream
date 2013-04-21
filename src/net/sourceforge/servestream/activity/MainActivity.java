@@ -310,6 +310,7 @@ public class MainActivity extends SherlockFragmentActivity implements
 
 		@Override
 		public void onTabReselected(Tab tab, FragmentTransaction ft) {
+		
 		}
 	}
 

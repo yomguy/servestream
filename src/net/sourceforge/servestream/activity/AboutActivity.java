@@ -22,7 +22,9 @@ import android.os.Bundle;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 
+import com.actionbarsherlock.app.ActionBar;
 import com.actionbarsherlock.app.SherlockActivity;
+import com.actionbarsherlock.view.MenuItem;
 
 public class AboutActivity extends SherlockActivity {
 
@@ -31,7 +33,8 @@ public class AboutActivity extends SherlockActivity {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_about);	
 		
-		getSupportActionBar().hide();
+		ActionBar actionBar = getSupportActionBar();
+		actionBar.setDisplayHomeAsUpEnabled(true);
 		
 		WebView webview = (WebView) findViewById(R.id.about_webview);
 		webview.setWebViewClient(new WebViewClient() {
@@ -45,4 +48,16 @@ public class AboutActivity extends SherlockActivity {
 		});
 		webview.loadUrl("file:///android_asset/about.html");
 	}
+	
+	@Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+    		case android.R.id.home:
+    			finish();
+    			return true;
+            default:
+                break;
+        }
+        return super.onOptionsItemSelected(item);
+    }
 }
