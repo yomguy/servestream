@@ -160,6 +160,7 @@ public class MediaPlaybackService extends Service implements
     private AudioManager mAudioManager;
     // used to track what type of audio focus loss caused the playback to pause
     private boolean mPausedByTransientLossOfFocus = false;
+    private boolean mPausedByConnectivityReceiver = false;
 
     private SharedPreferences mPreferences;
     // We use this to distinguish between different cards when saving/restoring playlists.
@@ -343,6 +344,10 @@ public class MediaPlaybackService extends Service implements
             } else if (CMDPREVIOUS.equals(cmd) || PREVIOUS_ACTION.equals(action)) {
                 prev();
             } else if (CMDTOGGLEPAUSE.equals(cmd) || TOGGLEPAUSE_ACTION.equals(action)) {
+            	if (intent.getBooleanExtra("from_connectivity_receiver", false) && !mPausedByConnectivityReceiver) {
+            		return;
+            	}
+            	
                 if (isPlaying()) {
                     pause(true);
                     mPausedByTransientLossOfFocus = false;
@@ -350,8 +355,14 @@ public class MediaPlaybackService extends Service implements
                     play();
                 }
             } else if (CMDPAUSE.equals(cmd) || PAUSE_ACTION.equals(action)) {
+            	boolean wasPlaying = mIsSupposedToBePlaying;
+            	
                 pause(true);
                 mPausedByTransientLossOfFocus = false;
+                
+                if (wasPlaying != mIsSupposedToBePlaying) {
+                	mPausedByConnectivityReceiver = intent.getBooleanExtra("from_connectivity_receiver", false);
+                }
             } else if (CMDPLAY.equals(cmd)) {
                 play();
             } else if (CMDSTOP.equals(cmd)) {
@@ -1156,6 +1167,7 @@ public class MediaPlaybackService extends Service implements
                 mIsSupposedToBePlaying = false;
                 notifyChange(PLAYSTATE_CHANGED);
             }
+            mPausedByConnectivityReceiver = false;
         }
     }
 

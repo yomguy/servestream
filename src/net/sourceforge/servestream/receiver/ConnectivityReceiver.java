@@ -78,13 +78,17 @@ public class ConnectivityReceiver extends BroadcastReceiver {
 
 			if (noConnectivity && !isFailover && mIsConnected) {
 				mIsConnected = false;
-				context.sendBroadcast(new Intent(MediaPlaybackService.PAUSE_ACTION));
+				Intent i = new Intent(MediaPlaybackService.PAUSE_ACTION);
+				i.putExtra("from_connectivity_receiver", true);
+				context.sendBroadcast(i);
 			} else if (!mIsConnected) {
 				ConnectivityManager manager = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
 			    NetworkInfo info = manager.getActiveNetworkInfo();
 				
 				if (info != null && (mIsConnected = (info.getState() == State.CONNECTED))) {
-					context.sendBroadcast(new Intent(MediaPlaybackService.TOGGLEPAUSE_ACTION));
+					Intent i = new Intent(MediaPlaybackService.TOGGLEPAUSE_ACTION);
+					i.putExtra("from_connectivity_receiver", true);
+					context.sendBroadcast(i);
 				}
 			}
 		}
