@@ -21,6 +21,11 @@
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
 	<string name="app_name">ServeStream</string>
 	
+	<string name="url_hint">http://</string>
+	
+	<string name="notification_artist_album">"<xliff:g id="ALBUM">%2$s</xliff:g>" - "<xliff:g id="ARTIST">%1$s</xliff:g>"</string>
+	<string name="notification_alt_info">"<xliff:g id="INFO">%1$s</xliff:g>"</string>
+	
 	<!--
     This string is used as the format string in a String.format call,
     and 5 additional arguments are available for printing:
