@@ -59,12 +59,12 @@
 	<string name="share_signature">%1$s \n\n\n\nEnvoyé en utilisant %2$s</string>
 	
 	<!-- Actions on URLs -->
-    <string name="add_to_playlist">Ajouter à la liste</string>
-	<string name="edit">Editer</string>
-	<string name="delete">Supprimer</string>
-	<string name="save">Sauvegarder</string>
-	<string name="share">Partager</string>
-	<string name="view_url">Voir l\'URL</string>    
+    <string name="add_to_playlist_label">Ajouter à la liste</string>
+	<string name="edit_label">Editer</string>
+	<string name="delete_label">Supprimer</string>
+	<string name="save_label">Sauvegarder</string>
+	<string name="share_label">Partager</string>
+	<string name="view_url_label">Voir l\'URL</string>    
 	<string name="url_delete_confirmation_msg">Etes vous sûr de vouloir supprimer \'%1$s\'?</string>
 	<string name="url_save_confirmation_msg">Etes vous sûr de vouloir sauvegarder \'%1$s\'?</string>
 	
@@ -146,7 +146,7 @@
     
     <!-- Empty list labels -->
     <string name="no_items_label">Cette liste est vide.</string>
-    <string name="no_urls_label">Vous n'avez pas encore  toutes les URL.</string>
+    <string name="no_urls_label">Vous n\'avez pas encore  toutes les URL.</string>
     
     <!-- Title for AlarmClock activity -->
     <string name="alarm_list_title">Alarmes</string>
@@ -172,13 +172,13 @@
     <string name="default_label">Alarme</string>
     
     <!-- Alarm alert -->
-    <string name="alarm_alert_dismiss_text">Dismiss</string>
-    <string name="alarm_alert_alert_silenced">Alarm silenced after <xliff:g id="minutes">%d</xliff:g> minutes</string>
-    <string name="alarm_alert_snooze_text">Snooze</string>
-    <string name="alarm_alert_snooze_set">Snoozing for <xliff:g id="minutes">%d</xliff:g> minutes.</string>
-    <string name="alarm_notify_text">Select to snooze or dismiss this alarm.</string>
-    <string name="alarm_notify_snooze_label"><xliff:g id="label">%s</xliff:g> (snoozed)</string>
-    <string name="alarm_notify_snooze_text">Alarm set for <xliff:g id="time">%s</xliff:g>. Select to cancel.</string>
+    <string name="alarm_alert_dismiss_text">Rejeter</string>
+    <string name="alarm_alert_alert_silenced">Couper l\'alarme après <xliff:g id="minutes">%d</xliff:g> minutes</string>
+    <string name="alarm_alert_snooze_text">Eteindre</string>
+    <string name="alarm_alert_snooze_set">Eteindre pendant <xliff:g id="minutes">%d</xliff:g> minutes.</string>
+    <string name="alarm_notify_text">Eteindre ou rejecter cette alarme.</string>
+    <string name="alarm_notify_snooze_label"><xliff:g id="label">%s</xliff:g> (éteint)</string>
+    <string name="alarm_notify_snooze_text">Alarme éteinte pendant <xliff:g id="time">%s</xliff:g>. Sélectionner pour annuler.</string>
     
     <string-array name="alarm_set">
         <item>Cette alarme est planifiée pour dans moins d\'une minute.</item>
