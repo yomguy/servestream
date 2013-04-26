@@ -20,8 +20,6 @@ package net.sourceforge.servestream.media;
 import net.sourceforge.servestream.provider.Media;
 import net.sourceforge.servestream.utils.PreferenceConstants;
 
-import android.content.ContentUris;
-import android.content.ContentValues;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.database.Cursor;
@@ -82,9 +80,11 @@ public class MetadataRetrieverTask implements Runnable {
 				try {
 					mmr.setDataSource(uri.toString());
 					
-					if (updateMetadata(mContext, mList[i], mmr) > 0) {
+					Metadata metadata;
+					
+					if ((metadata = getMetadata(mContext, mList[i], mmr)) != null) {
 						if (mListener != null) {
-							mListener.onMetadataParsed(mList[i]);
+							mListener.onMetadataParsed(mList[i], metadata);
 						}
 					}
 					
@@ -103,7 +103,7 @@ public class MetadataRetrieverTask implements Runnable {
 		mStatus = AsyncTask.Status.FINISHED;
     }
 	
-	private static SparseArray<String> getUris(Context context, long [] list) {
+	private SparseArray<String> getUris(Context context, long [] list) {
 		SparseArray<String> uris = new SparseArray<String>();
 		StringBuffer selection = new StringBuffer(Media.MediaColumns._ID + " IN (");
 		int id = -1;
@@ -143,8 +143,7 @@ public class MetadataRetrieverTask implements Runnable {
 		return uris;
 	}
 	
-	private static int updateMetadata(Context context, long id, MediaMetadataRetriever mmr) {
-		int rows = 0;
+	private Metadata getMetadata(Context context, long id, MediaMetadataRetriever mmr) {
 		byte [] artwork = null;
 		
 		String title =  mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_TITLE);
@@ -164,63 +163,20 @@ public class MetadataRetrieverTask implements Runnable {
 		if (title == null && 
 				album == null && 
 				artist == null) {
-			return 0;
+			return null;
 		}
 		
 		// Form an array specifying which columns to return. 
-		ContentValues values = new ContentValues();
-		values.put(Media.MediaColumns.TITLE, validateAttribute(title));
-		values.put(Media.MediaColumns.ALBUM, validateAttribute(album));
-		values.put(Media.MediaColumns.ARTIST, validateAttribute(artist));
-		values.put(Media.MediaColumns.DURATION, convertToInteger(duration));
+		Metadata metadata = new Metadata();
+		metadata.setTitle(title);
+		metadata.setAlbum(album);
+		metadata.setArtist(artist);
+		metadata.setDuration(duration);
+		metadata.setArtwork(artwork);
 		
-		if (artwork != null) {
-			values.put(Media.MediaColumns.ARTWORK, artwork);
-		}
-
-		// Get the base URI for the Media Files table in the Media content provider.
-        Uri mediaFile = ContentUris.withAppendedId(Media.MediaColumns.CONTENT_URI, id);
-		
-		// Execute the update.
-		rows = context.getContentResolver().update(mediaFile, 
-				values, 
-				null,
-				null);
-	
-		// return the number of rows updated.
-		return rows;
+		return metadata;
 	}
 	
-	private static String validateAttribute(String attribute) {
-		if (attribute == null) {
-			return Media.UNKNOWN_STRING;
-		}
-		
-		return attribute.trim();
-	}
-	
-	private static int convertToInteger(String attribute) {
-		int integerAttribute = Media.UNKNOWN_INTEGER;
-		
-		String validatedAttribute = validateAttribute(attribute);
-		
-		if (!validatedAttribute.equals(Media.UNKNOWN_STRING)) {
-			try {
-				integerAttribute = Integer.valueOf(validatedAttribute);
-			} catch(NumberFormatException e) {
-				// there was a problem converting the string
-			}
-		}
-		
-		return integerAttribute;
-	}
-	
-    /* The activity that creates an instance of this class must
-     * implement this interface in order to receive event callbacks. */
-    public interface MetadataRetrieverListener {
-        public void onMetadataParsed(long id);
-    }
-    
 	private synchronized boolean isCancelled() {
 		return mIsCancelled;
 	}
