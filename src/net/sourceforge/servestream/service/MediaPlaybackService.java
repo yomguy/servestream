@@ -23,6 +23,8 @@ import android.app.Service;
 import android.appwidget.AppWidgetManager;
 import android.content.ComponentName;
 import android.content.ContentResolver;
+import android.content.ContentUris;
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
@@ -53,11 +55,12 @@ import java.util.Vector;
 
 import net.sourceforge.servestream.R;
 import net.sourceforge.servestream.activity.MediaPlayerActivity;
+import net.sourceforge.servestream.media.Metadata;
 import net.sourceforge.servestream.media.MetadataRetrieverTask;
 import net.sourceforge.servestream.media.MultiPlayer;
-import net.sourceforge.servestream.media.MetadataRetrieverTask.MetadataRetrieverListener;
+import net.sourceforge.servestream.media.MetadataRetrieverListener;
 import net.sourceforge.servestream.media.MultiPlayer.MultiPlayerListener;
-import net.sourceforge.servestream.media.SHOUTcastMetadata;
+import net.sourceforge.servestream.media.ShoutCastRetrieverTask;
 import net.sourceforge.servestream.provider.Media;
 import net.sourceforge.servestream.receiver.ConnectivityReceiver;
 import net.sourceforge.servestream.receiver.MediaButtonIntentReceiver;
@@ -179,7 +182,8 @@ public class MediaPlaybackService extends Service implements
     private ComponentName mMediaButtonReceiverComponent;
 
     private ConnectivityReceiver mConnectivityManager;
-    private SHOUTcastMetadata mSHOUTcastMetadata;
+    private boolean mRetrieveShoutCastMetadata = false;
+    private ShoutCastRetrieverTask mShoutCastRetrieverTask;
     private MetadataRetrieverTask mMetadataRetrieverTask;
     
     private Handler mMediaplayerHandler = new Handler() {
@@ -273,6 +277,16 @@ public class MediaPlaybackService extends Service implements
         play();
         notifyChange(META_CHANGED);
         notifyChange(PLAYBACK_STARTED);
+        
+		if (mRetrieveShoutCastMetadata) {
+			if (mShoutCastRetrieverTask != null) {
+				mShoutCastRetrieverTask.stop();
+				mShoutCastRetrieverTask = null;
+			}
+			
+			mShoutCastRetrieverTask = new ShoutCastRetrieverTask(MediaPlaybackService.this, mPlayList[mPlayPos]);
+			mShoutCastRetrieverTask.start();
+		}
 	}
 
 	@Override
@@ -318,8 +332,17 @@ public class MediaPlaybackService extends Service implements
 				mConnectivityManager.setWantWifiLock(lockingWifi);
   	        }
   	    } else if (key.equals(PreferenceConstants.RETRIEVE_SHOUTCAST_METADATA)) {
-			final boolean retrieveSHOUTcastMetadata = mPreferences.getBoolean(PreferenceConstants.RETRIEVE_SHOUTCAST_METADATA, false);
-			mSHOUTcastMetadata.setShouldRetrieveMetadata(retrieveSHOUTcastMetadata);
+  	    	mRetrieveShoutCastMetadata = sharedPreferences.getBoolean(PreferenceConstants.RETRIEVE_SHOUTCAST_METADATA, false);
+  	    	
+  	    	if (mShoutCastRetrieverTask != null) {
+  	    		mShoutCastRetrieverTask.stop();
+  	    		mShoutCastRetrieverTask = null;
+  	    	}
+  	    	if (mRetrieveShoutCastMetadata &&
+  	    			mPlayList != null && mPlayList.length > 0) {
+  	    		mShoutCastRetrieverTask = new ShoutCastRetrieverTask(this, mPlayList[mPlayPos]);
+  	    		mShoutCastRetrieverTask.start();
+  	    	}
   	    } else if (key.equals(PreferenceConstants.RETRIEVE_METADATA)) {
   	    	if (mMetadataRetrieverTask != null &&
   	    			mMetadataRetrieverTask.getStatus() != AsyncTask.Status.FINISHED) {
@@ -419,8 +442,8 @@ public class MediaPlaybackService extends Service implements
         
 		final boolean lockingWifi = mPreferences.getBoolean(PreferenceConstants.WIFI_LOCK, true);
 		mConnectivityManager = new ConnectivityReceiver(this, lockingWifi);
-		final boolean retrieveSHOUTcastMetadata = mPreferences.getBoolean(PreferenceConstants.RETRIEVE_SHOUTCAST_METADATA, false);
-		mSHOUTcastMetadata = new SHOUTcastMetadata(this, retrieveSHOUTcastMetadata);
+		
+		mRetrieveShoutCastMetadata = mPreferences.getBoolean(PreferenceConstants.RETRIEVE_SHOUTCAST_METADATA, false);
 		
         mMediaButtonReceiverComponent = new ComponentName(this, MediaButtonIntentReceiver.class);
 		
@@ -453,7 +476,6 @@ public class MediaPlaybackService extends Service implements
         }
         
         mConnectivityManager.cleanup();
-        mSHOUTcastMetadata.cleanup();
         
 		if (mMetadataRetrieverTask != null &&
 	    		mMetadataRetrieverTask.getStatus() != AsyncTask.Status.FINISHED) {
@@ -649,6 +671,16 @@ public class MediaPlaybackService extends Service implements
         if (what.equals(PLAYSTATE_CHANGED)) {
             mRemoteControlClientCompat.setPlaybackState(isPlaying() ?
             		RemoteControlClientCompat.PLAYSTATE_PLAYING : RemoteControlClientCompat.PLAYSTATE_PAUSED);
+            
+            if (isPlaying() && mRetrieveShoutCastMetadata) {
+    			mShoutCastRetrieverTask = new ShoutCastRetrieverTask(MediaPlaybackService.this, mPlayList[mPlayPos]);
+    			mShoutCastRetrieverTask.start();
+            } else {
+                if (mShoutCastRetrieverTask != null) {
+                	mShoutCastRetrieverTask.stop();
+                	mShoutCastRetrieverTask = null;
+                }
+            }
         } else if (what.equals(META_CHANGED)) {
             // Update the remote controls
             MetadataEditorCompat metadataEditor = mRemoteControlClientCompat.editMetadata(true);
@@ -671,7 +703,7 @@ public class MediaPlaybackService extends Service implements
     	
         if (what.equals(PLAYSTATE_CHANGED)) {
         	i = new Intent(AVRCP_PLAYSTATE_CHANGED);
-        } else if (what.equals(META_CHANGED) || what.equals(META_RETRIEVED)) {
+        } else if (what.equals(META_CHANGED)) {
         	i = new Intent(AVRCP_META_CHANGED);
         } else {
         	return;
@@ -1810,8 +1842,10 @@ public class MediaPlaybackService extends Service implements
     }
     
     @Override
-	public synchronized void onMetadataParsed(long id) {
-    	notifyChange(META_RETRIEVED);
+	public synchronized void onMetadataParsed(long id, Metadata metadata) {
+    	if (updateMetadata(id, metadata) > 0) {
+    		notifyChange(META_RETRIEVED);
+    	}
     	
 		if (mPlayList == null || id != mPlayList[mPlayPos]) {
 			return;
@@ -1841,34 +1875,57 @@ public class MediaPlaybackService extends Service implements
         }
     }
     
-	public void updateMetadata() {
-    	notifyChange(META_RETRIEVED);
+    private int updateMetadata(long id, Metadata metadata) {
+		int rows = 0;
 		
-    	Cursor cursor;
-    	Cursor tempCursor;
-    	
-    	if (mCursor == null) {
-    		return;
-    	}
-    	
-    	long id = mPlayList[mPlayPos];
-    	
-        cursor = getContentResolver().query(
-                Media.MediaColumns.CONTENT_URI,
-                mCursorCols, "_id=" + id , null, null);
-        
-        if (cursor != null) {
-        	cursor.moveToFirst();
-        	tempCursor = mCursor;
-        	tempCursor.close();
-        	mCursor = cursor;
-        	
-            notifyChange(META_CHANGED);
-            MusicUtils.clearNotificationArtCache();
-            updateNotification(true);
-        }
-    }
+		// Form an array specifying which columns to return. 
+		ContentValues values = new ContentValues();
+		values.put(Media.MediaColumns.TITLE, validateAttribute(metadata.getTitle()));
+		values.put(Media.MediaColumns.ALBUM, validateAttribute(metadata.getAlbum()));
+		values.put(Media.MediaColumns.ARTIST, validateAttribute(metadata.getArtist()));
+		values.put(Media.MediaColumns.DURATION, convertToInteger(metadata.getDuration()));
+		
+		if (metadata.getArtwork() != null) {
+			values.put(Media.MediaColumns.ARTWORK, metadata.getArtwork());
+		}
+		
+		// Get the base URI for the Media Files table in the Media content provider.
+        Uri mediaFile = ContentUris.withAppendedId(Media.MediaColumns.CONTENT_URI, id);
+		
+		// Execute the update.
+		rows = getContentResolver().update(mediaFile, 
+				values, 
+				null,
+				null);
 	
+		// return the number of rows updated.
+		return rows;
+	}
+    
+    private String validateAttribute(String attribute) {
+		if (attribute == null) {
+			return Media.UNKNOWN_STRING;
+		}
+		
+		return attribute.trim();
+	}
+	
+	private int convertToInteger(String attribute) {
+		int integerAttribute = Media.UNKNOWN_INTEGER;
+		
+		String validatedAttribute = validateAttribute(attribute);
+		
+		if (!validatedAttribute.equals(Media.UNKNOWN_STRING)) {
+			try {
+				integerAttribute = Integer.valueOf(validatedAttribute);
+			} catch(NumberFormatException e) {
+				// there was a problem converting the string
+			}
+		}
+		
+		return integerAttribute;
+	}
+    
     private Handler mDelayedPlaybackHandler = new Handler() {
         @Override
         public void handleMessage(Message msg) {
