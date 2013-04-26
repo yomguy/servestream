@@ -215,10 +215,13 @@ public class MainActivity extends SherlockFragmentActivity implements
 
 	@Override
 	public boolean onKeyDown(int keyCode, KeyEvent event) {
-		if (keyCode == KeyEvent.KEYCODE_BACK &&
-				getSupportActionBar().getSelectedTab().getPosition() == 1) {
-			mBrowseFragment.onBackKeyPressed();
-			return true;
+		if (keyCode == KeyEvent.KEYCODE_BACK) {
+			Tab tab;
+			if ((tab = getSupportActionBar().getSelectedTab()) != null &&
+					tab.getPosition() == 1) {
+				mBrowseFragment.onBackKeyPressed();
+				return true;
+			}
 		}
 		
 		return super.onKeyDown(keyCode, event);
