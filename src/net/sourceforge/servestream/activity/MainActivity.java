@@ -109,7 +109,7 @@ public class MainActivity extends SherlockFragmentActivity implements
 		if ((contentType = intent.getType()) != null) {
 			if (contentType.contains("net.sourceforge.servestream/")) {
 				intentUri = intent.getType().toString().replace("net.sourceforge.servestream/", "");
-				setIntent(new Intent());
+				setIntent(null);
 				return intentUri;
 			}
 		}
@@ -124,7 +124,7 @@ public class MainActivity extends SherlockFragmentActivity implements
 			intentUri = intent.getExtras().getCharSequence(Intent.EXTRA_TEXT).toString();
 		}
 
-		setIntent(new Intent());
+		setIntent(null);
 		
 		return intentUri;
 	}
