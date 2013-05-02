@@ -85,4 +85,8 @@ public class OrganizeAdapter extends ArrayAdapter<UriBean> {
 
         return convertView;
     }
+    
+    public List<UriBean> getItems() {
+        return rowItems;
+    }
 }
