@@ -2,6 +2,7 @@
 <resources>
 
     <attr name="content_new" format="reference" />
+    <attr name="navigation_accept" format="reference" />
     <attr name="navigation_refresh" format="reference" />
     <attr name="borderless_button" format="reference" />
     

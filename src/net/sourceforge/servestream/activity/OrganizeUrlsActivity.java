@@ -22,6 +22,7 @@ import java.util.List;
 
 import com.actionbarsherlock.app.ActionBar;
 import com.actionbarsherlock.app.SherlockListActivity;
+import com.actionbarsherlock.view.Menu;
 import com.actionbarsherlock.view.MenuItem;
 import com.mobeta.android.dslv.DragSortController;
 import com.mobeta.android.dslv.DragSortListView;
@@ -32,10 +33,15 @@ import net.sourceforge.servestream.bean.UriBean;
 import net.sourceforge.servestream.dbutils.StreamDatabase;
 import android.content.ContentValues;
 import android.content.Intent;
+import android.content.res.TypedArray;
 import android.os.Bundle;
 
 public class OrganizeUrlsActivity extends SherlockListActivity {
 
+	private static final int MENU_ID_ACCEPT = 2;
+	
+	private List<UriBean> mBaselineUris;
+	
 	private OrganizeAdapter mAdapter;
 	private StreamDatabase mStreamdb;
 	
@@ -55,7 +61,7 @@ public class OrganizeUrlsActivity extends SherlockListActivity {
 		controller.setDragInitMode(DragSortController.ON_DRAG);
 		controller.setRemoveMode(DragSortController.FLING_REMOVE);
         controller.setRemoveEnabled(true);
-		//controller.setDragHandleId(R.id.icon);
+		controller.setDragHandleId(R.id.drag_handle);
 		list.setOnTouchListener(controller);
 		
 		mAdapter = new OrganizeAdapter(this, new ArrayList<UriBean>());
@@ -83,32 +89,74 @@ public class OrganizeUrlsActivity extends SherlockListActivity {
     			intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
     			startActivity(intent);
     			return true;
+    		case MENU_ID_ACCEPT:
+    			saveChanges();
             default:
                 break;
         }
         return super.onOptionsItemSelected(item);
     }
 	
+	@Override
+	public boolean onCreateOptionsMenu(Menu menu) {
+		super.onCreateOptionsMenu(menu);
+		TypedArray drawables = obtainStyledAttributes(new int[] { R.attr.navigation_accept });
+		menu.add(Menu.NONE, MENU_ID_ACCEPT, Menu.NONE, R.string.confirm_label)
+		.setIcon(drawables.getDrawable(0))
+		.setShowAsAction(
+				MenuItem.SHOW_AS_ACTION_IF_ROOM
+				| MenuItem.SHOW_AS_ACTION_WITH_TEXT);
+		return true;
+	}
+	
 	private void updateList() {
 		mAdapter.clear();
-		List<UriBean> uris = mStreamdb.getUris();
-		for (int i = 0; i < uris.size(); i++) {
-			mAdapter.add(uris.get(i));
+		mBaselineUris = mStreamdb.getUris();
+		for (int i = 0; i < mBaselineUris.size(); i++) {
+			mAdapter.add(mBaselineUris.get(i));
 		}
 		mAdapter.notifyDataSetChanged();
+	}
+	
+	private synchronized void saveChanges() {
+		List<UriBean> uris = mAdapter.getItems();
+		
+		List<UriBean> urisToDelete = new ArrayList<UriBean>();
+		
+		for (int i = 0; i < mBaselineUris.size(); i++) {
+			if (!uris.contains(mBaselineUris.get(i))) {
+				mStreamdb.deleteUri(mBaselineUris.get(i));
+				urisToDelete.add(mBaselineUris.get(i));
+			}
+		}
+		
+		for (int i = 0; i < urisToDelete.size(); i++) {
+			mBaselineUris.remove(urisToDelete.get(i));
+		}
+		
+		int listPosition = 1;
+		
+		ContentValues values = new ContentValues();
+		
+		for (int i = 0; i < uris.size(); i++) {
+			values.clear();
+			values.put(StreamDatabase.FIELD_STREAM_LIST_POSITION, listPosition);
+			listPosition++;
+			
+			mStreamdb.updateUri(uris.get(i), values);
+		}
+		
+		updateList();
 	}
 	
 	private DragSortListView.DropListener dropListener = new DragSortListView.DropListener() {
 
 		@Override
 		public void drop(int from, int to) {
-        	if (from == to) {
-        		return;
-        	}
+			UriBean item = mAdapter.getItem(from);
 			
-			UriBean fromUri = (UriBean) getListView().getAdapter().getItem(from);
-			UriBean toUri = (UriBean) getListView().getAdapter().getItem(to);
-			updateUris(fromUri, toUri);
+            mAdapter.remove(item);
+            mAdapter.insert(item, to);
 		}
 	};
 
@@ -116,30 +164,7 @@ public class OrganizeUrlsActivity extends SherlockListActivity {
 
 		@Override
 		public void remove(int which) {
-			UriBean uri = (UriBean) getListView().getAdapter().getItem(which);
-			removeUri(uri);
+			mAdapter.remove(mAdapter.getItem(which));
 		}
 	};
-	
-	private synchronized void updateUris(UriBean fromUri, UriBean toUri) {
-		int fromPosition = fromUri.getListPosition();
-		int toPosition = toUri.getListPosition();
-		
-		ContentValues values = new ContentValues();
-		values.put(StreamDatabase.FIELD_STREAM_LIST_POSITION, toPosition);
-		
-		mStreamdb.updateUri(fromUri, values);
-		
-		values.clear();
-		values.put(StreamDatabase.FIELD_STREAM_LIST_POSITION, fromPosition);
-
-		mStreamdb.updateUri(toUri, values);
-		
-		updateList();
-	}
-	
-	private synchronized void removeUri(UriBean uri) {
-		mStreamdb.deleteUri(uri);
-		updateList();
-	}
 }
