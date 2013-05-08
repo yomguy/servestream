@@ -61,8 +61,6 @@ public class MainActivity extends SherlockFragmentActivity implements
 	private final static String DOWNLOAD_SCANNER_DIALOG = "download_scanner_dialog";
 	
 	private static Bundle mSavedInstanceState;
-	private static UrlListFragment mUrlListFragment;
-	private static BrowseFragment mBrowseFragment;
 	
 	private ViewPager viewpager;
 	private TabsAdapter pagerAdapter;
@@ -96,7 +94,9 @@ public class MainActivity extends SherlockFragmentActivity implements
         
 		Bundle args = new Bundle();
 		args.putString(UrlListFragment.ARG_TARGET_URI, getUri());
-		mUrlListFragment.refresh(args);
+		
+		UrlListFragment fragment = (UrlListFragment) pagerAdapter.getItem(0);
+		fragment.refresh(args);
     }
 	
     private String getUri() {
@@ -169,7 +169,8 @@ public class MainActivity extends SherlockFragmentActivity implements
 	            // Handle successful scan
 				Bundle args = new Bundle();
 				args.putString(UrlListFragment.ARG_TARGET_URI, contents);
-				mUrlListFragment.refresh(args);
+				UrlListFragment fragment = (UrlListFragment) pagerAdapter.getItem(0);
+				fragment.refresh(args);
 	        } else if (resultCode == RESULT_CANCELED) {
 	            // Handle cancel
 	        }
@@ -219,7 +220,8 @@ public class MainActivity extends SherlockFragmentActivity implements
 			Tab tab;
 			if ((tab = getSupportActionBar().getSelectedTab()) != null &&
 					tab.getPosition() == 1) {
-				mBrowseFragment.onBackKeyPressed();
+				BrowseFragment fragment = (BrowseFragment) pagerAdapter.getItem(1);
+				fragment.onBackKeyPressed();
 				return true;
 			}
 		}
@@ -270,18 +272,10 @@ public class MainActivity extends SherlockFragmentActivity implements
 		@Override
 		public Fragment getItem(int position) {
 			TabInfo info = mTabs.get(position);
-			Fragment fragment = Fragment.instantiate(mContext, info.clss.getName(),
+			return Fragment.instantiate(mContext, info.clss.getName(),
 					info.args);
-			
-			if (fragment instanceof UrlListFragment) {
-				mUrlListFragment = (UrlListFragment) fragment;
-			} else if (fragment instanceof BrowseFragment) {
-				mBrowseFragment = (BrowseFragment) fragment;
-			}
-			
-			return fragment;
 		}
-
+		
 		@Override
 		public void onPageScrolled(int position, float positionOffset,
 				int positionOffsetPixels) {
@@ -355,7 +349,8 @@ public class MainActivity extends SherlockFragmentActivity implements
 	@Override
 	public void browseToUri(Uri uri) {
 		getSupportActionBar().setSelectedNavigationItem(1);
-		mBrowseFragment.browseTo(uri);
+		BrowseFragment fragment = (BrowseFragment) pagerAdapter.getItem(1);
+		fragment.browseTo(uri);
 	}
 	
 	private void showDialog(String tag) {
