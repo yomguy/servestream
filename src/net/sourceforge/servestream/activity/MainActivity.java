@@ -132,8 +132,13 @@ public class MainActivity extends SherlockFragmentActivity implements
 	@Override
 	protected void onSaveInstanceState(Bundle outState) {
 		super.onSaveInstanceState(outState);
-		outState.putInt("tab", getSupportActionBar()
-				.getSelectedNavigationIndex());
+		
+		int position = getSupportActionBar().getSelectedNavigationIndex();
+
+		if (position >= 0) {
+			outState.putInt("tab", getSupportActionBar()
+					.getSelectedNavigationIndex());
+		}
 	}
 
 	@Override
