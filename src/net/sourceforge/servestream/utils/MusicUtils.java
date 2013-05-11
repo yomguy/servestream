@@ -70,6 +70,8 @@ import android.os.RemoteException;
 import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.View;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -733,6 +735,11 @@ public class MusicUtils {
 					}
             	});
             	
+        		if (nowPlayingView.getVisibility() != View.VISIBLE) {
+        			Animation fade_in = AnimationUtils.loadAnimation(a, R.anim.player_in);
+        			nowPlayingView.startAnimation(fade_in);
+        		}
+            	
                 nowPlayingView.setVisibility(View.VISIBLE);
                 nowPlayingView.setOnClickListener(new View.OnClickListener() {
 
@@ -747,6 +754,8 @@ public class MusicUtils {
             }
         } catch (RemoteException ex) {
         }
+    	Animation fade_out = AnimationUtils.loadAnimation(a, R.anim.player_out);
+		nowPlayingView.startAnimation(fade_out);
         nowPlayingView.setVisibility(View.GONE);
     }
     
