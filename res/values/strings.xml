@@ -95,6 +95,7 @@
     <string name="pref_donate">Donate</string>
 	<string name="pref_general_settings_category">General settings</string>
 	<string name="pref_playback_category">Playback settings</string>
+	<string name="pref_network_category">Network</string>
 	<string name="pref_social_media_category">Social media settings</string>
 	<string name="pref_ui_category">User interface</string>
 	<string name="pref_autosave_title">Autosave URLs</string>
@@ -111,6 +112,8 @@
 	<string name="pref_retrievealbumart_summary">"Display and store embedded album art"</string>
 	<string name="pref_retrieveshoutcastmetadata_title">"Retrieve SHOUTcast metadata"</string>
 	<string name="pref_retrieveshoutcastmetadata_summary">"Read and display metadata for SHOUTcast streams (experimental)"</string>
+	<string name="pref_useproxy_title">"Use proxy"</string>
+	<string name="pref_proxy_title">"Proxy"</string>
 	<string name="pref_sendscrobblerinfo_title">"Last.fm Scrobbling"</string>
 	<string name="pref_sendscrobblerinfo_summary">"Enable Last.fm Scrobbing. Must have \"Simple LastFM Scrobbler\" or \"Scrobble Droid\" installed."</string>
 	<string name="pref_wakelock_title">Screen wake lock</string>

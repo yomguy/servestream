@@ -95,6 +95,7 @@
     <string name="pref_donate">Donner</string>
 	<string name="pref_general_settings_category">Paramètres gérénaux</string>
 	<string name="pref_playback_category">Paramètres de lecture</string>
+	<string name="pref_network_category">Réseau</string>
 	<string name="pref_social_media_category">Paramètres des réseaux sociaux</string>
 	<string name="pref_ui_category">Paramètres d\'interface</string>
 	<string name="pref_autosave_title">Sauvegarde automatique</string>

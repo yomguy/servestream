@@ -95,6 +95,7 @@
     <string name="pref_donate">Пожертвования</string>
 	<string name="pref_general_settings_category">Общие настройки</string>
 	<string name="pref_playback_category">Настройки воспроизведения</string>
+	<string name="pref_network_category">Сеть</string>
 	<string name="pref_social_media_category">Настройки Social media</string>
 	<string name="pref_ui_category">Интерфейс пользователя</string>
 	<string name="pref_autosave_title">Автосохранение потоков</string>
