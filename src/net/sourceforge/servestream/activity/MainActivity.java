@@ -17,8 +17,6 @@
 
 package net.sourceforge.servestream.activity;
 
-import java.util.ArrayList;
-
 import net.sourceforge.servestream.R;
 import net.sourceforge.servestream.fragment.BrowseFragment;
 import net.sourceforge.servestream.fragment.UrlListFragment;
@@ -41,6 +39,7 @@ import android.os.Bundle;
 import android.os.IBinder;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.view.ViewPager;
@@ -56,14 +55,17 @@ import com.actionbarsherlock.view.MenuItem;
 /** The activity that is shown when the user launches the app. */
 public class MainActivity extends SherlockFragmentActivity implements
 			ServiceConnection,
-			BrowseIntentListener {
+			BrowseIntentListener,
+			ActionBar.TabListener {
 	
 	private final static String DOWNLOAD_SCANNER_DIALOG = "download_scanner_dialog";
 	
 	private static Bundle mSavedInstanceState;
+	private static UrlListFragment mUrlListFragment;
+	private static BrowseFragment mBrowseFragment;
 	
-	private ViewPager viewpager;
-	private TabsAdapter pagerAdapter;
+	private SectionsPagerAdapter mSectionsPagerAdapter;
+	private ViewPager mViewPager;
 
 	private ServiceToken mToken;
 	
@@ -76,10 +78,18 @@ public class MainActivity extends SherlockFragmentActivity implements
 
 		getSupportActionBar().setNavigationMode(ActionBar.NAVIGATION_MODE_TABS);
 
-		viewpager = (ViewPager) findViewById(R.id.pager);
-		pagerAdapter = new TabsAdapter(this, viewpager);
-
-		viewpager.setAdapter(pagerAdapter);
+		Bundle args = new Bundle();
+		args.putString(UrlListFragment.ARG_TARGET_URI, getUri());
+		
+		mUrlListFragment = (UrlListFragment) Fragment.instantiate(this, UrlListFragment.class.getName(), args);
+		mBrowseFragment = (BrowseFragment) Fragment.instantiate(this, BrowseFragment.class.getName(), null);
+		
+		// Create the adapter that will return a fragment for each of the three
+		// primary sections of the app.
+		mSectionsPagerAdapter = new SectionsPagerAdapter(
+				getSupportFragmentManager());
+		
+		mViewPager = (ViewPager) findViewById(R.id.pager);
 
 		mSavedInstanceState = savedInstanceState;
 		
@@ -95,7 +105,7 @@ public class MainActivity extends SherlockFragmentActivity implements
 		Bundle args = new Bundle();
 		args.putString(UrlListFragment.ARG_TARGET_URI, getUri());
 		
-		UrlListFragment fragment = (UrlListFragment) pagerAdapter.getItem(0);
+		UrlListFragment fragment = (UrlListFragment) mSectionsPagerAdapter.getItem(0);
 		fragment.refresh(args);
     }
 	
@@ -132,13 +142,8 @@ public class MainActivity extends SherlockFragmentActivity implements
 	@Override
 	protected void onSaveInstanceState(Bundle outState) {
 		super.onSaveInstanceState(outState);
-		
-		int position = getSupportActionBar().getSelectedNavigationIndex();
-
-		if (position >= 0) {
-			outState.putInt("tab", getSupportActionBar()
-					.getSelectedNavigationIndex());
-		}
+		outState.putInt("tab", getSupportActionBar()
+				.getSelectedNavigationIndex());
 	}
 
 	@Override
@@ -174,7 +179,7 @@ public class MainActivity extends SherlockFragmentActivity implements
 	            // Handle successful scan
 				Bundle args = new Bundle();
 				args.putString(UrlListFragment.ARG_TARGET_URI, contents);
-				UrlListFragment fragment = (UrlListFragment) pagerAdapter.getItem(0);
+				UrlListFragment fragment = (UrlListFragment) mSectionsPagerAdapter.getItem(0);
 				fragment.refresh(args);
 	        } else if (resultCode == RESULT_CANCELED) {
 	            // Handle cancel
@@ -225,7 +230,7 @@ public class MainActivity extends SherlockFragmentActivity implements
 			Tab tab;
 			if ((tab = getSupportActionBar().getSelectedTab()) != null &&
 					tab.getPosition() == 1) {
-				BrowseFragment fragment = (BrowseFragment) pagerAdapter.getItem(1);
+				BrowseFragment fragment = (BrowseFragment) mSectionsPagerAdapter.getItem(1);
 				fragment.onBackKeyPressed();
 				return true;
 			}
@@ -234,86 +239,43 @@ public class MainActivity extends SherlockFragmentActivity implements
 		return super.onKeyDown(keyCode, event);
 	}
 	
-	public static class TabsAdapter extends FragmentPagerAdapter implements
-			ActionBar.TabListener, ViewPager.OnPageChangeListener {
-		private final Context mContext;
-		private final ActionBar mActionBar;
-		private final ViewPager mViewPager;
-		private final ArrayList<TabInfo> mTabs = new ArrayList<TabInfo>();
-
-		static final class TabInfo {
-			private final Class<?> clss;
-			private final Bundle args;
-
-			TabInfo(Class<?> _class, Bundle _args) {
-				clss = _class;
-				args = _args;
-			}
-		}
-
-		public TabsAdapter(MainActivity activity, ViewPager pager) {
-			super(activity.getSupportFragmentManager());
-			mContext = activity;
-			mActionBar = activity.getSupportActionBar();
-			mViewPager = pager;
-			mViewPager.setAdapter(this);
-			mViewPager.setOnPageChangeListener(this);
-		}
-
-		public void addTab(ActionBar.Tab tab, Class<?> clss, Bundle args) {
-			TabInfo info = new TabInfo(clss, args);
-			tab.setTag(info);
-			tab.setTabListener(this);
-			mTabs.add(info);
-			mActionBar.addTab(tab);
-			notifyDataSetChanged();
-		}
-
-		@Override
-		public int getCount() {
-			return mTabs.size();
+	public class SectionsPagerAdapter extends FragmentPagerAdapter {
+		
+		public SectionsPagerAdapter(FragmentManager fm) {
+			super(fm);
 		}
 
 		@Override
 		public Fragment getItem(int position) {
-			TabInfo info = mTabs.get(position);
-			return Fragment.instantiate(mContext, info.clss.getName(),
-					info.args);
-		}
-		
-		@Override
-		public void onPageScrolled(int position, float positionOffset,
-				int positionOffsetPixels) {
-		}
-
-		@Override
-		public void onPageSelected(int position) {
-			mActionBar.setSelectedNavigationItem(position);
-		}
-
-		@Override
-		public void onPageScrollStateChanged(int state) {
-		}
-
-		@Override
-		public void onTabSelected(Tab tab, FragmentTransaction ft) {
-			Object tag = tab.getTag();
-			for (int i = 0; i < mTabs.size(); i++) {
-				if (mTabs.get(i) == tag) {
-					mViewPager.setCurrentItem(i);
-				}
+			if (position == 0) {
+				return mUrlListFragment;
+			} else {
+				return mBrowseFragment;
 			}
 		}
-
-		@Override
-		public void onTabUnselected(Tab tab, FragmentTransaction ft) {
-
-		}
-
-		@Override
-		public void onTabReselected(Tab tab, FragmentTransaction ft) {
 		
+		@Override
+		public int getCount() {
+			return 2;
 		}
+
+	}
+	
+	@Override
+	public void onTabSelected(Tab tab, FragmentTransaction ft) {
+		// When the given tab is selected, switch to the corresponding page in
+		// the ViewPager.
+		mViewPager.setCurrentItem(tab.getPosition());
+	}
+
+	@Override
+	public void onTabUnselected(Tab tab, FragmentTransaction ft) {
+
+	}
+
+	@Override
+	public void onTabReselected(Tab tab, FragmentTransaction ft) {
+	
 	}
 
     private BroadcastReceiver mTrackListListener = new BroadcastReceiver() {
@@ -327,16 +289,29 @@ public class MainActivity extends SherlockFragmentActivity implements
 	public void onServiceConnected(ComponentName name, IBinder service) {
 		MusicUtils.updateNowPlaying(this);
 		
+		mViewPager.setAdapter(mSectionsPagerAdapter);
+		
 		Tab urlsTab = getSupportActionBar().newTab();
 		urlsTab.setText(getString(R.string.url_label));
+		urlsTab.setTabListener(this);
+		
 		Tab browseTab = getSupportActionBar().newTab();
 		browseTab.setText(getString(R.string.browse_label));
-
-		Bundle args = new Bundle();
-		args.putString(UrlListFragment.ARG_TARGET_URI, getUri());
+		browseTab.setTabListener(this);
 		
-		pagerAdapter.addTab(urlsTab, UrlListFragment.class, args);
-		pagerAdapter.addTab(browseTab, BrowseFragment.class, null);
+		getSupportActionBar().addTab(urlsTab);
+		getSupportActionBar().addTab(browseTab);
+		
+		// When swiping between different sections, select the corresponding
+		// tab. We can also use ActionBar.Tab#select() to do this if we have
+		// a reference to the Tab.
+		mViewPager
+				.setOnPageChangeListener(new ViewPager.SimpleOnPageChangeListener() {
+					@Override
+					public void onPageSelected(int position) {
+						MainActivity.this.getSupportActionBar().setSelectedNavigationItem(position);
+					}
+				});
 		
 		if (mSavedInstanceState != null) {
 			getSupportActionBar().setSelectedNavigationItem(
@@ -354,7 +329,7 @@ public class MainActivity extends SherlockFragmentActivity implements
 	@Override
 	public void browseToUri(Uri uri) {
 		getSupportActionBar().setSelectedNavigationItem(1);
-		BrowseFragment fragment = (BrowseFragment) pagerAdapter.getItem(1);
+		BrowseFragment fragment = (BrowseFragment) mSectionsPagerAdapter.getItem(1);
 		fragment.browseTo(uri);
 	}
 	
