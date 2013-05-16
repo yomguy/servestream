@@ -9,6 +9,13 @@
         />
     </target>
     
+    <target name="-check-dependencies">
+        <fail
+            message="yasm is missing. Make ensure yasm is installed and present in /usr/bin"
+            unless="yasm.exists"
+        />
+    </target>
+    
     <target name="native-build" depends="native-clean">
         <exec executable="${ndk.dir}/ndk-build" failonerror="true" />
     </target>
@@ -32,6 +39,8 @@
     </target>
     
     <target name="-pre-build">
+        <available file="/usr/bin/yasm" type="file" property="yasm.exists"/>
+        <antcall target="-check-dependencies" />
         <echo>Downloading and preparing ActionBarSherlock...</echo>
         <antcall target="get-abs" />
         <echo>Building native code...</echo>
