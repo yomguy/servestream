@@ -39,8 +39,7 @@ for version in x86; do
 	FLAGS="$FLAGS --enable-demuxer=aac,flac,h263,h264,m4v,matroska,mp3,mpegvideo,ogg,pcm_alaw,pcm_f32be,pcm_f32le,pcm_f64be,pcm_f64le,pcm_mulaw,pcm_s16be,pcm_s16le,pcm_s24be"
 	FLAGS="$FLAGS --enable-demuxer=pcm_s24le,pcm_s32be,pcm_s32le,pcm_s8,pcm_u16be,pcm_u16le,pcm_u24be,pcm_u24le,pcm_u32be,pcm_u32le,pcm_u8,rtp,rtsp,sdp,wav"
 	FLAGS="$FLAGS --enable-parser=aac,aac_latm,flac,h263,h264,mpeg4video,mpegaudio,mpegvideo,vorbis,vp8"
-	FLAGS="$FLAGS --enable-decoder=aac,aac_latm,flac,mjpeg,mp3,vorbis,wmalossless,wmapro,wmav1,wmav2,wmavoice"
-	FLAGS="$FLAGS --enable-encoder=mjpeg"
+	FLAGS="$FLAGS --enable-decoder=aac,aac_latm,flac,mp3,vorbis,wmalossless,wmapro,wmav1,wmav2,wmavoice"
 	FLAGS="$FLAGS --enable-protocol=flac,http,https,mmsh,mmst"
 	FLAGS="$FLAGS --disable-debug"
 
