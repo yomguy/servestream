@@ -164,6 +164,16 @@ public class MediaPlayerActivity extends SherlockFragmentActivity implements Mus
             seeker.setOnSeekBarChangeListener(mSeekListener);
         }
         mProgress.setMax(1000);
+        
+        mVolume = (ProgressBar) findViewById(R.id.volume_bar);
+        AudioManager audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
+        int curVolume = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC);
+        int maxVolume = audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC);
+        SeekBar seeker = (SeekBar) mVolume;
+        seeker.setProgress(curVolume);
+        seeker.setMax(maxVolume);
+        seeker.setOnSeekBarChangeListener(mVolumeListener);
+        mVolume.setVisibility(View.GONE);
     }
     
 	public void onSharedPreferenceChanged(SharedPreferences sharedPreferences,
@@ -206,6 +216,26 @@ public class MediaPlayerActivity extends SherlockFragmentActivity implements Mus
         }
     };
 
+    private OnSeekBarChangeListener mVolumeListener = new OnSeekBarChangeListener() {
+
+		@Override
+		public void onProgressChanged(SeekBar seekBar, int progress,
+				boolean fromUser) {
+			AudioManager audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
+	    	audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, progress, 0);
+		}
+
+		@Override
+		public void onStartTrackingTouch(SeekBar seekBar) {
+			
+		}
+
+		@Override
+		public void onStopTrackingTouch(SeekBar seekBar) {
+			
+		}
+    };
+    
     private View.OnClickListener mShuffleListener = new View.OnClickListener() {
         public void onClick(View v) {
             toggleShuffle();
@@ -897,6 +927,7 @@ public class MediaPlayerActivity extends SherlockFragmentActivity implements Mus
     private TextView mArtistAndAlbumName;
     private TextView mTrackName;
     private ProgressBar mProgress;
+    private ProgressBar mVolume;
     private long mPosOverride = -1;
     private boolean mFromTouch = false;
     private long mDuration;
