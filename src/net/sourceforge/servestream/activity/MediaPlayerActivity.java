@@ -165,15 +165,9 @@ public class MediaPlayerActivity extends SherlockFragmentActivity implements Mus
         }
         mProgress.setMax(1000);
         
-        mVolume = (ProgressBar) findViewById(R.id.volume_bar);
-        AudioManager audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
-        int curVolume = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC);
-        int maxVolume = audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC);
-        SeekBar seeker = (SeekBar) mVolume;
-        seeker.setProgress(curVolume);
-        seeker.setMax(maxVolume);
-        seeker.setOnSeekBarChangeListener(mVolumeListener);
-        mVolume.setVisibility(View.GONE);
+        mVolume = (SeekBar) findViewById(R.id.volume_bar);
+        updateVolumeBar();
+        mVolume.setOnSeekBarChangeListener(mVolumeListener);
     }
     
 	public void onSharedPreferenceChanged(SharedPreferences sharedPreferences,
@@ -613,6 +607,11 @@ public class MediaPlayerActivity extends SherlockFragmentActivity implements Mus
             case KeyEvent.KEYCODE_SPACE:
                 doPauseResume();
                 return true;
+            case KeyEvent.KEYCODE_VOLUME_DOWN:
+            case KeyEvent.KEYCODE_VOLUME_MUTE:
+            case KeyEvent.KEYCODE_VOLUME_UP:
+            	updateVolumeBar();
+            	return false;
         }
         return super.onKeyDown(keyCode, event);
     }
@@ -927,7 +926,7 @@ public class MediaPlayerActivity extends SherlockFragmentActivity implements Mus
     private TextView mArtistAndAlbumName;
     private TextView mTrackName;
     private ProgressBar mProgress;
-    private ProgressBar mVolume;
+    private SeekBar mVolume;
     private long mPosOverride = -1;
     private boolean mFromTouch = false;
     private long mDuration;
@@ -1193,6 +1192,14 @@ public class MediaPlayerActivity extends SherlockFragmentActivity implements Mus
 			mLoadingDialog.dismiss();
 			mLoadingDialog = null;
 		}
+	}
+	
+	private synchronized void updateVolumeBar() {
+        AudioManager audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
+        int curVolume = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC);
+        int maxVolume = audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC);
+        mVolume.setProgress(curVolume);
+        mVolume.setMax(maxVolume);
 	}
 	
 	public void showDialog(String tag) {
