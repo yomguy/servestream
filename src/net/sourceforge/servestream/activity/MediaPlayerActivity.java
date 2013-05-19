@@ -168,6 +168,7 @@ public class MediaPlayerActivity extends SherlockFragmentActivity implements Mus
         mVolume = (SeekBar) findViewById(R.id.volume_bar);
         updateVolumeBar();
         mVolume.setOnSeekBarChangeListener(mVolumeListener);
+        mVolume.setVisibility(View.GONE);
     }
     
 	public void onSharedPreferenceChanged(SharedPreferences sharedPreferences,
