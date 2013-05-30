@@ -37,7 +37,8 @@ public class TransportFactory {
 		RTSP.getProtocolName(),
 		MMS.getProtocolName(),
 		MMSH.getProtocolName(),
-		MMST.getProtocolName()
+		MMST.getProtocolName(),
+		RTMP.getProtocolName()
 	};
 
 	/**
@@ -59,6 +60,8 @@ public class TransportFactory {
 			return new MMSH();
 		} else if (MMST.getProtocolName().equals(protocol)) {
 			return new MMST();
+		} else if (RTMP.getProtocolName().equals(protocol)) {
+			return new RTMP();
 		} else {
 			return null;
 		}
@@ -94,6 +97,8 @@ public class TransportFactory {
 			scheme = MMSH.getProtocolName();
 		} else if (uri.getScheme().equals(MMST.getProtocolName())) {
 			scheme = MMST.getProtocolName();
+		} else if (uri.getScheme().equals(RTMP.getProtocolName())) {
+			scheme = RTMP.getProtocolName();
 		}
 		
 		//Log.d("TransportFactory", String.format(
@@ -113,6 +118,8 @@ public class TransportFactory {
 			return MMSH.getUri(input);
 		} else if (MMST.getProtocolName().equals(scheme)) {
 			return MMST.getUri(input);
+		} else if (RTMP.getProtocolName().equals(scheme)) {
+			return RTMP.getUri(input);
 		} else
 			return null;
 	}
