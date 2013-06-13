@@ -3,15 +3,25 @@ Compiling
 
 Note: The build instructions and scripts assume you are running Unix or Linux.
 
-To compile ServeStream using Ant, you must specify where your Android SDK and NDK are located via the local.properties file. To generate a local.properties file run the following command from the root directory: 
+1.) To compile ServeStream using Ant, you must specify where your Android SDK and NDK are located via the local.properties file. To generate a local.properties file run the following command from the root directory: 
 
 android update project --path .
 
-Next, insert two lines into the local.properties file with the full path to your SDK and NDK:
+2.) Insert two lines into the local.properties file with the full path to your SDK and NDK, for example:
 
 sdk.dir=/home/user/Android/adt-bundle-linux/sdk
 ndk.dir=/home/user/Android/android-ndk-r8c
 
-Finally, run the following command to build the application:
+3.) Unzip 4.2.0.zip and drag-sort-listview.zip in <project root>/submodules
 
-ant debug
+4.) Navigate to <project root>/submodules/ActionBarSherlock-4.2.0/library and run:
+
+android update project --path .
+
+5.) Navigate to <project root>/submodules/drag-sort-listview/library and run:
+
+android update project --path .
+
+6.) Finally, from the project root run the following command to build the application:
+
+ant clean debug
