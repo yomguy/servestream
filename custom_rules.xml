@@ -26,12 +26,6 @@
         </exec>
     </target>
     
-    <target name="get-abs">
-        <exec executable="/bin/sh" dir="." failonerror="true" osfamily="unix">
-            <arg value="scripts/get-abs.sh" />
-        </exec>
-    </target>
-
     <target name="build-ffmpeg">
         <exec executable="/bin/sh" dir="." failonerror="true" osfamily="unix">
             <arg value="scripts/build-ffmpeg.sh" />
@@ -41,8 +35,6 @@
     <target name="-pre-build">
         <available file="/usr/bin/yasm" type="file" property="yasm.exists"/>
         <antcall target="-check-dependencies" />
-        <echo>Downloading and preparing ActionBarSherlock...</echo>
-        <antcall target="get-abs" />
         <echo>Building native code...</echo>
         <antcall target="-check-ndk" />
         <antcall target="build-ffmpeg" />

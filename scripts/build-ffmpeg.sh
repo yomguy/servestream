@@ -2,7 +2,7 @@
 
 WORKING_DIR=`pwd`
 SCRIPTS_DIR=$WORKING_DIR/scripts
-FFMPEG_BUILD_DIR=$WORKING_DIR/ffmpeg
+FFMPEG_BUILD_DIR=$WORKING_DIR/submodules/ffmpeg-0.11.1-android-2012-09-18
 TARGET_ARMEABI_DIR=$WORKING_DIR/jni/ffmpeg/ffmpeg/armeabi
 TARGET_ARMEABIV7A_DIR=$WORKING_DIR/jni/ffmpeg/ffmpeg/armeabi-v7a
 TARGET_X86_DIR=$WORKING_DIR/jni/ffmpeg/ffmpeg/x86
@@ -16,14 +16,9 @@ if [ "$NDK" = "" ] || [ ! -d $NDK ]; then
 	exit 1
 fi
 
-if [ ! -d ffmpeg ]; then
-    # Download FFmpeg
-    wget http://sourceforge.net/p/servestream/code/1403/tree/ffmpeg/ffmpeg-0.11.1-android-2012-09-18.tar.gz?format=raw --output-document=ffmpeg-0.11.1-android-2012-09-18.tar.gz
-
+if [ ! -d $FFMPEG_BUILD_DIR ]; then
     # Unpackage the FFmpeg archive
-    tar -xvf ffmpeg-0.11.1-android-2012-09-18.tar.gz
-    rm ffmpeg-0.11.1-android-2012-09-18.tar.gz
-    mv ffmpeg-0.11.1-android-2012-09-18 $FFMPEG_BUILD_DIR
+    unzip submodules/ffmpeg-0.11.1-android-2012-09-18.zip -d submodules/
 
     # Prepare the FFmpeg archive for building
     cd $FFMPEG_BUILD_DIR
