@@ -22,6 +22,7 @@ import net.sourceforge.servestream.provider.Media;
 import net.sourceforge.servestream.service.IMediaPlaybackService;
 import net.sourceforge.servestream.service.MediaPlaybackService;
 import net.sourceforge.servestream.utils.MusicUtils;
+import net.sourceforge.servestream.utils.PreferenceConstants;
 import net.sourceforge.servestream.utils.MusicUtils.ServiceToken;
 
 import android.content.AsyncQueryHandler;
@@ -32,14 +33,17 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
+import android.content.SharedPreferences;
 import android.database.AbstractCursor;
 import android.database.CharArrayBuffer;
 import android.database.Cursor;
+import android.graphics.drawable.Drawable;
 import android.media.AudioManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.os.RemoteException;
+import android.preference.PreferenceManager;
 import android.provider.MediaStore;
 import android.util.Log;
 import android.view.ContextMenu;
@@ -79,7 +83,8 @@ public class NowPlayingActivity extends SherlockListActivity implements
     private boolean mAdapterSent = false;
     private int mSelectedPosition;
     private ServiceToken mToken;
-
+    private SharedPreferences mPreferences;
+    
     String[] mCursorCols = new String[] {
             Media.MediaColumns._ID,             // index must match IDCOLIDX below
             Media.MediaColumns.URI,
@@ -100,6 +105,8 @@ public class NowPlayingActivity extends SherlockListActivity implements
         
         setVolumeControlStream(AudioManager.STREAM_MUSIC);
 		
+        mPreferences = PreferenceManager.getDefaultSharedPreferences(this);
+        
         DragSortListView list = (DragSortListView) getListView();
 		list.setOnItemClickListener(new OnItemClickListener() {
 			@Override
@@ -136,8 +143,7 @@ public class NowPlayingActivity extends SherlockListActivity implements
 		controller.setDragInitMode(DragSortController.ON_DRAG);
 		controller.setRemoveMode(DragSortController.FLING_REMOVE);
         controller.setRemoveEnabled(true);
-		controller.setDragHandleId(R.id.icon);
-		list.setDivider(null);
+		controller.setDragHandleId(R.id.drag);
 		list.setOnTouchListener(controller);
 		list.setOnCreateContextMenuListener(this);
 		
@@ -699,6 +705,7 @@ public class NowPlayingActivity extends SherlockListActivity implements
             ImageView play_indicator;
             CharArrayBuffer buffer1;
             char [] buffer2;
+            ImageView icon;
         }
 
         class TrackQueryHandler extends AsyncQueryHandler {
@@ -791,6 +798,7 @@ public class NowPlayingActivity extends SherlockListActivity implements
             vh.play_indicator = (ImageView) v.findViewById(R.id.play_indicator);
             vh.buffer1 = new CharArrayBuffer(100);
             vh.buffer2 = new char[200];
+            vh.icon.setPadding(0, 0, 1, 0);
             v.setTag(vh);
             return v;
         }
@@ -831,7 +839,18 @@ public class NowPlayingActivity extends SherlockListActivity implements
             builder.getChars(0, len, vh.buffer2, 0);
             vh.line2.setText(vh.buffer2, 0, len);
 
-            ImageView iv = vh.play_indicator;
+            ImageView iv = vh.icon;
+            iv.setVisibility(View.GONE);
+            if (mPreferences.getBoolean(PreferenceConstants.RETRIEVE_ALBUM_ART, false)) {
+            	long id = cursor.getInt(mAudioIdIdx);
+        		Drawable d = MusicUtils.getCachedMediumArtwork(NowPlayingActivity.this, id);
+        		if (d != null) {
+        			iv.setImageDrawable(d);
+        			iv.setVisibility(View.VISIBLE);
+        		}
+            }
+            
+            iv = vh.play_indicator;
             long id = -1;
             boolean isPlaying = false;
             if (MusicUtils.sService != null) {
