@@ -507,6 +507,7 @@ public class MediaPlaybackService extends Service implements
         unregisterReceiver(mIntentReceiver);
         
     	Utils.deleteAllFiles();
+        MusicUtils.clearAlbumArtCache();
         
         super.onDestroy();
     }
