@@ -120,10 +120,7 @@ public class ServeStreamAppWidgetOneProvider extends AppWidgetProvider {
         final RemoteViews views = new RemoteViews(service.getPackageName(), R.layout.appwidget_one);
         
         if (what.equals(MediaPlaybackService.PLAYER_CLOSED)) {
-        	views.setViewVisibility(R.id.title, View.GONE);
-            views.setTextViewText(R.id.artist, res.getText(R.string.widget_one_initial_text));
-            
-            linkButtons(service, views, false /* not playing */);
+        	defaultAppWidget(service, appWidgetIds);
         } else {
         	CharSequence trackName = service.getTrackName();
         	CharSequence artistName = service.getArtistName();
