@@ -934,7 +934,7 @@ public class MediaPlaybackService extends Service implements
             stop(false);
 
             // TODO is there a better place for this?
-            MusicUtils.clearAlbumArtCache();
+            //MusicUtils.clearAlbumArtCache();
             
             mCursor = getCursorForId(mPlayList[mPlayPos]);
             /*while(true) {

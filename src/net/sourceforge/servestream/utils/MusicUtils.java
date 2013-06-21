@@ -377,6 +377,7 @@ public class MusicUtils {
     private static final BitmapFactory.Options sBitmapOptionsCache = new BitmapFactory.Options();
     private static final Uri sArtworkUri = Media.MediaColumns.CONTENT_URI;
     private static final HashMap<Long, Drawable> sArtCache = new HashMap<Long, Drawable>();
+    private static final HashMap<Long, Drawable> sMediumArtCache = new HashMap<Long, Drawable>();
     private static final HashMap<Long, Bitmap> sLargeArtCache = new HashMap<Long, Bitmap>();
     private static final HashMap<Long, Bitmap> sNotificationArtCache = new HashMap<Long, Bitmap>();
     
@@ -391,6 +392,10 @@ public class MusicUtils {
     public static void clearAlbumArtCache() {
         synchronized(sArtCache) {
             sArtCache.clear();
+        }
+        
+        synchronized(sMediumArtCache) {
+        	sMediumArtCache.clear();
         }
         
         synchronized(sLargeArtCache) {
@@ -428,6 +433,31 @@ public class MusicUtils {
                     Drawable value = sArtCache.get(artIndex);
                     if (value == null) {
                         sArtCache.put(artIndex, d);
+                    } else {
+                        d = value;
+                    }
+                }
+            }
+        }
+        return d;
+    }
+    
+    public static Drawable getCachedMediumArtwork(Context context, long artIndex) {
+    	int size = (int) Math.round(64 * context.getResources().getDisplayMetrics().density);
+    	
+    	Drawable d = null;
+        synchronized(sMediumArtCache) {
+            d = sMediumArtCache.get(artIndex);
+        }
+        if (d == null) {
+            Bitmap b = MusicUtils.getArtworkQuick(context, artIndex, size, size);
+            if (b != null) {
+                d = new FastBitmapDrawable(b);
+                synchronized(sMediumArtCache) {
+                    // the cache may have changed since we checked
+                    Drawable value = sMediumArtCache.get(artIndex);
+                    if (value == null) {
+                    	sMediumArtCache.put(artIndex, d);
                     } else {
                         d = value;
                     }
