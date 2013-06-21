@@ -452,7 +452,7 @@ public class MediaPlaybackService extends Service implements
 
         reloadSettings();
         notifyChange(QUEUE_CHANGED);
-        notifyChange(META_CHANGED);
+        //notifyChange(META_CHANGED);
 
         IntentFilter commandFilter = new IntentFilter();
         commandFilter.addAction(SERVICECMD);
