@@ -149,9 +149,8 @@ public class ServeStreamAppWidgetOneProvider extends AppWidgetProvider {
             
             // Link actions buttons to intents
             linkButtons(service, views, true);
+            pushUpdate(service, appWidgetIds, views);
         }
-        
-        pushUpdate(service, appWidgetIds, views);
     }
     
     /**
