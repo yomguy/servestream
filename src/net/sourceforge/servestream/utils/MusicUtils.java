@@ -741,6 +741,21 @@ public class MusicUtils {
                 
             	artist.setText(artistName);
             	
+            	final ImageView previousButton = (ImageView) nowPlayingView.findViewById(R.id.previous_button);
+            	if (previousButton != null) {
+            		previousButton.setImageResource(R.drawable.btn_player_prev);
+            		previousButton.setOnClickListener(new View.OnClickListener() {
+						
+						@Override
+						public void onClick(View v) {
+							try {
+								sService.prev();
+							} catch (RemoteException e) {
+							}
+						}
+					});
+            	}
+            	
                 final ImageView pauseButton = (ImageView) nowPlayingView.findViewById(R.id.play_pause_button);
             	pauseButton.setVisibility(View.VISIBLE);
             	
@@ -764,6 +779,21 @@ public class MusicUtils {
 						}
 					}
             	});
+            	
+            	final ImageView nextButton = (ImageView) nowPlayingView.findViewById(R.id.next_button);
+            	if (nextButton != null) {
+            		nextButton.setImageResource(R.drawable.btn_player_next);
+            		nextButton.setOnClickListener(new View.OnClickListener() {
+						
+						@Override
+						public void onClick(View v) {
+							try {
+								sService.next();
+							} catch (RemoteException e) {
+							}
+						}
+					});
+            	}
             	
         		if (nowPlayingView.getVisibility() != View.VISIBLE) {
         			Animation fade_in = AnimationUtils.loadAnimation(a, R.anim.player_in);
