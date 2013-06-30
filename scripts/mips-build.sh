@@ -8,7 +8,7 @@ fi
 SYSROOT=$NDK/platforms/android-14/arch-mips
 WORKING_DIR=`pwd`
 # Expand the prebuilt/* path into the correct one
-TOOLCHAIN=`echo $NDK/toolchains/mipsel-linux-android-4.6/prebuilt/linux-x86`
+TOOLCHAIN=`echo $NDK/toolchains/mipsel-linux-android-4.6/prebuilt/linux-x86*`
 export PATH=$TOOLCHAIN/bin:$PATH
 
 rm -rf build/ffmpeg
