@@ -798,7 +798,7 @@ public class NowPlayingActivity extends SherlockListActivity implements
             vh.play_indicator = (ImageView) v.findViewById(R.id.play_indicator);
             vh.buffer1 = new CharArrayBuffer(100);
             vh.buffer2 = new char[200];
-            vh.icon.setPadding(0, 0, 1, 0);
+            vh.icon = (ImageView) v.findViewById(R.id.icon);
             v.setTag(vh);
             return v;
         }
