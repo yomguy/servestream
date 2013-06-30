@@ -70,6 +70,7 @@
         		android:textColor="#ffbbbbbb"
         		android:singleLine="true"
         		android:ellipsize="marquee" />
+        	
     	</LinearLayout>
 
     	<ImageButton
