@@ -142,7 +142,6 @@
 	<string name="streampref_reference_title">Reference</string>
 
     <!--  Widget -->
-	<string name="widget_one_initial_text">"Touch to select media."</string>
 	<string name="widget_one_track_info_unavailable">"No track info available"</string>
     
     <!-- 'Add URL' Activity labels -->

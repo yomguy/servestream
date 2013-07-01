@@ -138,7 +138,6 @@
 	<string name="streampref_reference_title">Reférence</string>
     
     <!--  Widget -->
-	<string name="widget_one_initial_text">"Sélectionner un média."</string>
 	<string name="widget_one_track_info_unavailable">&quot;Informations du média indisponibles&quot;</string>
 	
     <!-- 'Add URL' Activity labels -->
