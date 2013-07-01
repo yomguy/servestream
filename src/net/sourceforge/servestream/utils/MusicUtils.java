@@ -380,6 +380,7 @@ public class MusicUtils {
     private static final HashMap<Long, Drawable> sMediumArtCache = new HashMap<Long, Drawable>();
     private static final HashMap<Long, Bitmap> sLargeArtCache = new HashMap<Long, Bitmap>();
     private static final HashMap<Long, Bitmap> sNotificationArtCache = new HashMap<Long, Bitmap>();
+    private static final HashMap<Long, Bitmap> sWidgetArtCache = new HashMap<Long, Bitmap>();
     
     static {
         // for the cache, 
@@ -404,6 +405,12 @@ public class MusicUtils {
         
         synchronized(sNotificationArtCache) {
         	sNotificationArtCache.clear();
+        }
+    }
+    
+    public static void clearWidgetArtCache() {
+        synchronized(sWidgetArtCache) {
+        	sWidgetArtCache.clear();
         }
     }
     
@@ -680,6 +687,33 @@ public class MusicUtils {
                 Bitmap value = sNotificationArtCache.get(id);
                 if (value == null) {
                 	sNotificationArtCache.put(id, d);
+                } else {
+                    d = value;
+                }
+            }
+        }
+        
+        return d;
+    }
+    
+    public static Bitmap getWidgetArtwork(Context context, long id) {
+    	Bitmap d = null;
+        synchronized(sWidgetArtCache) {
+            d = sWidgetArtCache.get(id);
+        }
+        if (d == null) {
+        	int scale = (int) (100 * context.getResources().getDisplayMetrics().density);
+        	Bitmap b = getArtworkQuick(context, id, scale, scale);
+            if (b == null) {
+            	b = BitmapFactory.decodeResource(context.getResources(), R.drawable.albumart_mp_unknown_widget);
+            }
+                
+            d = b;
+            synchronized(sWidgetArtCache) {
+            	// the cache may have changed since we checked
+                Bitmap value = sWidgetArtCache.get(id);
+                if (value == null) {
+                	sWidgetArtCache.put(id, d);
                 } else {
                     d = value;
                 }

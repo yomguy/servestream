@@ -68,7 +68,6 @@ import net.sourceforge.servestream.service.RemoteControlClientCompat.MetadataEdi
 import net.sourceforge.servestream.utils.MusicUtils;
 import net.sourceforge.servestream.utils.PreferenceConstants;
 import net.sourceforge.servestream.utils.Utils;
-import net.sourceforge.servestream.widget.ServeStreamAppWidgetOneProvider;
 
 /**
  * Provides "background" audio playback capabilities, allowing the
@@ -169,7 +168,7 @@ public class MediaPlaybackService extends Service implements
     // We use this to distinguish between different cards when saving/restoring playlists.
     // This will have to change if we want to support multiple simultaneous cards.
     
-    private ServeStreamAppWidgetOneProvider mAppWidgetProvider = ServeStreamAppWidgetOneProvider.getInstance();
+    private AppWidgetOneProvider mAppWidgetProvider = AppWidgetOneProvider.getInstance();
     
     // interval after which we stop the service when idle
     private static final int IDLE_DELAY = 60000;
@@ -392,7 +391,7 @@ public class MediaPlaybackService extends Service implements
                 pause(true);
                 mPausedByTransientLossOfFocus = false;
                 seek(0);
-            } else if (ServeStreamAppWidgetOneProvider.CMDAPPWIDGETUPDATE.equals(cmd)) {
+            } else if (AppWidgetOneProvider.CMDAPPWIDGETUPDATE.equals(cmd)) {
                 // Someone asked us to refresh a set of specific widgets, probably
                 // because they were just added.
                 int[] appWidgetIds = intent.getIntArrayExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS);
@@ -1242,6 +1241,11 @@ public class MediaPlaybackService extends Service implements
 
     public void prev() {
         synchronized (this) {
+            if (mPlayListLen <= 0) {
+                Log.d(LOGTAG, "No play queue");
+                return;
+            }
+        	
             if (mShuffleMode == SHUFFLE_ON) {
                 // go to previously-played track and remove it from the history
                 int histsize = mHistory.size();

@@ -1,6 +1,6 @@
 /*
  * ServeStream: A HTTP stream browser/player for Android
- * Copyright 2010 William Seemann
+ * Copyright 2013 William Seemann
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,13 +15,13 @@
  * limitations under the License.
  */
 
-package net.sourceforge.servestream.widget;
+package net.sourceforge.servestream.service;
 
 import net.sourceforge.servestream.R;
 import net.sourceforge.servestream.activity.MainActivity;
 import net.sourceforge.servestream.activity.MediaPlayerActivity;
 import net.sourceforge.servestream.provider.Media;
-import net.sourceforge.servestream.service.MediaPlaybackService;
+import net.sourceforge.servestream.utils.MusicUtils;
 import android.app.PendingIntent;
 import android.appwidget.AppWidgetManager;
 import android.appwidget.AppWidgetProvider;
@@ -29,6 +29,8 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.res.Resources;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.view.View;
 import android.widget.RemoteViews;
 
@@ -36,20 +38,22 @@ import android.widget.RemoteViews;
  * Simple widget to show currently playing album art along
  * with play/pause and next track buttons.  
  */
-public class ServeStreamAppWidgetOneProvider extends AppWidgetProvider {
-    static final String TAG = ServeStreamAppWidgetOneProvider.class.getName();
+public class AppWidgetOneProvider extends AppWidgetProvider {
+    static final String TAG = AppWidgetOneProvider.class.getName();
     
     public static final String CMDAPPWIDGETUPDATE = "appwidgetupdate";
 
-    private static ServeStreamAppWidgetOneProvider sInstance;
+    private static AppWidgetOneProvider sInstance;
     
-    public static synchronized ServeStreamAppWidgetOneProvider getInstance() {
+    public static synchronized AppWidgetOneProvider getInstance() {
         if (sInstance == null) {
-            sInstance = new ServeStreamAppWidgetOneProvider();
+            sInstance = new AppWidgetOneProvider();
         }
         return sInstance;
     }
 
+    private long mCoverArtId = -1;
+    
     @Override
     public void onUpdate(Context context, AppWidgetManager appWidgetManager, int[] appWidgetIds) {
         defaultAppWidget(context, appWidgetIds);
@@ -58,7 +62,7 @@ public class ServeStreamAppWidgetOneProvider extends AppWidgetProvider {
         // wrap around with an immediate update.
         Intent updateIntent = new Intent(MediaPlaybackService.SERVICECMD);
         updateIntent.putExtra(MediaPlaybackService.CMDNAME,
-                ServeStreamAppWidgetOneProvider.CMDAPPWIDGETUPDATE);
+                AppWidgetOneProvider.CMDAPPWIDGETUPDATE);
         updateIntent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS, appWidgetIds);
         updateIntent.addFlags(Intent.FLAG_RECEIVER_REGISTERED_ONLY);
         context.sendBroadcast(updateIntent);
@@ -69,11 +73,10 @@ public class ServeStreamAppWidgetOneProvider extends AppWidgetProvider {
      * and hide actions if service not running.
      */
     private void defaultAppWidget(Context context, int[] appWidgetIds) {
-        final Resources res = context.getResources();
         final RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.appwidget_one);
         
-        views.setViewVisibility(R.id.title, View.GONE);
-        views.setTextViewText(R.id.artist, res.getText(R.string.widget_one_initial_text));
+        views.setViewVisibility(R.id.title, View.INVISIBLE);
+        views.setViewVisibility(R.id.artist, View.INVISIBLE);
 
         linkButtons(context, views, false /* not playing */);
         pushUpdate(context, appWidgetIds, views);
@@ -137,15 +140,35 @@ public class ServeStreamAppWidgetOneProvider extends AppWidgetProvider {
         	// Show media info
         	views.setViewVisibility(R.id.title, View.VISIBLE);
         	views.setTextViewText(R.id.title, trackName);
+        	views.setViewVisibility(R.id.artist, View.VISIBLE);
         	views.setTextViewText(R.id.artist, artistName);
         	
             // Set correct drawable for pause state
             final boolean playing = service.isPlaying();
             if (playing) {
-                views.setImageViewResource(R.id.control_play, R.drawable.ic_appwidget_music_pause);
+                views.setImageViewResource(R.id.control_play, android.R.drawable.ic_media_pause);
             } else {
-                views.setImageViewResource(R.id.control_play, R.drawable.ic_appwidget_music_play);
+                views.setImageViewResource(R.id.control_play, android.R.drawable.ic_media_play);
             }
+            
+            BitmapFactory.Options opts = new BitmapFactory.Options();
+            opts.inPreferredConfig = Bitmap.Config.ARGB_8888;
+            Bitmap b = BitmapFactory.decodeStream(
+                    service.getResources().openRawResource(R.drawable.albumart_mp_unknown_widget), null, opts);
+            
+            views.setImageViewBitmap(R.id.coverart, b);
+            
+        	long id = service.getAudioId();
+        	
+        	if (id != mCoverArtId) {
+        		MusicUtils.clearWidgetArtCache();
+        	}
+        	
+        	if (id >= 0) {
+        		b = MusicUtils.getWidgetArtwork(service, id);
+        		views.setImageViewBitmap(R.id.coverart, b);
+        		mCoverArtId = id;
+        	}
             
             // Link actions buttons to intents
             linkButtons(service, views, true);
@@ -171,13 +194,19 @@ public class ServeStreamAppWidgetOneProvider extends AppWidgetProvider {
             intent = new Intent(context, MediaPlayerActivity.class);
             pendingIntent = PendingIntent.getActivity(context,
                     0 /* no requestCode */, intent, 0 /* no flags */);
-            views.setOnClickPendingIntent(R.id.appwidget_one, pendingIntent);
+            views.setOnClickPendingIntent(R.id.appwidget_two, pendingIntent);
         } else {
             intent = new Intent(context, MainActivity.class);
             pendingIntent = PendingIntent.getActivity(context,
                     0 /* no requestCode */, intent, 0 /* no flags */);
-            views.setOnClickPendingIntent(R.id.appwidget_one, pendingIntent);
+            views.setOnClickPendingIntent(R.id.appwidget_two, pendingIntent);
         }
+        
+        intent = new Intent(MediaPlaybackService.PREVIOUS_ACTION);
+        intent.setComponent(serviceName);
+        pendingIntent = PendingIntent.getService(context,
+                0 /* no requestCode */, intent, 0 /* no flags */);
+        views.setOnClickPendingIntent(R.id.control_previous, pendingIntent);
         
         intent = new Intent(MediaPlaybackService.TOGGLEPAUSE_ACTION);
         intent.setComponent(serviceName);
