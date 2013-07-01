@@ -2,7 +2,7 @@
 <!--
 /*
  * ServeStream: A HTTP stream browser/player for Android
- * Copyright 2010 William Seemann
+ * Copyright 2013 William Seemann
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,82 +18,124 @@
  */
 -->
 
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/appwidget_two"
     android:layout_width="fill_parent"
     android:layout_height="fill_parent"
-    android:orientation="horizontal"
-    android:background="@drawable/appwidget_bg">
-
-   <LinearLayout
-        android:id="@+id/appwidget_one"
-        android:layout_width="0dip"
-        android:layout_weight="3"
-        android:layout_height="fill_parent"
-        android:orientation="vertical"
-        android:gravity="center_vertical"
-        android:clickable="true"
-        android:focusable="true"
-	    android:background="@drawable/appwidget_button_left"
-        android:paddingLeft="18dip"
-        android:paddingRight="8dip"
-        >
-
-        <TextView
-            android:id="@+id/title"
-            android:layout_width="fill_parent"
-            android:layout_height="wrap_content"
-            android:textColor="@android:color/white"
-            android:textStyle="bold"
-            android:textSize="18sp"
-            android:singleLine="true"
-            android:fadingEdge="horizontal"
-            android:fadingEdgeLength="10dip"
-            android:ellipsize="none"
-            />
-
-        <TextView
-            android:id="@+id/artist"
-            android:layout_width="fill_parent"
-            android:layout_height="wrap_content"
-            android:textColor="@android:color/white"
-            android:textSize="14sp"
-            android:singleLine="true"
-            android:fadingEdge="horizontal"
-            android:fadingEdgeLength="10dip"
-            android:ellipsize="none"
-            />
-    </LinearLayout>
+    android:background="@android:color/black" >
     
- 	<ImageView
-        android:layout_width="1dip"
-        android:layout_height="fill_parent"
-        android:background="@drawable/appwidget_divider"
-        />
+    <RelativeLayout
+        android:id="@+id/appwidget_two"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent" >
         
-    <ImageButton
-        android:id="@+id/control_play"
-        android:layout_width="0dip"
-        android:layout_weight="1"
-        android:layout_height="fill_parent"
-        android:src="@drawable/ic_appwidget_music_play"
-        android:background="@drawable/appwidget_button_center"
-        android:scaleType="center"
-        />
-
- 	<ImageView
-        android:layout_width="1dip"
-        android:layout_height="fill_parent"
-        android:background="@drawable/appwidget_divider"
-        />
+        <ImageView
+            android:id="@+id/coverart"
+            android:layout_width="wrap_content"
+       		android:layout_height="100dip"
+       		android:layout_alignBottom="@+id/controls"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentTop="true"
+            android:scaleType="centerCrop"
+            android:adjustViewBounds="true" 
+            android:src="@drawable/albumart_mp_unknown_widget" />
         
-    <ImageButton
-        android:id="@+id/control_next"
-        android:layout_width="0dip"
-        android:layout_weight="1"
-        android:layout_height="fill_parent"
-        android:src="@drawable/ic_appwidget_music_next"
-        android:background="@drawable/appwidget_button_right"
-        android:scaleType="center"
-        />
-
-</LinearLayout>
+        <LinearLayout
+            android:id="@+id/texts"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="15dip"
+            android:layout_toRightOf="@+id/coverart"
+            android:orientation="vertical"
+            android:gravity="top|left|center"
+            android:paddingTop="2dip" >
+            
+            <requestFocus
+                android:focusable="true"
+                android:focusableInTouchMode="true"
+                android:duplicateParentState="true" />
+            
+            <TextView
+                android:id="@+id/title"
+                android:layout_width="wrap_content"
+        		android:layout_height="wrap_content"
+        		android:textColor="@android:color/white"
+                android:textSize="16dip"
+        		android:singleLine="true"
+        		android:focusable="true"
+        		android:focusableInTouchMode="true"
+        		android:scrollHorizontally="true"
+        		android:marqueeRepeatLimit="marquee_forever"
+        		android:ellipsize="marquee" />
+            
+            <TextView
+                android:id="@+id/artist"
+                android:layout_width="wrap_content"
+        		android:layout_height="wrap_content"
+        		android:textColor="@android:color/white"
+                android:textSize="12dip"
+        		android:singleLine="true"
+        		android:focusableInTouchMode="true"
+        		android:scrollHorizontally="true"
+        		android:marqueeRepeatLimit="marquee_forever"
+        		android:ellipsize="end" />
+            
+        </LinearLayout>
+        
+        <LinearLayout
+            android:id="@+id/controls"
+            android:layout_width="wrap_content"
+            android:layout_height="fill_parent"
+            android:layout_toRightOf="@id/coverart"
+            android:layout_below="@+id/texts"
+            android:layout_alignParentRight="true"
+            android:gravity="center_vertical" >
+            
+            <ImageButton
+                android:id="@+id/control_previous"
+                android:layout_width="0dip"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:background="@null"
+                android:src="@android:drawable/ic_media_previous"
+                android:paddingTop="1dip"
+                android:paddingBottom="1dip"
+                android:scaleType="centerInside" />
+            
+            <ImageView
+                android:background="@android:color/white"
+                android:layout_width="1dip"
+                android:layout_height="20dip" />
+            
+            <ImageButton
+                android:id="@+id/control_play"
+                android:layout_width="0dip"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:background="@null"
+                android:src="@android:drawable/ic_media_play"
+                android:paddingTop="1dip"
+                android:paddingBottom="1dip"
+                android:scaleType="centerInside" />
+           
+            <ImageView
+                android:background="@android:color/white"
+                android:layout_width="1dip"
+                android:layout_height="20dip" />
+            
+            <ImageButton
+                android:id="@+id/control_next"
+                android:layout_width="0dip"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:background="@null"
+                android:src="@android:drawable/ic_media_next"
+                android:paddingTop="1dip"
+                android:paddingBottom="1dip"
+                android:scaleType="centerInside" />
+            
+        </LinearLayout>
+        
+    </RelativeLayout>
+    
+</FrameLayout>

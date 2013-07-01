@@ -18,15 +18,10 @@
  */
 -->
 
-<selector xmlns:android="http://schemas.android.com/apk/res/android">
-
-    <item android:state_pressed="true"
-        android:drawable="@drawable/appwidget_inner_press_l" />
-
-    <item android:state_focused="true" android:state_enabled="true"
-        android:state_window_focused="true"
-        android:drawable="@drawable/appwidget_inner_focus_l" />
-
-    <item
-         android:drawable="@android:color/transparent" />
-</selector>
+<appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"
+    android:minWidth="250dip"
+    android:minHeight="40dip"
+    android:updatePeriodMillis="0"
+    android:initialLayout="@layout/appwidget_one"
+    >
+</appwidget-provider>
