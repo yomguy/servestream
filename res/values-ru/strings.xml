@@ -140,7 +140,6 @@
 	<string name="streampref_reference_title">Reference</string>
 
     <!--  Widget -->
-	<string name="widget_one_initial_text">Прикоснитесь для выбора композиции</string>
 	<string name="widget_one_track_info_unavailable">Нет информации о дорожке</string>
 	
     <!-- 'Add URL' Activity labels -->
