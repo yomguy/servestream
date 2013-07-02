@@ -6,16 +6,16 @@
     
     <SeekBar
     	android:id="@+id/volume_bar"
-       	android:layout_width="100dip"
+       	android:layout_width="115dip"
       	android:layout_height="wrap_content"
       	android:layout_alignParentRight="true"
       	android:layout_centerVertical="true"
-        android:paddingRight="5dip"
+        android:paddingRight="4dip"
         android:progress="0"
         android:progressDrawable="@drawable/player_progress_drawable"
-        android:thumb="@drawable/player_progress_thumb"
+        android:thumb="@drawable/icn_volume"
         android:thumbOffset="9dip"
-        android:maxHeight="4dip"
-        android:minHeight="4dip" />
+        android:maxHeight="3dip"
+        android:minHeight="3dip" />
 
 </RelativeLayout>
