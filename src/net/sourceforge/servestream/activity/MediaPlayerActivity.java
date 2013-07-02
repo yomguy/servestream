@@ -49,7 +49,9 @@ import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
 import android.content.res.Configuration;
+import android.database.ContentObserver;
 import android.media.AudioManager;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
@@ -64,6 +66,7 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
 import android.util.Log;
 import android.view.KeyEvent;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.ImageButton;
@@ -109,6 +112,8 @@ public class MediaPlayerActivity extends SherlockFragmentActivity implements Mus
 
     private TextView mTrackNumber;
     
+    private VolumeObserver mVolumeObserver;
+    
     public MediaPlayerActivity()
     {
     }
@@ -121,7 +126,15 @@ public class MediaPlayerActivity extends SherlockFragmentActivity implements Mus
         
 		ActionBar actionBar = getSupportActionBar();
 		actionBar.setDisplayHomeAsUpEnabled(true);
+        actionBar.setDisplayShowCustomEnabled(true);
+        actionBar.setDisplayShowTitleEnabled(false);
         
+        LayoutInflater inflater = getLayoutInflater();
+        View v = inflater.inflate(R.layout.action_bar_media_player, null);
+        mVolume = (SeekBar) v.findViewById(R.id.volume_bar);
+        
+        actionBar.setCustomView(v);
+		
         setVolumeControlStream(AudioManager.STREAM_MUSIC);
 
         mAlbumArtWorker = new Worker("album art worker");
@@ -165,10 +178,7 @@ public class MediaPlayerActivity extends SherlockFragmentActivity implements Mus
         }
         mProgress.setMax(1000);
         
-        mVolume = (SeekBar) findViewById(R.id.volume_bar);
-        updateVolumeBar();
         mVolume.setOnSeekBarChangeListener(mVolumeListener);
-        mVolume.setVisibility(View.GONE);
     }
     
 	public void onSharedPreferenceChanged(SharedPreferences sharedPreferences,
@@ -298,6 +308,12 @@ public class MediaPlayerActivity extends SherlockFragmentActivity implements Mus
             mHandler.sendEmptyMessage(QUIT);
         }
         
+        mVolumeObserver = new VolumeObserver(new Handler()); 
+        getApplicationContext().getContentResolver().registerContentObserver( 
+        		android.provider.Settings.System.CONTENT_URI,
+        		true, 
+        		mVolumeObserver);
+        
         IntentFilter f = new IntentFilter();
         f.addAction(MediaPlaybackService.PLAYSTATE_CHANGED);
         f.addAction(MediaPlaybackService.META_CHANGED);
@@ -316,6 +332,7 @@ public class MediaPlayerActivity extends SherlockFragmentActivity implements Mus
         mParentActivityState = VISIBLE;
         updateTrackInfo();
         setPauseButtonImage();
+        updateVolumeBar();
     }
 
     @Override
@@ -329,6 +346,7 @@ public class MediaPlayerActivity extends SherlockFragmentActivity implements Mus
     public void onStop() {
         paused = true;
         mHandler.removeMessages(REFRESH);
+        getApplicationContext().getContentResolver().unregisterContentObserver(mVolumeObserver);
         unregisterReceiver(mStatusListener);
         MusicUtils.unbindFromService(mToken);
         mService = null;
@@ -608,11 +626,6 @@ public class MediaPlayerActivity extends SherlockFragmentActivity implements Mus
             case KeyEvent.KEYCODE_SPACE:
                 doPauseResume();
                 return true;
-            case KeyEvent.KEYCODE_VOLUME_DOWN:
-            case KeyEvent.KEYCODE_VOLUME_MUTE:
-            case KeyEvent.KEYCODE_VOLUME_UP:
-            	updateVolumeBar();
-            	return false;
         }
         return super.onKeyDown(keyCode, event);
     }
@@ -1248,5 +1261,22 @@ public class MediaPlayerActivity extends SherlockFragmentActivity implements Mus
 	@Override
 	public void onSleepTimerSet(DialogFragment dialog, int pos) {
 		setSleepTimer(pos);
+	}
+	
+	private class VolumeObserver extends ContentObserver {
+
+		public VolumeObserver(Handler handler) {
+			super(handler);
+		}
+
+		@Override
+		public void onChange(boolean selfChange) {
+			onChange(selfChange, null);
+		}
+			
+		@Override
+		public void onChange(boolean selfChange, Uri uri) {
+			updateVolumeBar();
+		}
 	}
 }
