@@ -45,20 +45,6 @@
         
         </LinearLayout>
         
-        <SeekBar
-        	android:id="@+id/volume_bar"
-            android:layout_width="fill_parent"
-            android:layout_height="wrap_content"
-            android:gravity="center_vertical"
-        	android:paddingLeft="27dip"
-        	android:paddingRight="27dip"
-        	android:progress="0"
-        	android:progressDrawable="@drawable/player_progress_drawable"
-            android:thumb="@drawable/player_progress_thumb"
-        	android:thumbOffset="9dip"
-            android:maxHeight="2dip"
-            android:minHeight="2dip" />
-        
         <LinearLayout
         	android:id="@+id/player_info"
         	android:layout_width="fill_parent"

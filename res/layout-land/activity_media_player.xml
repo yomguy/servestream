@@ -47,70 +47,48 @@
         </LinearLayout>
         
         <LinearLayout
-            android:layout_width="0dip"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:orientation="vertical" >
+        	android:id="@+id/player_info"
+        	android:layout_width="0dip"
+        	android:layout_height="match_parent"
+        	android:layout_weight="1"
+        	android:gravity="center"
+        	android:orientation="vertical" >
         
-            <SeekBar
-        		android:id="@+id/volume_bar"
-            	android:layout_width="fill_parent"
-            	android:layout_height="wrap_content"
-            	android:gravity="center_vertical"
-            	android:paddingTop="10dip"
-        		android:paddingLeft="27dip"
-        		android:paddingRight="27dip"
-        		android:progress="0"
-        		android:progressDrawable="@drawable/player_progress_drawable"
-            	android:thumb="@drawable/player_progress_thumb"
-        		android:thumbOffset="9dip"
-            	android:maxHeight="2dip"
-            	android:minHeight="2dip" />
+            <TextView
+                android:id="@+id/track_number_text"
+                android:layout_width="wrap_content" 
+                android:layout_height="wrap_content"
+                android:textSize="13sp"
+        		android:textStyle="normal"
+        		android:textColor="#ffa9a9a9"
+        		android:singleLine="true" />
             
-        	<LinearLayout
-        		android:id="@+id/player_info"
-        		android:layout_width="fill_parent"
-        		android:layout_height="match_parent"
-        		android:gravity="center"
-        		android:orientation="vertical" >
-        
-            	<TextView
-                	android:id="@+id/track_number_text"
-                	android:layout_width="wrap_content" 
-                	android:layout_height="wrap_content"
-                	android:textSize="13sp"
-        			android:textStyle="normal"
-        			android:textColor="#ffa9a9a9"
-        			android:singleLine="true" />
-            
-            	<TextView 
-            		android:id="@+id/trackname"
-            		android:layout_width="wrap_content"
-        			android:layout_height="wrap_content"
-        			android:layout_marginLeft="18dip"
-        			android:layout_marginRight="18dip"
-            		android:textSize="17sp"
-        			android:textStyle="bold"
-        			android:textColor="#ffffffff"
-        			android:ellipsize="marquee"
-        			android:singleLine="true" />
+            <TextView 
+            	android:id="@+id/trackname"
+            	android:layout_width="wrap_content"
+        		android:layout_height="wrap_content"
+        		android:layout_marginLeft="18dip"
+        		android:layout_marginRight="18dip"
+            	android:textSize="17sp"
+        		android:textStyle="bold"
+        		android:textColor="#ffffffff"
+        		android:ellipsize="marquee"
+        		android:singleLine="true" />
 
-           		<TextView
-               		android:id="@+id/artist_and_album"
-               		android:layout_width="wrap_content"
-        			android:layout_height="wrap_content"
-        			android:layout_marginLeft="18dip"
-        			android:layout_marginRight="18dip"
-                	android:textSize="13sp"
-        			android:textStyle="normal"
-        			android:textColor="#ffa9a9a9"
-        			android:ellipsize="marquee"
-        			android:singleLine="true" />
+           	<TextView
+               	android:id="@+id/artist_and_album"
+               	android:layout_width="wrap_content"
+        		android:layout_height="wrap_content"
+        		android:layout_marginLeft="18dip"
+        		android:layout_marginRight="18dip"
+                android:textSize="13sp"
+        		android:textStyle="normal"
+        		android:textColor="#ffa9a9a9"
+        		android:ellipsize="marquee"
+        		android:singleLine="true" />
             
-        	</LinearLayout>
-        
         </LinearLayout>
-        	
+        
     </LinearLayout>
 
     <LinearLayout
