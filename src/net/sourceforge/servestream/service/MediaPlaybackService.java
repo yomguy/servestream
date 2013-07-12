@@ -474,6 +474,8 @@ public class MediaPlaybackService extends Service implements
             Log.e(LOGTAG, "Service being destroyed while still playing.");
         }
         
+        mAppWidgetProvider.notifyChange(this, PLAYER_CLOSED);
+        
         mConnectivityManager.cleanup();
         
 		if (mMetadataRetrieverTask != null &&
