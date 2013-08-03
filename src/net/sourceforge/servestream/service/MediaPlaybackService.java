@@ -1134,9 +1134,9 @@ public class MediaPlaybackService extends Service implements
         		.setContentText(contentText)
                 .setContentIntent(contentIntent)
                 .setWhen(0)
-                .addAction(android.R.drawable.ic_media_previous, null, createPendingIntent(1, CMDPREVIOUS))
-                .addAction(icon, null, createPendingIntent(2, CMDTOGGLEPAUSE))
-        		.addAction(android.R.drawable.ic_media_next, null, createPendingIntent(3, CMDNEXT));
+                .addAction(android.R.drawable.ic_media_previous, getString(R.string.previous_action_title), createPendingIntent(1, CMDPREVIOUS))
+                .addAction(icon, getString(R.string.togglepause_action_title), createPendingIntent(2, CMDTOGGLEPAUSE))
+        		.addAction(android.R.drawable.ic_media_next, getString(R.string.next_action_title), createPendingIntent(3, CMDNEXT));
 		
         int trackId = getTrackId();
 	    if (mPreferences.getBoolean(PreferenceConstants.RETRIEVE_ALBUM_ART, false) && trackId != -1) {
