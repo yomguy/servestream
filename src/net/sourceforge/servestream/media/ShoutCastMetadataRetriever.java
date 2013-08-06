@@ -27,6 +27,7 @@ import java.util.Map;
 import net.moraleboost.streamscraper.ScrapeException;
 import net.moraleboost.streamscraper.Scraper;
 import net.moraleboost.streamscraper.Stream;
+import net.moraleboost.streamscraper.scraper.AltShoutCastScraper;
 import net.moraleboost.streamscraper.scraper.IceCastScraper;
 import net.moraleboost.streamscraper.scraper.ShoutCastScraper;
 
@@ -37,6 +38,7 @@ import net.moraleboost.streamscraper.scraper.ShoutCastScraper;
 public class ShoutCastMetadataRetriever
 {
 	public static final String SHOUTCAST_STREAM = "shoutcast";
+	public static final String ALT_SHOUTCAST_STREAM = "alt_shoutcast";
 	public static final String ICECAST_STREAM = "icecast";
 	
     private Map<String, String> mMetadata;
@@ -56,6 +58,13 @@ public class ShoutCastMetadataRetriever
      * @throws ScrapeException If metadata cannot be retrieved.
      */
     public String setDataSource(String path) throws ScrapeException, URISyntaxException {
+    	try {
+    		setAltShoutCastDataSource(path);
+    		return ALT_SHOUTCAST_STREAM;
+    	} catch (ScrapeException ex) {
+    	} catch (NullPointerException ex) {
+    	}
+    	
     	try {
     		setShoutCastDataSource(path);
     		return SHOUTCAST_STREAM;
@@ -95,6 +104,19 @@ public class ShoutCastMetadataRetriever
      * @throws URISyntaxException If the path cannot be parsed. 
      * @throws ScrapeException If metadata cannot be retrieved.
      */
+    public void setAltShoutCastDataSource(String path) throws ScrapeException, URISyntaxException {
+    	retrieveAltMetadata(path, new AltShoutCastScraper());
+    }
+    
+    /**
+     * Sets the data source (file pathname) to use. Call this
+     * method before the rest of the methods in this class. This method may be
+     * time-consuming.
+     * 
+     * @param path The path of the input media file.
+     * @throws URISyntaxException If the path cannot be parsed. 
+     * @throws ScrapeException If metadata cannot be retrieved.
+     */
     public void setIceCastDataSource(String path) throws ScrapeException, URISyntaxException {
     	retrieveMetadata(path, new IceCastScraper());
     }
@@ -119,6 +141,28 @@ public class ShoutCastMetadataRetriever
 			if (streams.get(i).getUri().toString().contains(uri.toString())) {
 				parseMetadata(streams.get(i).getCurrentSong());
 			}
+		}
+	}
+   
+    /**
+     * Retrieves metadata from a specified path.
+     * 
+     * @param path The path of the input media file
+     * @param scraper The scraper
+     * @throws URISyntaxException If the path cannot be parsed. 
+     * @throws ScrapeException If metadata cannot be retrieved.
+     */
+    private void retrieveAltMetadata(String path, Scraper scraper) throws URISyntaxException, ScrapeException {
+        List<Stream> streams = new ArrayList<Stream>();
+        
+    	mMetadata.clear();
+        
+        URI uri = new URI(path);
+		streams = scraper.scrape(uri);
+		
+		if (streams.size() > 0) {
+			mMetadata.put(METADATA_KEY_ARTIST, streams.get(0).getCurrentSong());
+			mMetadata.put(METADATA_KEY_TITLE, streams.get(0).getTitle());
 		}
 	}
     
