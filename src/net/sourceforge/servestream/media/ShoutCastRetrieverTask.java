@@ -105,8 +105,6 @@ public class ShoutCastRetrieverTask {
 		try {
 			if (mPreferredScraper.equals(ShoutCastMetadataRetriever.SHOUTCAST_STREAM)) {
 				smr.setShoutCastDataSource(uri);
-			} else if (mPreferredScraper.equals(ShoutCastMetadataRetriever.ALT_SHOUTCAST_STREAM)) {
-				smr.setAltShoutCastDataSource(uri);
 			} else if (mPreferredScraper.equals(ShoutCastMetadataRetriever.ICECAST_STREAM)) {
 				smr.setIceCastDataSource(uri);
 			} else {
