@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent"
+    android:layout_height="wrap_content" >
+
+    <ImageView
+        android:id="@+id/coverart"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentTop="true"
+        android:adjustViewBounds="true"
+        android:maxHeight="64dip"
+        android:maxWidth="64dip"
+        android:scaleType="centerCrop" />
+
+    <LinearLayout
+        android:layout_width="fill_parent"
+        android:layout_height="64dip"
+        android:layout_toRightOf="@id/coverart"
+        android:orientation="horizontal" >
+
+        <LinearLayout
+            android:id="@id/texts"
+            android:layout_width="0dip"
+            android:layout_height="64dip"
+            android:layout_weight="4"
+            android:gravity="center_vertical"
+            android:orientation="vertical"
+            android:paddingBottom="4dip"
+            android:paddingLeft="10dip"
+            android:paddingRight="10dip"
+            android:paddingTop="6dip" >
+
+            <TextView
+                android:id="@+id/title"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:duplicateParentState="true"
+                android:singleLine="true"
+                android:textAppearance="@android:style/TextAppearance.StatusBar.EventContent.Title" />
+
+            <TextView
+                android:id="@+id/subtitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:duplicateParentState="true"
+                android:singleLine="true"
+                android:textAppearance="@android:style/TextAppearance.StatusBar.EventContent" />
+            
+        </LinearLayout>
+
+        <ImageButton
+            android:id="@+id/play_pause"
+            android:layout_width="0dip"
+            android:layout_height="64dip"
+            android:layout_weight="1"
+            android:paddingLeft="8dip"
+            android:paddingRight="8dip"
+            android:scaleType="centerInside"
+            android:background="@drawable/bg_notification_button"
+            android:src="@android:drawable/ic_media_pause" />
+
+        <ImageButton
+            android:id="@+id/next"
+            android:layout_width="0dip"
+            android:layout_height="64dip"
+            android:layout_weight="1"
+            android:paddingLeft="2dip"
+            android:paddingRight="2dip"
+            android:scaleType="centerInside"
+            android:background="@drawable/bg_notification_button"
+            android:src="@android:drawable/ic_media_next" />
+
+        <ImageButton
+            android:id="@+id/close"
+            android:layout_width="0dip"
+            android:layout_height="64dip"
+            android:layout_weight="1"
+            android:paddingLeft="2dip"
+            android:scaleType="centerInside"
+            android:background="@drawable/bg_notification_button"
+            android:src="@drawable/icn_notification_dismiss" />
+
+        </LinearLayout>
+
+</RelativeLayout>

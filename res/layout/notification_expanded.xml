@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent"
+    android:layout_height="wrap_content" >
+
+    <include layout="@layout/notification_coverart_and_text" />
+
+    <LinearLayout
+        android:id="@+id/controls"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentRight="true"
+        android:layout_below="@id/thirdLine"
+        android:layout_toRightOf="@id/coverart"
+        android:gravity="right|center" >
+
+        <ImageButton
+            android:id="@+id/prev"
+        	android:layout_width="0dip"
+        	android:layout_height="54dip"
+        	android:layout_weight="1"
+        	android:scaleType="centerInside"
+        	android:background="@drawable/bg_notification_button"
+            android:src="@drawable/ic_media_previous" />
+
+        <ImageButton
+            android:id="@+id/prev_disabled"
+        	android:layout_width="0dip"
+        	android:layout_height="54dip"
+        	android:layout_weight="1"
+        	android:scaleType="centerInside"
+        	android:background="@drawable/bg_notification_button"
+            android:src="@drawable/ic_media_next"
+            android:visibility="gone" />
+
+        <TextView
+        	android:background="#ff424242"
+        	android:layout_width="1px"
+        	android:layout_height="fill_parent"
+        	android:layout_marginTop="16dip"
+        	android:layout_marginBottom="16dip" />
+
+        <include layout="@layout/notification_play_pause" />
+
+        <TextView
+        	android:background="#ff424242"
+        	android:layout_width="1px"
+        	android:layout_height="fill_parent"
+        	android:layout_marginTop="16dip"
+        	android:layout_marginBottom="16dip" />
+
+        <include layout="@layout/notification_next" />
+        
+    </LinearLayout>
+
+</RelativeLayout>
