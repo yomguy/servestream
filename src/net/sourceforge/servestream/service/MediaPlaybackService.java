@@ -17,6 +17,8 @@
 
 package net.sourceforge.servestream.service;
 
+import android.annotation.SuppressLint;
+import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
@@ -38,6 +40,7 @@ import android.media.AudioManager;
 import android.media.AudioManager.OnAudioFocusChangeListener;
 import android.net.Uri;
 import android.os.AsyncTask;
+import android.os.Build;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
@@ -45,6 +48,7 @@ import android.preference.PreferenceManager;
 import android.provider.MediaStore;
 import android.support.v4.app.NotificationCompat;
 import android.util.Log;
+import android.widget.RemoteViews;
 import android.widget.Toast;
 
 import java.io.FileDescriptor;
@@ -1099,7 +1103,7 @@ public class MediaPlaybackService extends Service implements
     	
     	String trackName = getTrackName();
     	if (trackName == null || trackName.equals(Media.UNKNOWN_STRING)) {
-    			trackName = getMediaUri();
+    		trackName = getMediaUri();
     	}
     	
         String artist = getArtistName();
@@ -1114,17 +1118,6 @@ public class MediaPlaybackService extends Service implements
         	contentText = getString(R.string.notification_artist_album, artist, album);
         }
         
-        int icon;
-        if (updateNotification) {
-        	if (isPlaying()) {
-        		icon = android.R.drawable.ic_media_pause;
-        	} else {
-        		icon = android.R.drawable.ic_media_play;
-        	}
-        } else {
-        	icon = android.R.drawable.ic_media_pause;
-        }
-        
         PendingIntent contentIntent = PendingIntent.getActivity(this, 0,
                 new Intent(this, MediaPlayerActivity.class)
                 .addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP), 0);
@@ -1133,10 +1126,7 @@ public class MediaPlaybackService extends Service implements
         		.setContentTitle(trackName)
         		.setContentText(contentText)
                 .setContentIntent(contentIntent)
-                .setWhen(0)
-                .addAction(android.R.drawable.ic_media_previous, getString(R.string.previous_action_title), createPendingIntent(1, CMDPREVIOUS))
-                .addAction(icon, getString(R.string.togglepause_action_title), createPendingIntent(2, CMDTOGGLEPAUSE))
-        		.addAction(android.R.drawable.ic_media_next, getString(R.string.next_action_title), createPendingIntent(3, CMDNEXT));
+                .setWhen(0);
 		
         int trackId = getTrackId();
 	    if (mPreferences.getBoolean(PreferenceConstants.RETRIEVE_ALBUM_ART, false) && trackId != -1) {
@@ -1146,12 +1136,118 @@ public class MediaPlaybackService extends Service implements
 	    	status.setSmallIcon(R.drawable.notification_icon);
 	    }
         
+	    Notification notification = buildExpandedView(status.build(), updateNotification);
+	    
+	    // If the user has a phone running Android 4.0+ show an expanded notification
+	    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN){
+	    	notification = buildExpandedView(notification, updateNotification);
+	    }
+	    
 		if (!updateNotification) {
-    		startForeground(PLAYBACKSERVICE_STATUS, status.build());
+    		startForeground(PLAYBACKSERVICE_STATUS, notification);
     	} else {
     		NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-    		notificationManager.notify(PLAYBACKSERVICE_STATUS, status.build());
+    		notificationManager.notify(PLAYBACKSERVICE_STATUS, notification);
     	}
+    }
+    
+    @SuppressLint("NewApi")
+	private Notification buildExpandedView(Notification notification, boolean updateNotification) {
+    	RemoteViews contentView = new RemoteViews(getPackageName(), R.layout.notification_small);
+    	RemoteViews expandedContentView = new RemoteViews(getPackageName(), R.layout.notification_expanded);
+    	setupContentView(contentView, updateNotification);
+    	setupExpandedContentView(expandedContentView, updateNotification);
+    	
+        notification.contentView = contentView;
+        notification.bigContentView = expandedContentView;
+        return notification;
+    }
+    
+    private void setupContentView(RemoteViews rv, boolean updateNotification) {
+    	String contentText;
+     	
+     	String trackName = getTrackName();
+     	if (trackName == null || trackName.equals(Media.UNKNOWN_STRING)) {
+     		trackName = getMediaUri();
+     	}
+     	
+        String artist = getArtistName();
+     	if (artist == null || artist.equals(Media.UNKNOWN_STRING)) {
+     		artist = getString(R.string.unknown_artist_name);
+     	}
+         
+     	String album = getAlbumName();
+        if (album == null || album.equals(Media.UNKNOWN_STRING)) {
+        	contentText = getString(R.string.notification_alt_info, artist);
+        } else {
+        	contentText = getString(R.string.notification_artist_album, artist, album);
+        }
+        
+        if (updateNotification) {
+        	if (isPlaying()) {
+        		rv.setImageViewResource(R.id.play_pause, android.R.drawable.ic_media_pause);
+        	} else {
+        		rv.setImageViewResource(R.id.play_pause, android.R.drawable.ic_media_play);
+        	}
+        } else {
+        	rv.setImageViewResource(R.id.play_pause, android.R.drawable.ic_media_pause);
+        }
+    	
+        int trackId = getTrackId();
+	    if (mPreferences.getBoolean(PreferenceConstants.RETRIEVE_ALBUM_ART, false) && trackId != -1) {
+	    	rv.setImageViewBitmap(R.id.coverart, MusicUtils.getNotificationArtwork(this, trackId));
+	    } else {
+	    	rv.setImageViewResource(R.id.coverart, R.drawable.notification_icon);
+	    }
+        
+    	// set the text for the notifications
+    	rv.setTextViewText(R.id.title, trackName);
+    	rv.setTextViewText(R.id.subtitle, contentText);
+
+    	rv.setOnClickPendingIntent(R.id.play_pause, createPendingIntent(2, CMDTOGGLEPAUSE));
+    	rv.setOnClickPendingIntent(R.id.next, createPendingIntent(3, CMDNEXT));
+    	rv.setOnClickPendingIntent(R.id.close, createPendingIntent(4, CMDSTOP));
+    }
+    
+    private void setupExpandedContentView(RemoteViews rv, boolean updateNotification) {
+    	String trackName = getTrackName();
+    	if (trackName == null || trackName.equals(Media.UNKNOWN_STRING)) {
+    			trackName = getMediaUri();
+    	}
+    	
+        String artist = getArtistName();
+    	if (artist == null || artist.equals(Media.UNKNOWN_STRING)) {
+    		artist = getString(R.string.unknown_artist_name);
+    	}
+        
+    	String album = getAlbumName();
+        
+        if (updateNotification) {
+        	if (isPlaying()) {
+        		rv.setImageViewResource(R.id.play_pause, android.R.drawable.ic_media_pause);
+        	} else {
+        		rv.setImageViewResource(R.id.play_pause, android.R.drawable.ic_media_play);
+        	}
+        } else {
+        	rv.setImageViewResource(R.id.play_pause, android.R.drawable.ic_media_pause);
+        }
+    	
+        int trackId = getTrackId();
+	    if (mPreferences.getBoolean(PreferenceConstants.RETRIEVE_ALBUM_ART, false) && trackId != -1) {
+	    	rv.setImageViewBitmap(R.id.coverart, MusicUtils.getNotificationArtwork(this, trackId));
+	    } else {
+	    	rv.setImageViewResource(R.id.coverart, R.drawable.notification_icon);
+	    }
+        
+    	// set the text for the notifications
+    	rv.setTextViewText(R.id.firstLine, trackName);
+    	rv.setTextViewText(R.id.secondLine, album);
+    	rv.setTextViewText(R.id.thirdLine, artist);
+
+    	rv.setOnClickPendingIntent(R.id.prev, createPendingIntent(1, CMDPREVIOUS));
+    	rv.setOnClickPendingIntent(R.id.play_pause, createPendingIntent(2, CMDTOGGLEPAUSE));
+    	rv.setOnClickPendingIntent(R.id.next, createPendingIntent(3, CMDNEXT));
+    	rv.setOnClickPendingIntent(R.id.close, createPendingIntent(4, CMDSTOP));
     }
     
     private PendingIntent createPendingIntent(int requestCode, String command) {
