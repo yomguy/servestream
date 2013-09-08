@@ -45,9 +45,12 @@ import android.os.IBinder;
 import android.os.RemoteException;
 import android.preference.PreferenceManager;
 import android.provider.MediaStore;
+import android.support.v7.app.ActionBar;
+import android.support.v7.app.ActionBarActivity;
 import android.util.Log;
 import android.view.ContextMenu;
 import android.view.KeyEvent;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ContextMenu.ContextMenuInfo;
@@ -61,18 +64,17 @@ import android.widget.AdapterView.AdapterContextMenuInfo;
 
 import java.util.Arrays;
 
-import com.actionbarsherlock.app.ActionBar;
-import com.actionbarsherlock.app.SherlockListActivity;
-import com.actionbarsherlock.view.MenuItem;
 import com.mobeta.android.dslv.DragSortController;
 import com.mobeta.android.dslv.DragSortListView;
 import com.mobeta.android.dslv.SimpleDragSortCursorAdapter;
 
-public class NowPlayingActivity extends SherlockListActivity implements
+public class NowPlayingActivity extends ActionBarActivity implements
 			View.OnCreateContextMenuListener,
 			MusicUtils.Defs, ServiceConnection {
 	
     private static final String TAG = NowPlayingActivity.class.getName();
+    
+    private DragSortListView mList;
     
     private boolean mIsDragging = false;
     private boolean mShouldRefresh = false;
@@ -107,8 +109,8 @@ public class NowPlayingActivity extends SherlockListActivity implements
 		
         mPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         
-        DragSortListView list = (DragSortListView) getListView();
-		list.setOnItemClickListener(new OnItemClickListener() {
+        mList = (DragSortListView) findViewById(android.R.id.list);
+        mList.setOnItemClickListener(new OnItemClickListener() {
 			@Override
 			public void onItemClick(AdapterView<?> arg0, View arg1, int position,
 					long arg3) {
@@ -139,19 +141,19 @@ public class NowPlayingActivity extends SherlockListActivity implements
 			}
 		});
 		
-	    DragSortController controller = new DragSortController(list);
+	    DragSortController controller = new DragSortController(mList);
 		controller.setDragInitMode(DragSortController.ON_DRAG);
 		controller.setRemoveMode(DragSortController.FLING_REMOVE);
         controller.setRemoveEnabled(true);
 		controller.setDragHandleId(R.id.drag);
-		list.setOnTouchListener(controller);
-		list.setOnCreateContextMenuListener(this);
+		mList.setOnTouchListener(controller);
+		mList.setOnCreateContextMenuListener(this);
 		
         mAdapter = (TrackListAdapter) getLastNonConfigurationInstance();
         
         if (mAdapter != null) {
             mAdapter.setActivity(this);
-            setListAdapter(mAdapter);
+            mList.setAdapter(mAdapter);
         }
         
         mToken = MusicUtils.bindToService(this, this);
@@ -167,7 +169,7 @@ public class NowPlayingActivity extends SherlockListActivity implements
                     null, // cursor
                     new String[] {},
                     new int[] {});
-            getListView().setAdapter(mAdapter);
+            mList.setAdapter(mAdapter);
             getTrackCursor(mAdapter.getQueryHandler(), null, true);
         } else {
             mTrackCursor = mAdapter.getCursor();
@@ -189,16 +191,17 @@ public class NowPlayingActivity extends SherlockListActivity implements
         finish();
     }
 
-    @Override
+    // TODO fix this!
+    /*@Override
     public Object onRetainNonConfigurationInstance() {
         TrackListAdapter a = mAdapter;
         mAdapterSent = true;
         return a;
-    }
+    }*/
     
     @Override
     public void onDestroy() {
-        ListView lv = getListView();
+        ListView lv = mList;
         
         if (lv != null) {
             // clear the listeners so we won't get any more callbacks
@@ -224,7 +227,7 @@ public class NowPlayingActivity extends SherlockListActivity implements
         // Because we pass the adapter to the next activity, we need to make
         // sure it doesn't keep a reference to this activity. We can do this
         // by clearing its DatasetObservers, which setListAdapter(null) does.
-        getListView().setAdapter(null);
+        mList.setAdapter(null);
         mAdapter = null;
         super.onDestroy();
     }
@@ -234,7 +237,7 @@ public class NowPlayingActivity extends SherlockListActivity implements
         super.onResume();
         
         if (mTrackCursor != null) {
-        	getListView().invalidateViews();
+        	mList.invalidateViews();
         }
     }
     
@@ -270,7 +273,7 @@ public class NowPlayingActivity extends SherlockListActivity implements
         f.addAction(MediaPlaybackService.PLAYSTATE_CHANGED);
         try {
             int cur = MusicUtils.sService.getQueuePosition();
-            getListView().setSelection(cur);
+            mList.setSelection(cur);
             registerReceiver(mNowPlayingListener, new IntentFilter(f));
             mNowPlayingListener.onReceive(this, new Intent(MediaPlaybackService.META_CHANGED));
         } catch (RemoteException ex) {
@@ -278,7 +281,7 @@ public class NowPlayingActivity extends SherlockListActivity implements
     }
     
     private void removePlaylistItem(int which) {
-        View v = getListView().getChildAt(which - getListView().getFirstVisiblePosition());
+        View v = mList.getChildAt(which - mList.getFirstVisiblePosition());
         if (v == null) {
             Log.d(TAG, "No view when removing playlist item " + which);
             return;
@@ -293,17 +296,17 @@ public class NowPlayingActivity extends SherlockListActivity implements
             mDeletedOneRow = true;
         }
         v.setVisibility(View.GONE);
-        getListView().invalidateViews();
+        mList.invalidateViews();
         ((NowPlayingCursor)mTrackCursor).removeItem(which);
         v.setVisibility(View.VISIBLE);
-        getListView().invalidateViews();
+        mList.invalidateViews();
     }
 
     private BroadcastReceiver mNowPlayingListener = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
             if (intent.getAction().equals(MediaPlaybackService.META_CHANGED)) {
-            	getListView().invalidateViews();
+            	mList.invalidateViews();
             } else if (intent.getAction().equals(MediaPlaybackService.META_RETRIEVED)) {
             	if (isDragging()) {
             	    mShouldRefresh = true;
@@ -343,7 +346,7 @@ public class NowPlayingActivity extends SherlockListActivity implements
                     mAdapter.changeCursor(c);
                 }
             } else if (intent.getAction().equals(MediaPlaybackService.PLAYSTATE_CHANGED)) {
-            	getListView().invalidateViews();
+            	mList.invalidateViews();
             }
         }
     };
@@ -392,7 +395,7 @@ public class NowPlayingActivity extends SherlockListActivity implements
 
     private void removeItem() {
         int curcount = mTrackCursor.getCount();
-        int curpos = getListView().getSelectedItemPosition();
+        int curpos = mList.getSelectedItemPosition();
         
         if (curcount == 0 || curpos < 0) {
             return;
@@ -409,17 +412,17 @@ public class NowPlayingActivity extends SherlockListActivity implements
         } catch (RemoteException ex) {
         }
         
-        View v = getListView().getSelectedView();
+        View v = mList.getSelectedView();
         v.setVisibility(View.GONE);
-        getListView().invalidateViews();
+        mList.invalidateViews();
         ((NowPlayingCursor)mTrackCursor).removeItem(curpos);
         v.setVisibility(View.VISIBLE);
-        getListView().invalidateViews();
+        mList.invalidateViews();
     }
     
     private void moveItem(boolean up) {
         int curcount = mTrackCursor.getCount(); 
-        int curpos = getListView().getSelectedItemPosition();
+        int curpos = mList.getSelectedItemPosition();
        
         if ( (up && curpos < 1) || (!up  && curpos >= curcount - 1)) {
             return;
@@ -427,14 +430,14 @@ public class NowPlayingActivity extends SherlockListActivity implements
 
         NowPlayingCursor c = (NowPlayingCursor) mTrackCursor;
         c.moveItem(curpos, up ? curpos - 1 : curpos + 1);
-        ((TrackListAdapter)getListView().getAdapter()).notifyDataSetChanged();
-        getListView().invalidateViews();
+        ((TrackListAdapter)mList.getAdapter()).notifyDataSetChanged();
+        mList.invalidateViews();
         mDeletedOneRow = true;
         
         if (up) {
-        	getListView().setSelection(curpos - 1);
+        	mList.setSelection(curpos - 1);
         } else {
-        	getListView().setSelection(curpos + 1);
+        	mList.setSelection(curpos + 1);
         }
     }
     
@@ -937,8 +940,8 @@ public class NowPlayingActivity extends SherlockListActivity implements
         	// update the currently playing list
             NowPlayingCursor c = (NowPlayingCursor) mTrackCursor;
             c.moveItem(from, to);
-            //((DragSortListView.AdapterWrapper)getListView().getAdapter()).notifyDataSetChanged();
-            NowPlayingActivity.this.getListView().invalidateViews();
+            //((DragSortListView.AdapterWrapper)mList.getAdapter()).notifyDataSetChanged();
+            NowPlayingActivity.this.mList.invalidateViews();
             mDeletedOneRow = true;
         }
         

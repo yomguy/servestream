@@ -20,10 +20,6 @@ package net.sourceforge.servestream.activity;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.actionbarsherlock.app.ActionBar;
-import com.actionbarsherlock.app.SherlockListActivity;
-import com.actionbarsherlock.view.Menu;
-import com.actionbarsherlock.view.MenuItem;
 import com.mobeta.android.dslv.DragSortController;
 import com.mobeta.android.dslv.DragSortListView;
 
@@ -35,10 +31,16 @@ import android.content.ContentValues;
 import android.content.Intent;
 import android.content.res.TypedArray;
 import android.os.Bundle;
+import android.support.v7.app.ActionBar;
+import android.support.v7.app.ActionBarActivity;
+import android.view.Menu;
+import android.view.MenuItem;
 
-public class OrganizeUrlsActivity extends SherlockListActivity {
+public class OrganizeUrlsActivity extends ActionBarActivity {
 
 	private static final int MENU_ID_ACCEPT = 2;
+	
+	private DragSortListView mList;
 	
 	private List<UriBean> mBaselineUris;
 	
@@ -53,7 +55,7 @@ public class OrganizeUrlsActivity extends SherlockListActivity {
 		ActionBar actionBar = getSupportActionBar();
 		actionBar.setDisplayHomeAsUpEnabled(true);
 		
-		DragSortListView list = (DragSortListView) getListView();
+		DragSortListView list = (DragSortListView) findViewById(android.R.id.list);
 		list.setDropListener(dropListener);
 		list.setRemoveListener(removeListener);
 
@@ -65,7 +67,7 @@ public class OrganizeUrlsActivity extends SherlockListActivity {
 		list.setOnTouchListener(controller);
 		
 		mAdapter = new OrganizeAdapter(this, new ArrayList<UriBean>());
-		setListAdapter(mAdapter);
+		mList.setAdapter(mAdapter);
 	}
 	
 	public void onStart() {
@@ -102,10 +104,10 @@ public class OrganizeUrlsActivity extends SherlockListActivity {
 		super.onCreateOptionsMenu(menu);
 		TypedArray drawables = obtainStyledAttributes(new int[] { R.attr.navigation_accept });
 		menu.add(Menu.NONE, MENU_ID_ACCEPT, Menu.NONE, R.string.confirm_label)
-		.setIcon(drawables.getDrawable(0))
-		.setShowAsAction(
-				MenuItem.SHOW_AS_ACTION_IF_ROOM
-				| MenuItem.SHOW_AS_ACTION_WITH_TEXT);
+		.setIcon(drawables.getDrawable(0));
+		//.setShowAsAction(
+		//		MenuItem.SHOW_AS_ACTION_IF_ROOM
+		//		| MenuItem.SHOW_AS_ACTION_WITH_TEXT);
 		return true;
 	}
 	

@@ -1,23 +1,24 @@
 <?xml version="1.0" encoding="utf-8"?>
-<menu xmlns:android="http://schemas.android.com/apk/res/android" >
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+      xmlns:yourapp="http://schemas.android.com/apk/res-auto" >
     <item
         android:id="@+id/add_uri"
         android:icon="?attr/content_new"
-        android:showAsAction="ifRoom|collapseActionView"/>
+        yourapp:showAsAction="ifRoom|collapseActionView" />
     <item
         android:id="@+id/menu_item_organize_urls"
         android:title="@string/organize_urls_label"
-        android:icon="@android:drawable/ic_menu_share"/>
+        android:icon="@android:drawable/ic_menu_share" />
     <item
         android:id="@+id/menu_item_settings"
         android:title="@string/settings_label"
-        android:icon="@android:drawable/ic_menu_preferences"/>
+        android:icon="@android:drawable/ic_menu_preferences" />
     <item
         android:id="@+id/menu_item_alarms"
         android:title="@string/alarm_list_title"
-        android:icon="@drawable/ic_menu_alarms"/>
+        android:icon="@drawable/ic_menu_alarms" />
     <item
         android:id="@+id/menu_item_scan"
         android:title="@string/list_menu_scan"
-        android:icon="@drawable/ic_menu_scan"/>
+        android:icon="@drawable/ic_menu_scan" />
 </menu>

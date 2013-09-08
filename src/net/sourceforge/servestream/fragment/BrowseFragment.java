@@ -20,13 +20,8 @@ package net.sourceforge.servestream.fragment;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.actionbarsherlock.app.SherlockListFragment;
-import com.actionbarsherlock.view.Menu;
-import com.actionbarsherlock.view.MenuInflater;
-import com.actionbarsherlock.view.MenuItem;
-
 import net.sourceforge.servestream.R;
-import net.sourceforge.servestream.activity.PreferenceActivity;
+import net.sourceforge.servestream.activity.SettingsActivity;
 import net.sourceforge.servestream.bean.UriBean;
 import net.sourceforge.servestream.dbutils.StreamDatabase;
 import net.sourceforge.servestream.filemanager.*;
@@ -46,20 +41,23 @@ import android.os.Message;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
+import android.support.v4.app.ListFragment;
 import android.util.SparseArray;
 import android.view.ContextMenu;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.MenuItem.OnMenuItemClickListener;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-public class BrowseFragment extends SherlockListFragment implements
+public class BrowseFragment extends ListFragment implements
 				DetermineActionTask.MusicRetrieverPreparedListener,
 				LoadingDialogListener {
 
@@ -82,7 +80,6 @@ public class BrowseFragment extends SherlockListFragment implements
     private DirectoryScanner mDirectoryScanner;
     private SparseArray<UriBean> mPreviousDirectory = new SparseArray<UriBean>();
     
-	private InputMethodManager mInputManager = null;
 	private StreamDatabase mStreamdb = null;
 
 	protected Handler mHandler = new Handler() {
@@ -207,7 +204,7 @@ public class BrowseFragment extends SherlockListFragment implements
             	refreshList();
             	return true;
             case (R.id.menu_item_settings):
-            	startActivity(new Intent(BrowseFragment.this.getActivity(), PreferenceActivity.class));
+            	startActivity(new Intent(BrowseFragment.this.getActivity(), SettingsActivity.class));
         		return true;
         	default:
         		return super.onOptionsItemSelected(item);
