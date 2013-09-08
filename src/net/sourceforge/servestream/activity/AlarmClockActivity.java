@@ -24,9 +24,13 @@ import android.content.Intent;
 import android.database.Cursor;
 import android.graphics.Typeface;
 import android.os.Bundle;
+import android.support.v7.app.ActionBar;
+import android.support.v7.app.ActionBarActivity;
 import android.view.ContextMenu;
 import android.view.ContextMenu.ContextMenuInfo;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup;
@@ -41,11 +45,6 @@ import android.widget.TextView;
 
 import java.util.Calendar;
 
-import com.actionbarsherlock.app.ActionBar;
-import com.actionbarsherlock.app.SherlockActivity;
-import com.actionbarsherlock.view.Menu;
-import com.actionbarsherlock.view.MenuItem;
-
 import net.sourceforge.servestream.R;
 import net.sourceforge.servestream.alarm.Alarm;
 import net.sourceforge.servestream.alarm.Alarms;
@@ -55,7 +54,7 @@ import net.sourceforge.servestream.alarm.ToastMaster;
 /**
  * AlarmClock application.
  */
-public class AlarmClockActivity extends SherlockActivity implements OnItemClickListener {
+public class AlarmClockActivity extends ActionBarActivity implements OnItemClickListener {
 
     public static final String PREFERENCES = "AlarmClock";
 
@@ -302,7 +301,7 @@ public class AlarmClockActivity extends SherlockActivity implements OnItemClickL
     
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        getSupportMenuInflater().inflate(R.menu.alarm_clock_menu, menu);
+        getMenuInflater().inflate(R.menu.alarm_clock_menu, menu);
         return super.onCreateOptionsMenu(menu);
     }
 

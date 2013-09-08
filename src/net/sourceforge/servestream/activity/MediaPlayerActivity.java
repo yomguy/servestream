@@ -17,12 +17,6 @@
 
 package net.sourceforge.servestream.activity;
 
-import com.actionbarsherlock.app.ActionBar;
-import com.actionbarsherlock.app.SherlockFragmentActivity;
-import com.actionbarsherlock.view.Menu;
-import com.actionbarsherlock.view.MenuInflater;
-import com.actionbarsherlock.view.MenuItem;
-
 import net.sourceforge.servestream.R;
 import net.sourceforge.servestream.button.RepeatingImageButton;
 import net.sourceforge.servestream.provider.Media;
@@ -64,9 +58,14 @@ import android.preference.PreferenceManager;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
+import android.support.v7.app.ActionBar;
+import android.support.v7.app.ActionBarActivity;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.ImageButton;
@@ -76,7 +75,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.SeekBar.OnSeekBarChangeListener;
 
-public class MediaPlayerActivity extends SherlockFragmentActivity implements MusicUtils.Defs,
+public class MediaPlayerActivity extends ActionBarActivity implements MusicUtils.Defs,
     		OnSharedPreferenceChangeListener,
     		CoverViewListener,
     		LoadingDialogListener,
@@ -378,7 +377,7 @@ public class MediaPlayerActivity extends SherlockFragmentActivity implements Mus
         		showDialog(SLEEP_TIMER_DIALOG);
         		return true;
         	case (R.id.menu_item_settings):
-        		startActivity(new Intent(MediaPlayerActivity.this, PreferenceActivity.class));
+        		startActivity(new Intent(MediaPlayerActivity.this, SettingsActivity.class));
         		return true;
         	case EFFECTS_PANEL: {
                 try {
@@ -426,7 +425,7 @@ public class MediaPlayerActivity extends SherlockFragmentActivity implements Mus
     
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        MenuInflater inflater = getSupportMenuInflater();
+        MenuInflater inflater = getMenuInflater();
         inflater.inflate(R.menu.media_player, menu);
         return true;
     }

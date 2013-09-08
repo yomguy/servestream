@@ -43,17 +43,16 @@ import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.view.ViewPager;
+import android.support.v7.app.ActionBar;
+import android.support.v7.app.ActionBar.Tab;
+import android.support.v7.app.ActionBarActivity;
 import android.view.KeyEvent;
-
-import com.actionbarsherlock.app.ActionBar;
-import com.actionbarsherlock.app.ActionBar.Tab;
-import com.actionbarsherlock.app.SherlockFragmentActivity;
-import com.actionbarsherlock.view.Menu;
-import com.actionbarsherlock.view.MenuInflater;
-import com.actionbarsherlock.view.MenuItem;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 
 /** The activity that is shown when the user launches the app. */
-public class MainActivity extends SherlockFragmentActivity implements
+public class MainActivity extends ActionBarActivity implements
 			ServiceConnection,
 			BrowseIntentListener,
 			ActionBar.TabListener {
@@ -197,7 +196,7 @@ public class MainActivity extends SherlockFragmentActivity implements
     			startActivity(new Intent(this, OrganizeUrlsActivity.class));
 				return true;
         	case (R.id.menu_item_settings):
-        		startActivity(new Intent(this, PreferenceActivity.class));
+        		startActivity(new Intent(this, SettingsActivity.class));
     			return true;
             case (R.id.menu_item_alarms):
                 startActivity(new Intent(this, AlarmClockActivity.class));

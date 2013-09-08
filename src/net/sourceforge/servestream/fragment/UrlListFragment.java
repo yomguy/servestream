@@ -20,9 +20,6 @@ package net.sourceforge.servestream.fragment;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.actionbarsherlock.app.SherlockFragmentActivity;
-import com.actionbarsherlock.app.SherlockListFragment;
-
 import net.sourceforge.servestream.transport.AbsTransport;
 import net.sourceforge.servestream.transport.TransportFactory;
 import net.sourceforge.servestream.utils.LoadingDialog;
@@ -56,6 +53,7 @@ import android.preference.PreferenceManager;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
+import android.support.v4.app.ListFragment;
 import android.util.Log;
 
 import android.view.ContextMenu;
@@ -71,7 +69,7 @@ import android.widget.AdapterView.OnItemClickListener;
 
 import net.sourceforge.servestream.utils.DetermineActionTask;
 
-public class UrlListFragment extends SherlockListFragment implements
+public class UrlListFragment extends ListFragment implements
 				DetermineActionTask.MusicRetrieverPreparedListener,
 				LoadingDialogListener {
 	
@@ -279,13 +277,13 @@ public class UrlListFragment extends SherlockListFragment implements
 
 	public void onActivityResult(int requestCode, int resultCode, Intent intent) {
 	    if (requestCode == 0) {
-	        if (resultCode == SherlockFragmentActivity.RESULT_OK) {
+	        if (resultCode == Activity.RESULT_OK) {
 	            String contents = intent.getStringExtra("SCAN_RESULT");
 	            String format = intent.getStringExtra("SCAN_RESULT_FORMAT");
 	            // Handle successful scan
 	            Log.v(TAG, contents.toString());
 	            Log.v(TAG, format.toString());
-	        } else if (resultCode == SherlockFragmentActivity.RESULT_CANCELED) {
+	        } else if (resultCode == Activity.RESULT_CANCELED) {
 	            // Handle cancel
 	        }
 	    }

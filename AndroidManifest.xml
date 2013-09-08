@@ -60,6 +60,7 @@
 
 		<activity
 		    android:name=".activity.MainActivity"
+	   		android:theme="@style/Theme.ServeStream.Dark"
 		    android:launchMode="singleTop" >
 			<intent-filter>
 				<action android:name="android.intent.action.MAIN" />
@@ -110,39 +111,44 @@
 
 		<activity
             android:name=".activity.AboutActivity"
-            android:label="@string/about_pref" >
-        </activity>
+            android:theme="@style/Theme.ServeStream.Dark"
+            android:label="@string/about_pref" />
+        
 		<activity
             android:name=".activity.AddUrlActivity"
+            android:theme="@style/Theme.ServeStream.Dark"
             android:configChanges="keyboardHidden|orientation"
             android:label="@string/add_new_url_label"
-            android:windowSoftInputMode="adjustResize" >
-        </activity>
+            android:windowSoftInputMode="adjustResize" />
+        
 		<activity
 		    android:name=".activity.NowPlayingActivity"
-			android:label="@string/now_playing_label" >
-		</activity>
+		    android:theme="@style/Theme.ServeStream.Dark"
+			android:label="@string/now_playing_label" />
+		
 		<activity
             android:name=".activity.OrganizeUrlsActivity"
+            android:theme="@style/Theme.ServeStream.Dark"
             android:configChanges="orientation"
-            android:label="@string/organize_urls_label" >
-        </activity>
+            android:label="@string/organize_urls_label" />
+        
 		<activity
-            android:name=".activity.PreferenceActivity"
+            android:name=".activity.SettingsActivity"
             android:configChanges="keyboardHidden|orientation"
-            android:label="@string/settings_label" >
-        </activity>
+            android:label="@string/settings_label" />
+        
 		<activity
-		    android:name=".activity.ShortcutActivity" >
+		    android:name=".activity.ShortcutActivity"
+			android:theme="@style/Theme.ServeStream.Dark" >
 			<intent-filter>
 				<action android:name="android.intent.action.CREATE_SHORTCUT" />
 				<category android:name="android.intent.category.DEFAULT" />
 			</intent-filter>
 		</activity>
+		
 		<activity
 		    android:name=".activity.StreamEditorActivity"
-			android:configChanges="keyboardHidden|orientation" >
-		</activity>
+			android:configChanges="keyboardHidden|orientation" />
 
 		<service
 		    android:name=".service.MediaPlaybackService"
@@ -150,6 +156,7 @@
 
         <activity
             android:name=".activity.MediaPlayerActivity"
+            android:theme="@style/Theme.ServeStream.Dark"
             android:label="@string/media_player_label"
             android:launchMode="singleTop"
             android:exported="false" >
@@ -174,7 +181,6 @@
             </intent-filter>
             <meta-data android:name="android.appwidget.provider" android:resource="@xml/appwidget_one" />
         </receiver>
-        
 
         <receiver
             android:name=".receiver.SimpleLastfmScrobblerReceiver"
@@ -200,12 +206,13 @@
         
 		<!-- Alarm Activities -->
 
-        <activity android:name=".activity.AlarmClockActivity"
-                android:label="@string/alarm_clock_label"
-                android:taskAffinity=""
-                android:excludeFromRecents="true"
-                android:configChanges="orientation|keyboardHidden|keyboard|navigation"
-                android:exported="false" />
+        <activity
+            android:name=".activity.AlarmClockActivity"
+            android:theme="@style/Theme.ServeStream.Dark"
+            android:label="@string/alarm_clock_label"
+            android:excludeFromRecents="true"
+            android:configChanges="orientation|keyboardHidden|keyboard|navigation"
+            android:exported="false" />
 
         <activity
             android:name=".activity.SetAlarmActivity"
