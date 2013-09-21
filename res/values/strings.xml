@@ -46,6 +46,7 @@
     <string name="list_menu_effects">Sound effects</string>
 	<string name="list_menu_refresh">Refresh</string>
 	<string name="list_menu_scan">Scan</string>
+	<string name="list_menu_search">Search</string>
     <string name="list_menu_stop">Stop</string>
 	
     <!-- Bind -->

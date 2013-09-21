@@ -40,8 +40,6 @@ public class OrganizeUrlsActivity extends ActionBarActivity {
 
 	private static final int MENU_ID_ACCEPT = 2;
 	
-	private DragSortListView mList;
-	
 	private List<UriBean> mBaselineUris;
 	
 	private OrganizeAdapter mAdapter;
@@ -67,7 +65,7 @@ public class OrganizeUrlsActivity extends ActionBarActivity {
 		list.setOnTouchListener(controller);
 		
 		mAdapter = new OrganizeAdapter(this, new ArrayList<UriBean>());
-		mList.setAdapter(mAdapter);
+		list.setAdapter(mAdapter);
 	}
 	
 	public void onStart() {

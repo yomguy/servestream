@@ -62,6 +62,7 @@
 		    android:name=".activity.MainActivity"
 	   		android:theme="@style/Theme.ServeStream.Dark"
 		    android:launchMode="singleTop" >
+		    
 			<intent-filter>
 				<action android:name="android.intent.action.MAIN" />
 				<category android:name="android.intent.category.LAUNCHER" />
@@ -107,6 +108,9 @@
         		<data android:mimeType="audio/x-scpls" />
         		<data android:mimeType="video/x-ms-asf" />
     		</intent-filter>
+    		<meta-data
+	            android:name="android.app.default_searchable"
+                android:value=".activity.SearchableActivity" />
 		</activity>
 
 		<activity
@@ -132,6 +136,19 @@
             android:configChanges="orientation"
             android:label="@string/organize_urls_label" />
         
+		<activity
+		    android:name=".activity.SearchableActivity"
+		    android:theme="@style/Theme.ServeStream.Dark"
+		    android:launchMode="singleTop" >
+        	<intent-filter>
+            	<action android:name="android.intent.action.SEARCH" />
+        	</intent-filter>
+        	<meta-data
+        	    android:name="android.app.searchable"
+                android:resource="@xml/searchable" />
+    	</activity>
+		
+		
 		<activity
             android:name=".activity.SettingsActivity"
             android:configChanges="keyboardHidden|orientation"

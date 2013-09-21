@@ -37,6 +37,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.AsyncTask;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -151,9 +152,9 @@ public class BrowseFragment extends ListFragment implements
 		refreshList();
 	}
 	
-    @Override
+	@Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
-        inflater.inflate(R.menu.browse, menu);
+		inflater.inflate(R.menu.browse, menu);
         super.onCreateOptionsMenu(menu, inflater);
     }
 	
@@ -163,6 +164,8 @@ public class BrowseFragment extends ListFragment implements
             case (R.id.menu_item_refresh):
             	refreshList();
             	return true;
+            case (R.id.menu_search):
+            	getActivity().onSearchRequested();
         	default:
         		return super.onOptionsItemSelected(item);
         }
@@ -287,12 +290,21 @@ public class BrowseFragment extends ListFragment implements
     	}
     }
      
-    private void browseTo(UriBean uri) {
+    @SuppressLint("NewApi")
+	private void browseTo(UriBean uri) {
 	    showDialog(LOADING_DIALOG);
-        new DetermineActionTask(this.getActivity(), uri, this).execute();
+	    
+	    DetermineActionTask determineActionTask = new DetermineActionTask(getActivity(), uri, this);
+        
+    	if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
+    		determineActionTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+    	} else {
+    		determineActionTask.execute();
+    	}
     }
 
-    private void refreshList() {
+    @SuppressLint("NewApi")
+	private void refreshList() {
     	if (mDirectory == null) {
     		return;
     	}
@@ -300,7 +312,11 @@ public class BrowseFragment extends ListFragment implements
     	showDialog(LOADING_DIALOG);
     	
     	mWebpageParserTask = new WebpageParserTask(mHandler, mDirectory[mStepsBack]);
-    	mWebpageParserTask.execute();
+    	if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
+    		mWebpageParserTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+    	} else {
+    		mWebpageParserTask.execute();
+    	}
     }
 
     private void selectInList(UriBean uri) {
@@ -323,6 +339,16 @@ public class BrowseFragment extends ListFragment implements
 		} else {
 			getActivity().finish();
 		}
+	}
+	
+	public ArrayList<UriBean> getUris() {
+		ArrayList<UriBean> uris = new ArrayList<UriBean>();
+		
+		for (int i = 0; i < mAdapter.getItems().size(); i++) {
+			uris.add(mAdapter.getItem(i));
+		}
+				
+		return uris;
 	}
 	
 	/**

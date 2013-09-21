@@ -173,17 +173,17 @@ public class MainActivity extends ActionBarActivity implements
 		outState.putString(STATE_SELECTED_NAVIGATION_ITEM, mTag);
 	}
 	
+    /* Called whenever we call invalidateOptionsMenu() */
+    @Override
+    public boolean onPrepareOptionsMenu(Menu menu) {
+        return super.onPrepareOptionsMenu(menu);
+    }
+	
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         MenuInflater inflater = getMenuInflater();
         inflater.inflate(R.menu.main, menu);
         return super.onCreateOptionsMenu(menu);
-    }
-
-    /* Called whenever we call invalidateOptionsMenu() */
-    @Override
-    public boolean onPrepareOptionsMenu(Menu menu) {
-        return super.onPrepareOptionsMenu(menu);
     }
 
     @Override
@@ -216,6 +216,19 @@ public class MainActivity extends ActionBarActivity implements
         }
     }
 
+    @Override
+    public void startActivity(Intent intent) {      
+        // check if search intent
+        if (Intent.ACTION_SEARCH.equals(intent.getAction())) {
+        	Fragment fragment = getSupportFragmentManager().findFragmentByTag(mTag);
+        	if (fragment != null && fragment instanceof BrowseFragment) {
+    			intent.putParcelableArrayListExtra("uris", ((BrowseFragment) fragment).getUris());
+        	}
+        }
+
+        super.startActivity(intent);
+    }
+    
 	@Override
 	public boolean onKeyDown(int keyCode, KeyEvent event) {
 		if (keyCode == KeyEvent.KEYCODE_BACK) {
