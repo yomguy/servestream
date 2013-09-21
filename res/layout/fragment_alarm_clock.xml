@@ -60,45 +60,9 @@
         android:src="@android:drawable/divider_horizontal_dark" />
 
     <ListView
-        android:id="@+id/alarms_list"
+        android:id="@android:id/list"
         android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="0dip"
         android:layout_weight="1" />
-
-    <LinearLayout
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal" >
-
-        <net.sourceforge.servestream.alarm.DigitalClock
-        	android:layout_width="fill_parent"
-        	android:layout_height="fill_parent"
-       		android:gravity="center"
-        	android:background="@drawable/btn_strip_trans_right" >
-
-            <LinearLayout
-                android:layout_width="fill_parent"
-                android:layout_height="wrap_content"
-                android:baselineAligned="true">
-
-                <TextView android:id="@+id/timeDisplay"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:paddingRight="6dip"
-                    android:textSize="48sp"
-                    android:textColor="?android:attr/textColorPrimary" />
-
-                <TextView android:id="@+id/am_pm"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:textAppearance="?android:attr/textAppearanceSmall"
-                    android:textStyle="bold"
-                    android:textColor="?android:attr/textColorPrimary" />
-
-            </LinearLayout>
-
-      </net.sourceforge.servestream.alarm.DigitalClock>
-
-    </LinearLayout>
 
 </LinearLayout>

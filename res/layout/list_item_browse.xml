@@ -2,7 +2,7 @@
 <!--
 /*
  * ServeStream: A HTTP stream browser/player for Android
- * Copyright 2010 William Seemann
+ * Copyright 2013 William Seemann
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,16 +24,14 @@
     android:layout_height="wrap_content"
 	android:layout_marginLeft="8dip"
 	android:layout_marginRight="12dip"
-	android:minHeight="?android:attr/listPreferredItemHeight"
-	>
+	android:minHeight="?android:attr/listPreferredItemHeight" >
 	 
 	<ImageView
     	android:id="@+id/icon"
     	android:layout_height="wrap_content"
     	android:layout_width="wrap_content"
     	android:scaleType="center"
-    	android:layout_gravity="center_vertical"
-    	/>
+    	android:layout_gravity="center_vertical" />
     	
     <LinearLayout
 	    android:orientation="vertical"
@@ -41,24 +39,21 @@
 	    android:layout_height="wrap_content"
 	    android:layout_weight="1"
 		android:layout_gravity="center_vertical"
-		android:layout_marginLeft="5dip"
-		>
+		android:layout_marginLeft="5dip" >
 
 		<TextView
-		    android:id="@+id/text"
+		    android:id="@android:id/text1"
 		    android:layout_height="wrap_content"
 		    android:layout_width="wrap_content"
 		    android:textAppearance="?android:attr/textAppearanceMedium"
 		    android:singleLine="true"
-		    android:ellipsize="end"
-			/> 
+		    android:ellipsize="end" /> 
 		
 		<TextView
-		    android:id="@+id/info"
+		    android:id="@android:id/text2"
 		    android:layout_height="wrap_content"
 		    android:layout_width="wrap_content"
-		    android:textAppearance="?android:attr/textAppearanceSmall"
-			/>
+		    android:textAppearance="?android:attr/textAppearanceSmall" />
 		
 	</LinearLayout>
 	

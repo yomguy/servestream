@@ -18,6 +18,7 @@
 package net.sourceforge.servestream.activity;
 
 import net.sourceforge.servestream.R;
+import net.sourceforge.servestream.fragment.AlarmClockFragment;
 import net.sourceforge.servestream.fragment.BrowseFragment;
 import net.sourceforge.servestream.fragment.UrlListFragment;
 import net.sourceforge.servestream.fragment.UrlListFragment.BrowseIntentListener;
@@ -33,67 +34,94 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
-import android.media.AudioManager;
+import android.content.res.Configuration;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.IBinder;
+import android.support.v4.app.ActionBarDrawerToggle;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
-import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.app.FragmentTransaction;
-import android.support.v4.view.ViewPager;
-import android.support.v7.app.ActionBar;
-import android.support.v7.app.ActionBar.Tab;
+import android.support.v4.view.GravityCompat;
+import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarActivity;
 import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
+import android.widget.ListView;
 
-/** The activity that is shown when the user launches the app. */
 public class MainActivity extends ActionBarActivity implements
 			ServiceConnection,
-			BrowseIntentListener,
-			ActionBar.TabListener {
+			BrowseIntentListener {
+	
+	private static final String STATE_SELECTED_NAVIGATION_ITEM = "selected_navigation_item";
 	
 	private final static String DOWNLOAD_SCANNER_DIALOG = "download_scanner_dialog";
 	
-	private static Bundle mSavedInstanceState;
-	private static UrlListFragment mUrlListFragment;
-	private static BrowseFragment mBrowseFragment;
+	private String mTag;
 	
-	private SectionsPagerAdapter mSectionsPagerAdapter;
-	private ViewPager mViewPager;
+    private DrawerLayout mDrawerLayout;
+    private ListView mDrawerList;
+    private ActionBarDrawerToggle mDrawerToggle;
+
+    private CharSequence mDrawerTitle;
+    private CharSequence mTitle;
+    private String[] mDrawerItems;
 
 	private ServiceToken mToken;
-	
-	@Override
-	public void onCreate(Bundle savedInstanceState) {
-		super.onCreate(savedInstanceState);
-		setContentView(R.layout.activity_main);
+    
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
 
-		setVolumeControlStream(AudioManager.STREAM_MUSIC);
+        mTitle = mDrawerTitle = getTitle();
+        mDrawerItems = getResources().getStringArray(R.array.drawer_items);
+        mDrawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
+        mDrawerList = (ListView) findViewById(R.id.left_drawer);
 
-		getSupportActionBar().setNavigationMode(ActionBar.NAVIGATION_MODE_TABS);
+        // set a custom shadow that overlays the main content when the drawer opens
+        mDrawerLayout.setDrawerShadow(R.drawable.drawer_shadow, GravityCompat.START);
+        // set up the drawer's list view with items and click listener
+        mDrawerList.setAdapter(new ArrayAdapter<String>(this,
+                R.layout.drawer_list_item, mDrawerItems));
+        mDrawerList.setOnItemClickListener(new DrawerItemClickListener());
 
-		Bundle args = new Bundle();
-		args.putString(UrlListFragment.ARG_TARGET_URI, getUri());
-		
-		mUrlListFragment = (UrlListFragment) Fragment.instantiate(this, UrlListFragment.class.getName(), args);
-		mBrowseFragment = (BrowseFragment) Fragment.instantiate(this, BrowseFragment.class.getName(), null);
-		
-		// Create the adapter that will return a fragment for each of the three
-		// primary sections of the app.
-		mSectionsPagerAdapter = new SectionsPagerAdapter(
-				getSupportFragmentManager());
-		
-		mViewPager = (ViewPager) findViewById(R.id.pager);
+        // enable ActionBar app icon to behave as action to toggle nav drawer
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        getSupportActionBar().setHomeButtonEnabled(true);
 
-		mSavedInstanceState = savedInstanceState;
-		
+        // ActionBarDrawerToggle ties together the the proper interactions
+        // between the sliding drawer and the action bar app icon
+        mDrawerToggle = new ActionBarDrawerToggle(
+                this,                  /* host Activity */
+                mDrawerLayout,         /* DrawerLayout object */
+                R.drawable.ic_drawer,  /* nav drawer image to replace 'Up' caret */
+                R.string.drawer_open,  /* "open drawer" description for accessibility */
+                R.string.drawer_close  /* "close drawer" description for accessibility */
+                ) {
+            public void onDrawerClosed(View view) {
+                getSupportActionBar().setTitle(mTitle);
+            }
+
+            public void onDrawerOpened(View drawerView) {
+                getSupportActionBar().setTitle(mDrawerTitle);
+            }
+        };
+        mDrawerLayout.setDrawerListener(mDrawerToggle);
+
+        if (savedInstanceState == null) {
+        	openUri(getUri());
+            //selectItem(0);
+        }
+        
         mToken = MusicUtils.bindToService(this, this);
-	}
+    }
 
     @Override
     public void onNewIntent(Intent intent) {
@@ -101,18 +129,196 @@ public class MainActivity extends ActionBarActivity implements
 		
         setIntent(intent);
         
-		Bundle args = new Bundle();
-		args.putString(UrlListFragment.ARG_TARGET_URI, getUri());
-		
-		UrlListFragment fragment = (UrlListFragment) mSectionsPagerAdapter.getItem(0);
-		fragment.refresh(args);
+        openUri(getUri());
     }
+    
+    @Override
+	public void onResume() {
+		super.onResume();
+		
+        IntentFilter f = new IntentFilter();
+        f.addAction(MediaPlaybackService.PLAYSTATE_CHANGED);
+        f.addAction(MediaPlaybackService.META_CHANGED);
+        f.addAction(MediaPlaybackService.QUEUE_CHANGED);
+        registerReceiver(mTrackListListener, f);
+	}
+
+	@Override
+	public void onPause() {
+		super.onPause();
+		
+        unregisterReceiver(mTrackListListener);
+	}
+    
+	@Override
+	public void onDestroy() {
+		super.onDestroy();
+
+        MusicUtils.unbindFromService(mToken);
+	}
 	
+	@Override
+	public void onRestoreInstanceState(Bundle savedInstanceState) {
+		super.onRestoreInstanceState(savedInstanceState);
+		// Restore the previously serialized current dropdown position.
+		if (savedInstanceState.containsKey(STATE_SELECTED_NAVIGATION_ITEM)) {
+			mTag = savedInstanceState.getString(STATE_SELECTED_NAVIGATION_ITEM);
+		}
+	}
+
+	@Override
+	public void onSaveInstanceState(Bundle outState) {
+		super.onSaveInstanceState(outState);
+		// Serialize the current dropdown position.
+		outState.putString(STATE_SELECTED_NAVIGATION_ITEM, mTag);
+	}
+	
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.main, menu);
+        return super.onCreateOptionsMenu(menu);
+    }
+
+    /* Called whenever we call invalidateOptionsMenu() */
+    @Override
+    public boolean onPrepareOptionsMenu(Menu menu) {
+        return super.onPrepareOptionsMenu(menu);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+         // The action bar home/up action should open or close the drawer.
+         // ActionBarDrawerToggle will take care of this.
+        if (mDrawerToggle.onOptionsItemSelected(item)) {
+            return true;
+        }
+        // Handle action buttons
+        switch (item.getItemId()) {
+			case (R.id.menu_item_organize_urls):
+				startActivity(new Intent(this, OrganizeUrlsActivity.class));
+				return true;
+			case (R.id.menu_item_settings):
+				startActivity(new Intent(this, SettingsActivity.class));
+				return true;
+			case (R.id.menu_item_scan):
+				try {
+					Intent intent = new Intent("com.google.zxing.client.android.SCAN");
+					intent.setPackage("com.google.zxing.client.android");
+					intent.putExtra("SCAN_MODE", "QR_CODE_MODE");
+					startActivityForResult(intent, 0);
+				} catch (ActivityNotFoundException ex) {
+					showDialog(DOWNLOAD_SCANNER_DIALOG);
+				}
+        		return true;
+			default:
+				return super.onOptionsItemSelected(item);
+        }
+    }
+
+	@Override
+	public boolean onKeyDown(int keyCode, KeyEvent event) {
+		if (keyCode == KeyEvent.KEYCODE_BACK) {
+	    	Fragment fragment = getSupportFragmentManager().findFragmentByTag(mTag);
+			if (fragment != null && fragment instanceof BrowseFragment) {
+				((BrowseFragment) fragment).onBackKeyPressed();
+				return true;
+			}
+		}
+		
+		return super.onKeyDown(keyCode, event);
+	}
+    
+    @Override
+	public void onActivityResult(int requestCode, int resultCode, Intent intent) {
+	    if (requestCode == 0) {
+	        if (resultCode == RESULT_OK) {
+	            String contents = intent.getStringExtra("SCAN_RESULT");
+	            // Handle successful scan
+	            openUri(contents);
+	        } else if (resultCode == RESULT_CANCELED) {
+	            // Handle cancel
+	        }
+	    }
+	}
+	
+    /* The click listener for ListView in the navigation drawer */
+    private class DrawerItemClickListener implements ListView.OnItemClickListener {
+        @Override
+        public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+            selectItem(position);
+        }
+    }
+
+    private void selectItem(int position) {
+    	FragmentManager fragmentManager = getSupportFragmentManager();
+    	Fragment fragment = getSupportFragmentManager().findFragmentByTag(mTag);
+    	
+    	if (fragment != null) {
+    		fragmentManager.beginTransaction().detach(fragment).commit();
+    	}
+    	
+    	String tag = String.valueOf(position);
+    	fragment = getSupportFragmentManager().findFragmentByTag(tag);
+    	
+    	if (fragment == null) {
+            if (position == 0) {
+            	fragment = new UrlListFragment();
+            	fragment.setArguments(new Bundle());
+            } else if (position == 1) {
+            	fragment = new BrowseFragment();
+            	fragment.setArguments(new Bundle());
+            } else if (position == 2) {
+            	fragment = new AlarmClockFragment();
+            }
+    		
+    		fragmentManager.beginTransaction().add(R.id.content_frame, fragment, tag).commit();
+    	} else {
+    		fragmentManager.beginTransaction().attach(fragment).commit();
+    	}
+    	
+    	mTag = tag;
+    	
+    	// update selected item and title, then close the drawer
+    	mDrawerList.setItemChecked(position, true);
+    	setTitle(mDrawerItems[position]);
+    	mDrawerLayout.closeDrawer(mDrawerList);
+    }
+
+    @Override
+    public void setTitle(CharSequence title) {
+        mTitle = title;
+        getSupportActionBar().setTitle(mTitle);
+    }
+
+    /**
+     * When using the ActionBarDrawerToggle, you must call it during
+     * onPostCreate() and onConfigurationChanged()...
+     */
+
+    @Override
+    protected void onPostCreate(Bundle savedInstanceState) {
+        super.onPostCreate(savedInstanceState);
+        // Sync the toggle state after onRestoreInstanceState has occurred.
+        mDrawerToggle.syncState();
+    }
+
+    @Override
+    public void onConfigurationChanged(Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
+        // Pass any configuration change to the drawer toggls
+        mDrawerToggle.onConfigurationChanged(newConfig);
+    }
+    
     private String getUri() {
 		String intentUri = null;
 		String contentType = null;
 		
 		Intent intent = getIntent();
+		
+		if (intent == null) {
+			return null;
+		}
 		
         // check to see if we were called from a home screen shortcut
 		if ((contentType = intent.getType()) != null) {
@@ -136,146 +342,7 @@ public class MainActivity extends ActionBarActivity implements
 		setIntent(null);
 		
 		return intentUri;
-	}
-    
-	@Override
-	protected void onSaveInstanceState(Bundle outState) {
-		super.onSaveInstanceState(outState);
-		outState.putInt("tab", getSupportActionBar()
-				.getSelectedNavigationIndex());
-	}
-
-	@Override
-	public void onResume() {
-		super.onResume();
-		
-        IntentFilter f = new IntentFilter();
-        f.addAction(MediaPlaybackService.PLAYSTATE_CHANGED);
-        f.addAction(MediaPlaybackService.META_CHANGED);
-        f.addAction(MediaPlaybackService.QUEUE_CHANGED);
-        registerReceiver(mTrackListListener, f);
-	}
-
-	@Override
-	public void onPause() {
-		super.onPause();
-		
-        unregisterReceiver(mTrackListListener);
-	}
-	
-	@Override
-	public void onDestroy() {
-		super.onDestroy();
-
-        MusicUtils.unbindFromService(mToken);
-	}
-	
-	@Override
-	public void onActivityResult(int requestCode, int resultCode, Intent intent) {
-	    if (requestCode == 0) {
-	        if (resultCode == RESULT_OK) {
-	            String contents = intent.getStringExtra("SCAN_RESULT");
-	            // Handle successful scan
-				Bundle args = new Bundle();
-				args.putString(UrlListFragment.ARG_TARGET_URI, contents);
-				UrlListFragment fragment = (UrlListFragment) mSectionsPagerAdapter.getItem(0);
-				fragment.refresh(args);
-	        } else if (resultCode == RESULT_CANCELED) {
-	            // Handle cancel
-	        }
-	    }
-	}
-	
-	@Override
-	public boolean onOptionsItemSelected(MenuItem item) {
-		switch (item.getItemId()) {
-			case R.id.add_uri:
-				startActivity(new Intent(this, AddUrlActivity.class));
-				return true;
-			case (R.id.menu_item_organize_urls):
-    			startActivity(new Intent(this, OrganizeUrlsActivity.class));
-				return true;
-        	case (R.id.menu_item_settings):
-        		startActivity(new Intent(this, SettingsActivity.class));
-    			return true;
-            case (R.id.menu_item_alarms):
-                startActivity(new Intent(this, AlarmClockActivity.class));
-                return true;
-            case (R.id.menu_item_scan):
-            	try {
-            		Intent intent = new Intent("com.google.zxing.client.android.SCAN");
-            		intent.setPackage("com.google.zxing.client.android");
-            		intent.putExtra("SCAN_MODE", "QR_CODE_MODE");
-            		startActivityForResult(intent, 0);
-            	} catch (ActivityNotFoundException ex) {
-            		showDialog(DOWNLOAD_SCANNER_DIALOG);
-            	}
-            	return true;
-			default:
-				return super.onOptionsItemSelected(item);
-		}
-	}
-
-	@Override
-	public boolean onCreateOptionsMenu(Menu menu) {
-		MenuInflater inflater = new MenuInflater(this);
-		inflater.inflate(R.menu.main, menu);
-		return true;
-	}
-
-	@Override
-	public boolean onKeyDown(int keyCode, KeyEvent event) {
-		if (keyCode == KeyEvent.KEYCODE_BACK) {
-			Tab tab;
-			if ((tab = getSupportActionBar().getSelectedTab()) != null &&
-					tab.getPosition() == 1) {
-				BrowseFragment fragment = (BrowseFragment) mSectionsPagerAdapter.getItem(1);
-				fragment.onBackKeyPressed();
-				return true;
-			}
-		}
-		
-		return super.onKeyDown(keyCode, event);
-	}
-	
-	public class SectionsPagerAdapter extends FragmentPagerAdapter {
-		
-		public SectionsPagerAdapter(FragmentManager fm) {
-			super(fm);
-		}
-
-		@Override
-		public Fragment getItem(int position) {
-			if (position == 0) {
-				return mUrlListFragment;
-			} else {
-				return mBrowseFragment;
-			}
-		}
-		
-		@Override
-		public int getCount() {
-			return 2;
-		}
-
-	}
-	
-	@Override
-	public void onTabSelected(Tab tab, FragmentTransaction ft) {
-		// When the given tab is selected, switch to the corresponding page in
-		// the ViewPager.
-		mViewPager.setCurrentItem(tab.getPosition());
-	}
-
-	@Override
-	public void onTabUnselected(Tab tab, FragmentTransaction ft) {
-
-	}
-
-	@Override
-	public void onTabReselected(Tab tab, FragmentTransaction ft) {
-	
-	}
+    }
 
     private BroadcastReceiver mTrackListListener = new BroadcastReceiver() {
         @Override
@@ -287,37 +354,6 @@ public class MainActivity extends ActionBarActivity implements
 	@Override
 	public void onServiceConnected(ComponentName name, IBinder service) {
 		MusicUtils.updateNowPlaying(this);
-		
-		mViewPager.setAdapter(mSectionsPagerAdapter);
-		
-		Tab urlsTab = getSupportActionBar().newTab();
-		urlsTab.setText(getString(R.string.url_label));
-		urlsTab.setTabListener(this);
-		
-		Tab browseTab = getSupportActionBar().newTab();
-		browseTab.setText(getString(R.string.browse_label));
-		browseTab.setTabListener(this);
-		
-		getSupportActionBar().addTab(urlsTab);
-		getSupportActionBar().addTab(browseTab);
-		
-		// When swiping between different sections, select the corresponding
-		// tab. We can also use ActionBar.Tab#select() to do this if we have
-		// a reference to the Tab.
-		mViewPager
-				.setOnPageChangeListener(new ViewPager.SimpleOnPageChangeListener() {
-					@Override
-					public void onPageSelected(int position) {
-						MainActivity.this.getSupportActionBar().setSelectedNavigationItem(position);
-					}
-				});
-		
-		if (mSavedInstanceState != null) {
-			getSupportActionBar().setSelectedNavigationItem(
-					mSavedInstanceState.getInt("tab", 0));
-		}
-		
-		mSavedInstanceState = null;
 	}
 
 	@Override
@@ -325,11 +361,65 @@ public class MainActivity extends ActionBarActivity implements
 		finish();
 	}
 
+	private void openUri(String uri) {
+		Bundle args = new Bundle();
+		args.putString(UrlListFragment.ARG_TARGET_URI, uri);
+    	
+    	FragmentManager fragmentManager = getSupportFragmentManager();
+    	Fragment fragment = getSupportFragmentManager().findFragmentByTag(mTag);
+    	
+    	if (fragment != null) {
+    		fragmentManager.beginTransaction().detach(fragment).commit();
+    	}
+    	
+    	String tag = String.valueOf(0);
+    	fragment = getSupportFragmentManager().findFragmentByTag(tag);
+    	
+    	if (fragment == null) {
+           	fragment = new UrlListFragment();
+           	fragment.setArguments(args);
+    		fragmentManager.beginTransaction().add(R.id.content_frame, fragment, tag).commit();
+    	} else {
+           	fragment.getArguments().putString(UrlListFragment.ARG_TARGET_URI, uri);
+    		fragmentManager.beginTransaction().attach(fragment).commit();
+    	}
+    	
+    	mTag = tag;
+    	
+    	mDrawerList.setItemChecked(0, true);
+    	setTitle(mDrawerItems[0]);
+    	mDrawerLayout.closeDrawer(mDrawerList);
+	}
+	
 	@Override
 	public void browseToUri(Uri uri) {
-		getSupportActionBar().setSelectedNavigationItem(1);
-		BrowseFragment fragment = (BrowseFragment) mSectionsPagerAdapter.getItem(1);
-		fragment.browseTo(uri);
+		Bundle args = new Bundle();
+		args.putString(UrlListFragment.ARG_TARGET_URI, uri.toString());
+    	
+    	FragmentManager fragmentManager = getSupportFragmentManager();
+    	Fragment fragment = getSupportFragmentManager().findFragmentByTag(mTag);
+    	
+    	if (fragment != null) {
+    		fragmentManager.beginTransaction().detach(fragment).commit();
+    	}
+    	
+    	String tag = String.valueOf(1);
+    	fragment = getSupportFragmentManager().findFragmentByTag(tag);
+    	
+    	if (fragment == null) {
+           	fragment = new BrowseFragment();
+           	fragment.setArguments(args);
+    		fragmentManager.beginTransaction().add(R.id.content_frame, fragment, tag).commit();
+    	} else {
+           	fragment.getArguments().putString(UrlListFragment.ARG_TARGET_URI, uri.toString());
+    		fragmentManager.beginTransaction().attach(fragment).commit();
+    	}
+    	
+    	mTag = tag;
+    	
+    	mDrawerList.setItemChecked(1, true);
+    	setTitle(mDrawerItems[1]);
+    	mDrawerLayout.closeDrawer(mDrawerList);
 	}
 	
 	private void showDialog(String tag) {

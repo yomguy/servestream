@@ -21,20 +21,22 @@ import java.util.ArrayList;
 import java.util.List;
 
 import net.sourceforge.servestream.R;
-import net.sourceforge.servestream.activity.SettingsActivity;
+import net.sourceforge.servestream.adapter.BrowseAdapter;
 import net.sourceforge.servestream.bean.UriBean;
 import net.sourceforge.servestream.dbutils.StreamDatabase;
-import net.sourceforge.servestream.filemanager.*;
 import net.sourceforge.servestream.transport.TransportFactory;
 import net.sourceforge.servestream.utils.DetermineActionTask;
 import net.sourceforge.servestream.utils.LoadingDialog;
 import net.sourceforge.servestream.utils.LoadingDialog.LoadingDialogListener;
 import net.sourceforge.servestream.utils.MusicUtils;
+import net.sourceforge.servestream.utils.WebpageParserTask;
 
+import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -54,7 +56,6 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ListView;
-import android.widget.TextView;
 import android.widget.Toast;
 
 public class BrowseFragment extends ListFragment implements
@@ -66,30 +67,24 @@ public class BrowseFragment extends ListFragment implements
  	public static final int MESSAGE_SHOW_DIRECTORY_CONTENTS = 1;
     public static final int MESSAGE_PARSE_WEBPAGE = 2;
 	
-	/** Contains directories and files together */
-    private ArrayList<IconifiedText> directoryEntries = new ArrayList<IconifiedText>();
-
-    /** Dir separate for sorting */
-    private List<IconifiedText> mListFiles = new ArrayList<IconifiedText>();
-
     private int mStepsBack;
-    private UriBean [] mDirectory = null;
+    private UriBean [] mDirectory;
 
-    private TextView mEmptyText;
-     
-    private DirectoryScanner mDirectoryScanner;
+    private WebpageParserTask mWebpageParserTask;
     private SparseArray<UriBean> mPreviousDirectory = new SparseArray<UriBean>();
     
-	private StreamDatabase mStreamdb = null;
-
-	protected Handler mHandler = new Handler() {
+    private BrowseAdapter mAdapter;
+    
+	@SuppressLint("HandlerLeak")
+	private Handler mHandler = new Handler() {
 		@Override
 		public void handleMessage(Message msg) {			
 			BrowseFragment.this.handleMessage(msg);
 		}
 	};
 	
-	protected Handler mQueueHandler = new Handler() {
+	@SuppressLint("HandlerLeak")
+	private Handler mQueueHandler = new Handler() {
 		@Override
 		public void handleMessage(Message msg) {
 			MusicUtils.addToCurrentPlaylist(BrowseFragment.this.getActivity(), (long []) msg.obj);
@@ -100,8 +95,6 @@ public class BrowseFragment extends ListFragment implements
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         
-        // Tell the framework to try to keep this fragment around
-        // during a configuration change.
         setRetainInstance(true);
         setHasOptionsMenu(true);
     }
@@ -109,46 +102,48 @@ public class BrowseFragment extends ListFragment implements
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container,
 			Bundle savedInstanceState) {
-		View result = inflater.inflate(R.layout.fragment_browse, container, false);
+		View view = inflater.inflate(R.layout.fragment_uri_list, container, false);
+		ListView list = (ListView) view.findViewById(android.R.id.list);
+		list.setEmptyView(view.findViewById(android.R.id.empty));
 		
-		return result;
+		return view;
 	}
 	
 	@Override
 	public void onViewCreated(View view, Bundle savedInstanceState) {
 		super.onViewCreated(view, savedInstanceState);
 
-		// connect with streams database
-		this.mStreamdb = new StreamDatabase(this.getActivity());
-        
-		ListView list = this.getListView();
+		ListView list = getListView();
 		list.setOnCreateContextMenuListener(this);
-		list.setEmptyView(getActivity().findViewById(R.id.empty));
 		list.setFastScrollEnabled(true);
-	    list.setTextFilterEnabled(true);
 	    list.setOnItemClickListener(new OnItemClickListener() {
 
 			@Override
-			public void onItemClick(AdapterView<?> arg0, View arg1, int position,
-					long arg3) {
-		        IconifiedTextListAdapter adapter = (IconifiedTextListAdapter) getListAdapter();
-		          
-		        if (adapter == null) {
-		        	return;
-		        }
-		        
-		        IconifiedText text = (IconifiedText) adapter.getItem(position);
-		        browseTo(text.getUri());
+			public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+		        UriBean uri = (UriBean) parent.getItemAtPosition(position);
+		        browseTo(uri);
 			}
 	    });
-        
-        mEmptyText = (TextView) this.getActivity().findViewById(R.id.empty_text);
-        mEmptyText.setVisibility(View.VISIBLE);
+
+	    if (mAdapter == null) {
+	    	mAdapter = new BrowseAdapter(getActivity(), new ArrayList<UriBean>());
+	    }
 	    
-		//mInputManager = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+		list.setAdapter(mAdapter);
     }
-  
-	public void browseTo(Uri uri) {
+
+	@Override
+	public void onActivityCreated (Bundle savedInstanceState) {
+		super.onActivityCreated(savedInstanceState);
+		
+		if (getArguments().getString("target_uri") != null) {
+			Uri uri = Uri.parse(getArguments().getString("target_uri"));
+			browseTo(uri);
+			getArguments().putString("target_uri", null);
+		}
+	}
+	
+	private void browseTo(Uri uri) {
 		mStepsBack = 0;
 		mDirectory = new UriBean[1000];
 		mDirectory[mStepsBack] = TransportFactory.getTransport(uri.getScheme()).createUri(uri);
@@ -156,45 +151,10 @@ public class BrowseFragment extends ListFragment implements
 		refreshList();
 	}
 	
-	@Override
-	public void onStart() {
-		super.onStart();
-		
-		// connect to the stream database if we don't
-		// already have a connection
-		if(this.mStreamdb == null)
-			this.mStreamdb = new StreamDatabase(this.getActivity());
-		
-		// if the current URL exists in the stream database
-		// update its timestamp
-		//UriBean uri = TransportFactory.findUri(mStreamdb, mDirectory[mStepsBack].getUri());
-		
-		//if (uri != null) {
-	      //  mStreamdb.touchUri(uri);
-		//}
-	}
-    
-	@Override
-	public void onStop() {
-		super.onStop();
-		
-		// close the connection to the database
-		if(this.mStreamdb != null) {
-			this.mStreamdb.close();
-			this.mStreamdb = null;
-		}
-	}
-	
-	@Override
-    public void onDestroy() {
-    	super.onDestroy();
-    	 
-    	// stop the scanner
-    	if (mDirectoryScanner != null) {
-    		mDirectoryScanner.cancel = true;
-    	}
-    	 
-    	mDirectoryScanner = null;
+    @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        inflater.inflate(R.menu.browse, menu);
+        super.onCreateOptionsMenu(menu, inflater);
     }
 	
     @Override
@@ -203,18 +163,9 @@ public class BrowseFragment extends ListFragment implements
             case (R.id.menu_item_refresh):
             	refreshList();
             	return true;
-            case (R.id.menu_item_settings):
-            	startActivity(new Intent(BrowseFragment.this.getActivity(), SettingsActivity.class));
-        		return true;
         	default:
         		return super.onOptionsItemSelected(item);
         }
-    }
-	
-    @Override
-    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
-        inflater.inflate(R.menu.browse, menu);
-        super.onCreateOptionsMenu(menu, inflater);
     }
     
     @Override
@@ -224,9 +175,7 @@ public class BrowseFragment extends ListFragment implements
 		
 		// create menu to handle deleting and sharing lists		
 		final AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo) menuInfo;
-		final IconifiedTextListAdapter adapter = (IconifiedTextListAdapter) getListAdapter();
-        IconifiedText it = (IconifiedText) adapter.getItem(info.position);
-		final UriBean uri = it.getUri();
+        final UriBean uri = (UriBean) getListAdapter().getItem(info.position);
 		
 		try {
 			final String streamURL = uri.getUri().toString();
@@ -297,10 +246,11 @@ public class BrowseFragment extends ListFragment implements
 		});
 	}
     
-    private void handleMessage(Message message) {    	 
+    @SuppressWarnings("unchecked")
+	private void handleMessage(Message message) {    	 
     	switch (message.what) {
     		case MESSAGE_SHOW_DIRECTORY_CONTENTS:
-    			showDirectoryContents((DirectoryContents) message.obj);
+    			showDirectoryContents((List<UriBean>) message.obj);
     			break;
 			case MESSAGE_PARSE_WEBPAGE:
 				mPreviousDirectory.put(mStepsBack, (UriBean) message.obj);
@@ -312,22 +262,17 @@ public class BrowseFragment extends ListFragment implements
     	}
     }
      
-    private void showDirectoryContents(DirectoryContents contents) {
-    	mDirectoryScanner = null;
-    	 
-    	mListFiles = contents.getListFiles();
-    	 
-        addAllElements(directoryEntries, mListFiles);
-
-        IconifiedTextListAdapter itla = new IconifiedTextListAdapter(this.getActivity()); 
-        itla.setListItems(directoryEntries, getListView().hasTextFilter());          
-        setListAdapter(itla);
-	    getListView().requestFocus();
+    private void showDirectoryContents(List<UriBean> contents) {
+    	mAdapter.clear();
+    	
+    	for (int i = 0; i < contents.size(); i++) {
+    		mAdapter.add(contents.get(i));
+    	}
+    	
+    	mAdapter.notifyDataSetChanged();
 
 		selectInList(mPreviousDirectory.get(mStepsBack));
 	    
-    	mEmptyText.setVisibility(View.VISIBLE);
-    	
 		dismissDialog(LOADING_DIALOG);
     }
       
@@ -339,7 +284,6 @@ public class BrowseFragment extends ListFragment implements
     	if (mStepsBack > 0) {
     		mStepsBack--;
     		refreshList();
-    		//browseTo(mDirectory[mStepsBack]);
     	}
     }
      
@@ -355,23 +299,8 @@ public class BrowseFragment extends ListFragment implements
     	
     	showDialog(LOADING_DIALOG);
     	
-    	// Cancel an existing scanner, if applicable.
-    	DirectoryScanner scanner = mDirectoryScanner;
-    	  
-    	if (scanner != null) {
-    	    scanner.cancel = true;
-    	}
-    	  
-    	directoryEntries.clear(); 
-        mListFiles.clear();
-          
-        // Don't show the "folder empty" text since we're scanning.
-        mEmptyText.setVisibility(View.GONE);
-          
-        setListAdapter(null); 
-          
-        mDirectoryScanner = new DirectoryScanner(mDirectory[mStepsBack], this.getActivity(), mHandler);
-	    mDirectoryScanner.start();
+    	mWebpageParserTask = new WebpageParserTask(mHandler, mDirectory[mStepsBack]);
+    	mWebpageParserTask.execute();
     }
 
     private void selectInList(UriBean uri) {
@@ -379,24 +308,15 @@ public class BrowseFragment extends ListFragment implements
     		return;
     	}
     	
-    	IconifiedTextListAdapter la = (IconifiedTextListAdapter) getListAdapter();
-    	int count = la.getCount();
-    	for (int i = 0; i < count; i++) {
-    		IconifiedText it = (IconifiedText) la.getItem(i);
-    		if (it.getUri().equals(uri)) {
+    	for (int i = 0; i < mAdapter.getCount(); i++) {
+    		UriBean it = (UriBean) mAdapter.getItem(i);
+    		if (it.equals(uri)) {
     			getListView().setSelection(i);
     			break;
     		}
     	}
     }
     
-    private void addAllElements(List<IconifiedText> addTo, List<IconifiedText> addFrom) {
-        int size = addFrom.size();
-    	for (int i = 0; i < size; i++) {
-            addTo.add(addFrom.get(i));
-    	}
-    }
-     
 	public void onBackKeyPressed() {
 		if (mStepsBack > 0) {
 			upOneLevel();
@@ -412,7 +332,9 @@ public class BrowseFragment extends ListFragment implements
 	 */
 	private void saveUri(UriBean targetUri) {
 		if (targetUri != null) {
-			mStreamdb.saveUri(targetUri);
+			StreamDatabase db = new StreamDatabase(this.getActivity());
+			db.saveUri(targetUri);
+			db.close();
 		}
 	}
 	
@@ -449,9 +371,9 @@ public class BrowseFragment extends ListFragment implements
 		DialogFragment newFragment = null;
 
 		// Create and show the dialog.
-		//if (tag.equals(LOADING_DIALOG)) {
-		newFragment = LoadingDialog.newInstance(this, getString(R.string.opening_url_message));
-		//}
+		if (tag.equals(LOADING_DIALOG)) {
+			newFragment = LoadingDialog.newInstance(this, getString(R.string.opening_url_message));
+		}
 
 		ft.add(0, newFragment, tag);
 		ft.commit();
@@ -469,7 +391,9 @@ public class BrowseFragment extends ListFragment implements
 
 	@Override
 	public void onLoadingDialogCancelled(DialogFragment dialog) {
-		// TODO Auto-generated method stub
-		
+		if (mWebpageParserTask != null &&
+				mWebpageParserTask.getStatus() != AsyncTask.Status.FINISHED) {
+			mWebpageParserTask.cancel(false);
+		}
 	}
 }

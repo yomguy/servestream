@@ -24,7 +24,7 @@
         android:id="@+id/menu_item_add_alarm"
         android:title="@string/add_alarm"
         android:icon="?attr/content_new"
-        yourapp:showAsAction="always|withText" />
+        yourapp:showAsAction="always" />
 </menu>
 
 

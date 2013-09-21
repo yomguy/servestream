@@ -30,18 +30,11 @@
 		android:layout_height="0dip"
 		android:layout_weight="1" />
 
-	<LinearLayout
-	    android:id="@+id/empty"
-        android:layout_width="fill_parent" 
-        android:layout_height="fill_parent" >
-        
-	    <TextView
-			android:id="@+id/empty_text"
-			android:layout_width="fill_parent"
-			android:layout_height="fill_parent"
-			android:text="@string/no_items_label"
-			android:gravity="center" />
-	    
-    </LinearLayout>
-	
+	<TextView
+		android:id="@android:id/empty"
+		android:layout_width="fill_parent"
+		android:layout_height="fill_parent"
+		android:text="@string/no_items_label"
+		android:gravity="center" />
+
 </LinearLayout>

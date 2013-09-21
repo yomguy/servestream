@@ -21,8 +21,8 @@
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
 	
     <!-- Activitiy titles -->
-    <string name="url_label">URL</string>
-    <string name="browse_label">PARCOURIR</string>
+    <string name="url_label">Url</string>
+    <string name="browse_label">Parcourir</string>
     <string name="settings_label">Paramètres</string>
     <string name="add_new_url_label">Ajouter une nouvelle URL</string>
     <string name="now_playing_label">En cours de lecture</string>

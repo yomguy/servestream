@@ -28,6 +28,7 @@ import net.sourceforge.servestream.utils.MusicUtils;
 import net.sourceforge.servestream.utils.RateDialog;
 
 import net.sourceforge.servestream.R;
+import net.sourceforge.servestream.activity.AddUrlActivity;
 import net.sourceforge.servestream.activity.StreamEditorActivity;
 import net.sourceforge.servestream.adapter.UrlListAdapter;
 import net.sourceforge.servestream.alarm.Alarm;
@@ -35,6 +36,7 @@ import net.sourceforge.servestream.bean.UriBean;
 import net.sourceforge.servestream.dbutils.StreamDatabase;
 import net.sourceforge.servestream.utils.PreferenceConstants;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.BroadcastReceiver;
@@ -58,6 +60,9 @@ import android.util.Log;
 
 import android.view.ContextMenu;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.MenuItem.OnMenuItemClickListener;
 import android.view.ViewGroup;
@@ -91,7 +96,8 @@ public class UrlListFragment extends ListFragment implements
     
     private BrowseIntentListener mListener;
     
-	protected Handler mQueueHandler = new Handler() {
+	@SuppressLint("HandlerLeak")
+	private Handler mQueueHandler = new Handler() {
 		@Override
 		public void handleMessage(Message msg) {
 			MusicUtils.addToCurrentPlaylist(UrlListFragment.this.getActivity(), (long []) msg.obj);
@@ -102,53 +108,65 @@ public class UrlListFragment extends ListFragment implements
     public void onAttach(Activity activity) {
     	super.onAttach(activity);
        
-    	try {
-            mListener = (BrowseIntentListener) activity;
+        try {
+        	mListener = (BrowseIntentListener) activity;
         } catch (ClassCastException e) {
             throw new ClassCastException(activity.toString() + " must implement BrowseIntentListener");
         }
-    	
+       
 		// connect with streams database and populate list
-		mStreamdb = new StreamDatabase(this.getActivity());
+		mStreamdb = new StreamDatabase(getActivity());
     }
 	
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         
-        // Tell the framework to try to keep this fragment around
-        // during a configuration change.
         setRetainInstance(true);
         setHasOptionsMenu(true);
     }
 	
-	public void refresh(Bundle args) {
-		// If the intent is a request to create a shortcut, we'll do that and exit
-		String targetUri = args.getString(ARG_TARGET_URI);
-		
-		processUri(targetUri);
-	}
-	
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container,
 			Bundle savedInstanceState) {
-		View result = inflater.inflate(R.layout.fragment_uri_list, container, false);
-		ListView list = (ListView) result.findViewById(android.R.id.list);
-		list.setEmptyView(result.findViewById(android.R.id.empty));
+		View view = inflater.inflate(R.layout.fragment_uri_list, container, false);
+		ListView list = (ListView) view.findViewById(android.R.id.list);
+		list.setEmptyView(view.findViewById(android.R.id.empty));
 		
-		return result;
+		return view;
 	}
 	
 	@Override
 	public void onViewCreated(View view, Bundle savedInstanceState) {
 		super.onViewCreated(view, savedInstanceState);
 		
-		mPreferences = PreferenceManager.getDefaultSharedPreferences(this.getActivity());
+		mPreferences = PreferenceManager.getDefaultSharedPreferences(getActivity());
 		
-		String targetUri = getArguments().getString(ARG_TARGET_URI);
+		ListView list = getListView();
+		list.setOnItemClickListener(new OnItemClickListener() {
+			public synchronized void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+
+				UriBean uriBean = (UriBean) parent.getItemAtPosition(position);
+				processUri(uriBean.getUri().toString());
+			}
+		});
+
+		registerForContextMenu(list);
+
+		mAdapter = new UrlListAdapter(getActivity(), new ArrayList<UriBean>());
+		setListAdapter(mAdapter);
+	}
+	
+	@Override
+	public void onActivityCreated (Bundle savedInstanceState) {
+		super.onActivityCreated(savedInstanceState);
 		
-		// see if the user wants to rate the application after 5 uses
-		if (targetUri == null) {
+		if (getArguments().getString(ARG_TARGET_URI) != null) {
+			String targetUri = getArguments().getString(ARG_TARGET_URI);
+			processUri(targetUri);
+			getArguments().putString("target_uri", null);
+		} else {
+			// see if the user wants to rate the application after 5 uses
 			int rateApplicationFlag = mPreferences.getInt(PreferenceConstants.RATE_APPLICATION_FLAG, 0);
 			if (rateApplicationFlag != -1) {
 				rateApplicationFlag++;
@@ -160,22 +178,6 @@ public class UrlListFragment extends ListFragment implements
 				}
 			}
 		}
-		
-		ListView list = getListView();
-		list.setOnItemClickListener(new OnItemClickListener() {
-			public synchronized void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-
-				UriBean uriBean = (UriBean) parent.getAdapter().getItem(position);
-				processUri(uriBean.getUri().toString());
-			}
-		});
-
-		registerForContextMenu(list);
-
-		mAdapter = new UrlListAdapter(this.getActivity(), new ArrayList<UriBean>());
-		setListAdapter(mAdapter);
-		
-		processUri(targetUri);
 	}
 	
 	@Override
@@ -206,6 +208,23 @@ public class UrlListFragment extends ListFragment implements
 		super.onDetach();
 		
 		mStreamdb.close();
+	}
+	
+	@Override
+	public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+		inflater.inflate(R.menu.url_list, menu);
+	    super.onCreateOptionsMenu(menu, inflater);
+	}
+		
+	@Override
+	public boolean onOptionsItemSelected(MenuItem item) {
+		switch (item.getItemId()) {
+	    	case (R.id.menu_item_add):
+				startActivity(new Intent(getActivity(), AddUrlActivity.class));
+				return true;
+	        default:
+	        	return super.onOptionsItemSelected(item);
+	    }
 	}
 	
 	@Override
@@ -275,6 +294,7 @@ public class UrlListFragment extends ListFragment implements
 		});
 	}
 
+	@Override
 	public void onActivityResult(int requestCode, int resultCode, Intent intent) {
 	    if (requestCode == 0) {
 	        if (resultCode == Activity.RESULT_OK) {
@@ -398,7 +418,7 @@ public class UrlListFragment extends ListFragment implements
 	    }
 	};
 	
-    // Container Activity must implement this interface
+	// Container Activity must implement this interface
     public interface BrowseIntentListener {
         public void browseToUri(Uri uri);
     }

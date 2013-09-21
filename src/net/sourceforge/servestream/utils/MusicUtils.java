@@ -408,13 +408,13 @@ public class MusicUtils {
         }
     }
     
-    public static void clearWidgetArtCache() {
+    public static void clearWidgsetArtCache() {
         synchronized(sWidgetArtCache) {
         	sWidgetArtCache.clear();
         }
     }
     
-    public static void clearNotificationArtCache() {
+    public static void clearNotsificationArtCache() {
         synchronized(sNotificationArtCache) {
         	sNotificationArtCache.clear();
         }

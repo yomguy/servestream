@@ -1973,7 +1973,7 @@ public class MediaPlaybackService extends Service implements
         	
             notifyChange(META_CHANGED);
             notifyChange(ART_CHANGED);
-            MusicUtils.clearNotificationArtCache();
+            //MusicUtils.clearNotificationArtCache();
             updateNotification(true);
         }
     }
