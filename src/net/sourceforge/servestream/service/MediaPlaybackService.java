@@ -1136,7 +1136,7 @@ public class MediaPlaybackService extends Service implements
 	    	status.setSmallIcon(R.drawable.notification_icon);
 	    }
         
-	    Notification notification = buildExpandedView(status.build(), updateNotification);
+	    Notification notification = status.build();
 	    
 	    // If the user has a phone running Android 4.0+ show an expanded notification
 	    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN){
