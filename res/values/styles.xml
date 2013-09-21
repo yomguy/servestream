@@ -21,6 +21,7 @@
     
     <style name="Theme.ServeStream.Dark" parent="@style/Theme.AppCompat">
         <item name="android:windowBackground">@android:color/black</item>
+        <item name="attr/action_search">@drawable/action_search_dark</item>
         <item name="attr/content_new">@drawable/content_new_dark</item>
         <item name="attr/navigation_accept">@drawable/navigation_accept_dark</item>
         <item name="attr/navigation_refresh">@drawable/navigation_refresh_dark</item>
@@ -28,6 +29,7 @@
     </style>
     
     <style name="Theme.ServeStream.Light" parent="@style/Theme.AppCompat.Light">
+        <item name="attr/action_search">@drawable/action_search</item>
         <item name="attr/content_new">@drawable/content_new</item>
         <item name="attr/navigation_accept">@drawable/navigation_accept</item>
         <item name="attr/navigation_refresh">@drawable/navigation_refresh</item>

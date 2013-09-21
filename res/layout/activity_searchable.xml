@@ -24,7 +24,7 @@
     android:orientation="vertical"
     android:gravity="center_vertical" >
 
-	<com.mobeta.android.dslv.DragSortListView
+	<ListView
 		android:id="@android:id/list"
 		android:layout_width="match_parent"
 		android:layout_height="match_parent" />
@@ -33,7 +33,7 @@
 		android:id="@android:id/empty"
 		android:layout_width="match_parent"
 		android:layout_height="match_parent"
-		android:text="@string/no_items_label"
+		android:text="@string/no_urls_label"
 		android:gravity="center" />
 
 </LinearLayout>

@@ -1,6 +1,6 @@
 /*
  * ServeStream: A HTTP stream browser/player for Android
- * Copyright 2012 William Seemann
+ * Copyright 2013 William Seemann
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,8 +26,10 @@ import net.sourceforge.servestream.dbutils.StreamDatabase;
 
 import android.content.ContentValues;
 import android.net.Uri;
+import android.os.Parcel;
+import android.os.Parcelable;
 
-public class UriBean {
+public class UriBean implements Parcelable {
 	public static final String BEAN_NAME = "uri";
 
 	/* Database fields */
@@ -47,6 +49,22 @@ public class UriBean {
 
 	public UriBean() {
 
+	}
+
+	public UriBean(Parcel in) {
+		id = in.readLong();
+		nickname = in.readString();
+		username = in.readString();
+		password = in.readString();
+		hostname = in.readString();
+		port = in.readInt();
+		path = in.readString();
+		query = in.readString();
+		reference = in.readString();
+		protocol = in.readString();
+		lastConnect = in.readLong();
+		contentType = in.readString();
+		listPosition = in.readInt();
 	}
 
 	public String getBeanName() {
@@ -359,4 +377,37 @@ public class UriBean {
 		
 		return url;
 	}
+
+	@Override
+	public int describeContents() {
+		return 0;
+	}
+
+	@Override
+	public void writeToParcel(Parcel dest, int flags) {
+		dest.writeLong(id);
+		dest.writeString(nickname);
+		dest.writeString(username);
+		dest.writeString(password);
+		dest.writeString(hostname);
+		dest.writeInt(port);
+		dest.writeString(path);
+		dest.writeString(query);
+		dest.writeString(reference);
+		dest.writeString(protocol);
+		dest.writeLong(lastConnect);
+		dest.writeString(contentType);
+		dest.writeInt(listPosition);
+	}
+	
+    public static final Parcelable.Creator<UriBean> CREATOR
+    		= new Parcelable.Creator<UriBean>() {
+    	public UriBean createFromParcel(Parcel in) {
+    		return new UriBean(in);
+    	}
+
+    	public UriBean[] newArray(int size) {
+    		return new UriBean[size];
+    	}
+    };
 }
