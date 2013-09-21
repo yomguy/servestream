@@ -135,7 +135,7 @@ public final class Alarm implements Parcelable {
         // Used when filtering enabled alarms.
         public static final String WHERE_ENABLED = ENABLED + "=1";
 
-        static final String[] ALARM_QUERY_COLUMNS = {
+        public static final String[] ALARM_QUERY_COLUMNS = {
             _ID, HOUR, MINUTES, DAYS_OF_WEEK, ALARM_TIME,
             ENABLED, VIBRATE, MESSAGE, ALERT };
 
