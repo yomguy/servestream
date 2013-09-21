@@ -6,9 +6,9 @@
     
     <ImageView
     	android:id="@+id/drag_handle"
-    	android:background="@drawable/drag"
     	android:layout_width="wrap_content"
-    	android:layout_height="fill_parent" />
+    	android:layout_height="fill_parent"
+    	android:background="@drawable/ic_drag_queue" />
   
   	<LinearLayout
     	android:layout_width="wrap_content"
