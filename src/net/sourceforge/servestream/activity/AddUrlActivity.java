@@ -39,7 +39,7 @@ import android.widget.EditText;
 public class AddUrlActivity extends ActionBarActivity {
 	
 	private EditText mUrlEditText;
-	//private Button mImportButton;
+	private EditText mNicknameEditText;
 	private Button mConfirmButton;
 	private Button mCancelButton;
 
@@ -71,7 +71,6 @@ public class AddUrlActivity extends ActionBarActivity {
 			
 		});
 		
-		//mImportButton = (Button) findViewById(R.id.import_button);
 		mCancelButton = (Button) findViewById(R.id.cancel_button);
 		mCancelButton.setOnClickListener(new OnClickListener() {
 
@@ -84,13 +83,14 @@ public class AddUrlActivity extends ActionBarActivity {
 		
 		mConfirmButton = (Button) findViewById(R.id.confirm_button);
 		mConfirmButton.setOnClickListener(new OnClickListener() {
-
+			
 			@Override
 			public void onClick(View v) {
 				processUri();
 			}
-			
 		});
+		
+		mNicknameEditText = (EditText) findViewById(R.id.nickname_edittext);
 	}
 
     @Override
@@ -119,6 +119,12 @@ public class AddUrlActivity extends ActionBarActivity {
 		UriBean uriBean = TransportFactory.findUri(streamdb, uri);
 		if (uriBean == null) {
 			uriBean = TransportFactory.getTransport(uri.getScheme()).createUri(uri);
+			
+			String nickname = mNicknameEditText.getText().toString();
+			
+			if (!nickname.equals("")) {
+				uriBean.setNickname(nickname);
+			}
 			
 			AbsTransport transport = TransportFactory.getTransport(uriBean.getProtocol());
 			transport.setUri(uriBean);
