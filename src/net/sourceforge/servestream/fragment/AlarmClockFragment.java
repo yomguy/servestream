@@ -1,6 +1,6 @@
 /*
  * ServeStream: A HTTP stream browser/player for Android
- * Copyright 2010 William Seemann
+ * Copyright 2013 William Seemann
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package net.sourceforge.servestream.activity;
+package net.sourceforge.servestream.fragment;
 
 import android.app.AlertDialog;
 import android.content.Context;
@@ -24,12 +24,12 @@ import android.content.Intent;
 import android.database.Cursor;
 import android.graphics.Typeface;
 import android.os.Bundle;
-import android.support.v7.app.ActionBar;
-import android.support.v7.app.ActionBarActivity;
+import android.support.v4.app.ListFragment;
 import android.view.ContextMenu;
 import android.view.ContextMenu.ContextMenuInfo;
 import android.view.LayoutInflater;
 import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -46,6 +46,7 @@ import android.widget.TextView;
 import java.util.Calendar;
 
 import net.sourceforge.servestream.R;
+import net.sourceforge.servestream.activity.SetAlarmActivity;
 import net.sourceforge.servestream.alarm.Alarm;
 import net.sourceforge.servestream.alarm.Alarms;
 import net.sourceforge.servestream.alarm.DigitalClock;
@@ -54,10 +55,10 @@ import net.sourceforge.servestream.alarm.ToastMaster;
 /**
  * AlarmClock application.
  */
-public class AlarmClockActivity extends ActionBarActivity implements OnItemClickListener {
+public class AlarmClockFragment extends ListFragment implements OnItemClickListener {
 
-    public static final String PREFERENCES = "AlarmClock";
-
+	public static final String PREFERENCES = "AlarmClock";
+	
     /** This must be false for production.  If true, turns on logging,
         test code, etc. */
     public static final boolean DEBUG = false;
@@ -65,15 +66,43 @@ public class AlarmClockActivity extends ActionBarActivity implements OnItemClick
     //private SharedPreferences mPrefs;
     private LayoutInflater mFactory;
     private ListView mAlarmsList;
+    private View mAddAlarm;
     private Cursor mCursor;
 
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        
+        setRetainInstance(true);
+        setHasOptionsMenu(true);
+    }
+    
+	@Override
+	public View onCreateView(LayoutInflater inflater, ViewGroup container,
+			Bundle savedInstanceState) {
+		View view = inflater.inflate(R.layout.fragment_alarm_clock, container, false);
+        mAlarmsList = (ListView) view.findViewById(android.R.id.list);
+        mAddAlarm = view.findViewById(R.id.add_alarm);
+        return view;
+	}
+
+	@Override
+	public void onActivityCreated (Bundle savedInstanceState) {
+		super.onActivityCreated(savedInstanceState);
+	     
+        mFactory = LayoutInflater.from(getActivity());
+        mCursor = Alarms.getAlarmsCursor(getActivity().getContentResolver());
+
+        updateLayout();
+	}
+	
     private void updateIndicatorAndAlarm(boolean enabled, ImageView bar,
             Alarm alarm) {
         bar.setImageResource(enabled ? R.drawable.ic_indicator_on
                 : R.drawable.ic_indicator_off);
-        Alarms.enableAlarm(this, alarm.id, enabled);
+        Alarms.enableAlarm(getActivity(), alarm.id, enabled);
         if (enabled) {
-        	SetAlarmActivity.popAlarmSetToast(this, alarm.hour, alarm.minutes,
+        	SetAlarmActivity.popAlarmSetToast(getActivity(), alarm.hour, alarm.minutes,
                     alarm.daysOfWeek);
         }
     }
@@ -131,7 +160,7 @@ public class AlarmClockActivity extends ActionBarActivity implements OnItemClick
             TextView daysOfWeekView =
                     (TextView) digitalClock.findViewById(R.id.daysOfWeek);
             final String daysOfWeekStr =
-                    alarm.daysOfWeek.toString(AlarmClockActivity.this, false);
+                    alarm.daysOfWeek.toString(getActivity(), false);
             if (daysOfWeekStr != null && daysOfWeekStr.length() != 0) {
                 daysOfWeekView.setText(daysOfWeekStr);
                 daysOfWeekView.setVisibility(View.VISIBLE);
@@ -163,14 +192,14 @@ public class AlarmClockActivity extends ActionBarActivity implements OnItemClick
         switch (item.getItemId()) {
             case R.id.delete_alarm:
                 // Confirm that the alarm will be deleted.
-                new AlertDialog.Builder(this)
+                new AlertDialog.Builder(getActivity())
                         .setTitle(getString(R.string.delete_alarm))
                         .setMessage(getString(R.string.alarm_delete_confirmation_msg))
                         .setPositiveButton(android.R.string.ok,
                                 new DialogInterface.OnClickListener() {
                                     public void onClick(DialogInterface d,
                                             int w) {
-                                        Alarms.deleteAlarm(AlarmClockActivity.this, id);
+                                        Alarms.deleteAlarm(getActivity(), id);
                                     }
                                 })
                         .setNegativeButton(android.R.string.cancel, null)
@@ -181,15 +210,15 @@ public class AlarmClockActivity extends ActionBarActivity implements OnItemClick
                 final Cursor c = (Cursor) mAlarmsList.getAdapter()
                         .getItem(info.position);
                 final Alarm alarm = new Alarm(c);
-                Alarms.enableAlarm(this, alarm.id, !alarm.enabled);
+                Alarms.enableAlarm(getActivity(), alarm.id, !alarm.enabled);
                 if (!alarm.enabled) {
-                	SetAlarmActivity.popAlarmSetToast(this, alarm.hour, alarm.minutes,
+                	SetAlarmActivity.popAlarmSetToast(getActivity(), alarm.hour, alarm.minutes,
                             alarm.daysOfWeek);
                 }
                 return true;
 
             case R.id.edit_alarm:
-                Intent intent = new Intent(this, SetAlarmActivity.class);
+                Intent intent = new Intent(getActivity(), SetAlarmActivity.class);
                 intent.putExtra(Alarms.ALARM_ID, id);
                 startActivity(intent);
                 return true;
@@ -200,38 +229,20 @@ public class AlarmClockActivity extends ActionBarActivity implements OnItemClick
         return super.onContextItemSelected(item);
     }
 
-    @Override
-    protected void onCreate(Bundle icicle) {
-        super.onCreate(icicle);
-        
-        mFactory = LayoutInflater.from(this);
-        //mPrefs = getSharedPreferences(PREFERENCES, 0);
-        mCursor = Alarms.getAlarmsCursor(getContentResolver());
-
-        updateLayout();
-    }
-
     private void updateLayout() {
-        setContentView(R.layout.activity_alarm_clock);
-        
-		ActionBar actionBar = getSupportActionBar();
-		actionBar.setDisplayHomeAsUpEnabled(true);
-        
-        mAlarmsList = (ListView) findViewById(R.id.alarms_list);
-        AlarmTimeAdapter adapter = new AlarmTimeAdapter(this, mCursor);
+        AlarmTimeAdapter adapter = new AlarmTimeAdapter(getActivity(), mCursor);
         mAlarmsList.setAdapter(adapter);
         mAlarmsList.setVerticalScrollBarEnabled(true);
         mAlarmsList.setOnItemClickListener(this);
         mAlarmsList.setOnCreateContextMenuListener(this);
 
-        View addAlarm = findViewById(R.id.add_alarm);
-        addAlarm.setOnClickListener(new View.OnClickListener() {
+        mAddAlarm.setOnClickListener(new View.OnClickListener() {
                 public void onClick(View v) {
                     addNewAlarm();
                 }
             });
         // Make the entire view selected when focused.
-        addAlarm.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+        mAddAlarm.setOnFocusChangeListener(new View.OnFocusChangeListener() {
                 public void onFocusChange(View v, boolean hasFocus) {
                     v.setSelected(hasFocus);
                 }
@@ -239,11 +250,11 @@ public class AlarmClockActivity extends ActionBarActivity implements OnItemClick
     }
 
     private void addNewAlarm() {
-        startActivity(new Intent(this, SetAlarmActivity.class));
+        startActivity(new Intent(getActivity(), SetAlarmActivity.class));
     }
 
     @Override
-    protected void onDestroy() {
+    public void onDestroy() {
         super.onDestroy();
         ToastMaster.cancelToast();
         mCursor.close();
@@ -253,7 +264,7 @@ public class AlarmClockActivity extends ActionBarActivity implements OnItemClick
     public void onCreateContextMenu(ContextMenu menu, View view,
             ContextMenuInfo menuInfo) {
         // Inflate the menu from xml.
-        getMenuInflater().inflate(R.menu.alarm_clock_context_menu, menu);
+        getActivity().getMenuInflater().inflate(R.menu.alarm_clock_context_menu, menu);
 
         // Use the current item to create a custom view for the header.
         final AdapterContextMenuInfo info = (AdapterContextMenuInfo) menuInfo;
@@ -265,7 +276,7 @@ public class AlarmClockActivity extends ActionBarActivity implements OnItemClick
         final Calendar cal = Calendar.getInstance();
         cal.set(Calendar.HOUR_OF_DAY, alarm.hour);
         cal.set(Calendar.MINUTE, alarm.minutes);
-        final String time = Alarms.formatTime(this, cal);
+        final String time = Alarms.formatTime(getActivity(), cal);
 
         // Inflate the custom view and set each TextView's text.
         final View v = mFactory.inflate(R.layout.context_menu_header, null);
@@ -285,11 +296,6 @@ public class AlarmClockActivity extends ActionBarActivity implements OnItemClick
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
-    		case android.R.id.home:
-    			Intent intent = new Intent(this, MainActivity.class);
-    			intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-    			startActivity(intent);
-    			return true;
             case R.id.menu_item_add_alarm:
                 addNewAlarm();
                 return true;
@@ -299,14 +305,14 @@ public class AlarmClockActivity extends ActionBarActivity implements OnItemClick
         return super.onOptionsItemSelected(item);
     }
     
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.alarm_clock_menu, menu);
-        return super.onCreateOptionsMenu(menu);
-    }
-
+	@Override
+	public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+		inflater.inflate(R.menu.alarm_clock_menu, menu);
+	    super.onCreateOptionsMenu(menu, inflater);
+	}
+    
     public void onItemClick(AdapterView<?> parent, View v, int pos, long id) {
-        Intent intent = new Intent(this, SetAlarmActivity.class);
+        Intent intent = new Intent(getActivity(), SetAlarmActivity.class);
         intent.putExtra(Alarms.ALARM_ID, (int) id);
         startActivity(intent);
     }

@@ -161,7 +161,7 @@ public class AppWidgetOneProvider extends AppWidgetProvider {
         	long id = service.getAudioId();
         	
         	if (id != mCoverArtId) {
-        		MusicUtils.clearWidgetArtCache();
+        		//MusicUtils.clearWidgetArtCache();
         	}
         	
         	if (id >= 0) {

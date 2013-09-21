@@ -21,8 +21,8 @@
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
 	
     <!-- Activitiy titles -->
-    <string name="url_label">URLS</string>
-    <string name="browse_label">NAVEGAR STREAMS</string>
+    <string name="url_label">Urls</string>
+    <string name="browse_label">Navegar Streams</string>
     <string name="settings_label">Configuración</string>
     <string name="add_new_url_label">Añadir URL</string>
     <string name="now_playing_label">Cola de reproducción</string>

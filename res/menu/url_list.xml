@@ -1,3 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
 /*
  * ServeStream: A HTTP stream browser/player for Android
  * Copyright 2010 William Seemann
@@ -14,27 +16,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+-->
 
-package net.sourceforge.servestream.filemanager;
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+      xmlns:yourapp="http://schemas.android.com/apk/res-auto" >
+    <item
+        android:id="@+id/menu_item_add"
+        android:title="@string/add_new_url_label"
+        android:icon="?attr/content_new"
+        yourapp:showAsAction="always" />
+</menu>
 
-import java.util.List;
 
-public class DirectoryContents {
-	
-    private List<IconifiedText> mListFiles;
-	
-	/**
-	 * Default constructor
-	 */
-	public DirectoryContents() {
-		
-	}
-
-	public void setListFiles(List<IconifiedText> listFiles) {
-		mListFiles = listFiles;
-	}
-
-	public List<IconifiedText> getListFiles() {
-		return mListFiles;
-	}	
-}

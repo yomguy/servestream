@@ -24,7 +24,7 @@
         android:id="@+id/menu_item_refresh"
         android:title="@string/list_menu_refresh"
         android:icon="?attr/navigation_refresh"
-        yourapp:showAsAction="ifRoom|collapseActionView" />
+        yourapp:showAsAction="always" />
 </menu>
 
 

@@ -21,8 +21,8 @@
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
 	
     <!-- Activitiy titles -->
-    <string name="url_label">URLS</string>
-    <string name="browse_label">BROWSE</string>
+    <string name="url_label">Urls</string>
+    <string name="browse_label">Browse</string>
     <string name="settings_label">Settings</string>
     <string name="add_new_url_label">Add a new URL</string>
     <string name="now_playing_label">Play queue</string>
@@ -224,6 +224,9 @@
         <!-- message shown when zero or more than one song was added -->
         <item quantity="other"><xliff:g id="number" example="27">%d</xliff:g> songs added to playlist.</item>
     </plurals>
+    
+    <string name="drawer_open">Open Drawer</string>
+    <string name="drawer_close">Close Drawer</string>
     
 </resources>
 

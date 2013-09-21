@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    
+    <string-array name="drawer_items">
+        <item>@string/url_label</item>
+        <item>@string/browse_label</item>
+        <item>@string/alarm_clock_label</item>
+    </string-array>
+    
+</resources>

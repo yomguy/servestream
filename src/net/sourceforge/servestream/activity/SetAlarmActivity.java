@@ -187,9 +187,7 @@ public class SetAlarmActivity extends PreferenceActivity
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
     		case android.R.id.home:
-    			Intent intent = new Intent(this, AlarmClockActivity.class);
-    			intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-    			startActivity(intent);
+    			finish();
     			return true;
             default:
                 break;
