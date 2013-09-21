@@ -148,6 +148,7 @@
     <!-- 'Add URL' Activity labels -->
     <string name="text_url_label">Type in the URL of a stream or server here:</string>
     <string name="error_url_label">Enter a valid URL</string>
+    <string name="text_nickname_label">Type in a nickname here (optional):</string>
     
     <!-- Empty list labels -->
     <string name="no_items_label">There are no items in this list.</string>
