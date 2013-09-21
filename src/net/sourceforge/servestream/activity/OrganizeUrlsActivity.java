@@ -31,6 +31,7 @@ import android.content.ContentValues;
 import android.content.Intent;
 import android.content.res.TypedArray;
 import android.os.Bundle;
+import android.support.v4.view.MenuItemCompat;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarActivity;
 import android.view.Menu;
@@ -101,11 +102,11 @@ public class OrganizeUrlsActivity extends ActionBarActivity {
 	public boolean onCreateOptionsMenu(Menu menu) {
 		super.onCreateOptionsMenu(menu);
 		TypedArray drawables = obtainStyledAttributes(new int[] { R.attr.navigation_accept });
-		menu.add(Menu.NONE, MENU_ID_ACCEPT, Menu.NONE, R.string.confirm_label)
-		.setIcon(drawables.getDrawable(0));
-		//.setShowAsAction(
-		//		MenuItem.SHOW_AS_ACTION_IF_ROOM
-		//		| MenuItem.SHOW_AS_ACTION_WITH_TEXT);
+		MenuItem item = menu.add(Menu.NONE, MENU_ID_ACCEPT, Menu.NONE, R.string.confirm_label);
+		item.setIcon(drawables.getDrawable(0));
+	    MenuItemCompat.setShowAsAction(item,
+	    		MenuItemCompat.SHOW_AS_ACTION_IF_ROOM
+				| MenuItemCompat.SHOW_AS_ACTION_WITH_TEXT);
 		return true;
 	}
 	
