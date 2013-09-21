@@ -56,7 +56,6 @@ import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.app.ListFragment;
-import android.util.Log;
 
 import android.view.ContextMenu;
 import android.view.LayoutInflater;
@@ -292,21 +291,6 @@ public class UrlListFragment extends ListFragment implements
 				return true;
 			}
 		});
-	}
-
-	@Override
-	public void onActivityResult(int requestCode, int resultCode, Intent intent) {
-	    if (requestCode == 0) {
-	        if (resultCode == Activity.RESULT_OK) {
-	            String contents = intent.getStringExtra("SCAN_RESULT");
-	            String format = intent.getStringExtra("SCAN_RESULT_FORMAT");
-	            // Handle successful scan
-	            Log.v(TAG, contents.toString());
-	            Log.v(TAG, format.toString());
-	        } else if (resultCode == Activity.RESULT_CANCELED) {
-	            // Handle cancel
-	        }
-	    }
 	}
 	
 	private boolean processUri(String input) {
