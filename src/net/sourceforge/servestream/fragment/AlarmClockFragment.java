@@ -18,6 +18,9 @@
 package net.sourceforge.servestream.fragment;
 
 import android.app.AlertDialog;
+import android.support.v4.content.CursorLoader;
+import android.support.v4.content.Loader;
+import android.support.v4.app.LoaderManager;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -55,7 +58,8 @@ import net.sourceforge.servestream.alarm.ToastMaster;
 /**
  * AlarmClock application.
  */
-public class AlarmClockFragment extends ListFragment implements OnItemClickListener {
+public class AlarmClockFragment extends ListFragment implements
+	OnItemClickListener, LoaderManager.LoaderCallbacks<Cursor> {
 
 	public static final String PREFERENCES = "AlarmClock";
 	
@@ -63,10 +67,13 @@ public class AlarmClockFragment extends ListFragment implements OnItemClickListe
         test code, etc. */
     public static final boolean DEBUG = false;
 
+    private static final int URL_LOADER = 0;
+    
     //private SharedPreferences mPrefs;
     private LayoutInflater mFactory;
     private ListView mAlarmsList;
     private View mAddAlarm;
+    private AlarmTimeAdapter mAdapter;
     private Cursor mCursor;
 
     @Override
@@ -91,9 +98,26 @@ public class AlarmClockFragment extends ListFragment implements OnItemClickListe
 		super.onActivityCreated(savedInstanceState);
 	     
         mFactory = LayoutInflater.from(getActivity());
-        mCursor = Alarms.getAlarmsCursor(getActivity().getContentResolver());
+        
+        mAdapter = new AlarmTimeAdapter(getActivity(), null, false);
+        mAlarmsList.setAdapter(mAdapter);
+        mAlarmsList.setVerticalScrollBarEnabled(true);
+        mAlarmsList.setOnItemClickListener(this);
+        mAlarmsList.setOnCreateContextMenuListener(this);
 
-        updateLayout();
+        mAddAlarm.setOnClickListener(new View.OnClickListener() {
+                public void onClick(View v) {
+                    addNewAlarm();
+                }
+            });
+        // Make the entire view selected when focused.
+        mAddAlarm.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+                public void onFocusChange(View v, boolean hasFocus) {
+                    v.setSelected(hasFocus);
+                }
+        });
+        
+        getLoaderManager().initLoader(URL_LOADER, null, this);
 	}
 	
     private void updateIndicatorAndAlarm(boolean enabled, ImageView bar,
@@ -108,8 +132,9 @@ public class AlarmClockFragment extends ListFragment implements OnItemClickListe
     }
 
     private class AlarmTimeAdapter extends CursorAdapter {
-        public AlarmTimeAdapter(Context context, Cursor cursor) {
-            super(context, cursor);
+    	
+        public AlarmTimeAdapter(Context context, Cursor cursor, boolean autoRequery) {
+            super(context, cursor, autoRequery);
         }
 
         public View newView(Context context, Cursor cursor, ViewGroup parent) {
@@ -229,26 +254,6 @@ public class AlarmClockFragment extends ListFragment implements OnItemClickListe
         return super.onContextItemSelected(item);
     }
 
-    private void updateLayout() {
-        AlarmTimeAdapter adapter = new AlarmTimeAdapter(getActivity(), mCursor);
-        mAlarmsList.setAdapter(adapter);
-        mAlarmsList.setVerticalScrollBarEnabled(true);
-        mAlarmsList.setOnItemClickListener(this);
-        mAlarmsList.setOnCreateContextMenuListener(this);
-
-        mAddAlarm.setOnClickListener(new View.OnClickListener() {
-                public void onClick(View v) {
-                    addNewAlarm();
-                }
-            });
-        // Make the entire view selected when focused.
-        mAddAlarm.setOnFocusChangeListener(new View.OnFocusChangeListener() {
-                public void onFocusChange(View v, boolean hasFocus) {
-                    v.setSelected(hasFocus);
-                }
-        });
-    }
-
     private void addNewAlarm() {
         startActivity(new Intent(getActivity(), SetAlarmActivity.class));
     }
@@ -316,4 +321,34 @@ public class AlarmClockFragment extends ListFragment implements OnItemClickListe
         intent.putExtra(Alarms.ALARM_ID, (int) id);
         startActivity(intent);
     }
+
+	@Override
+	public Loader<Cursor> onCreateLoader(int loaderID, Bundle bundle) {
+	    switch (loaderID) {
+	        case URL_LOADER:
+	            // Returns a new CursorLoader
+	            return new CursorLoader(
+	                        getActivity(),
+	                        Alarm.Columns.CONTENT_URI,
+	                        Alarm.Columns.ALARM_QUERY_COLUMNS,
+	                        null,
+	                        null,
+	                        Alarm.Columns.DEFAULT_SORT_ORDER
+	        );
+	        default:
+	            // An invalid id was passed in
+	            return null;
+	    }
+
+	}
+
+	@Override
+	public void onLoadFinished(Loader<Cursor> loader, Cursor cursor) {
+		mAdapter.changeCursor(cursor);
+	}
+
+	@Override
+	public void onLoaderReset(Loader<Cursor> loader) {
+		mAdapter.changeCursor(null);
+	}
 }
