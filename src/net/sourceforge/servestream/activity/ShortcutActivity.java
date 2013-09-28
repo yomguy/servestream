@@ -43,6 +43,7 @@ public class ShortcutActivity extends ActionBarActivity {
 		getSupportActionBar();
 		
 		ListView list = (ListView) findViewById(android.R.id.list);
+		list.setEmptyView(findViewById(android.R.id.empty));
 		list.setOnItemClickListener(new OnItemClickListener() {
 			public synchronized void onItemClick(AdapterView<?> parent, View view, int position, long id) {
 				UriBean uriBean = (UriBean) parent.getAdapter().getItem(position);				
