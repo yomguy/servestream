@@ -74,7 +74,6 @@ public class AlarmClockFragment extends ListFragment implements
     private ListView mAlarmsList;
     private View mAddAlarm;
     private AlarmTimeAdapter mAdapter;
-    private Cursor mCursor;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -262,7 +261,6 @@ public class AlarmClockFragment extends ListFragment implements
     public void onDestroy() {
         super.onDestroy();
         ToastMaster.cancelToast();
-        mCursor.close();
     }
 
     @Override
