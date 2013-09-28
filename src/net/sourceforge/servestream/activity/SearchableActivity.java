@@ -31,12 +31,19 @@ public class SearchableActivity extends ActionBarActivity {
 		actionBar.setDisplayHomeAsUpEnabled(true);
 	    
 		ListView list = (ListView) findViewById(android.R.id.list);
+		list.setEmptyView(findViewById(android.R.id.empty));
 		list.setFastScrollEnabled(true);
 	    list.setOnItemClickListener(new OnItemClickListener() {
 
 			@Override
 			public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+				UriBean uri = (UriBean) parent.getItemAtPosition(position);
 				
+				Intent intent = new Intent(SearchableActivity.this, MainActivity.class);
+				intent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
+				intent.setData(uri.getUri());
+
+				SearchableActivity.this.startActivity(intent);
 			}
 	    });
 

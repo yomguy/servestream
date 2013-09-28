@@ -55,6 +55,7 @@ public class OrganizeUrlsActivity extends ActionBarActivity {
 		actionBar.setDisplayHomeAsUpEnabled(true);
 		
 		DragSortListView list = (DragSortListView) findViewById(android.R.id.list);
+		list.setEmptyView(findViewById(android.R.id.empty));
 		list.setDropListener(dropListener);
 		list.setRemoveListener(removeListener);
 
