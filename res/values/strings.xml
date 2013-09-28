@@ -153,6 +153,7 @@
     <!-- Empty list labels -->
     <string name="no_items_label">There are no items in this list.</string>
     <string name="no_urls_label">You haven\'t entered any urls yet.</string>
+    <string name="no_results_label">No results found.</string>
     
     <!-- Title for AlarmClock activity -->
     <string name="alarm_list_title">Alarms</string>
