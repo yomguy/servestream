@@ -2,7 +2,7 @@
 <!--
 /*
  * ServeStream: A HTTP stream browser/player for Android
- * Copyright 2010 William Seemann
+ * Copyright 2013 William Seemann
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,14 +26,14 @@
 
 	<ListView
 		android:id="@android:id/list"
-		android:layout_width="fill_parent"
+		android:layout_width="match_parent"
 		android:layout_height="0dip"
 		android:layout_weight="1" />
 
 	<TextView
 		android:id="@android:id/empty"
-		android:layout_width="fill_parent"
-		android:layout_height="fill_parent"
+		android:layout_width="match_parent"
+		android:layout_height="match_parent"
 		android:text="@string/no_items_label"
 		android:gravity="center" />
 
