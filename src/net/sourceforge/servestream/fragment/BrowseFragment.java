@@ -178,7 +178,7 @@ public class BrowseFragment extends ListFragment implements
 		
 		// create menu to handle deleting and sharing lists		
 		final AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo) menuInfo;
-        final UriBean uri = (UriBean) getListAdapter().getItem(info.position);
+        final UriBean uri = (UriBean) getListView().getAdapter().getItem(info.position);
 		
 		try {
 			final String streamURL = uri.getUri().toString();
