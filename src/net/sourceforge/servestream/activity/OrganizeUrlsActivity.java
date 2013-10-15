@@ -20,13 +20,12 @@ package net.sourceforge.servestream.activity;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.mobeta.android.dslv.DragSortController;
-import com.mobeta.android.dslv.DragSortListView;
-
 import net.sourceforge.servestream.R;
 import net.sourceforge.servestream.adapter.OrganizeAdapter;
 import net.sourceforge.servestream.bean.UriBean;
 import net.sourceforge.servestream.dbutils.StreamDatabase;
+import net.sourceforge.servestream.dslv.DragSortController;
+import net.sourceforge.servestream.dslv.DragSortListView;
 import android.content.ContentValues;
 import android.content.Intent;
 import android.content.res.TypedArray;
