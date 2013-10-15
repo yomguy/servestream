@@ -18,6 +18,9 @@
 package net.sourceforge.servestream.activity;
 
 import net.sourceforge.servestream.R;
+import net.sourceforge.servestream.dslv.DragSortController;
+import net.sourceforge.servestream.dslv.DragSortListView;
+import net.sourceforge.servestream.dslv.SimpleDragSortCursorAdapter;
 import net.sourceforge.servestream.provider.Media;
 import net.sourceforge.servestream.service.IMediaPlaybackService;
 import net.sourceforge.servestream.service.MediaPlaybackService;
@@ -63,10 +66,6 @@ import android.widget.TextView;
 import android.widget.AdapterView.AdapterContextMenuInfo;
 
 import java.util.Arrays;
-
-import com.mobeta.android.dslv.DragSortController;
-import com.mobeta.android.dslv.DragSortListView;
-import com.mobeta.android.dslv.SimpleDragSortCursorAdapter;
 
 public class NowPlayingActivity extends ActionBarActivity implements
 			View.OnCreateContextMenuListener,

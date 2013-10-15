@@ -12,16 +12,6 @@ android update project --path .
 sdk.dir=/home/user/Android/adt-bundle-linux/sdk
 ndk.dir=/home/user/Android/android-ndk-r8c
 
-3.) Unzip 4.2.0.zip and drag-sort-listview.zip in <project root>/submodules
-
-4.) Navigate to <project root>/submodules/ActionBarSherlock-4.2.0/library and run:
-
-android update project --path .
-
-5.) Navigate to <project root>/submodules/drag-sort-listview/library and run:
-
-android update project --path .
-
-6.) Finally, from the project root run the following command to build the application:
+3.) Finally, from the project root run the following command to build the application:
 
 ant clean debug
