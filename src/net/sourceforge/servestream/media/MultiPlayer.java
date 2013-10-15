@@ -19,6 +19,7 @@ package net.sourceforge.servestream.media;
 
 import android.content.Context;
 import android.media.MediaPlayer;
+import android.os.Build;
 import android.util.Log;
 
 import java.io.IOException;
@@ -308,8 +309,11 @@ public final class MultiPlayer implements HTTPRequestListener {
 	public void onContentTypeObtained(String path, boolean useFFmpegPlayer, 
 			String contentType) {
 		if (contentType.equalsIgnoreCase("video/x-ms-asf") || 
-    		contentType.equalsIgnoreCase("application/vnd.ms-asf")) {
+				contentType.equalsIgnoreCase("application/vnd.ms-asf")) {
 			path = path.replace(HTTP.getProtocolName(), MMSH.getProtocolName());
+		} else if (contentType.equals("audio/aacp") && 
+				Build.VERSION.SDK_INT < Build.VERSION_CODES.JELLY_BEAN) {
+			useFFmpegPlayer = true;
 		}
 		
 		setDataSource(null, path, -1, false, useFFmpegPlayer, contentType);
