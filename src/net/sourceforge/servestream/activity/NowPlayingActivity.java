@@ -148,7 +148,7 @@ public class NowPlayingActivity extends ActionBarActivity implements
 		mList.setOnTouchListener(controller);
 		mList.setOnCreateContextMenuListener(this);
 		
-        mAdapter = (TrackListAdapter) getLastNonConfigurationInstance();
+        mAdapter = (TrackListAdapter) getLastCustomNonConfigurationInstance();
         
         if (mAdapter != null) {
             mAdapter.setActivity(this);
@@ -190,13 +190,12 @@ public class NowPlayingActivity extends ActionBarActivity implements
         finish();
     }
 
-    // TODO fix this!
-    /*@Override
-    public Object onRetainNonConfigurationInstance() {
+    @Override
+    public Object onRetainCustomNonConfigurationInstance() {
         TrackListAdapter a = mAdapter;
         mAdapterSent = true;
         return a;
-    }*/
+    }
     
     @Override
     public void onDestroy() {
@@ -893,8 +892,8 @@ public class NowPlayingActivity extends ActionBarActivity implements
                 cursor.close();
                 cursor = null;
             }
-            if (cursor != mActivity.mTrackCursor) {
-                mActivity.mTrackCursor = cursor;
+            if (cursor != mTrackCursor) {
+                mTrackCursor = cursor;
                 super.changeCursor(cursor);
                 getColumnIndices(cursor);
             }
