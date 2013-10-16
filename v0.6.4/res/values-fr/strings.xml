@@ -1,0 +1,220 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+/*
+ * ServeStream: A HTTP stream browser/player for Android
+ * Copyright 2013 William Seemann
+ * 
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+-->
+
+<resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
+	
+    <!-- Activitiy titles -->
+    <string name="url_label">Url</string>
+    <string name="browse_label">Parcourir</string>
+    <string name="settings_label">Paramètres</string>
+    <string name="add_new_url_label">Ajouter une nouvelle URL</string>
+    <string name="now_playing_label">En cours de lecture</string>
+    <string name="organize_urls_label">Organiser</string>
+    <string name="media_player_label">En cours de lecture</string>
+	<string name="alarm_clock_label">Alarme</string>
+	<string name="set_alarm_label">Mettre une alarme</string>
+    
+    <!-- Other -->
+    <string name="confirm_label">Confirmer</string>
+    <string name="cancel_label">Annuler</string>
+    <string name="unknown_artist_name">Artiste inconnu</string>
+    <string name="unknown_album_name">Album inconnu</string>
+   	<string name="opening_url_message">Ouverture de l\'URL&#8230;</string>
+    <string name="url_not_opened_message">L\'URL saisie ne peut être ouverte.</string>
+    <string name="find_barcode_scanner_message">Cette fonctionnalité requière le scanner de code barre ZXing. Chercher cette application ?</string>
+   	<string name="rate_application">&quot;Voulez-vous rédiger un avis sur Google Play ? Les commentaires sont appréciés.&quot;</string>
+	<string name="rate_pos">&quot;Oui, donner un avis sur le Google Play&quot;</string>
+	<string name="rate_neg">"Non, et ne pas demander à nouveau"</string>
+   	<string name="list_menu_backup">Sauvegarde</string>
+	<string name="list_menu_effects">Effets sonores</string>
+	<string name="list_menu_refresh">Rafraîchir</string>
+	<string name="list_menu_scan">Scanner</string>
+    <string name="list_menu_stop">Arrêter</string>   
+    
+    <!-- Bind -->
+    <string name="bind_never">Jamais connecté</string>
+	<string name="bind_minutes">Depuis %1$s minutes</string>
+	<string name="bind_hours">Depuis %1$s heures</string>
+	<string name="bind_days">Depuis %1$s jours</string>
+
+	<!-- Share messages -->
+	<string name="title_share">Partager avec</string>
+	<string name="share_signature">%1$s \n\n\n\nEnvoyé en utilisant %2$s</string>
+	
+	<!-- Actions on URLs -->
+    <string name="add_to_playlist_label">Ajouter à la liste</string>
+	<string name="edit_label">Éditer</string>
+	<string name="delete_label">Supprimer</string>
+	<string name="save_label">Sauvegarder</string>
+	<string name="share_label">Partager</string>
+	<string name="view_url_label">Voir l\'URL</string>    
+	<string name="url_delete_confirmation_msg">Êtes vous sûr de vouloir supprimer \'%1$s\'?</string>
+	<string name="url_save_confirmation_msg">Êtes vous sûr de vouloir sauvegarder \'%1$s\'?</string>
+	
+	<!-- Mediaplayer messages -->
+	<string name="buffering_message">Mise en mémoire tampon, attendez...</string>
+    <string name="playback_failed">Désolé, le lecteur ne supporte pas ce type de média.</string>    
+    <string name="service_start_error_title">Problème de lecture</string>
+    <string name="service_start_error_msg">Désolé, le média ne peut pas être lu.</string>
+    
+    <string name="cannot_play_media_title">Impossible de lire le fichier</string>
+	<string name="cannot_play_media_message">Désolé, ce fichier ne peut pas être lu.</string>
+	
+	<!-- Shuffle -->
+    <string name="shuffle_on_notif">Lecture aléatoire activée</string>
+    <string name="shuffle_off_notif">Lecture aléatoire désactivée</string>
+
+    <!-- Repeat -->
+    <string name="repeat_off_notif">Répétition désactivée</string>
+    <string name="repeat_current_notif">Répéter le média actuel</string>
+    <string name="repeat_all_notif">Répéter tous les médias</string>
+    
+    <!-- Preferences -->
+    <string name="other_pref">Autre</string>
+    <string name="about_pref">À propos</string>
+    <string name="pref_backup_and_restore">Sauvegarde et restauration</string>
+    <string name="pref_backup">Sauvegarder au format JSON</string>
+    <string name="pref_restore">Restaurer depuis un fichier JSON</string>
+    <string name="pref_donate">Faire un don</string>
+	<string name="pref_general_settings_category">Paramètres gérénaux</string>
+	<string name="pref_playback_category">Paramètres de lecture</string>
+	<string name="pref_network_category">Réseau</string>
+	<string name="pref_social_media_category">Paramètres des réseaux sociaux</string>
+	<string name="pref_ui_category">Paramètres d\'interface</string>
+	<string name="pref_autosave_title">Sauvegarde automatique</string>
+	<string name="pref_autosave_summary">Sauvegarder automatiquement les URL ajoutées</string>
+	<string name="pref_headphonepause_title">&quot;Pause casque&quot;</string>
+	<string name="pref_headphonepause_summary">"Pause de la lecture lorsque le casque est déconnecté"</string>
+	<string name="pref_progressivedownload_title">"Téléchargement progressif"</string>
+	<string name="pref_progressivedownload_summary">"Utiliser le téléchargement progressif lors de la lecture"</string>
+	<string name="pref_retrievemetadata_title">"Récupérer les métadonnées"</string>
+	<string name="pref_retrievemetadata_summary">"Lire et afficher les métadonnées (pour les formats compatibles)"</string>
+	<string name="pref_retrievealbumart_title">&quot;Récupérer les pochettes d'albums&quot;</string>
+	<string name="pref_retrievealbumart_summary">&quot;Afficher et stocker les pochettes d'albums intégrées&quot;</string>
+	<string name="pref_retrieveshoutcastmetadata_title">"Récupérer les métadonnées SHOUTcast"</string>
+	<string name="pref_retrieveshoutcastmetadata_summary">&quot;Lire et afficher les métadonnées pour les médias SHOUTcast (expérimental)&quot;</string>
+	<string name="pref_sendscrobblerinfo_title">"Last.fm Scrobbling"</string>
+	<string name="pref_sendscrobblerinfo_summary">"Activer Last.fm Scrobbling. \"Simple LastFM Scrobbler\" ou \"Scrobble Droid\" doit être installé."</string>
+	<string name="pref_wakelock_title">Écran toujours actif</string>
+	<string name="pref_wakelock_summary">Empêcher l\'écran de se mettre en veille</string>
+	<string name="pref_wifilock_title">"Wifi toujours actif"</string>
+	<string name="pref_wifilock_summary">&quot;Empêcher le Wifi de se déconnecter si une lecture est en cours&quot;</string>
+    
+    <!-- Sleep timer -->
+    <string name="set_sleeptimer_label">Compte à rebour</string>
+    <string name="disable_sleeptimer_label">Off</string>
+    <string name="enable_sleeptimer_label">Set</string>
+    <string name="sleep_timer_label">Compte à Rebour</string>
+    <string name="sleep_timer_on_notif">Compte à rebour activé pour</string>
+    <string name="sleep_timer_off_notif">Compte à rebour désactivé</string>
+    
+    <!-- Stream preferences -->
+	<string name="streampref_nickname_title">Nom</string>
+	<string name="streampref_connection_category">Paramètres de connexion</string>
+	<string name="streampref_protocol_title">Protocole</string>
+	<string name="streampref_username_title">Utilisateur</string>
+	<string name="streampref_password_title">Mot de passe</string>
+	<string name="streampref_hostname_title">Nom du serveur</string>
+	<string name="streampref_port_title">Port</string>
+	<string name="streampref_path_title">Chemin</string>
+	<string name="streampref_query_title">Requête</string>
+	<string name="streampref_reference_title">Reférence</string>
+    
+    <!--  Widget -->
+	<string name="widget_one_track_info_unavailable">&quot;Informations du média indisponibles&quot;</string>
+	
+    <!-- 'Add URL' Activity labels -->
+    <string name="text_url_label">Type in the URL of a stream or server here:</string>
+   	<string name="error_url_label">Saisissez une URL valide</string>
+    
+    <!-- Empty list labels -->
+    <string name="no_items_label">Cette liste est vide.</string>
+    <string name="no_urls_label">Vous n\'avez pas encore  d\'URL.</string>
+    
+    <!-- Title for AlarmClock activity -->
+    <string name="alarm_list_title">Alarmes</string>
+
+    <!-- Actions on alarms -->
+    <string name="add_alarm">Ajouter une alarme</string>
+    <string name="menu_edit_alarm">Éditer l\'alarme</string>
+    <string name="delete_alarm">Supprimer l\'alarme</string>
+    <string name="enable_alarm">Activer l\'alarme</string>
+    <string name="disable_alarm">Désactiver l\'alarme</string>
+    <string name="alarm_delete_confirmation_msg">Cette alarme va être supprimée.</string>
+    <string name="done">Valider</string>
+    <string name="revert">Annuler</string>
+    <string name="delete">Supprimer</string>
+
+    <!-- Alarm preferences -->
+    <string name="time">Heure</string>
+    <string name="alarm_repeat">Répéter</string>
+    <string name="alert">Sonnerie</string>
+    <string name="silent_alarm_summary">Silence</string>
+    <string name="alarm_vibrate">Vibrer</string>
+    <string name="label">Nom</string>
+    <string name="default_label">Alarme</string>
+    
+    <!-- Alarm alert -->
+    <string name="alarm_alert_dismiss_text">Rejeter</string>
+    <string name="alarm_alert_alert_silenced">Couper l\'alarme après <xliff:g id="minutes">%d</xliff:g> minutes</string>
+    <string name="alarm_alert_snooze_text">Eteindre</string>
+    <string name="alarm_alert_snooze_set">Éteindre pendant <xliff:g id="minutes">%d</xliff:g> minutes.</string>
+    <string name="alarm_notify_text">Éteindre ou supprimer cette alarme.</string>
+    <string name="alarm_notify_snooze_label"><xliff:g id="label">%s</xliff:g> (éteint)</string>
+    <string name="alarm_notify_snooze_text">Alarme éteinte pendant <xliff:g id="time">%s</xliff:g>. Sélectionner pour annuler.</string>
+    
+    <string-array name="alarm_set">
+        <item>Cette alarme est planifiée pour dans moins d\'une minute.</item>
+        <item>Cette alarme est planifiée pour dans <xliff:g id="DAYS" example="2 days">%1$s</xliff:g>.</item>
+        <item>Cette alarme est planifiée pour dans <xliff:g id="HOURS" example="2 hours">%2$s</xliff:g>.</item>
+        <item>Cette alarme est planifiée pour dans <xliff:g id="DAYS" example="2 days">%1$s</xliff:g> et <xliff:g id="HOURS" example="2 hours">%2$s</xliff:g>.</item>
+        <item>Cette alarme est planifiée pour dans <xliff:g id="MINUTES" example="2 minutes">%3$s</xliff:g>.</item>
+        <item>Cette alarme est planifiée pour dans <xliff:g id="DAYS" example="2 days">%1$s</xliff:g> et <xliff:g id="MINUTES" example="2 minutes">%3$s</xliff:g>.</item>
+        <item>Cette alarme est planifiée pour dans <xliff:g id="HOURS" example="2 hours">%2$s</xliff:g> et <xliff:g id="MINUTES" example="2 minutes">%3$s</xliff:g>.</item>
+        <item>Cette alarme est planifiée pour dans <xliff:g id="DAYS" example="2 days">%1$s</xliff:g>, <xliff:g id="HOURS" example="2 hours">%2$s</xliff:g>, et <xliff:g id="MINUTES" example="2 minutes">%3$s</xliff:g>.</item>
+    </string-array>
+
+    <string name="day">"1 jour"</string>
+    <string name="days">"<xliff:g id="days">%s</xliff:g> jours"</string>
+    <string name="hour">1 heure</string>
+    <string name="hours"><xliff:g id="hours">%s</xliff:g> heures</string>
+    <string name="minute">"1 minute"</string>
+    <string name="minutes">"<xliff:g id="minutes">%s</xliff:g> minutes"</string>
+    <string name="every_day">Tous les jours</string>
+    <string name="never">Jamais</string>
+    <string name="day_concat">", "</string>
+    
+    <!-- Service descriptions -->
+  	<string name="media_service_desc">&quot;Autoriser la lecture des médias en arrière plan&quot;</string>
+    <string name="alarm_klaxon_service_desc">Alarmes ajoutées à DeskClock.</string>
+
+    <!-- Playlist actions -->
+    <string name="remove_from_playlist">Supprimer de la liste</string>
+    <string name="emptyplaylist">La liste sélectionnée est vide.</string>
+    
+    <plurals name="NNNtrackstoplaylist">
+        <!-- message shown when one song was added -->
+        <item quantity="one">1 musique ajoutée à la liste.</item>
+        <!-- message shown when zero or more than one song was added -->
+        <item quantity="other"><xliff:g id="number" example="27">%d</xliff:g> musiques ajoutées à la liste.</item>
+    </plurals>
+    
+</resources>
+

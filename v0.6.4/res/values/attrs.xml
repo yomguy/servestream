@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <attr name="action_search" format="reference" />
+    <attr name="content_new" format="reference" />
+    <attr name="navigation_accept" format="reference" />
+    <attr name="navigation_refresh" format="reference" />
+    <attr name="borderless_button" format="reference" />
+    
+</resources>
