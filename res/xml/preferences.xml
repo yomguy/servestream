@@ -82,6 +82,12 @@
 			android:summary="@string/pref_retrieveshoutcastmetadata_summary"
 			android:defaultValue="false" />
 		
+		<CheckBoxPreference
+			android:key="sendbluetoothmetadata"
+			android:title="@string/pref_sendbluetoothmetadata_title"
+			android:summary="@string/pref_sendbluetoothmetadata_summary"
+			android:defaultValue="true" />
+		
 	</PreferenceCategory>
 
 	<PreferenceCategory
