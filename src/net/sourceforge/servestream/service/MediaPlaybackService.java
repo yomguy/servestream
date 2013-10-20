@@ -705,6 +705,10 @@ public class MediaPlaybackService extends Service implements
     }
 
     private void bluetoothNotifyChange(String what) {
+    	if (!mPreferences.getBoolean(PreferenceConstants.SEND_BLUETOOTH_METADATA, true)) {
+    		return;
+    	}
+    	
     	Intent i = null;
     	
         if (what.equals(PLAYSTATE_CHANGED)) {

@@ -54,7 +54,8 @@ public class SimpleLastfmScrobblerReceiver extends BroadcastReceiver {
 		
 			SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
 		
-			if (preferences.getBoolean(PreferenceConstants.SEND_SCROBBLER_INFO, false)) {
+			if (preferences.getBoolean(PreferenceConstants.SEND_SCROBBLER_INFO, false) &&
+					!preferences.getBoolean(PreferenceConstants.SEND_BLUETOOTH_METADATA, true)) {
 				if (metadataPresent(intent)) {
 					sendBroadcast(context, intent);
 				}
