@@ -31,7 +31,8 @@
         android:layout_alignParentLeft="true"
         android:layout_alignParentTop="true"
         android:adjustViewBounds="true"
-        android:scaleType="centerCrop" />
+        android:scaleType="centerCrop"
+        android:background="@drawable/albumart_mp_unknown_expanded" />
 
     <ImageButton
         android:id="@+id/close"
