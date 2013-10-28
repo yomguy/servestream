@@ -31,7 +31,8 @@
         android:adjustViewBounds="true"
         android:maxHeight="64dip"
         android:maxWidth="64dip"
-        android:scaleType="centerCrop" />
+        android:scaleType="centerCrop"
+        android:background="@drawable/albumart_mp_unknown_notification" />
 
     <LinearLayout
         android:layout_width="fill_parent"

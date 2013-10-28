@@ -1200,8 +1200,6 @@ public class MediaPlaybackService extends Service implements
         int trackId = getTrackId();
 	    if (mPreferences.getBoolean(PreferenceConstants.RETRIEVE_ALBUM_ART, false) && trackId != -1) {
 	    	rv.setImageViewBitmap(R.id.coverart, MusicUtils.getNotificationArtwork(this, trackId));
-	    } else {
-	    	rv.setImageViewResource(R.id.coverart, R.drawable.notification_icon);
 	    }
         
     	// set the text for the notifications
@@ -1239,8 +1237,6 @@ public class MediaPlaybackService extends Service implements
         int trackId = getTrackId();
 	    if (mPreferences.getBoolean(PreferenceConstants.RETRIEVE_ALBUM_ART, false) && trackId != -1) {
 	    	rv.setImageViewBitmap(R.id.coverart, MusicUtils.getNotificationArtwork(this, trackId));
-	    } else {
-	    	rv.setImageViewResource(R.id.coverart, R.drawable.notification_icon);
 	    }
         
     	// set the text for the notifications
