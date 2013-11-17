@@ -311,8 +311,9 @@ public final class MultiPlayer implements HTTPRequestListener {
 		if (contentType.equalsIgnoreCase("video/x-ms-asf") || 
 				contentType.equalsIgnoreCase("application/vnd.ms-asf")) {
 			path = path.replace(HTTP.getProtocolName(), MMSH.getProtocolName());
-		} else if (contentType.equals("audio/aacp") && 
-				Build.VERSION.SDK_INT < Build.VERSION_CODES.JELLY_BEAN) {
+		} else if (contentType.equals("audio/aacp") ||
+				contentType.equals("audio/3gpp") ||
+				contentType.equals("audio/3gpp2")) {
 			useFFmpegPlayer = true;
 		}
 		
