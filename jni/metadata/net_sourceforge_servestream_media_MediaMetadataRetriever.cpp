@@ -118,7 +118,7 @@ Java_net_sourceforge_servestream_media_MediaMetadataRetriever_setDataSource(JNIE
 }
 
 extern "C" JNIEXPORT jbyteArray JNICALL
-Java_net_sourceforge_servestream_media_MediaMetadataRetriever__1getFrameAtTime(JNIEnv *env, jobject thiz, jlong timeUs)
+Java_net_sourceforge_servestream_media_MediaMetadataRetriever__1getFrameAtTime(JNIEnv *env, jobject thiz, jlong timeUs, jint option)
 {
    //__android_log_write(ANDROID_LOG_INFO, LOG_TAG, "getFrameAtTime");
    MediaMetadataRetriever* retriever = getRetriever(env, thiz);
@@ -127,7 +127,7 @@ Java_net_sourceforge_servestream_media_MediaMetadataRetriever__1getFrameAtTime(J
        return NULL;
    }
 
-   AVPacket* packet = retriever->getFrameAtTime(timeUs);
+   AVPacket* packet = retriever->getFrameAtTime(timeUs, option);
    jbyteArray array = NULL;
 
    if (packet) {
