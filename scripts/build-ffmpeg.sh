@@ -2,7 +2,7 @@
 
 WORKING_DIR=`pwd`
 SCRIPTS_DIR=$WORKING_DIR/scripts
-FFMPEG_BUILD_DIR=$WORKING_DIR/submodules/ffmpeg-0.11.1-android-2012-09-18
+FFMPEG_BUILD_DIR=$WORKING_DIR/submodules/ffmpeg-2.1-android-2013-11-13
 TARGET_ARMEABI_DIR=$WORKING_DIR/jni/ffmpeg/ffmpeg/armeabi
 TARGET_ARMEABIV7A_DIR=$WORKING_DIR/jni/ffmpeg/ffmpeg/armeabi-v7a
 TARGET_X86_DIR=$WORKING_DIR/jni/ffmpeg/ffmpeg/x86
@@ -18,7 +18,7 @@ fi
 
 if [ ! -d $FFMPEG_BUILD_DIR ]; then
     # Unpackage the FFmpeg archive
-    unzip submodules/ffmpeg-0.11.1-android-2012-09-18.zip -d submodules/
+    tar -xvf submodules/ffmpeg-2.1-android-2013-11-13.tar.gz --directory submodules/
 
     # Prepare the FFmpeg archive for building
     cd $FFMPEG_BUILD_DIR
