@@ -31,7 +31,6 @@ for version in armv5te armv7a; do
 	FLAGS="$FLAGS --disable-ffserver"
 	FLAGS="$FLAGS --disable-avdevice"
 	FLAGS="$FLAGS --disable-swresample"
-	FLAGS="$FLAGS --disable-swscale"
 	FLAGS="$FLAGS --disable-postproc"
 	FLAGS="$FLAGS --disable-avfilter"
 	FLAGS="$FLAGS --disable-everything"
