@@ -76,25 +76,6 @@ public class ShoutCastRetrieverTask {
 		return uri;
 	}
 	
-	private Metadata getMetadata(Context context, long id, MediaMetadataRetriever mmr) {
-		String title =  mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_TITLE);
-		String artist = mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ARTIST);
-		
-		// if we didn't obtain at least the title, album or artist then don't store
-		// the metadata since it's pretty useless
-		if (title == null && 
-				artist == null) {
-			return null;
-		}
-		
-		// Form an array specifying which columns to return. 
-		Metadata metadata = new Metadata();
-		metadata.setTitle(title);
-		metadata.setArtist(artist);
-		
-		return metadata;
-	}
-	
 	public synchronized void start() {
 		if (mTask != null && mTask.getStatus() != AsyncTask.Status.FINISHED) {
 			mTask.cancel();
@@ -142,20 +123,32 @@ public class ShoutCastRetrieverTask {
 		
 			if (uri != null) {
 				while (!isCancelled()) {
+					Metadata metadata = null;
 					metadataFound = false;
 					try {
 						mmr.setDataSource(uri);
-						metadataFound = true;
+						
+						String title =  mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_TITLE);
+						String artist = mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ARTIST);
+						
+						// if we didn't obtain at least the title and artist then don't store
+						// the metadata since it's pretty useless
+						if (title != null && 
+								artist != null) {
+						
+							// Form an array specifying which columns to return. 
+							metadata = new Metadata();
+							metadata.setTitle(title);
+							metadata.setArtist(artist);
+						
+							metadataFound = true;
+						}
 					} catch (IllegalArgumentException ex) {
 					}
 					
-					Metadata metadata;
-					
 					if (metadataFound) {
-						if ((metadata = getMetadata(mContext, mId, mmr)) != null) {
-							if (mListener != null) {
-								mListener.onMetadataParsed(mId, metadata);
-							}
+						if (mListener != null) {
+							mListener.onMetadataParsed(mId, metadata);
 						}
 						
 						retries = 0;
