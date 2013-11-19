@@ -316,6 +316,8 @@ void player_prepare(void * data) {
 
     __android_log_print(ANDROID_LOG_INFO, TAG, "avcodec_find_decoder %s--->", avctx->codec_name);
 
+    avctx->request_sample_fmt = AV_SAMPLE_FMT_S16;
+    
     // Find the decoder for the audio stream
     codec = avcodec_find_decoder(avctx->codec_id);
 
