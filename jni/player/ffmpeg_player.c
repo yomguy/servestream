@@ -28,6 +28,8 @@
 
 #define AUDIO_DATA_ID 1
 
+#define MAX_AUDIO_FRAME_SIZE 192000 // 1 second of 48khz 32bit audio
+
 typedef struct AudioState {
 	pthread_t decoder_thread;
     int abort_request;
@@ -199,7 +201,7 @@ Java_net_sourceforge_servestream_media_FFmpegPlayer_bind_1variables(JNIEnv* env,
     }
 
     gAudioFrameRefBufferMaxSize = (*env)->GetArrayLength(env, gAudioFrameRef);
-    if (gAudioFrameRefBufferMaxSize < AVCODEC_MAX_AUDIO_FRAME_SIZE) {
+    if (gAudioFrameRefBufferMaxSize < MAX_AUDIO_FRAME_SIZE) {
     	__android_log_print(ANDROID_LOG_ERROR, TAG, "failed to read or incorrect buffer length: %d", gAudioFrameRefBufferMaxSize);
     	notify(env, obj, MEDIA_ERROR, 0, 0, 0);
     	return;
