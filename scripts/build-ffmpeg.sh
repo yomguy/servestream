@@ -22,6 +22,7 @@ if [ ! -d $FFMPEG_BUILD_DIR ]; then
 
     # Prepare the FFmpeg archive for building
     cd $FFMPEG_BUILD_DIR
+    chmod +x extract.sh
     ./extract.sh
 
     cd $WORKING_DIR
