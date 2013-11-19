@@ -17,16 +17,12 @@
 
 package net.sourceforge.servestream.media;
 
-import java.net.URISyntaxException;
-
-import net.moraleboost.streamscraper.ScrapeException;
 import net.sourceforge.servestream.provider.Media;
 
 import android.content.Context;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.AsyncTask;
-import android.util.Log;
 
 public class ShoutCastRetrieverTask {
 	private static final String TAG = ShoutCastRetrieverTask.class.getName();
@@ -36,7 +32,6 @@ public class ShoutCastRetrieverTask {
 	private MetadataRetrieverListener mListener;
 	private MetadataTask mTask;
 	private boolean mNoMetadata;
-	private String mPreferredScraper;
 	
 	public ShoutCastRetrieverTask(Context context, long id) {
 		mContext = context;
@@ -44,7 +39,6 @@ public class ShoutCastRetrieverTask {
 		
 	    mTask = null;
 	    mNoMetadata = false;
-	    mPreferredScraper = "";
 	    
 		// Verify that the host activity implements the callback interface
 	    try {
@@ -82,7 +76,7 @@ public class ShoutCastRetrieverTask {
 		return uri;
 	}
 	
-	private Metadata getMetadata(Context context, long id, ShoutCastMetadataRetriever mmr) {
+	private Metadata getMetadata(Context context, long id, MediaMetadataRetriever mmr) {
 		String title =  mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_TITLE);
 		String artist = mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ARTIST);
 		
@@ -99,25 +93,6 @@ public class ShoutCastRetrieverTask {
 		metadata.setArtist(artist);
 		
 		return metadata;
-	}
-	
-	private boolean retrieveMetadata(String uri, ShoutCastMetadataRetriever smr) {
-		try {
-			if (mPreferredScraper.equals(ShoutCastMetadataRetriever.SHOUTCAST_STREAM)) {
-				smr.setShoutCastDataSource(uri);
-			} else if (mPreferredScraper.equals(ShoutCastMetadataRetriever.ICECAST_STREAM)) {
-				smr.setIceCastDataSource(uri);
-			} else {
-				mPreferredScraper = smr.setDataSource(uri);
-			}
-			return true;
-		} catch (ScrapeException e) {
-			Log.e(TAG, "ShoutCast metadata for track could not be retrieved");
-		} catch (URISyntaxException e) {
-			Log.e(TAG, "ShoutCast metadata for track could not be retrieved");
-		}
-		
-		return false;
 	}
 	
 	public synchronized void start() {
@@ -161,19 +136,23 @@ public class ShoutCastRetrieverTask {
 				return;
 			}
 			
-			ShoutCastMetadataRetriever smr = new ShoutCastMetadataRetriever();
+			MediaMetadataRetriever mmr = new MediaMetadataRetriever();
 		
 			String uri = getUri(mContext, mId);
 		
 			if (uri != null) {
 				while (!isCancelled()) {
 					metadataFound = false;
-					metadataFound = retrieveMetadata(uri, smr);
+					try {
+						mmr.setDataSource(uri);
+						metadataFound = true;
+					} catch (IllegalArgumentException ex) {
+					}
 					
 					Metadata metadata;
 					
 					if (metadataFound) {
-						if ((metadata = getMetadata(mContext, mId, smr)) != null) {
+						if ((metadata = getMetadata(mContext, mId, mmr)) != null) {
 							if (mListener != null) {
 								mListener.onMetadataParsed(mId, metadata);
 							}
