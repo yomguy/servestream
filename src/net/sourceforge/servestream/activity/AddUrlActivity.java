@@ -3,7 +3,7 @@
  * Copyright 2013 William Seemann
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
+ * you may not use this.getActivity() file except in compliance with the License.
  * You may obtain a copy of the License at
  *
  *     http://www.apache.org/licenses/LICENSE-2.0
@@ -17,121 +17,35 @@
 
 package net.sourceforge.servestream.activity;
 
-import net.sourceforge.servestream.R;
-import net.sourceforge.servestream.bean.UriBean;
-import net.sourceforge.servestream.dbutils.StreamDatabase;
-import net.sourceforge.servestream.transport.AbsTransport;
-import net.sourceforge.servestream.transport.TransportFactory;
-
-import android.net.Uri;
+import net.sourceforge.servestream.fragment.AddUrlFragment;
 import android.os.Bundle;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarActivity;
-import android.view.KeyEvent;
 import android.view.MenuItem;
-import android.view.View;
-import android.view.View.OnClickListener;
-import android.view.View.OnKeyListener;
-import android.view.WindowManager;
-import android.widget.Button;
-import android.widget.EditText;
 
 public class AddUrlActivity extends ActionBarActivity {
-	
-	private EditText mUrlEditText;
-	private EditText mNicknameEditText;
-	private Button mConfirmButton;
-	private Button mCancelButton;
 
 	@Override
-	public void onCreate(Bundle savedInstanceState) {
+	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		setContentView(R.layout.activity_add_uri);
-
-		getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
 		
 		ActionBar actionBar = getSupportActionBar();
-		actionBar.setDisplayHomeAsUpEnabled(true);		
-
-		mUrlEditText = (EditText) findViewById(R.id.url_edittext);
-		mUrlEditText.setOnKeyListener(new OnKeyListener() {
-
-			public boolean onKey(View v, int keyCode, KeyEvent event) {
-
-				if(event.getAction() == KeyEvent.ACTION_UP)
-					return false;
-				
-				if(keyCode != KeyEvent.KEYCODE_ENTER)
-					return false;
-			    
-				processUri();
-				
-			    return true;
-			}
-			
-		});
+		actionBar.setDisplayHomeAsUpEnabled(true);
 		
-		mCancelButton = (Button) findViewById(R.id.cancel_button);
-		mCancelButton.setOnClickListener(new OnClickListener() {
-
-			@Override
-			public void onClick(View v) {
-    			finish();
-			}
-			
-		});
-		
-		mConfirmButton = (Button) findViewById(R.id.confirm_button);
-		mConfirmButton.setOnClickListener(new OnClickListener() {
-			
-			@Override
-			public void onClick(View v) {
-				processUri();
-			}
-		});
-		
-		mNicknameEditText = (EditText) findViewById(R.id.nickname_edittext);
+		getSupportFragmentManager()
+			.beginTransaction()
+			.add(android.R.id.content, new AddUrlFragment(), "add_url")
+			.commit();
 	}
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        switch (item.getItemId()) {
-    		case android.R.id.home:
-    			finish();
-    			return true;
-            default:
-                break;
-        }
-        return super.onOptionsItemSelected(item);
-    }
-    
-    private void processUri() {
-		String input = mUrlEditText.getText().toString();
-		
-		Uri uri = TransportFactory.getUri(input);
-
-		if (uri == null) {
-			mUrlEditText.setError(getString(R.string.error_url_label));
-			return;
+	
+	@Override
+	public boolean onOptionsItemSelected(MenuItem item) {
+		switch (item.getItemId()) {
+			case android.R.id.home:
+				finish();
+				return true;
+     		default:
+     			return super.onOptionsItemSelected(item);
 		}
-
-		StreamDatabase streamdb = new StreamDatabase(this);
-		UriBean uriBean = TransportFactory.findUri(streamdb, uri);
-		if (uriBean == null) {
-			uriBean = TransportFactory.getTransport(uri.getScheme()).createUri(uri);
-			
-			String nickname = mNicknameEditText.getText().toString();
-			
-			if (!nickname.equals("")) {
-				uriBean.setNickname(nickname);
-			}
-			
-			AbsTransport transport = TransportFactory.getTransport(uriBean.getProtocol());
-			transport.setUri(uriBean);
-			streamdb.saveUri(uriBean);
-		}
-		
-		streamdb.close();
-		finish();
 	}
 }
