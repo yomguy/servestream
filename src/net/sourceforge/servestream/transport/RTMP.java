@@ -131,9 +131,9 @@ public class RTMP extends AbsTransport {
 				.append(uri.getQuery());
 		}
 		
-		if (uri.getAuthority() != null) {
+		if (uri.getFragment() != null) {
 		    sb.append("#")
-				.append(uri.getAuthority());
+				.append(uri.getFragment());
 		}
 		
 		Uri uri2 = Uri.parse(sb.toString());
