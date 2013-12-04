@@ -89,8 +89,6 @@ public class AddUrlFragment extends Fragment implements LoadingDialogListener {
 		mNicknameEditText = (EditText) view.findViewById(R.id.nickname_edittext);
 		mSavePlaylistEntriesCheckbox = (CheckBox) view.findViewById(R.id.save_playlist_entries_checkbox);
 		
-		mUrlEditText.setText("http://yp.shoutcast.com/sbin/tunein-station.pls?id=914897");
-		
 		return view;
 	}
 	
