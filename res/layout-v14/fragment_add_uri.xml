@@ -23,29 +23,50 @@
     android:layout_height="fill_parent"
     android:orientation="vertical" >
 
-    <LinearLayout
+    <RelativeLayout
         android:id="@+id/footer"
-        style="@android:style/ButtonBar"
         android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
-        android:orientation="horizontal" >
+        android:layout_height="48dp"
+        android:layout_alignParentBottom="true" >
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dip"
+            android:layout_alignParentTop="true"
+            android:background="?android:attr/dividerVertical" />
+
+        <View
+            android:id="@+id/horizontal_divider"
+            android:layout_width="1dip"
+            android:layout_height="fill_parent"
+            android:layout_alignParentTop="true"
+            android:layout_centerHorizontal="true"
+            android:layout_marginBottom="4dp"
+            android:layout_marginTop="4dp"
+            android:background="?android:attr/dividerVertical" />
 
         <Button
             android:id="@+id/cancel_button"
-            android:layout_width="0px"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
+            android:layout_alignParentBottom="true"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentTop="true"
+            android:layout_toLeftOf="@id/horizontal_divider"
+            android:background="?android:attr/selectableItemBackground"
             android:text="@android:string/cancel" />
 
         <Button
             android:id="@+id/confirm_button"
-            android:layout_width="0px"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
+            android:layout_alignParentBottom="true"
+            android:layout_alignParentRight="true"
+            android:layout_alignParentTop="true"
+            android:layout_toRightOf="@id/horizontal_divider"
+            android:background="?android:attr/selectableItemBackground"
             android:text="@string/confirm_label" />
-        
-    </LinearLayout>
+    </RelativeLayout>
 
     <ScrollView
         android:layout_width="match_parent"
@@ -75,6 +96,12 @@
                 android:layout_margin="8dp"
                 android:hint="@string/url_hint"
                 android:inputType="textUri" />
+
+            <CheckBox
+                android:id="@+id/save_playlist_entries_checkbox"
+                android:layout_width="fill_parent"
+               	android:layout_height="wrap_content"
+               	android:text="@string/store_playlist_entries" />
             
             <TextView
                 android:id="@+id/nickname_text"
@@ -91,7 +118,7 @@
                 android:layout_height="wrap_content"
                 android:layout_margin="8dp"
                 android:inputType="text" />
-        
+            
         </LinearLayout>
         
     </ScrollView>

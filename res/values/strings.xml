@@ -34,6 +34,7 @@
     <!-- Other -->
     <string name="confirm_label">Confirm</string>
     <string name="cancel_label">Cancel</string>
+    <string name="store_playlist_entries">Store individual playlist entries</string>
     <string name="unknown_artist_name">Unknown artist</string>
     <string name="unknown_album_name">Unknown album</string>
     <string name="opening_url_message">Opening URL&#8230;</string>
