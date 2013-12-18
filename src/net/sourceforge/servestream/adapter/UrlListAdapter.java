@@ -21,6 +21,7 @@ import java.util.List;
 
 import net.sourceforge.servestream.R;
 import net.sourceforge.servestream.bean.UriBean;
+import net.sourceforge.servestream.utils.OverflowClickListener;
 
 import android.app.Activity;
 import android.content.Context;
@@ -28,60 +29,77 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
+import android.widget.ImageView;
 import android.widget.TextView;
  
 public class UrlListAdapter extends ArrayAdapter<UriBean> {
-    private Context context;
-    private List<UriBean> rowItems;
+    private Context mContext;
+    private List<UriBean> mRowItems;
+    private OverflowClickListener mListener;
  
-    public UrlListAdapter(Context context, List<UriBean> rowItems) {
+    public UrlListAdapter(Context context, List<UriBean> rowItems, OverflowClickListener listener) {
 		super(context, R.layout.url_list_item, rowItems);
-        this.context = context;
-        this.rowItems = rowItems;
+        mContext = context;
+        mRowItems = rowItems;
+        mListener = listener;
     }
  
     /*private view holder class*/
     private class ViewHolder {
         TextView nickname;
         TextView caption;
+        ImageView overflowMenuButton;
     }
  
     public View getView(int position, View convertView, ViewGroup parent) {
         ViewHolder holder = null;
  
         LayoutInflater mInflater = (LayoutInflater)
-            context.getSystemService(Activity.LAYOUT_INFLATER_SERVICE);
+        		mContext.getSystemService(Activity.LAYOUT_INFLATER_SERVICE);
         if (convertView == null) {
             convertView = mInflater.inflate(R.layout.url_list_item, null);
             holder = new ViewHolder();
 			holder.nickname = (TextView) convertView.findViewById(android.R.id.text1);
 			holder.caption = (TextView) convertView.findViewById(android.R.id.text2);
+			holder.overflowMenuButton = (ImageView) convertView.findViewById(R.id.overflow_menu_button);
             convertView.setTag(holder);
         } else {
             holder = (ViewHolder) convertView.getTag();
         }
  
-        UriBean uri = rowItems.get(position);
+        final UriBean uri = mRowItems.get(position);
 
 		holder.nickname.setText(uri.getNickname());
 
 		long now = System.currentTimeMillis() / 1000;
 
-		String lastConnect = context.getString(R.string.bind_never);
+		String lastConnect = mContext.getString(R.string.bind_never);
 		if (uri.getLastConnect() > 0) {
 			int minutes = (int)((now - uri.getLastConnect()) / 60);
 			if (minutes >= 60) {
 				int hours = (minutes / 60);
 				if (hours >= 24) {
 					int days = (hours / 24);
-					lastConnect = context.getString(R.string.bind_days, days);
+					lastConnect = mContext.getString(R.string.bind_days, days);
 				} else
-					lastConnect = context.getString(R.string.bind_hours, hours);
+					lastConnect = mContext.getString(R.string.bind_hours, hours);
 			} else
-				lastConnect = context.getString(R.string.bind_minutes, minutes);
+				lastConnect = mContext.getString(R.string.bind_minutes, minutes);
 		}
 
 		holder.caption.setText(lastConnect);
+		if (holder.overflowMenuButton != null) {
+			holder.overflowMenuButton.setOnClickListener(new View.OnClickListener() {
+			
+				@Override
+				public void onClick(View v) {
+					if (mListener != null) {
+						mListener.onClick(v, uri);
+					}
+				}
+			
+			});
+		}
 
         return convertView;
     }

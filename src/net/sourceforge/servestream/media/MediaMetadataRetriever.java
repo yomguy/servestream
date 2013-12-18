@@ -17,12 +17,8 @@
 
 package net.sourceforge.servestream.media;
 
-import java.io.File;
-
-import android.annotation.SuppressLint;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.util.Log;
 
 /**
  * MediaMetadataRetriever class provides a unified interface for retrieving
@@ -349,4 +345,12 @@ public class MediaMetadataRetriever
      * The video rotation angle may be 0, 90, 180, or 270 degrees.
      */
     public static final String METADATA_KEY_VIDEO_ROTATION = "rotation";
+    /**
+     * The metadata key to retrieve the main creator of the work.
+     */
+    public static final String METADATA_KEY_ICY_ARTIST = "ICY_ARTIST";
+    /**
+     * The metadata key to retrieve the name of the work.
+     */
+    public static final String METADATA_KEY_ICY_TITLE = "ICY_TITLE";
 }
