@@ -22,18 +22,18 @@
 	android:id="@android:id/content"
 	android:layout_width="fill_parent"
 	android:layout_height="wrap_content"
-	android:padding="10dip"
-	>
+	android:padding="10dip" >
 		
 	<TextView
 		android:id="@android:id/text1"  
 		android:layout_width="wrap_content"
 		android:layout_height="wrap_content"
-		android:paddingRight="20dip"
+		android:paddingRight="5dip"
 		android:singleLine="true"
 		android:ellipsize="end"
 		android:textAppearance="?android:attr/textAppearanceLarge"
-		/>
+		android:layout_alignParentLeft="true"
+		android:layout_toLeftOf="@+id/overflow_menu_button" />
 
 	<TextView
 		android:id="@android:id/text2"  
@@ -41,6 +41,16 @@
 		android:layout_height="wrap_content"
         android:textAppearance="?android:attr/textAppearanceSmall"
 		android:layout_below="@android:id/text1"
-		/>
+		android:layout_alignParentLeft="true"
+		android:layout_toLeftOf="@id/overflow_menu_button" />
+	
+	<ImageView
+	    android:id="@id/overflow_menu_button"
+    	android:layout_width="wrap_content"
+    	android:layout_height="wrap_content"
+    	android:layout_alignParentRight="true"
+    	android:layout_centerVertical="true"
+    	android:background="@drawable/moreoverflow_button_dark"
+    	android:contentDescription="" />
 
 </RelativeLayout>

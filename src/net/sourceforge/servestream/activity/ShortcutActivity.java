@@ -68,7 +68,7 @@ public class ShortcutActivity extends ActionBarActivity {
 		StreamDatabase streamdb = new StreamDatabase(this);
 		List<UriBean> uris = new ArrayList<UriBean>();
 		uris = streamdb.getUris();
-		UrlListAdapter adapter = new UrlListAdapter(this, uris);
+		UrlListAdapter adapter = new UrlListAdapter(this, uris, null);
 		list.setAdapter(adapter);
 		streamdb.close();
 	}

@@ -25,8 +25,6 @@ import android.net.Uri;
 import android.os.AsyncTask;
 
 public class ShoutCastRetrieverTask {
-	private static final String TAG = ShoutCastRetrieverTask.class.getName();
-	
 	private Context mContext = null;
 	private long mId;
 	private MetadataRetrieverListener mListener;
@@ -128,8 +126,8 @@ public class ShoutCastRetrieverTask {
 					try {
 						mmr.setDataSource(uri);
 						
-						String title =  mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_TITLE);
-						String artist = mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ARTIST);
+						String title =  mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ICY_TITLE);
+						String artist = mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ICY_ARTIST);
 						
 						// if we didn't obtain at least the title and artist then don't store
 						// the metadata since it's pretty useless
