@@ -29,6 +29,7 @@
 	    android:minSdkVersion="8" />
 
 	<uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+	<uses-permission android:name="android.permission.BLUETOOTH" />
 	<uses-permission android:name="android.permission.INTERNET" />
 	<uses-permission android:name="android.permission.READ_PHONE_STATE" />
 	<uses-permission android:name="android.permission.VIBRATE"/>
@@ -218,6 +219,15 @@
                 <action android:name="net.sourceforge.servestream.playstatechanged" />
                 <action android:name="net.sourceforge.servestream.playbackcomplete" />
                 <action android:name="net.sourceforge.servestream.metachanged" />
+            </intent-filter>
+        </receiver>
+        
+        <receiver
+            android:name=".receiver.BluetoothReceiver"
+            android:exported="false" >
+            <intent-filter>
+                <action android:name="android.bluetooth.device.action.ACL_CONNECTED" />
+                <action android:name="android.bluetooth.device.action.ACL_DISCONNECTED" />
             </intent-filter>
         </receiver>
         
