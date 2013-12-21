@@ -19,11 +19,9 @@ package net.sourceforge.servestream.activity;
 
 import net.sourceforge.servestream.R;
 import net.sourceforge.servestream.button.RepeatingImageButton;
-import net.sourceforge.servestream.provider.Media;
+import net.sourceforge.servestream.fragment.MediaPlayerFragment;
 import net.sourceforge.servestream.service.IMediaPlaybackService;
 import net.sourceforge.servestream.service.MediaPlaybackService;
-import net.sourceforge.servestream.utils.CoverView;
-import net.sourceforge.servestream.utils.CoverView.CoverViewListener;
 import net.sourceforge.servestream.utils.LoadingDialog;
 import net.sourceforge.servestream.utils.LoadingDialog.LoadingDialogListener;
 import net.sourceforge.servestream.utils.MusicUtils;
@@ -50,14 +48,18 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
-import android.os.Looper;
 import android.os.Message;
+import android.os.Parcelable;
 import android.os.RemoteException;
 import android.os.SystemClock;
 import android.preference.PreferenceManager;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentStatePagerAdapter;
 import android.support.v4.app.FragmentTransaction;
+import android.support.v4.view.ViewPager;
+import android.support.v4.view.ViewPager.OnPageChangeListener;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarActivity;
 import android.util.Log;
@@ -77,7 +79,6 @@ import android.widget.SeekBar.OnSeekBarChangeListener;
 
 public class MediaPlayerActivity extends ActionBarActivity implements MusicUtils.Defs,
     		OnSharedPreferenceChangeListener,
-    		CoverViewListener,
     		LoadingDialogListener,
     		SleepTimerDialogListener {
 	
@@ -104,14 +105,13 @@ public class MediaPlayerActivity extends ActionBarActivity implements MusicUtils
     private RepeatingImageButton mNextButton;
     private ImageButton mRepeatButton;
     private ImageButton mShuffleButton;
-    private Worker mAlbumArtWorker;
-    private AlbumArtHandler mAlbumArtHandler;
     private Toast mToast;
     private ServiceToken mToken;
 
-    private TextView mTrackNumber;
-    
     private VolumeObserver mVolumeObserver;
+    
+	private ViewPager mPager;
+	private GridPagerAdapter mAdapter;
     
     public MediaPlayerActivity()
     {
@@ -136,22 +136,12 @@ public class MediaPlayerActivity extends ActionBarActivity implements MusicUtils
 		
         setVolumeControlStream(AudioManager.STREAM_MUSIC);
 
-        mAlbumArtWorker = new Worker("album art worker");
-        mAlbumArtHandler = new AlbumArtHandler(mAlbumArtWorker.getLooper());
-        
         mPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         mPreferences.registerOnSharedPreferenceChangeListener(this);
         
         mCurrentTime = (TextView) findViewById(R.id.position_text);
         mTotalTime = (TextView) findViewById(R.id.duration_text);
         mProgress = (ProgressBar) findViewById(R.id.seek_bar);
-        mAlbum = (CoverView) findViewById(R.id.album_art);
-        mAlbum.setup(mAlbumArtWorker.getLooper(), this);
-        mTrackName = (TextView) findViewById(R.id.trackname);
-        mTrackName.setSelected(true);
-        mArtistAndAlbumName = (TextView) findViewById(R.id.artist_and_album);
-        mArtistAndAlbumName.setSelected(true);
-        mTrackNumber = (TextView) findViewById(R.id.track_number_text);
 
         mPrevButton = (RepeatingImageButton) findViewById(R.id.previous_button);
         mPrevButton.setOnClickListener(mPrevListener);
@@ -178,6 +168,8 @@ public class MediaPlayerActivity extends ActionBarActivity implements MusicUtils
         mProgress.setMax(1000);
         
         mVolume.setOnSeekBarChangeListener(mVolumeListener);
+        
+        mPager = (ViewPager) findViewById(R.id.pager);
     }
     
 	public void onSharedPreferenceChanged(SharedPreferences sharedPreferences,
@@ -316,7 +308,6 @@ public class MediaPlayerActivity extends ActionBarActivity implements MusicUtils
         IntentFilter f = new IntentFilter();
         f.addAction(MediaPlaybackService.PLAYSTATE_CHANGED);
         f.addAction(MediaPlaybackService.META_CHANGED);
-        f.addAction(MediaPlaybackService.ART_CHANGED);
         f.addAction(MediaPlaybackService.START_DIALOG);
         f.addAction(MediaPlaybackService.STOP_DIALOG);
         registerReceiver(mStatusListener, new IntentFilter(f));
@@ -350,12 +341,6 @@ public class MediaPlayerActivity extends ActionBarActivity implements MusicUtils
         MusicUtils.unbindFromService(mToken);
         mService = null;
         super.onStop();
-    }
-    
-    @Override
-    public void onDestroy() {
-        mAlbumArtWorker.quit();
-        super.onDestroy();
     }
     
     @Override
@@ -857,6 +842,7 @@ public class MediaPlayerActivity extends ActionBarActivity implements MusicUtils
                         setRepeatButtonImage();
                         setShuffleButtonImage();
                         setPauseButtonImage();
+                        initPager();
                         return;
                     }
                 } catch (RemoteException ex) {
@@ -933,11 +919,64 @@ public class MediaPlayerActivity extends ActionBarActivity implements MusicUtils
 		}	
     }
     
-    private CoverView mAlbum;
+    private void initPager() {
+    	if (mService == null) {
+    		return;
+        }
+     	
+    	int count = 0;
+    	
+    	try {
+			count = mService.getQueue().length;
+		} catch (RemoteException e) {
+			finish();
+		}
+    	
+    	mAdapter = new GridPagerAdapter(getSupportFragmentManager(), count);
+        mPager.setAdapter(mAdapter);
+        mPager.setOnPageChangeListener(new OnPageChangeListener() {
+
+        	private int mState;
+        	
+			@Override
+			public void onPageScrollStateChanged(int state) {
+				mState = state;
+			}
+
+			@Override
+			public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
+				
+			}
+
+			@Override
+			public void onPageSelected(int position) {
+				try {
+					if (mState == ViewPager.SCROLL_STATE_SETTLING) {
+						mService.setQueuePosition(position);
+					}
+				} catch (RemoteException e) {
+					e.printStackTrace();
+				}
+			}
+        });
+        
+        setPager();
+    }
+    
+    private void setPager() {
+        if (mService == null) {
+            return;
+        }
+    	
+        try {
+			mPager.setCurrentItem(mService.getQueuePosition(), false);
+		} catch (RemoteException e) {
+			e.printStackTrace();
+		}
+    }
+    
     private TextView mCurrentTime;
     private TextView mTotalTime;
-    private TextView mArtistAndAlbumName;
-    private TextView mTrackName;
     private ProgressBar mProgress;
     private SeekBar mVolume;
     private long mPosOverride = -1;
@@ -948,8 +987,6 @@ public class MediaPlayerActivity extends ActionBarActivity implements MusicUtils
 
     private static final int REFRESH = 1;
     private static final int QUIT = 2;
-    private static final int GET_ALBUM_ART = 3;
-    private static final int REFRESH_ALBUM_ART = 4;
 
     private void queueNextRefresh(long delay) {
         if (!paused) {
@@ -1044,14 +1081,7 @@ public class MediaPlayerActivity extends ActionBarActivity implements MusicUtils
                 setSeekControls();
                 setPauseButtonImage();
                 queueNextRefresh(1);
-            } else if (action.equals(MediaPlaybackService.ART_CHANGED)) {
-                try {
-                	if (mService != null) {
-                		mAlbumArtHandler.removeMessages(REFRESH_ALBUM_ART);
-                		mAlbumArtHandler.obtainMessage(REFRESH_ALBUM_ART, new IdWrapper(mService.getTrackId())).sendToTarget();
-                	}
-				} catch (RemoteException e) {
-				}
+                setPager();
             } else if (action.equals(MediaPlaybackService.PLAYSTATE_CHANGED)) {
                 setPauseButtonImage();
             } else if (action.equals(MediaPlaybackService.START_DIALOG)) {
@@ -1066,135 +1096,18 @@ public class MediaPlayerActivity extends ActionBarActivity implements MusicUtils
         }
     };
     
-    private static class IdWrapper {
-        public long id;
-        IdWrapper(long id) {
-            this.id = id;
-        }
-    }
-    
     private void updateTrackInfo() {
         if (mService == null) {
             return;
         }
         try {
-            String path = mService.getPath();
-            if (path == null) {
-                finish();
-                return;
-            }
-            
-            mTrackNumber.setText(mService.getTrackNumber());
-            
-            String trackName = mService.getTrackName();
-            if (trackName == null || trackName.equals(Media.UNKNOWN_STRING)) {
-            	trackName = mService.getMediaUri();
-            }
-            
-            mTrackName.setText(trackName);
-            
-            String artistName = mService.getArtistName();
-            String albumName = mService.getAlbumName();
-            String artistAndAlbumName = "";
-            
-            if (artistName != null && !artistName.equals(Media.UNKNOWN_STRING)) {
-            	artistAndAlbumName = artistName;
-            }
-            
-            if (albumName != null && !albumName.equals(Media.UNKNOWN_STRING)) {
-            	if (artistAndAlbumName.equals("")) {
-            		artistAndAlbumName = albumName;
-            	} else {
-            		artistAndAlbumName = artistAndAlbumName + " - " + albumName;
-            	}
-            }
-            
-            mArtistAndAlbumName.setText(artistAndAlbumName);
-            mAlbumArtHandler.removeMessages(GET_ALBUM_ART);
-            mAlbumArtHandler.obtainMessage(GET_ALBUM_ART, new IdWrapper(mService.getTrackId())).sendToTarget();
-            mDuration = mService.duration();
-            mTotalTime.setText(MusicUtils.makeTimeString(this, mDuration / 1000));
+        	mDuration = mService.duration();
+        	mTotalTime.setText(MusicUtils.makeTimeString(this, mDuration / 1000));
         } catch (RemoteException ex) {
-            finish();
+        	finish();
         }
     }
     
-    public class AlbumArtHandler extends Handler {
-        private long mId = -1;
-        
-        public AlbumArtHandler(Looper looper) {
-            super(looper);
-        }
-        
-        @Override
-        public void handleMessage(Message msg)
-        {
-            long id = ((IdWrapper) msg.obj).id;
-            
-            if (((msg.what == GET_ALBUM_ART && mId != id)
-            		|| msg.what == REFRESH_ALBUM_ART)
-            		&& id >= 0) {
-            	if (mAlbum.generateBitmap(id)) {
-            		mId = id;
-            	}
-            }
-        }
-    }
-    
-    private static class Worker implements Runnable {
-        private final Object mLock = new Object();
-        private Looper mLooper;
-        
-        /**
-         * Creates a worker thread with the given name. The thread
-         * then runs a {@link android.os.Looper}.
-         * @param name A name for the new thread
-         */
-        Worker(String name) {
-            Thread t = new Thread(null, this, name);
-            t.setPriority(Thread.MIN_PRIORITY);
-            t.start();
-            synchronized (mLock) {
-                while (mLooper == null) {
-                    try {
-                        mLock.wait();
-                    } catch (InterruptedException ex) {
-                    }
-                }
-            }
-        }
-        
-        public Looper getLooper() {
-            return mLooper;
-        }
-        
-        public void run() {
-            synchronized (mLock) {
-                Looper.prepare();
-                mLooper = Looper.myLooper();
-                mLock.notifyAll();
-            }
-            Looper.loop();
-        }
-        
-        public void quit() {
-            mLooper.quit();
-        }
-    }
-
-	@Override
-	public void onCoverViewInitialized() {
-        if (mService == null) {
-            return;
-        }
-        
-        try {
-            mAlbumArtHandler.removeMessages(GET_ALBUM_ART);
-			mAlbumArtHandler.obtainMessage(GET_ALBUM_ART, new IdWrapper(mService.getTrackId())).sendToTarget();
-		} catch (RemoteException e) {
-		}
-	}
-	
 	public synchronized void showLoadingDialog() {
 		mLoadingDialog = LoadingDialog.newInstance(this, getString(R.string.opening_url_message));
 		mLoadingDialog.show(getSupportFragmentManager(), LOADING_DIALOG);
@@ -1278,4 +1191,28 @@ public class MediaPlayerActivity extends ActionBarActivity implements MusicUtils
 			updateVolumeBar();
 		}
 	}
+	
+	private class GridPagerAdapter extends FragmentStatePagerAdapter {
+    	private int mCount;
+		
+		public GridPagerAdapter(FragmentManager fm, int count) {
+    		super(fm);
+    		mCount = count;
+        }
+    	
+        @Override
+        public Fragment getItem(int position) {
+            return new MediaPlayerFragment();
+        }
+
+        @Override
+        public int getCount() {
+        	return mCount;
+        }
+        
+        @Override
+        public Parcelable saveState() {
+        	return null;
+        }
+    }
 }

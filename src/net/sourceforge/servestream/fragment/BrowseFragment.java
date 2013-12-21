@@ -103,7 +103,7 @@ public class BrowseFragment extends ListFragment implements
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container,
 			Bundle savedInstanceState) {
-		View view = inflater.inflate(R.layout.fragment_uri_list, container, false);
+		View view = inflater.inflate(R.layout.fragment_browse, container, false);
 		ListView list = (ListView) view.findViewById(android.R.id.list);
 		list.setEmptyView(view.findViewById(android.R.id.empty));
 		

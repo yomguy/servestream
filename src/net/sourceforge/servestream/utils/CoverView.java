@@ -25,6 +25,7 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.os.Looper;
 import android.preference.PreferenceManager;
+import android.support.v4.app.Fragment;
 import android.util.AttributeSet;
 import android.view.View;
 
@@ -40,14 +41,14 @@ public final class CoverView extends View {
 		mPreferences = PreferenceManager.getDefaultSharedPreferences(context);
 	}
 
-	public void setup(Looper looper, Context context) {
+	public void setup(Looper looper, Fragment fragment) {
 		// Verify that the host activity implements the callback interface
 	    try {
 	    	// Instantiate the CoverViewListener so we can send events to the host
-	        mListener = (CoverViewListener) context;
+	        mListener = (CoverViewListener) fragment;
 	    } catch (ClassCastException e) {
 	        // The activity doesn't implement the interface, throw exception
-	        throw new ClassCastException(context.toString()
+	        throw new ClassCastException(fragment.toString()
 	        	+ " must implement CoverViewListener");
 	    }
 	}
