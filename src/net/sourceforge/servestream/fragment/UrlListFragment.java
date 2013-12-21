@@ -399,7 +399,7 @@ public class UrlListFragment extends ListFragment implements
     };
     
 	@Override
-	public void onClick(View v, UriBean uri) {
-		showPopup(v, uri);
+	public void onClick(View view, UriBean uri) {
+		showPopup(view, uri);
 	}
 }
