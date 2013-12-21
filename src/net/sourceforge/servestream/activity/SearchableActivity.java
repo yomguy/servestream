@@ -5,7 +5,7 @@ import java.util.List;
 import java.util.Locale;
 
 import net.sourceforge.servestream.R;
-import net.sourceforge.servestream.adapter.BrowseAdapter;
+import net.sourceforge.servestream.adapter.SearchAdapter;
 import net.sourceforge.servestream.bean.UriBean;
 import android.app.SearchManager;
 import android.content.Intent;
@@ -20,7 +20,7 @@ import android.widget.AdapterView.OnItemClickListener;
 
 public class SearchableActivity extends ActionBarActivity {
 
-	private BrowseAdapter mAdapter;
+	private SearchAdapter mAdapter;
 	
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -47,7 +47,7 @@ public class SearchableActivity extends ActionBarActivity {
 			}
 	    });
 
-	    mAdapter = new BrowseAdapter(this, new ArrayList<UriBean>());
+	    mAdapter = new SearchAdapter(this, new ArrayList<UriBean>());
 		list.setAdapter(mAdapter);
 		
 	    // Get the intent, verify the action and get the query

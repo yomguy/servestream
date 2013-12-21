@@ -21,7 +21,6 @@ import java.util.List;
 
 import net.sourceforge.servestream.R;
 import net.sourceforge.servestream.bean.UriBean;
-import net.sourceforge.servestream.utils.OverflowClickListener;
 
 import android.app.Activity;
 import android.content.Context;
@@ -29,26 +28,22 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
-import android.widget.ImageView;
 import android.widget.TextView;
  
-public class BrowseAdapter extends ArrayAdapter<UriBean> {
+public class SearchAdapter extends ArrayAdapter<UriBean> {
     private Context mContext;
     private List<UriBean> mRowItems;
-    private OverflowClickListener mListener;
  
-    public BrowseAdapter(Context context, List<UriBean> rowItems, OverflowClickListener listener) {
-		super(context, R.layout.list_item_browse, rowItems);
+    public SearchAdapter(Context context, List<UriBean> rowItems) {
+		super(context, R.layout.list_item_search, rowItems);
         mContext = context;
         mRowItems = rowItems;
-        mListener = listener;
     }
  
     /*private view holder class*/
     private class ViewHolder {
         TextView nickname;
         TextView caption;
-        ImageView overflowMenuButton;
     }
  
     public View getView(int position, View convertView, ViewGroup parent) {
@@ -57,31 +52,19 @@ public class BrowseAdapter extends ArrayAdapter<UriBean> {
         LayoutInflater mInflater = (LayoutInflater)
             mContext.getSystemService(Activity.LAYOUT_INFLATER_SERVICE);
         if (convertView == null) {
-            convertView = mInflater.inflate(R.layout.list_item_browse, null);
+            convertView = mInflater.inflate(R.layout.list_item_search, null);
             holder = new ViewHolder();
 			holder.nickname = (TextView) convertView.findViewById(android.R.id.text1);
 			holder.caption = (TextView) convertView.findViewById(android.R.id.text2);
-			holder.overflowMenuButton = (ImageView) convertView.findViewById(R.id.overflow_menu_button);
             convertView.setTag(holder);
         } else {
             holder = (ViewHolder) convertView.getTag();
         }
  
-        final UriBean uri = mRowItems.get(position);
+        UriBean uri = mRowItems.get(position);
 
 		holder.nickname.setText(uri.getNickname());
 		holder.caption.setText(uri.getUri().toString());
-
-		holder.overflowMenuButton.setOnClickListener(new View.OnClickListener() {
-			
-			@Override
-			public void onClick(View v) {
-				if (mListener != null) {
-					mListener.onClick(v, uri);
-				}
-			}
-			
-		});
 		
         return convertView;
     }
