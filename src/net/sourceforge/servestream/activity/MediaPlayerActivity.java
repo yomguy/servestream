@@ -927,7 +927,7 @@ public class MediaPlayerActivity extends ActionBarActivity implements MusicUtils
     	int count = 0;
     	
     	try {
-			count = mService.getQueue().length;
+			count = mService.getQueue().length + 2;
 		} catch (RemoteException e) {
 			finish();
 		}
@@ -936,11 +936,15 @@ public class MediaPlayerActivity extends ActionBarActivity implements MusicUtils
         mPager.setAdapter(mAdapter);
         mPager.setOnPageChangeListener(new OnPageChangeListener() {
 
-        	private int mState;
+        	boolean mFromUser = false;
         	
 			@Override
 			public void onPageScrollStateChanged(int state) {
-				mState = state;
+				if (state == ViewPager.SCROLL_STATE_DRAGGING) {
+					mFromUser = true;
+			    } else if (state == ViewPager.SCROLL_STATE_IDLE) {
+			    	mFromUser = false;
+			    }
 			}
 
 			@Override
@@ -951,8 +955,17 @@ public class MediaPlayerActivity extends ActionBarActivity implements MusicUtils
 			@Override
 			public void onPageSelected(int position) {
 				try {
-					if (mState == ViewPager.SCROLL_STATE_SETTLING) {
+					if (mFromUser) {
+						position--;
+						
+						if (position == -1) {
+							position = mService.getQueue().length - 1;
+						} else if (position == mService.getQueue().length) {
+							position = 0;
+						}
+						
 						mService.setQueuePosition(position);
+						mFromUser = false;
 					}
 				} catch (RemoteException e) {
 					e.printStackTrace();
@@ -969,7 +982,8 @@ public class MediaPlayerActivity extends ActionBarActivity implements MusicUtils
         }
     	
         try {
-			mPager.setCurrentItem(mService.getQueuePosition(), false);
+        	int position = mService.getQueuePosition() + 1;
+			mPager.setCurrentItem(position, false);
 		} catch (RemoteException e) {
 			e.printStackTrace();
 		}
