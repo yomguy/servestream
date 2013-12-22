@@ -27,6 +27,7 @@ import net.sourceforge.servestream.utils.LoadingDialog.LoadingDialogListener;
 import net.sourceforge.servestream.utils.MusicUtils;
 import net.sourceforge.servestream.utils.OverflowClickListener;
 import net.sourceforge.servestream.utils.RateDialog;
+import net.sourceforge.servestream.utils.UriBeanLoader;
 
 import net.sourceforge.servestream.R;
 import net.sourceforge.servestream.activity.AddUrlActivity;
@@ -57,6 +58,8 @@ import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.app.ListFragment;
+import android.support.v4.app.LoaderManager;
+import android.support.v4.content.Loader;
 import android.support.v7.widget.PopupMenu;
 
 import android.view.LayoutInflater;
@@ -76,7 +79,8 @@ import net.sourceforge.servestream.utils.DetermineActionTask;
 public class UrlListFragment extends ListFragment implements
 				DetermineActionTask.MusicRetrieverPreparedListener,
 				LoadingDialogListener,
-				OverflowClickListener {
+				OverflowClickListener,
+				LoaderManager.LoaderCallbacks<List<UriBean>> {
 	
 	public final static String TAG = UrlListFragment.class.getName();	
 	
@@ -97,6 +101,8 @@ public class UrlListFragment extends ListFragment implements
     private BrowseIntentListener mListener;
     
     private UriBean mSelectedMenuItem;
+    
+    private int mId = 0;
     
 	@SuppressLint("HandlerLeak")
 	private Handler mQueueHandler = new Handler() {
@@ -254,14 +260,7 @@ public class UrlListFragment extends ListFragment implements
 	}
 	
 	public void updateList() {
-		mAdapter.clear();
-		
-		List<UriBean> uris = mStreamdb.getUris();
-		for (int i = 0; i < uris.size(); i++) {
-			mAdapter.add(uris.get(i));
-		}
-		
-		mAdapter.notifyDataSetChanged();
+		getLoaderManager().initLoader(mId++, null, this);
 	}
 	
 	private void showUrlNotOpenedToast() {
@@ -401,5 +400,27 @@ public class UrlListFragment extends ListFragment implements
 	@Override
 	public void onClick(View view, UriBean uri) {
 		showPopup(view, uri);
+	}
+
+	@Override
+	public Loader<List<UriBean>> onCreateLoader(int id, Bundle args) {
+        // This is called when a new Loader needs to be created.  This
+        // sample only has one Loader with no arguments, so it is simple.
+        return new UriBeanLoader(getActivity());
+	}
+
+	@Override
+	public void onLoadFinished(Loader<List<UriBean>> loader, List<UriBean> data) {
+		// Set the new data in the adapter.
+        mAdapter.clear();
+		for (int i = 0; i < data.size(); i++) {
+			mAdapter.add(data.get(i));
+		}
+	}
+
+	@Override
+	public void onLoaderReset(Loader<List<UriBean>> loader) {
+		// Clear the data in the adapter.
+		mAdapter.clear();
 	}
 }
