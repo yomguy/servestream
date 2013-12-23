@@ -29,26 +29,26 @@
   <string name="organize_urls_label">Organisieren</string>
   <string name="media_player_label">Jetzt abspielen</string>
   <string name="alarm_clock_label">Wecker</string>
-  <string name="set_alarm_label">Alarm einstellen</string>
+  <string name="set_alarm_label">Wecker einstellen</string>
 
   <!-- Other -->
   <string name="confirm_label">Bestätigen</string>
   <string name="cancel_label">Abbrechen</string>
-  <string name="store_playlist_entries">Speichern Sie individuelle Wiedergabelisteneinträge</string>
+  <string name="store_playlist_entries">Speichern sie individuelle Wiedergabelisteneinträge</string>
   <string name="unknown_artist_name">Unbekannter Künstler</string>
   <string name="unknown_album_name">Unbekanntes Album</string>
-  <string name="opening_url_message">Öffne URL...</string>
+  <string name="opening_url_message">Öffne URL ...</string>
   <string name="url_not_opened_message">Die URL konnte nicht geöffnet werden.</string>
-  <string name="find_barcode_scanner_message">Dieses Feature erfordert den ZXing Barcode-Scanner. Finde diese Anwendung?</string>
-  <string name="rate_application">Möchten Sie diese Anwendung im Android Markt bewerten? Feedback ist erwünscht.</string>
-  <string name="rate_pos">„Ja, auf den Markt weiterleiten“</string>
-  <string name="rate_neg">„Nein, und nicht wieder Fragen“</string>
+  <string name="find_barcode_scanner_message">Dieses Feature erfordert den ZXing Barcode-Scanner. Diese Anwendung im Markt suchen?</string>
+  <string name="rate_application">Möchten sie diese Anwendung im Android Markt bewerten? Feedback ist erwünscht.</string>
+  <string name="rate_pos">Ja, in den Markt weiterleiten.</string>
+  <string name="rate_neg">Nein, und nicht wieder fragen.</string>
   <string name="list_menu_backup">Sicherung</string>
-  <string name="list_menu_effects">Sound Effekte</string>
+  <string name="list_menu_effects">Equalizer</string>
   <string name="list_menu_refresh">Aktualisieren</string>
   <string name="list_menu_scan">Durchsuchen</string>
   <string name="list_menu_search">Suche</string>
-  <string name="list_menu_stop">Stop</string>
+  <string name="list_menu_stop">Stopp</string>
 
   <!-- Bind -->
   <string name="bind_never">Nie verbunden</string>
@@ -67,11 +67,11 @@
   <string name="save_label">Speichern</string>
   <string name="share_label">Teilen</string>
   <string name="view_url_label">Zeige URL an</string>
-  <string name="url_delete_confirmation_msg">Sind sie sicher, dass Sie \'%1$s\' löschen möchten?</string>
-  <string name="url_save_confirmation_msg">Sind sie sicher, dass Sie \'%1$s\' speichern möchten?</string>
+  <string name="url_delete_confirmation_msg">Sind sie sicher, dass sie \'%1$s\' löschen möchten?</string>
+  <string name="url_save_confirmation_msg">Sind sie sicher, dass sie \'%1$s\' speichern möchten?</string>
 
   <!-- Mediaplayer messages -->
-  <string name="buffering_message">Pufferung. Bitte warten...</string>
+  <string name="buffering_message">Pufferung. Bitte warten ...</string>
   <string name="playback_failed">Leider wird diese Art von Mediendatei nicht unterstützt.</string>
   <string name="service_start_error_title">Wiedergabeproblem</string>
   <string name="service_start_error_msg">Leider konnte dieses Medium nicht abgespielt werden.</string>
@@ -92,7 +92,7 @@
   <string name="about_pref">Über</string>
   <string name="pref_backup_and_restore">Sichern und Wiederherstellen</string>
   <string name="pref_backup">In eine Datei sichern</string>
-  <string name="pref_restore">Von Datei wiederherstellen</string>
+  <string name="pref_restore">Von einer Datei wiederherstellen</string>
   <string name="pref_donate">Spenden</string>
   <string name="pref_general_settings_category">Allgemeine Einstellungen</string>
   <string name="pref_playback_category">Wiedergabe Einstellungen</string>
@@ -104,9 +104,9 @@
   <string name="pref_headphonepause_title">Kopfhörer-Pause</string>
   <string name="pref_headphonepause_summary">Anhalten der Wiedergabe wenn der Kopfhörer getrennt wird</string>
   <string name="pref_progressivedownload_title">Schrittweiser Download</string>
-  <string name="pref_progressivedownload_summary">Verwenden Sie schrittweisen Download für die Wiedergabe</string>
+  <string name="pref_progressivedownload_summary">Verwenden sie schrittweisen Download für die Wiedergabe</string>
   <string name="pref_ffmpegplayer_title">FFmpeg-basierten Player</string>
-  <string name="pref_ffmpegplayer_summary">Verwenden Sie FFmpeg-basierten Media-Player für die Wiedergabe</string>
+  <string name="pref_ffmpegplayer_summary">Verwenden sie einen FFmpeg-basierten Media-Player für die Wiedergabe</string>
   <string name="pref_retrievemetadata_title">Metadaten abrufen</string>
   <string name="pref_retrievemetadata_summary">Metadaten lesen und anzeigen</string>
   <string name="pref_retrievealbumart_title">Albumcover abrufen</string>
@@ -118,19 +118,19 @@
   <string name="pref_sendscrobblerinfo_title">Last.fm Scrobbling</string>
   <string name="pref_sendscrobblerinfo_summary">Last.fm-Scrobbing verwenden. Dazu muss \“Simple LastFM Scrobbler\“ oder \“Scrobble Droid\“ installiert sein.</string>
   <string name="pref_sendbluetoothmetadata_title">Metadaten senden</string>
-  <string name="pref_sendbluetoothmetadata_summary">Metadaten an gekoppelten Bluetooth-Geräte senden (Hinweis: senden Sie Metadaten automatisch zu Scrobble apps)</string>
+  <string name="pref_sendbluetoothmetadata_summary">Metadaten an gekoppelten Bluetooth-Geräte senden (Hinweis: Senden sie Metadaten automatisch an Scrobble Apps)</string>
   <string name="pref_wakelock_title">Bildschirm aktiv halten</string>
   <string name="pref_wakelock_summary">Verhindern dass der Bildschirm abgeschaltet oder gedimmt wird</string>
   <string name="pref_wifilock_title">Wi-Fi aktiv halten</string>
   <string name="pref_wifilock_summary">Verhindern dass Wi-Fi ausgeschaltet wird</string>
 
   <!-- Sleep timer -->
-  <string name="set_sleeptimer_label">Sleep Timer</string>
+  <string name="set_sleeptimer_label">Einschlafmodus</string>
   <string name="disable_sleeptimer_label">Aus</string>
   <string name="enable_sleeptimer_label">Setzen</string>
-  <string name="sleep_timer_label">Sleep Timer</string>
-  <string name="sleep_timer_on_notif">Sleep Timer wurde gesetzt für</string>
-  <string name="sleep_timer_off_notif">Sleep Timer wurde ausgeschaltet</string>
+  <string name="sleep_timer_label">Einschlafmodus</string>
+  <string name="sleep_timer_on_notif">Einschlafmodus wurde gesetzt für</string>
+  <string name="sleep_timer_off_notif">Einschlafmodus wurde ausgeschaltet</string>
 
   <!-- Stream preferences -->
   <string name="streampref_nickname_title">Name</string>
@@ -148,9 +148,9 @@
   <string name="widget_one_track_info_unavailable">Keinen Trackinfo verfügbar</string>
 
   <!-- 'Add URL' Activity labels -->
-  <string name="text_url_label">Geben Sie die URL eins Streams oder Server hier ein:</string>
-  <string name="error_url_label">Geben Sie eine gültige URL ein</string>
-  <string name="text_nickname_label">Geben Sie hier einen Namen ein (optional):</string>
+  <string name="text_url_label">Geben sie die URL eines Streams oder Server hier ein:</string>
+  <string name="error_url_label">Geben sie eine gültige URL ein</string>
+  <string name="text_nickname_label">Geben sie hier einen Namen ein (optional):</string>
 
   <!-- Empty list labels -->
   <string name="no_items_label">Es gibt keine Elemente in dieser Liste.</string>
@@ -174,7 +174,7 @@
   <!-- Alarm preferences -->
   <string name="time">Zeit</string>
   <string name="alarm_repeat">Wiederholen</string>
-  <string name="alert">Klingelton/Medium</string>
+  <string name="alert">Stream</string>
   <string name="silent_alarm_summary">Stille</string>
   <string name="alarm_vibrate">Vibrieren</string>
   <string name="label">Name</string>
@@ -187,17 +187,17 @@
   <string name="alarm_alert_snooze_set">Schlummern für <xliff:g id="minutes">%d</xliff:g> Minuten.</string>
   <string name="alarm_notify_text">Schlummern oder Wecker abschalten.</string>
   <string name="alarm_notify_snooze_label"><xliff:g id="label">%s</xliff:g> (schlummern)</string>
-  <string name="alarm_notify_snooze_text">Wecker gesetzt auf <xliff:g id="time">%s</xliff:g>. Wählen Sie abbrechen.</string>
+  <string name="alarm_notify_snooze_text">Wecker auf <xliff:g id="time">%s</xliff:g> gesetzt. Wählen sie abbrechen.</string>
 
   <string-array name="alarm_set">
-    <item>Dieser Alarm wird ab sofort für weniger als 1 Minute festgelegt.</item>
-    <item>Dieser Alarm wurde gesetzt auf <xliff:g id="DAYS" example="2 days">%1$s</xliff:g> ab jetzt.</item>
-    <item>Dieser Alarm wurde gesetzt auf <xliff:g id="HOURS" example="2 hours">%2$s</xliff:g> ab jetzt.</item>
-    <item>Dieser Alarm wurde gesetzt auf <xliff:g id="DAYS" example="2 days">%1$s</xliff:g> und <xliff:g id="HOURS" example="2 hours">%2$s</xliff:g> ab jetzt.</item>
-    <item>Dieser Alarm wurde gesetzt auf <xliff:g id="MINUTES" example="2 minutes">%3$ s</xliff:g> ab jetzt.</item>
-    <item>Dieser Alarm wurde gesetzt auf <xliff:g id="DAYS" example="2 days">%1$s</xliff:g> und <xliff:g id="MINUTES" example="2 minutes">%3$s</xliff:g> ab jetzt.</item>
-    <item>Dieser Alarm wurde gesetzt auf <xliff:g id="HOURS" example="2 hours">%2$s</xliff:g> und <xliff:g id="MINUTES" example="2 minutes">%3$s</xliff:g> ab jetzt.</item>
-    <item>Dieser Alarm wurde gesetzt auf <xliff:g id="DAYS" example="2 days">%1$s</xliff:g>, <xliff:g id="HOURS" example="2 hours">%2$s</xliff:g>, und <xliff:g id="MINUTES" example="2 minutes">%3$s</xliff:g> ab jetzt.</item>
+    <item>Dieser Alarm wird ab sofort für weniger als 1 Minute gesetzt.</item>
+    <item>Dieser Alarm wurde auf <xliff:g id="DAYS" example="2 days">%1$s</xliff:g> ab jetzt gesetzt.</item>
+    <item>Dieser Alarm wurde auf <xliff:g id="HOURS" example="2 hours">%2$s</xliff:g> ab jetzt gesetzt.</item>
+    <item>Dieser Alarm wurde auf <xliff:g id="DAYS" example="2 days">%1$s</xliff:g> und <xliff:g id="HOURS" example="2 hours">%2$s</xliff:g> ab jetzt gesetzt.</item>
+    <item>Dieser Alarm wurde auf <xliff:g id="MINUTES" example="2 minutes">%3$ s</xliff:g> gesetzt.</item>
+    <item>Dieser Alarm wurde auf <xliff:g id="DAYS" example="2 days">%1$s</xliff:g> und <xliff:g id="MINUTES" example="2 minutes">%3$s</xliff:g> ab jetzt gesetzt.</item>
+    <item>Dieser Alarm wurde auf <xliff:g id="HOURS" example="2 hours">%2$s</xliff:g> und <xliff:g id="MINUTES" example="2 minutes">%3$s</xliff:g> ab jetzt gesetzt.</item>
+    <item>Dieser Alarm wurde auf <xliff:g id="DAYS" example="2 days">%1$s</xliff:g>, <xliff:g id="HOURS" example="2 hours">%2$s</xliff:g>, und <xliff:g id="MINUTES" example="2 minutes">%3$s</xliff:g> ab jetzt gesetzt.</item>
   </string-array>
 
   <string name="day">1 Tag</string>
@@ -208,11 +208,11 @@
   <string name="minutes"><xliff:g id="minutes">%s</xliff:g> Minuten</string>
   <string name="every_day">Täglich</string>
   <string name="never">Nie</string>
-  <string name="day_concat">", "</string>
+  <string name="day_concat">, </string>
 
   <!-- Service descriptions -->
   <string name="media_service_desc">Medien im Hintergrund spielen erlauben</string>
-  <string name="alarm_klaxon_service_desc">Sound-Wiedergabe Service für Alarme.</string>
+  <string name="alarm_klaxon_service_desc">Sound-Wiedergabe Service für den Wecker.</string>
 
   <!-- Playlist actions -->
   <string name="remove_from_playlist">Aus der Wiedergabeliste entfernen</string>
