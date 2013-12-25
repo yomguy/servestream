@@ -439,7 +439,7 @@ Java_net_sourceforge_servestream_media_FFmpegPlayer__1reset(JNIEnv* env, jobject
     pthread_mutex_unlock(lock);
 }
 
-int decodeFrameFromPacket(AVPacket *aPacket) {
+/*int decodeFrameFromPacket(AVPacket *aPacket) {
 	int n;
 	AVPacket *pkt = aPacket;
 
@@ -455,15 +455,68 @@ int decodeFrameFromPacket(AVPacket *aPacket) {
         //*pts_ptr = pts;
         n = 2 * global_audio_state->audio_st->codec->channels;
         global_audio_state->audio_clock += (double)dataLength /
-        		(double)(n * global_audio_state->audio_st->codec->sample_rate);
+        		(double)(n * global_audio_state->audio_st->codec->sample_rate);*/
 
         /* if update, update the audio clock w/pts */
-        if(pkt->pts != AV_NOPTS_VALUE) {
+        /*if(pkt->pts != AV_NOPTS_VALUE) {
         	global_audio_state->audio_clock = av_q2d(global_audio_state->audio_st->time_base) * pkt->pts;
         }
 
         gAudioFrameDataLengthRefBuffer[0] = dataLength;
         return AUDIO_DATA_ID;
+    }
+
+    return 0;
+}*/
+
+int decodeFrameFromPacket(AVPacket *aPacket) {
+	int n;
+	AVPacket *pkt = aPacket;
+    AVFrame *decoded_frame = NULL;
+    int got_frame = 0;
+
+    if (aPacket->stream_index == global_audio_state->audio_stream) {
+        	
+    	if (!decoded_frame) {
+    		if (!(decoded_frame = avcodec_alloc_frame())) {
+    			__android_log_print(ANDROID_LOG_INFO, TAG, "Could not allocate audio frame\n");
+    			gAudioFrameDataLengthRefBuffer[0] = 0;
+    	        return -2;
+    		}
+    	}
+    	
+    	if (avcodec_decode_audio4(global_audio_state->audio_st->codec, decoded_frame, &got_frame, aPacket) < 0) {
+    		__android_log_print(ANDROID_LOG_INFO, TAG, "Error while decoding\n");
+    		gAudioFrameDataLengthRefBuffer[0] = 0;
+    		return -2;
+    	}
+    	
+    	int data_size = 0;
+    	
+    	if (got_frame) {
+    		/* if a frame has been decoded, output it */
+    		data_size = av_samples_get_buffer_size(NULL, global_audio_state->audio_st->codec->channels,
+    	    		decoded_frame->nb_samples,
+    	    		global_audio_state->audio_st->codec->sample_fmt, 1);
+    	}
+    	
+    	memcpy(gAudioFrameRefBuffer, decoded_frame->data[0], data_size);
+    	
+    	avcodec_free_frame(&decoded_frame);
+    	
+        // TODO add this call back!
+        //*pts_ptr = pts;
+        n = 2 * global_audio_state->audio_st->codec->channels;
+        global_audio_state->audio_clock += (double)data_size /
+        		(double)(n * global_audio_state->audio_st->codec->sample_rate);
+
+        /* if update, update the audio clock w/pts */
+        if (pkt->pts != AV_NOPTS_VALUE) {
+        	global_audio_state->audio_clock = av_q2d(global_audio_state->audio_st->time_base) * pkt->pts;
+        }
+    	
+    	gAudioFrameDataLengthRefBuffer[0] = data_size;
+    	return AUDIO_DATA_ID;
     }
 
     return 0;
