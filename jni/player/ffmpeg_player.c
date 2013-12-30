@@ -22,6 +22,7 @@
 #include <jni_utils.h>
 #include <libavcodec/avcodec.h>
 #include <libavformat/avformat.h>
+#include <libswresample/swresample.h>
 #include <libavutil/mathematics.h>
 #include <pthread.h>
 #include <stdio.h>
@@ -46,6 +47,7 @@ typedef struct AudioState {
 	AVStream *audio_st;
 	char filename[1024];
 	int playstate;
+	SwrContext *swr;
 } AudioState;
 
 /* Since we only have one decoding thread, the Big Struct
@@ -316,7 +318,7 @@ void player_prepare(void * data) {
 
     __android_log_print(ANDROID_LOG_INFO, TAG, "avcodec_find_decoder %s--->", avctx->codec_name);
 
-    avctx->request_sample_fmt = AV_SAMPLE_FMT_S16;
+    //avctx->request_sample_fmt = AV_SAMPLE_FMT_S16;
     
     // Find the decoder for the audio stream
     codec = avcodec_find_decoder(avctx->codec_id);
@@ -345,6 +347,28 @@ void player_prepare(void * data) {
     	    break;
     }
 
+    if (avctx->channel_layout == 0) {
+    	avctx->channel_layout = av_get_default_channel_layout(avctx->channels);
+    }
+    
+    global_audio_state->swr = swr_alloc();
+    av_opt_set_int(global_audio_state->swr, "in_channel_layout", avctx->channel_layout, 0);
+    av_opt_set_int(global_audio_state->swr, "out_channel_layout", avctx->channel_layout,  0);
+    av_opt_set_int(global_audio_state->swr, "in_sample_rate", avctx->sample_rate, 0);
+    av_opt_set_int(global_audio_state->swr, "out_sample_rate", avctx->sample_rate, 0);
+    av_opt_set_sample_fmt(global_audio_state->swr, "in_sample_fmt", avctx->sample_fmt, 0);
+    av_opt_set_sample_fmt(global_audio_state->swr, "out_sample_fmt", AV_SAMPLE_FMT_S16,  0);
+    
+    if (swr_init(global_audio_state->swr) < 0) {
+    	if (global_audio_state->swr) {
+    		swr_free(&global_audio_state->swr);
+    	}
+    	
+    	global_audio_state->swr = NULL;
+    }
+    
+    //__android_log_print(ANDROID_LOG_ERROR, TAG, "----> %d %d %d", (int)avctx->sample_fmt, (int)AV_SAMPLE_FMT_S16, ret);
+    
 	attach_to_current_thread(m_vm, gClassPathObject, &is_attached, &env, &interface_class);
 
 	if (is_attached) {
@@ -500,7 +524,14 @@ int decodeFrameFromPacket(AVPacket *aPacket) {
     	    		global_audio_state->audio_st->codec->sample_fmt, 1);
     	}
     	
-    	memcpy(gAudioFrameRefBuffer, decoded_frame->data[0], data_size);
+    	//__android_log_print(ANDROID_LOG_INFO, TAG, "-->1 %d\n", decoded_frame->nb_samples);
+    	//__android_log_print(ANDROID_LOG_INFO, TAG, "-->2 %d\n", data_size);
+    	
+    	if (global_audio_state->swr) {
+    		swr_convert(global_audio_state->swr, (uint8_t **) &gAudioFrameRefBuffer, decoded_frame->nb_samples, (uint8_t const **) decoded_frame->data, decoded_frame->nb_samples); 
+    	} else {
+    		memcpy(gAudioFrameRefBuffer, decoded_frame->data[0], data_size);
+    	}
     	
     	avcodec_free_frame(&decoded_frame);
     	
