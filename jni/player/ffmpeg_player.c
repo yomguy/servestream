@@ -22,14 +22,11 @@
 #include <jni_utils.h>
 #include <libavcodec/avcodec.h>
 #include <libavformat/avformat.h>
-#include <libswresample/swresample.h>
 #include <libavutil/mathematics.h>
 #include <pthread.h>
 #include <stdio.h>
 
 #define AUDIO_DATA_ID 1
-
-#define MAX_AUDIO_FRAME_SIZE 192000 // 1 second of 48khz 32bit audio
 
 typedef struct AudioState {
 	pthread_t decoder_thread;
@@ -47,7 +44,6 @@ typedef struct AudioState {
 	AVStream *audio_st;
 	char filename[1024];
 	int playstate;
-	SwrContext *swr;
 } AudioState;
 
 /* Since we only have one decoding thread, the Big Struct
@@ -203,7 +199,7 @@ Java_net_sourceforge_servestream_media_FFmpegPlayer_bind_1variables(JNIEnv* env,
     }
 
     gAudioFrameRefBufferMaxSize = (*env)->GetArrayLength(env, gAudioFrameRef);
-    if (gAudioFrameRefBufferMaxSize < MAX_AUDIO_FRAME_SIZE) {
+    if (gAudioFrameRefBufferMaxSize < AVCODEC_MAX_AUDIO_FRAME_SIZE) {
     	__android_log_print(ANDROID_LOG_ERROR, TAG, "failed to read or incorrect buffer length: %d", gAudioFrameRefBufferMaxSize);
     	notify(env, obj, MEDIA_ERROR, 0, 0, 0);
     	return;
@@ -318,8 +314,6 @@ void player_prepare(void * data) {
 
     __android_log_print(ANDROID_LOG_INFO, TAG, "avcodec_find_decoder %s--->", avctx->codec_name);
 
-    //avctx->request_sample_fmt = AV_SAMPLE_FMT_S16;
-    
     // Find the decoder for the audio stream
     codec = avcodec_find_decoder(avctx->codec_id);
 
@@ -347,28 +341,6 @@ void player_prepare(void * data) {
     	    break;
     }
 
-    if (avctx->channel_layout == 0) {
-    	avctx->channel_layout = av_get_default_channel_layout(avctx->channels);
-    }
-    
-    global_audio_state->swr = swr_alloc();
-    av_opt_set_int(global_audio_state->swr, "in_channel_layout", avctx->channel_layout, 0);
-    av_opt_set_int(global_audio_state->swr, "out_channel_layout", avctx->channel_layout,  0);
-    av_opt_set_int(global_audio_state->swr, "in_sample_rate", avctx->sample_rate, 0);
-    av_opt_set_int(global_audio_state->swr, "out_sample_rate", avctx->sample_rate, 0);
-    av_opt_set_sample_fmt(global_audio_state->swr, "in_sample_fmt", avctx->sample_fmt, 0);
-    av_opt_set_sample_fmt(global_audio_state->swr, "out_sample_fmt", AV_SAMPLE_FMT_S16,  0);
-    
-    if (swr_init(global_audio_state->swr) < 0) {
-    	if (global_audio_state->swr) {
-    		swr_free(&global_audio_state->swr);
-    	}
-    	
-    	global_audio_state->swr = NULL;
-    }
-    
-    //__android_log_print(ANDROID_LOG_ERROR, TAG, "----> %d %d %d", (int)avctx->sample_fmt, (int)AV_SAMPLE_FMT_S16, ret);
-    
 	attach_to_current_thread(m_vm, gClassPathObject, &is_attached, &env, &interface_class);
 
 	if (is_attached) {
@@ -463,7 +435,7 @@ Java_net_sourceforge_servestream_media_FFmpegPlayer__1reset(JNIEnv* env, jobject
     pthread_mutex_unlock(lock);
 }
 
-/*int decodeFrameFromPacket(AVPacket *aPacket) {
+int decodeFrameFromPacket(AVPacket *aPacket) {
 	int n;
 	AVPacket *pkt = aPacket;
 
@@ -479,75 +451,15 @@ Java_net_sourceforge_servestream_media_FFmpegPlayer__1reset(JNIEnv* env, jobject
         //*pts_ptr = pts;
         n = 2 * global_audio_state->audio_st->codec->channels;
         global_audio_state->audio_clock += (double)dataLength /
-        		(double)(n * global_audio_state->audio_st->codec->sample_rate);*/
+        		(double)(n * global_audio_state->audio_st->codec->sample_rate);
 
         /* if update, update the audio clock w/pts */
-        /*if(pkt->pts != AV_NOPTS_VALUE) {
+        if(pkt->pts != AV_NOPTS_VALUE) {
         	global_audio_state->audio_clock = av_q2d(global_audio_state->audio_st->time_base) * pkt->pts;
         }
 
         gAudioFrameDataLengthRefBuffer[0] = dataLength;
         return AUDIO_DATA_ID;
-    }
-
-    return 0;
-}*/
-
-int decodeFrameFromPacket(AVPacket *aPacket) {
-	int n;
-	AVPacket *pkt = aPacket;
-    AVFrame *decoded_frame = NULL;
-    int got_frame = 0;
-
-    if (aPacket->stream_index == global_audio_state->audio_stream) {
-        	
-    	if (!decoded_frame) {
-    		if (!(decoded_frame = avcodec_alloc_frame())) {
-    			__android_log_print(ANDROID_LOG_INFO, TAG, "Could not allocate audio frame\n");
-    			gAudioFrameDataLengthRefBuffer[0] = 0;
-    	        return -2;
-    		}
-    	}
-    	
-    	if (avcodec_decode_audio4(global_audio_state->audio_st->codec, decoded_frame, &got_frame, aPacket) < 0) {
-    		__android_log_print(ANDROID_LOG_INFO, TAG, "Error while decoding\n");
-    		gAudioFrameDataLengthRefBuffer[0] = 0;
-    		return -2;
-    	}
-    	
-    	int data_size = 0;
-    	
-    	if (got_frame) {
-    		/* if a frame has been decoded, output it */
-    		data_size = av_samples_get_buffer_size(NULL, global_audio_state->audio_st->codec->channels,
-    	    		decoded_frame->nb_samples,
-    	    		global_audio_state->audio_st->codec->sample_fmt, 1);
-    	}
-    	
-    	//__android_log_print(ANDROID_LOG_INFO, TAG, "-->1 %d\n", decoded_frame->nb_samples);
-    	//__android_log_print(ANDROID_LOG_INFO, TAG, "-->2 %d\n", data_size);
-    	
-    	if (global_audio_state->swr) {
-    		swr_convert(global_audio_state->swr, (uint8_t **) &gAudioFrameRefBuffer, decoded_frame->nb_samples, (uint8_t const **) decoded_frame->data, decoded_frame->nb_samples); 
-    	} else {
-    		memcpy(gAudioFrameRefBuffer, decoded_frame->data[0], data_size);
-    	}
-    	
-    	avcodec_free_frame(&decoded_frame);
-    	
-        // TODO add this call back!
-        //*pts_ptr = pts;
-        n = 2 * global_audio_state->audio_st->codec->channels;
-        global_audio_state->audio_clock += (double)data_size /
-        		(double)(n * global_audio_state->audio_st->codec->sample_rate);
-
-        /* if update, update the audio clock w/pts */
-        if (pkt->pts != AV_NOPTS_VALUE) {
-        	global_audio_state->audio_clock = av_q2d(global_audio_state->audio_st->time_base) * pkt->pts;
-        }
-    	
-    	gAudioFrameDataLengthRefBuffer[0] = data_size;
-    	return AUDIO_DATA_ID;
     }
 
     return 0;
