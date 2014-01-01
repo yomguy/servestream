@@ -17,19 +17,26 @@
 
 package net.sourceforge.servestream.media;
 
+import java.net.URISyntaxException;
+
+import net.moraleboost.streamscraper.ScrapeException;
 import net.sourceforge.servestream.provider.Media;
 
 import android.content.Context;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.AsyncTask;
+import android.util.Log;
 
 public class ShoutCastRetrieverTask {
+	private static final String TAG = ShoutCastRetrieverTask.class.getName();
+	
 	private Context mContext = null;
 	private long mId;
 	private MetadataRetrieverListener mListener;
 	private MetadataTask mTask;
 	private boolean mNoMetadata;
+	private String mPreferredScraper;
 	
 	public ShoutCastRetrieverTask(Context context, long id) {
 		mContext = context;
@@ -37,6 +44,7 @@ public class ShoutCastRetrieverTask {
 		
 	    mTask = null;
 	    mNoMetadata = false;
+	    mPreferredScraper = "";
 	    
 		// Verify that the host activity implements the callback interface
 	    try {
@@ -72,6 +80,44 @@ public class ShoutCastRetrieverTask {
 		cursor.close();
 		
 		return uri;
+	}
+	
+	private Metadata getMetadata(Context context, long id, ShoutCastMetadataRetriever mmr) {
+		String title =  mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_TITLE);
+		String artist = mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ARTIST);
+		
+		// if we didn't obtain at least the title, album or artist then don't store
+		// the metadata since it's pretty useless
+		if (title == null && 
+				artist == null) {
+			return null;
+		}
+		
+		// Form an array specifying which columns to return. 
+		Metadata metadata = new Metadata();
+		metadata.setTitle(title);
+		metadata.setArtist(artist);
+		
+		return metadata;
+	}
+	
+	private boolean retrieveMetadata(String uri, ShoutCastMetadataRetriever smr) {
+		try {
+			if (mPreferredScraper.equals(ShoutCastMetadataRetriever.SHOUTCAST_STREAM)) {
+				smr.setShoutCastDataSource(uri);
+			} else if (mPreferredScraper.equals(ShoutCastMetadataRetriever.ICECAST_STREAM)) {
+				smr.setIceCastDataSource(uri);
+			} else {
+				mPreferredScraper = smr.setDataSource(uri);
+			}
+			return true;
+		} catch (ScrapeException e) {
+			Log.e(TAG, "ShoutCast metadata for track could not be retrieved");
+		} catch (URISyntaxException e) {
+			Log.e(TAG, "ShoutCast metadata for track could not be retrieved");
+		}
+		
+		return false;
 	}
 	
 	public synchronized void start() {
@@ -115,38 +161,22 @@ public class ShoutCastRetrieverTask {
 				return;
 			}
 			
-			MediaMetadataRetriever mmr = new MediaMetadataRetriever();
+			ShoutCastMetadataRetriever smr = new ShoutCastMetadataRetriever();
 		
 			String uri = getUri(mContext, mId);
 		
 			if (uri != null) {
 				while (!isCancelled()) {
-					Metadata metadata = null;
 					metadataFound = false;
-					try {
-						mmr.setDataSource(uri);
-						
-						String title =  mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ICY_TITLE);
-						String artist = mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ICY_ARTIST);
-						
-						// if we didn't obtain at least the title and artist then don't store
-						// the metadata since it's pretty useless
-						if (title != null && 
-								artist != null) {
-						
-							// Form an array specifying which columns to return. 
-							metadata = new Metadata();
-							metadata.setTitle(title);
-							metadata.setArtist(artist);
-						
-							metadataFound = true;
-						}
-					} catch (IllegalArgumentException ex) {
-					}
+					metadataFound = retrieveMetadata(uri, smr);
+					
+					Metadata metadata;
 					
 					if (metadataFound) {
-						if (mListener != null) {
-							mListener.onMetadataParsed(mId, metadata);
+						if ((metadata = getMetadata(mContext, mId, smr)) != null) {
+							if (mListener != null) {
+								mListener.onMetadataParsed(mId, metadata);
+							}
 						}
 						
 						retries = 0;
