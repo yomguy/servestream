@@ -20,12 +20,12 @@
 
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
 	package="net.sourceforge.servestream"
-	android:versionName="0.6.4"
-	android:versionCode="82"
+	android:versionName="0.6.5"
+	android:versionCode="86"
 	android:installLocation="auto" >
 
 	<uses-sdk
-	    android:targetSdkVersion="18"
+	    android:targetSdkVersion="19"
 	    android:minSdkVersion="8" />
 
 	<uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
