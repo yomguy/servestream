@@ -127,6 +127,11 @@
             android:windowSoftInputMode="adjustResize" />
         
 		<activity
+            android:name=".activity.BluetoothOptionsActivity"
+            android:theme="@style/Theme.ServeStream.Dark"
+            android:label="@string/pref_bluetooth_options" />
+
+		<activity
 		    android:name=".activity.NowPlayingActivity"
 		    android:theme="@style/Theme.ServeStream.Dark"
 			android:label="@string/now_playing_label" />
