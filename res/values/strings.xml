@@ -32,6 +32,9 @@
 	<string name="set_alarm_label">Set Alarm</string>
     
     <!-- Other -->
+    <string name="devices_label">Devices</string>
+    <string name="autostart_label">Auto start</string>
+    <string name="opening_url_message">Opening URL&#8230;</string>
     <string name="confirm_label">Confirm</string>
     <string name="cancel_label">Cancel</string>
     <string name="store_playlist_entries">Store individual playlist entries</string>
@@ -62,6 +65,7 @@
 	
 	<!-- Actions on URLs -->
     <string name="add_to_playlist_label">Add to playlist</string>
+    <string name="autostart_on_bluetooth">Auto start with bluetooth</string>
 	<string name="edit_label">Edit</string>
 	<string name="delete_label">Delete</string>
 	<string name="save_label">Save</string>
@@ -93,6 +97,8 @@
     <string name="about_pref">About</string>
     <string name="pref_backup_and_restore">Backup &amp; restore</string>
     <string name="pref_backup">Backup to JSON file</string>
+    <string name="pref_bluetooth_category">Bluetooth</string>
+    <string name="pref_bluetooth_options">Bluetooth options</string>
     <string name="pref_restore">Restore from JSON file</string>
     <string name="pref_donate">Donate</string>
 	<string name="pref_general_settings_category">General settings</string>
@@ -157,6 +163,7 @@
     <string name="no_items_label">There are no items in this list.</string>
     <string name="no_urls_label">You haven\'t entered any urls yet.</string>
     <string name="no_results_label">No results found.</string>
+    <string name="no_paired_devices_label">No paired devices found.</string>
     
     <!-- Title for AlarmClock activity -->
     <string name="alarm_list_title">Alarms</string>

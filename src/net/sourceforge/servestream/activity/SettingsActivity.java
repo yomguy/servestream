@@ -36,6 +36,7 @@ import android.view.MenuItem;
 public class SettingsActivity extends PreferenceActivity {
 	private static final String TAG = PreferenceActivity.class.getName();
 
+	private static final String PREF_BLUETOOTH_OPTIONS = "bluetooth_options";
 	private static final String PREF_BACKUP = "backup";
 	private static final String PREF_RESTORE = "restore";
 	private static final String PREF_ABOUT = "about";
@@ -49,6 +50,18 @@ public class SettingsActivity extends PreferenceActivity {
 	        setContentView(R.layout.activity_settings);
 			
 			addPreferencesFromResource(R.xml.preferences);
+			findPreference(PREF_BLUETOOTH_OPTIONS).setOnPreferenceClickListener(
+				new OnPreferenceClickListener() {
+
+					@Override
+					public boolean onPreferenceClick(Preference preference) {
+						SettingsActivity.this.startActivity(new Intent(
+								SettingsActivity.this, BluetoothOptionsActivity.class));
+						return true;
+					}
+
+				});
+			
 			findPreference(PREF_ABOUT).setOnPreferenceClickListener(
 					new OnPreferenceClickListener() {
 
@@ -116,7 +129,7 @@ public class SettingsActivity extends PreferenceActivity {
 				BackupUtils.backup(this);
 			} else if (preference.getKey().equals(PREF_RESTORE)) {
 				BackupUtils.restore(this);
-			}
+			} 
 		}
 		
 		return true;

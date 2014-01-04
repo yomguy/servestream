@@ -31,6 +31,7 @@ import net.sourceforge.servestream.utils.UriBeanLoader;
 
 import net.sourceforge.servestream.R;
 import net.sourceforge.servestream.activity.AddUrlActivity;
+import net.sourceforge.servestream.activity.BluetoothOptionsActivity;
 import net.sourceforge.servestream.activity.StreamEditorActivity;
 import net.sourceforge.servestream.adapter.UrlListAdapter;
 import net.sourceforge.servestream.alarm.Alarm;
@@ -41,6 +42,7 @@ import net.sourceforge.servestream.utils.PreferenceConstants;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.bluetooth.BluetoothAdapter;
 import android.content.BroadcastReceiver;
 import android.content.ContentResolver;
 import android.content.Context;
@@ -253,7 +255,7 @@ public class UrlListFragment extends ListFragment implements
 		}
 		
 	    showDialog(LOADING_DIALOG);
-	    mDetermineActionTask = new DetermineActionTask(this.getActivity(), uriBean, this);
+	    mDetermineActionTask = new DetermineActionTask(getActivity(), uriBean, this);
 	    mDetermineActionTask.execute();
 		
 		return true;
@@ -267,6 +269,7 @@ public class UrlListFragment extends ListFragment implements
 		Toast.makeText(this.getActivity(), R.string.url_not_opened_message, Toast.LENGTH_SHORT).show();
 	}
 	
+	@Override
 	public void onMusicRetrieverPrepared(String action, UriBean uri, long[] list) {
 		dismissDialog(LOADING_DIALOG);
 		
@@ -344,8 +347,13 @@ public class UrlListFragment extends ListFragment implements
     	mSelectedMenuItem = uri;
     	
         PopupMenu popup = new PopupMenu(getActivity(), v);
+        Menu menu = popup.getMenu();
         MenuInflater inflater = popup.getMenuInflater();
-        inflater.inflate(R.menu.uri_list_uri_actions, popup.getMenu());
+        inflater.inflate(R.menu.uri_list_uri_actions, menu);
+		BluetoothAdapter bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+		if (bluetoothAdapter == null) {
+			menu.removeItem(R.id.menu_autostart_on_bluetooth);
+		}
         popup.setOnMenuItemClickListener(mPopupMenuOnMenuItemClickListener);
         popup.show();
     }
@@ -389,6 +397,12 @@ public class UrlListFragment extends ListFragment implements
 					intent.setType("text/plain");
 					intent.putExtra(Intent.EXTRA_TEXT, getString(R.string.share_signature, url, appName));
 					startActivity(Intent.createChooser(intent, getString(R.string.share_label)));
+					return true;
+				case R.id.menu_autostart_on_bluetooth:
+			        SharedPreferences prefs = getActivity().getSharedPreferences(BluetoothOptionsActivity.PREFS_NAME, Context.MODE_PRIVATE);
+			        Editor editor = prefs.edit();
+			        editor.putString(BluetoothOptionsActivity.PREF_AUTOSTART_STREAM, mSelectedMenuItem.getUri().toString());
+			        editor.commit();		
 					return true;
 				default:
 					return false;
