@@ -21,6 +21,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import net.sourceforge.servestream.R;
+import net.sourceforge.servestream.activity.BluetoothOptionsActivity;
 import net.sourceforge.servestream.adapter.BrowseAdapter;
 import net.sourceforge.servestream.bean.UriBean;
 import net.sourceforge.servestream.dbutils.StreamDatabase;
@@ -34,8 +35,12 @@ import net.sourceforge.servestream.utils.WebpageParserTask;
 
 import android.annotation.SuppressLint;
 import android.app.AlertDialog;
+import android.bluetooth.BluetoothAdapter;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
+import android.content.SharedPreferences.Editor;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
@@ -292,6 +297,7 @@ public class BrowseFragment extends ListFragment implements
 		Toast.makeText(this.getActivity(), R.string.url_not_opened_message, Toast.LENGTH_SHORT).show();
 	}
 	
+	@Override
 	public void onMusicRetrieverPrepared(String action, UriBean uri, long[] list) {
 		if (action.equals(DetermineActionTask.URL_ACTION_UNDETERMINED)) {
 			dismissDialog(LOADING_DIALOG);
@@ -351,8 +357,13 @@ public class BrowseFragment extends ListFragment implements
     	mSelectedMenuItem = uri;
     	
         PopupMenu popup = new PopupMenu(getActivity(), v);
+        Menu menu = popup.getMenu();
         MenuInflater inflater = popup.getMenuInflater();
-        inflater.inflate(R.menu.browse_uri_actions, popup.getMenu());
+        inflater.inflate(R.menu.browse_uri_actions, menu);
+		BluetoothAdapter bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+		if (bluetoothAdapter == null) {
+			menu.removeItem(R.id.menu_autostart_on_bluetooth);
+		}
         popup.setOnMenuItemClickListener(mPopupMenuOnMenuItemClickListener);
         popup.show();
     }
@@ -389,6 +400,12 @@ public class BrowseFragment extends ListFragment implements
 					intent.setType("text/plain");
 					intent.putExtra(Intent.EXTRA_TEXT, getString(R.string.share_signature, url, appName));
 					startActivity(Intent.createChooser(intent, getString(R.string.share_label)));
+					return true;
+				case R.id.menu_autostart_on_bluetooth:
+			        SharedPreferences prefs = getActivity().getSharedPreferences(BluetoothOptionsActivity.PREFS_NAME, Context.MODE_PRIVATE);
+			        Editor editor = prefs.edit();
+			        editor.putString(BluetoothOptionsActivity.PREF_AUTOSTART_STREAM, mSelectedMenuItem.getUri().toString());
+			        editor.commit();		
 					return true;
 				default:
 					return false;

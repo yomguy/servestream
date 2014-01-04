@@ -343,6 +343,7 @@ public class AlarmKlaxon extends Service implements ServiceConnection,
 				
 	}
 
+	@Override
 	public void onMusicRetrieverPrepared(String action, UriBean uri, long[] list) {
 		if (action.equals(DetermineActionTask.URL_ACTION_PLAY)) {
 			MusicUtils.playAllFromService(AlarmKlaxon.this, list, 0);        

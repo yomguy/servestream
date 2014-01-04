@@ -59,6 +59,7 @@ import java.util.Vector;
 
 import net.sourceforge.servestream.R;
 import net.sourceforge.servestream.activity.MediaPlayerActivity;
+import net.sourceforge.servestream.bean.UriBean;
 import net.sourceforge.servestream.media.Metadata;
 import net.sourceforge.servestream.media.MetadataRetrieverTask;
 import net.sourceforge.servestream.media.MultiPlayer;
@@ -69,6 +70,9 @@ import net.sourceforge.servestream.provider.Media;
 import net.sourceforge.servestream.receiver.ConnectivityReceiver;
 import net.sourceforge.servestream.receiver.MediaButtonIntentReceiver;
 import net.sourceforge.servestream.service.RemoteControlClientCompat.MetadataEditorCompat;
+import net.sourceforge.servestream.transport.AbsTransport;
+import net.sourceforge.servestream.transport.TransportFactory;
+import net.sourceforge.servestream.utils.DetermineActionTask;
 import net.sourceforge.servestream.utils.MusicUtils;
 import net.sourceforge.servestream.utils.PreferenceConstants;
 import net.sourceforge.servestream.utils.Utils;
@@ -80,7 +84,8 @@ import net.sourceforge.servestream.utils.Utils;
 public class MediaPlaybackService extends Service implements 
 		OnSharedPreferenceChangeListener,
 		MetadataRetrieverListener,
-		MultiPlayerListener {
+		MultiPlayerListener,
+		DetermineActionTask.MusicRetrieverPreparedListener {
 
     /** used to specify whether enqueue() should start playing
      * the new list of files right away, next or once all the currently
@@ -127,6 +132,8 @@ public class MediaPlaybackService extends Service implements
     public static final String PREVIOUS_ACTION = "net.sourceforge.servestream.musicservicecommand.previous";
     public static final String NEXT_ACTION = "net.sourceforge.servestream.musicservicecommand.next";
 
+    public static final String BLUETOOTH_DEVICE_PAIRED = "net.sourceforge.servestream.musicservicecommand.bluetooth_device_paired";
+    
     public static final int SLEEP_TIMER_OFF = 0;
     
     public static final int TRACK_ENDED = 1;
@@ -590,6 +597,17 @@ public class MediaPlaybackService extends Service implements
                 pause(true);
                 mPausedByTransientLossOfFocus = false;
                 seek(0);
+            } else if (BLUETOOTH_DEVICE_PAIRED.equals(action)) {
+        		Uri uri = TransportFactory.getUri(intent.getStringExtra("uri"));
+
+        		if (uri != null) {
+        			UriBean uriBean = TransportFactory.getTransport(uri.getScheme()).createUri(uri);
+        			
+        			AbsTransport transport = TransportFactory.getTransport(uriBean.getProtocol());
+        			transport.setUri(uriBean);
+        	   
+        			new DetermineActionTask(this, uriBean, this).execute();
+        		}
             }
         }
         
@@ -2062,4 +2080,11 @@ public class MediaPlaybackService extends Service implements
         	mOpenFailedCounter = 0;
         }
     }
+
+	@Override
+	public void onMusicRetrieverPrepared(String action, UriBean uri, long[] list) {
+		if (action.equals(DetermineActionTask.URL_ACTION_PLAY)) {
+			open(list, 0);
+		}
+	}
 }
