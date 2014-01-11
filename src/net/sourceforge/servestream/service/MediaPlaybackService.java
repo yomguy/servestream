@@ -2001,13 +2001,13 @@ public class MediaPlaybackService extends Service implements
 		
 		// Form an array specifying which columns to return. 
 		ContentValues values = new ContentValues();
-		values.put(Media.MediaColumns.TITLE, validateAttribute(metadata.getTitle()));
-		values.put(Media.MediaColumns.ALBUM, validateAttribute(metadata.getAlbum()));
-		values.put(Media.MediaColumns.ARTIST, validateAttribute(metadata.getArtist()));
-		values.put(Media.MediaColumns.DURATION, convertToInteger(metadata.getDuration()));
+		values.put(Media.MediaColumns.TITLE, validateAttribute(metadata.getString(Metadata.METADATA_KEY_TITLE)));
+		values.put(Media.MediaColumns.ALBUM, validateAttribute(metadata.getString(Metadata.METADATA_KEY_ALBUM)));
+		values.put(Media.MediaColumns.ARTIST, validateAttribute(metadata.getString(Metadata.METADATA_KEY_ARTIST)));
+		values.put(Media.MediaColumns.DURATION, convertToInteger(metadata.getString(Metadata.METADATA_KEY_DURATION)));
 		
-		if (metadata.getArtwork() != null) {
-			values.put(Media.MediaColumns.ARTWORK, metadata.getArtwork());
+		if (metadata.getByteArray(Metadata.METADATA_KEY_ARTWORK) != null) {
+			values.put(Media.MediaColumns.ARTWORK, metadata.getByteArray(Metadata.METADATA_KEY_ARTWORK));
 		}
 		
 		// Get the base URI for the Media Files table in the Media content provider.
