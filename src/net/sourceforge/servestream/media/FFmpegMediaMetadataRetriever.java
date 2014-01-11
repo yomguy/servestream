@@ -1,6 +1,6 @@
 /*
  * ServeStream: A HTTP stream browser/player for Android
- * Copyright 2013 William Seemann
+ * Copyright 2014 William Seemann
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,24 +17,92 @@
 
 package net.sourceforge.servestream.media;
 
+import java.io.File;
+
+import android.annotation.SuppressLint;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.util.Log;
 
 /**
- * MediaMetadataRetriever class provides a unified interface for retrieving
+ * FFmpegMediaMetadataRetriever class provides a unified interface for retrieving
  * frame and meta data from an input media file.
  */
-public class MediaMetadataRetriever
+public class FFmpegMediaMetadataRetriever
 {
+	private final static String TAG = "FFmpegMediaMetadataRetriever";
+	
+	/**
+	 * User defined bitmap configuration. A bitmap configuration describes how pixels are
+	 * stored. This affects the quality (color depth) as well as the ability to display
+	 * transparent/translucent colors. 
+	 */
+	public static Bitmap.Config IN_PREFERRED_CONFIG;
+	
+	@SuppressLint("SdCardPath")
+	private static final String LIBRARY_PATH = "/data/data/";
+	
+	private static final String [] JNI_LIBRARIES = {
+		"libavutil.so",
+		"libswscale.so",
+		"libavcodec.so",
+		"libavformat.so",
+		"libffmpeg_mediametadataretriever_jni.so"		
+	};
+	
     static {
-        System.loadLibrary("media1_jni");
+    	StackTraceElement[] stackTraceElements = Thread.currentThread().getStackTrace();
+    	
+    	StringBuffer path = null;
+    	File file = null;
+    	boolean foundLibs = false;
+    	
+    	for (int j = 0; j < stackTraceElements.length; j++) {
+    		String libraryPath = stackTraceElements[j].getClassName();
+    	
+    		String [] packageFragments = libraryPath.trim().split("\\.");
+    	
+    		path = new StringBuffer(LIBRARY_PATH);
+    	
+    		for (int i = 0; i < packageFragments.length; i++) {
+    			if (i > 0) {
+    				path.append(".");
+    			}
+    		
+    			path.append(packageFragments[i]);
+    			try {
+    				//System.load(path.toString() + "/lib/" + JNI_LIBRARIES[0]);
+    				file = new File(path.toString() + "/lib/" + JNI_LIBRARIES[0]);
+    				if (file.exists()) {
+    					path.append("/lib/");
+    					foundLibs = true;
+    					break;
+    				}
+    			} catch (UnsatisfiedLinkError ex) {
+    			}
+    		}
+    		
+    		if (foundLibs) {
+    			break;
+    		}
+    	}
+    	
+    	if (!foundLibs) {
+    		Log.e(TAG, TAG + " libraries not found. Did you forget to add them to your libs folder?");
+    		throw new UnsatisfiedLinkError();
+    	}
+    	
+    	for (int i = 0; i < JNI_LIBRARIES.length; i++) {
+    		System.load(path.toString() + JNI_LIBRARIES[i]);
+    	}
+    	
         native_init();
     }
 
     // The field below is accessed by native methods
     private int mNativeContext;
     
-    public MediaMetadataRetriever() {
+    public FFmpegMediaMetadataRetriever() {
     	native_setup();
     }
 
@@ -63,6 +131,56 @@ public class MediaMetadataRetriever
 
     /**
      * Call this method after setDataSource(). This method finds a
+     * representative frame close to the given time position by considering
+     * the given option if possible, and returns it as a bitmap. This is
+     * useful for generating a thumbnail for an input data source or just
+     * obtain and display a frame at the given time position.
+     *
+     * @param timeUs The time position where the frame will be retrieved.
+     * When retrieving the frame at the given time position, there is no
+     * guarantee that the data source has a frame located at the position.
+     * When this happens, a frame nearby will be returned. If timeUs is
+     * negative, time position and option will ignored, and any frame
+     * that the implementation considers as representative may be returned.
+     *
+     * @param option a hint on how the frame is found. Use
+     * {@link #OPTION_PREVIOUS_SYNC} if one wants to retrieve a sync frame
+     * that has a timestamp earlier than or the same as timeUs. Use
+     * {@link #OPTION_NEXT_SYNC} if one wants to retrieve a sync frame
+     * that has a timestamp later than or the same as timeUs. Use
+     * {@link #OPTION_CLOSEST_SYNC} if one wants to retrieve a sync frame
+     * that has a timestamp closest to or the same as timeUs. Use
+     * {@link #OPTION_CLOSEST} if one wants to retrieve a frame that may
+     * or may not be a sync frame but is closest to or the same as timeUs.
+     * {@link #OPTION_CLOSEST} often has larger performance overhead compared
+     * to the other options if there is no sync frame located at timeUs.
+     *
+     * @return A Bitmap containing a representative video frame, which
+     *         can be null, if such a frame cannot be retrieved.
+     */
+    public Bitmap getFrameAtTime(long timeUs, int option) {
+        if (option < OPTION_PREVIOUS_SYNC ||
+                option > OPTION_CLOSEST) {
+            throw new IllegalArgumentException("Unsupported option: " + option);
+        }
+
+    	Bitmap b = null;
+    	
+        BitmapFactory.Options bitmapOptionsCache = new BitmapFactory.Options();
+        bitmapOptionsCache.inPreferredConfig = getInPreferredConfig();
+        bitmapOptionsCache.inDither = false;
+    	
+        byte [] picture = _getFrameAtTime(timeUs, option);
+        
+        if (picture != null) {
+        	b = BitmapFactory.decodeByteArray(picture, 0, picture.length, bitmapOptionsCache);
+        }
+        
+        return b;
+    }
+
+    /**
+     * Call this method after setDataSource(). This method finds a
      * representative frame close to the given time position if possible,
      * and returns it as a bitmap. This is useful for generating a thumbnail
      * for an input data source. Call this method if one does not care
@@ -85,10 +203,10 @@ public class MediaMetadataRetriever
     	Bitmap b = null;
     	
         BitmapFactory.Options bitmapOptionsCache = new BitmapFactory.Options();
-        bitmapOptionsCache.inPreferredConfig = Bitmap.Config.RGB_565;
+        bitmapOptionsCache.inPreferredConfig = getInPreferredConfig();
         bitmapOptionsCache.inDither = false;
     	
-        byte [] picture = _getFrameAtTime(timeUs);
+        byte [] picture = _getFrameAtTime(timeUs, OPTION_CLOSEST_SYNC);
         
         if (picture != null) {
         	b = BitmapFactory.decodeByteArray(picture, 0, picture.length, bitmapOptionsCache);
@@ -112,10 +230,10 @@ public class MediaMetadataRetriever
      * @see #getFrameAtTime(long, int)
      */
     public Bitmap getFrameAtTime() {
-        return getFrameAtTime(-1);
+        return getFrameAtTime(-1, OPTION_CLOSEST_SYNC);
     }
     
-    private native byte [] _getFrameAtTime(long timeUs);
+    private native byte [] _getFrameAtTime(long timeUs, int option);
     
     /**
      * Call this method after setDataSource(). This method finds the optional
@@ -144,6 +262,56 @@ public class MediaMetadataRetriever
             super.finalize();
         }
     }
+
+    private Bitmap.Config getInPreferredConfig() {
+    	if (IN_PREFERRED_CONFIG != null) {
+    		return IN_PREFERRED_CONFIG;
+    	}
+    	
+    	return Bitmap.Config.RGB_565;
+    }
+    
+    /**
+     * Option used in method {@link #getFrameAtTime(long, int)} to get a
+     * frame at a specified location.
+     *
+     * @see #getFrameAtTime(long, int)
+     */
+    /* Do not change these option values without updating their counterparts
+     * in jni/metadata/ffmpeg_mediametadataretriever.h!
+     */
+    /**
+     * This option is used with {@link #getFrameAtTime(long, int)} to retrieve
+     * a sync (or key) frame associated with a data source that is located
+     * right before or at the given time.
+     *
+     * @see #getFrameAtTime(long, int)
+     */
+    public static final int OPTION_PREVIOUS_SYNC    = 0x00;
+    /**
+     * This option is used with {@link #getFrameAtTime(long, int)} to retrieve
+     * a sync (or key) frame associated with a data source that is located
+     * right after or at the given time.
+     *
+     * @see #getFrameAtTime(long, int)
+     */
+    public static final int OPTION_NEXT_SYNC        = 0x01;
+    /**
+     * This option is used with {@link #getFrameAtTime(long, int)} to retrieve
+     * a sync (or key) frame associated with a data source that is located
+     * closest to (in time) or at the given time.
+     *
+     * @see #getFrameAtTime(long, int)
+     */
+    public static final int OPTION_CLOSEST_SYNC     = 0x02;
+    /**
+     * This option is used with {@link #getFrameAtTime(long, int)} to retrieve
+     * a frame (not necessarily a key frame) associated with a data source that
+     * is located closest to or at the given time.
+     *
+     * @see #getFrameAtTime(long, int)
+     */
+    public static final int OPTION_CLOSEST          = 0x03;
 
     /**
      * The metadata key to retrieve the name of the set this work belongs to.
@@ -238,4 +406,29 @@ public class MediaMetadataRetriever
      * The metadata key to retrieve the duration of the work in milliseconds.
      */
     public static final String METADATA_KEY_DURATION = "duration";
+    /**
+     * The metadata key to retrieve the audio codec of the work.
+     */
+    public static final String METADATA_KEY_AUDIO_CODEC = "audio_codec";
+    /**
+     * The metadata key to retrieve the video codec of the work.
+     */
+    public static final String METADATA_KEY_VIDEO_CODEC = "video_codec";
+    /**
+     * This key retrieves the video rotation angle in degrees, if available.
+     * The video rotation angle may be 0, 90, 180, or 270 degrees.
+     */
+    public static final String METADATA_KEY_VIDEO_ROTATION = "rotation";
+    /**
+     * The metadata key to retrieve the main creator of the work.
+     */
+    public static final String METADATA_KEY_ICY_METADATA = "icy_metadata";
+    /**
+     * The metadata key to retrieve the main creator of the work.
+     */
+    //private static final String METADATA_KEY_ICY_ARTIST = "icy_artist";
+    /**
+     * The metadata key to retrieve the name of the work.
+     */
+   // private static final String METADATA_KEY_ICY_TITLE = "icy_title";
 }

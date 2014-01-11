@@ -65,7 +65,7 @@ public class MetadataRetrieverTask implements Runnable {
 		} catch (InterruptedException e) {
 		}
 		
-		MediaMetadataRetriever mmr = new MediaMetadataRetriever();
+		FFmpegMediaMetadataRetriever mmr = new FFmpegMediaMetadataRetriever();
 		
 		SparseArray<String> uris = getUris(mContext, mList);
 		
@@ -143,13 +143,13 @@ public class MetadataRetrieverTask implements Runnable {
 		return uris;
 	}
 	
-	private Metadata getMetadata(Context context, long id, MediaMetadataRetriever mmr) {
+	private Metadata getMetadata(Context context, long id, FFmpegMediaMetadataRetriever mmr) {
 		byte [] artwork = null;
 		
-		String title =  mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_TITLE);
-		String album = mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ALBUM);
-		String artist = mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ARTIST);
-		String duration = mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION);
+		String title =  mmr.extractMetadata(FFmpegMediaMetadataRetriever.METADATA_KEY_TITLE);
+		String album = mmr.extractMetadata(FFmpegMediaMetadataRetriever.METADATA_KEY_ALBUM);
+		String artist = mmr.extractMetadata(FFmpegMediaMetadataRetriever.METADATA_KEY_ARTIST);
+		String duration = mmr.extractMetadata(FFmpegMediaMetadataRetriever.METADATA_KEY_DURATION);
 		
 		SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
         
