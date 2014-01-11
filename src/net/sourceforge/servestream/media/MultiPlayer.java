@@ -1,6 +1,6 @@
 /*
  * ServeStream: A HTTP stream browser/player for Android
- * Copyright 2013 William Seemann
+ * Copyright 2014 William Seemann
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,6 @@ package net.sourceforge.servestream.media;
 
 import android.content.Context;
 import android.media.MediaPlayer;
-import android.os.Build;
 import android.util.Log;
 
 import java.io.IOException;
@@ -46,7 +45,7 @@ public final class MultiPlayer implements HTTPRequestListener {
 	
 	private NativePlayer mNativeMediaPlayer = new NativePlayer();
 	private DownloadPlayer mDownloadMediaPlayer;
-	private FFmpegPlayer mFFmpegMediaPlayer;
+	private FFmpegMediaPlayer mFFmpegMediaPlayer;
 	private AbstractMediaPlayer mMediaPlayer = mNativeMediaPlayer;
     private boolean mIsInitialized = false;
 
@@ -295,11 +294,11 @@ public final class MultiPlayer implements HTTPRequestListener {
 		return mDownloadMediaPlayer;
 	}
 	
-	private FFmpegPlayer getFFmpegPlayer() {
+	private FFmpegMediaPlayer getFFmpegPlayer() {
 		// allow for lazy initialization of FFmpeg player
 		// in case it is never used		
 		if (mFFmpegMediaPlayer == null) {
-			mFFmpegMediaPlayer = new FFmpegPlayer();
+			mFFmpegMediaPlayer = new FFmpegMediaPlayer();
 		}
 		
 		return mFFmpegMediaPlayer;

@@ -17,6 +17,8 @@
 
 package net.sourceforge.servestream.media;
 
+import java.util.HashMap;
+
 import net.sourceforge.servestream.provider.Media;
 import net.sourceforge.servestream.utils.PreferenceConstants;
 
@@ -166,13 +168,16 @@ public class MetadataRetrieverTask implements Runnable {
 			return null;
 		}
 		
+		HashMap<String, Object> meta = new HashMap<String, Object>();
+		meta.put(Metadata.METADATA_KEY_TITLE, title);
+		meta.put(Metadata.METADATA_KEY_ALBUM, album);
+		meta.put(Metadata.METADATA_KEY_ALBUM, artist);
+		meta.put(Metadata.METADATA_KEY_DURATION, duration);
+		meta.put(Metadata.METADATA_KEY_ARTWORK, artwork);
+		
 		// Form an array specifying which columns to return. 
 		Metadata metadata = new Metadata();
-		metadata.setTitle(title);
-		metadata.setAlbum(album);
-		metadata.setArtist(artist);
-		metadata.setDuration(duration);
-		metadata.setArtwork(artwork);
+		metadata.parse(meta);
 		
 		return metadata;
 	}

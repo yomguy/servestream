@@ -17,6 +17,8 @@
 
 package net.sourceforge.servestream.media;
 
+import java.util.HashMap;
+
 import net.sourceforge.servestream.provider.Media;
 
 import android.content.Context;
@@ -181,10 +183,13 @@ public class ShoutCastRetrieverTask {
 			if (title != null && 
 					artist != null) {
 			
+				HashMap<String, Object> meta = new HashMap<String, Object>();
+				meta.put(Metadata.METADATA_KEY_TITLE, title);
+				meta.put(Metadata.METADATA_KEY_ARTIST, artist);
+				
 				// Form an array specifying which columns to return. 
 				metadata = new Metadata();
-				metadata.setTitle(title);
-				metadata.setArtist(artist);
+				metadata.parse(meta);
 			}
 			
 			return metadata;

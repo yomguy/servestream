@@ -1,6 +1,6 @@
 /*
  * ServeStream: A HTTP stream browser/player for Android
- * Copyright 2013 William Seemann
+ * Copyright 2014 William Seemann
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,7 +38,7 @@ import android.media.MediaPlayer;
 import android.net.Uri;
 import android.util.Log;
 
-public class DownloadPlayer extends FFmpegPlayer {
+public class DownloadPlayer extends FFmpegMediaPlayer {
 	private static final String TAG = DownloadPlayer.class.getName();
 	
 	private long mTotalSizeInBytes = -1;
