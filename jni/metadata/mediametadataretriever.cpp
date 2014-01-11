@@ -1,6 +1,6 @@
 /*
  * ServeStream: A HTTP stream browser/player for Android
- * Copyright 2013 William Seemann
+ * Copyright 2014 William Seemann
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -43,9 +43,9 @@ int MediaMetadataRetriever::setDataSource(const char *srcUrl)
 	return ::set_data_source(&state, srcUrl);
 }
 
-AVPacket* MediaMetadataRetriever::getFrameAtTime(int64_t timeUs)
+int MediaMetadataRetriever::getFrameAtTime(int64_t timeUs, int option, AVPacket *pkt)
 {
-    return ::get_frame_at_time(&state, timeUs);
+    return ::get_frame_at_time(&state, timeUs, option, pkt);
 }
 
 const char* MediaMetadataRetriever::extractMetadata(const char *key)
@@ -53,7 +53,7 @@ const char* MediaMetadataRetriever::extractMetadata(const char *key)
     return ::extract_metadata(&state, key);
 }
 
-AVPacket* MediaMetadataRetriever::extractAlbumArt()
+int MediaMetadataRetriever::extractAlbumArt(AVPacket *pkt)
 {
-    return ::get_embedded_picture(&state);
+    return ::get_embedded_picture(&state, pkt);
 }

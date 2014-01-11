@@ -1,6 +1,6 @@
 /*
  * ServeStream: A HTTP stream browser/player for Android
- * Copyright 2013 William Seemann
+ * Copyright 2014 William Seemann
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -127,12 +127,13 @@ Java_net_sourceforge_servestream_media_MediaMetadataRetriever__1getFrameAtTime(J
        return NULL;
    }
 
-   AVPacket* packet = retriever->getFrameAtTime(timeUs);
+   AVPacket packet;
+   av_init_packet(&packet);
    jbyteArray array = NULL;
 
-   if (packet) {
-	   int size = packet->size;
-	   uint8_t* data = packet->data;
+   if (retriever->getFrameAtTime(timeUs, option, &packet) == 0) {
+	   int size = packet.size;
+	   uint8_t* data = packet.data;
 	   array = env->NewByteArray(size);
 	   if (!array) {  // OutOfMemoryError exception has already been thrown.
 		   __android_log_print(ANDROID_LOG_ERROR, LOG_TAG, "getFrameAtTime: OutOfMemoryError is thrown.");
@@ -144,10 +145,10 @@ Java_net_sourceforge_servestream_media_MediaMetadataRetriever__1getFrameAtTime(J
                env->ReleaseByteArrayElements(array, bytes, 0);
            }
        }
-
-	   av_free_packet(packet);
    }
 
+   av_free_packet(&packet);
+   
    return array;
 }
 
@@ -161,12 +162,13 @@ Java_net_sourceforge_servestream_media_MediaMetadataRetriever_getEmbeddedPicture
        return NULL;
    }
 
-   AVPacket* packet = retriever->extractAlbumArt();
+   AVPacket packet;
+   av_init_packet(&packet);
    jbyteArray array = NULL;
 
-   if (packet) {
-	   int size = packet->size;
-	   uint8_t* data = packet->data;
+   if (retriever->extractAlbumArt(&packet) == 0) {
+	   int size = packet.size;
+	   uint8_t* data = packet.data;
 	   array = env->NewByteArray(size);
 	   if (!array) {  // OutOfMemoryError exception has already been thrown.
 		   //__android_log_print(ANDROID_LOG_ERROR, LOG_TAG, "getEmbeddedPicture: OutOfMemoryError is thrown.");
@@ -178,10 +180,10 @@ Java_net_sourceforge_servestream_media_MediaMetadataRetriever_getEmbeddedPicture
                env->ReleaseByteArrayElements(array, bytes, 0);
            }
        }
-
-	   av_free_packet(packet);
    }
 
+   av_free_packet(&packet);
+   
    return array;
 }
 

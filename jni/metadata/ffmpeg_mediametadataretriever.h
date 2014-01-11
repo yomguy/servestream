@@ -1,6 +1,6 @@
 /*
  * ServeStream: A HTTP stream browser/player for Android
- * Copyright 2013 William Seemann
+ * Copyright 2014 William Seemann
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,17 @@
 #include <libavcodec/avcodec.h>
 #include <libavformat/avformat.h>
 
+// Keep these in synch with the constants defined in FFmpegMediaMetadataRetriever.java
+// class.
+typedef enum {
+	OPTION_PREVIOUS_SYNC = 0,
+	OPTION_NEXT_SYNC = 1,
+	OPTION_CLOSEST_SYNC = 2,
+	OPTION_CLOSEST = 3,
+
+    // Add more here...
+} Options;
+
 typedef struct State {
 	AVFormatContext *pFormatCtx;
 	int             audio_stream;
@@ -31,8 +42,8 @@ typedef struct State {
 
 int set_data_source(State **ps, const char* path);
 const char* extract_metadata(State **ps, const char* key);
-AVPacket* get_embedded_picture(State **ps);
-AVPacket* get_frame_at_time(State **ps, long timeUs);
+int get_embedded_picture(State **ps, AVPacket *pkt);
+int get_frame_at_time(State **ps, int64_t timeUs, int option, AVPacket *pkt);
 void release(State **ps);
 
 #endif /*FFMPEG_MEDIAMETADATARETRIEVER_H_*/
