@@ -171,7 +171,7 @@ public class MetadataRetrieverTask implements Runnable {
 		HashMap<String, Object> meta = new HashMap<String, Object>();
 		meta.put(Metadata.METADATA_KEY_TITLE, title);
 		meta.put(Metadata.METADATA_KEY_ALBUM, album);
-		meta.put(Metadata.METADATA_KEY_ALBUM, artist);
+		meta.put(Metadata.METADATA_KEY_ARTIST, artist);
 		meta.put(Metadata.METADATA_KEY_DURATION, duration);
 		meta.put(Metadata.METADATA_KEY_ARTWORK, artwork);
 		
