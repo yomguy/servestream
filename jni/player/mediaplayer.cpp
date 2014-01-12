@@ -326,7 +326,7 @@ status_t MediaPlayer::getVideoHeight(int *h)
 
 status_t MediaPlayer::getCurrentPosition(int *msec)
 {
-	__android_log_write(ANDROID_LOG_VERBOSE, LOG_TAG, "getCurrentPosition");
+	//__android_log_write(ANDROID_LOG_VERBOSE, LOG_TAG, "getCurrentPosition");
     //Mutex::Autolock _l(mLock);
     if (state != 0) {
         if (mCurrentPosition >= 0) {
@@ -384,8 +384,7 @@ status_t MediaPlayer::seekTo_l(int msec)
             return NO_ERROR;
         }
     }
-    //__android_log_print(ANDROID_LOG_ERROR, LOG_TAG, "Attempt to perform seekTo in wrong state: mPlayer=%p, mCurrentState=%u", mPlayer.get(), mCurrentState);
-    __android_log_print(ANDROID_LOG_ERROR, LOG_TAG, "Attempt to perform seekTo in wrong state: mCurrentState=%u", mCurrentState);
+    __android_log_print(ANDROID_LOG_ERROR, LOG_TAG, "Attempt to perform seekTo in wrong state: mPlayer=%p, mCurrentState=%u", state, mCurrentState);
     return INVALID_OPERATION;
 }
 
