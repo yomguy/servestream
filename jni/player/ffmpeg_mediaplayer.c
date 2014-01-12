@@ -64,15 +64,31 @@ void clear_l(State **ps)
 		if (state->pFormatCtx) {
 			avformat_close_input(&state->pFormatCtx);
 	    }
-	           
-	    av_freep(&state);
-	    *ps = NULL;
 	}
+	
+	state->pFormatCtx = NULL;
+	state->audio_stream = -1;
+	state->video_stream = -1;
+	state->audio_st = NULL;
+	state->video_st = NULL;
+	state->buffer_size = -1;
+	state->abort_request = 0;
+	state->paused = 0;
+	state->last_paused = -1;
 }
 
 void disconnect(State **ps)
 {
-    clear_l(ps);
+	State *state = *ps;
+	        
+	if (state) {
+		if (state->pFormatCtx) {
+			avformat_close_input(&state->pFormatCtx);
+	    }
+	           
+	    av_freep(&state);
+	    *ps = NULL;
+	}
 }
 
 int setNotifyListener(State **ps, void* clazz, void (*listener) (void*, int, int, int, int))
@@ -611,8 +627,8 @@ int start(State **ps)
 	State *state = *ps;
     
 	if (!state->paused) {
-    pthread_mutex_lock(lock);
-    pthread_create(&state->decoder_thread, NULL, (void *) &player_decode, state);
+		pthread_mutex_lock(lock);
+		pthread_create(&state->decoder_thread, NULL, (void *) &player_decode, state);
 	}
     
     state->paused = 0;
@@ -640,6 +656,7 @@ int pause(State **ps)
     pthread_mutex_lock(lock);
 	state->paused = !state->paused;
     pthread_mutex_lock(lock);
+    
     return 0;
 }
 
@@ -676,6 +693,8 @@ int getDuration(State **ps, int *msec)
 	State *state = *ps;
 	if (state->pFormatCtx && (state->pFormatCtx->duration != AV_NOPTS_VALUE)) {
 		*msec = (state->pFormatCtx->duration / AV_TIME_BASE) * 1000;
+		
+		__android_log_print(ANDROID_LOG_INFO, "--->", "%d", *msec);
 	} else {
 		*msec = 0;
 	}
@@ -715,7 +734,6 @@ int reset(State **ps)
     pthread_mutex_unlock(lock);
 	
     clear_l(ps);
-    init(ps);
     
     return 0;
 }

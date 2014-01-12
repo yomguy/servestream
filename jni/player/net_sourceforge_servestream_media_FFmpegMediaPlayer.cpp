@@ -576,7 +576,7 @@ net_sourceforge_servestream_media_FFmpegMediaPlayer_getCurrentPosition(JNIEnv *e
     }
     int msec;
     process_media_player_call( env, thiz, mp->getCurrentPosition(&msec), NULL, NULL );
-    __android_log_print(ANDROID_LOG_VERBOSE, LOG_TAG, "getCurrentPosition: %d (msec)", msec);
+    //__android_log_print(ANDROID_LOG_VERBOSE, LOG_TAG, "getCurrentPosition: %d (msec)", msec);
     return msec;
 }
 
