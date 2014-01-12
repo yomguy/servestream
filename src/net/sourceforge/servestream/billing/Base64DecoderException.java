@@ -15,15 +15,21 @@
  * limitations under the License.
  */
 
-package net.sourceforge.servestream.utils;
+package net.sourceforge.servestream.billing;
 
-public class Constants {
+/**
+ * Exception thrown when encountering an invalid Base64 input character.
+ *
+ * @author nelson
+ */
+public class Base64DecoderException extends Exception {
+    public Base64DecoderException() {
+        super();
+    }
 
-	public static final String SERVESTREAM_PLAYSTORE_URI = "market://details?id=net.sourceforge.servestream";
-	public static final String SERVESTREAM_PROJECT_PAGE = "http://sourceforge.net/projects/servestream";
-	
-	public static final String SERVESTREAM_DONATE_PAGE = "https://sourceforge.net/p/servestream/donate";
-	
-	public static final String ZXING_PLAYSTORE_URI = "market://details?id=com.google.zxing.client.android";
-	public static final String ZXING_PROJECT_PAGE = "http://code.google.com/p/zxing/downloads/list";
+    public Base64DecoderException(String s) {
+        super(s);
+    }
+
+    private static final long serialVersionUID = 1L;
 }
