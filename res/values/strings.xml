@@ -43,6 +43,7 @@
     <string name="opening_url_message">Opening URL&#8230;</string>
     <string name="url_not_opened_message">The url could not be opened.</string>
 	<string name="find_barcode_scanner_message">This feature requires the ZXing barcode scanner. Find this application?</string>
+	<string name="donation_successful_message">Thank you for your donation!</string>
     <string name="rate_application">Would you like to rate this application in the Android market? Feedback is appreciated.</string>
 	<string name="rate_pos">"Yes, take me to the market"</string>
 	<string name="rate_neg">"No, and don\'t ask again"</string>
@@ -240,6 +241,14 @@
     
     <string name="drawer_open">Open Drawer</string>
     <string name="drawer_close">Close Drawer</string>
+    
+    <!-- Donation amounts -->
+    <string name="donation_amount">Select donation amount </string>
+    
+    <string name="one_dollar">"1 dollar"</string>
+    <string name="four_dollars">"4 dollars"</string>
+    <string name="eight_dollars">"8 dollars"</string>
+    <string name="twenty_dollars">"20 dollars"</string>
     
 </resources>
 
