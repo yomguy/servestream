@@ -39,7 +39,7 @@ MediaPlayer::MediaPlayer()
     __android_log_write(ANDROID_LOG_VERBOSE, LOG_TAG, "constructor");
 	
     state = NULL;
-    ::init(&state);
+    //::init(&state);
     
     mListener = NULL;
     mCookie = NULL;
@@ -116,15 +116,48 @@ status_t MediaPlayer::setListener(MediaPlayerListener *listener)
     __android_log_write(ANDROID_LOG_VERBOSE, LOG_TAG, "setListener");
     //Mutex::Autolock _l(mLock);
     mListener = listener;
-    ::setNotifyListener(&state, this, notifyListener);
-    ::setInitAudioTrackListener(&state, this, initAudioTrackListener);
-    ::setWriteAudioListener(&state, this, writeAudioListener);
+    if (state != 0) {
+    	::setNotifyListener(&state, this, notifyListener);
+    	::setInitAudioTrackListener(&state, this, initAudioTrackListener);
+    	::setWriteAudioListener(&state, this, writeAudioListener);
+    }
     return NO_ERROR;
 }
 
 MediaPlayerListener * MediaPlayer::getListener()
 {
     return mListener;
+}
+
+status_t MediaPlayer::setDataSource(State *player)
+{
+    status_t err = UNKNOWN_ERROR;
+    State *p;
+    { // scope for the lock
+        //Mutex::Autolock _l(mLock);
+
+        if ( !( (mCurrentState & MEDIA_PLAYER_IDLE) ||
+                (mCurrentState == MEDIA_PLAYER_STATE_ERROR ) ) ) {
+        	__android_log_print(ANDROID_LOG_ERROR, LOG_TAG, "setDataSource called in state %d", mCurrentState);
+            return INVALID_OPERATION;
+        }
+
+        clear_l();
+        p = state;
+        state = player;
+        if (player != 0) {
+            mCurrentState = MEDIA_PLAYER_INITIALIZED;
+            err = NO_ERROR;
+        } else {
+        	__android_log_print(ANDROID_LOG_ERROR, LOG_TAG, "Unable to to create media player");
+        }
+    }
+
+    if (p != 0) {
+    	::disconnect(&p);
+    }
+
+    return err;
 }
 
 status_t MediaPlayer::setDataSource(const char *url)
@@ -135,8 +168,16 @@ status_t MediaPlayer::setDataSource(const char *url)
         //const sp<IMediaPlayerService>& service(getMediaPlayerService());
         //if (service != 0) {
             //sp<IMediaPlayer> player(
-                    //service->create(getpid(), this, url, headers, mAudioSessionId));
-            err = ::setDataSource(&state, url);
+            //        service->create(getpid(), this, url, headers, mAudioSessionId));
+    	    State *state = NULL;
+    	    ::init(&state);
+    	    ::setNotifyListener(&state, this, notifyListener);
+    	    ::setInitAudioTrackListener(&state, this, initAudioTrackListener);
+    	    ::setWriteAudioListener(&state, this, writeAudioListener);
+    	    err = ::setDataSource(&state, url);
+    	    if (err == NO_ERROR) {
+    	    	err = setDataSource(state);
+    	    }
         //}
     }
     return err;
