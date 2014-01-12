@@ -18,6 +18,9 @@
 package net.sourceforge.servestream.media;
 
 import java.util.HashMap;
+import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import net.sourceforge.servestream.provider.Media;
 
@@ -164,17 +167,39 @@ public class ShoutCastRetrieverTask {
 		private Metadata parseMetadata(String icyMetadata) {		
 			String title = null;
 			String artist = null;
-			
 			Metadata metadata = null;
+			
+			String streamTitle = null;
+			Map<String, String> parsedMetadata = new HashMap<String, String>();
+			String[] metaParts = icyMetadata.split(";");
+			Pattern p = Pattern.compile("^([a-zA-Z]+)=\\'([^\\']*)\\'$");
+			Matcher m;
+			
+			for (int i = 0; i < metaParts.length; i++) {
+				m = p.matcher(metaParts[i]);
+				if (m.find()) {
+					parsedMetadata.put((String)m.group(1), (String)m.group(2));				
+				}
+			}
+
+			streamTitle = parsedMetadata.get("StreamTitle");
+			
+			if (streamTitle == null || streamTitle.trim().equals("")) {
+				streamTitle = parsedMetadata.get("StreamTitleReplay");
+				
+				if (streamTitle == null || streamTitle.trim().equals("")) {
+					return metadata;
+				}	
+			}
 			
 			// check if the stream title contain a "-" character. This is usually done
 			// to indicate "artist - title". If not, don't try to parse up the string
 			// just store it
-			if (icyMetadata.indexOf("-") != -1) {
-				artist = icyMetadata.substring(0, icyMetadata.indexOf("-")).trim();
-				title = icyMetadata.substring(icyMetadata.indexOf("-") + 1).trim();
+			if (streamTitle.indexOf("-") != -1) {
+				artist = streamTitle.substring(0, streamTitle.indexOf("-")).trim();
+				title = streamTitle.substring(streamTitle.indexOf("-") + 1).trim();
 			} else {
-				artist = icyMetadata.trim();
+				artist = streamTitle.trim();
 				title = "";
 			}
 			
