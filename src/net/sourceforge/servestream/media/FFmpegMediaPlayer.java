@@ -572,7 +572,7 @@ public class FFmpegMediaPlayer extends AbstractMediaPlayer
      */
     public FFmpegMediaPlayer() {
     	super();
-
+    	
         Looper looper;
         if ((looper = Looper.myLooper()) != null) {
             mEventHandler = new EventHandler(this, looper);
@@ -1191,6 +1191,11 @@ public class FFmpegMediaPlayer extends AbstractMediaPlayer
      * same codec is supported on a device.
      */
     public void release() {
+        if (mAudioTrack != null) {
+        	mAudioTrack.release();
+        	mAudioTrack = null;
+        } 
+    	
         stayAwake(false);
         updateSurfaceScreenOn();
         mOnPreparedListener = null;
@@ -1214,6 +1219,12 @@ public class FFmpegMediaPlayer extends AbstractMediaPlayer
     public void reset() {
         stayAwake(false);
         _reset();
+        
+        if (mAudioTrack != null) {
+        	mAudioTrack.release();
+        	mAudioTrack = null;
+        } 
+        
         // make sure none of the listeners get called anymore
         mEventHandler.removeCallbacksAndMessages(null);
     }
