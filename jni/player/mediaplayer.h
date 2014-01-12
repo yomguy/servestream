@@ -112,7 +112,7 @@ private:
             status_t        seekTo_l(int msec);
             status_t        prepareAsync_l();
             status_t        getDuration_l(int *msec);
-            //status_t        setDataSource(const sp<IMediaPlayer>& player);
+            status_t        setDataSource(State *state);
         
     //sp<IMediaPlayer>            mPlayer;
     //Mutex                       mLock;

@@ -693,8 +693,6 @@ int getDuration(State **ps, int *msec)
 	State *state = *ps;
 	if (state->pFormatCtx && (state->pFormatCtx->duration != AV_NOPTS_VALUE)) {
 		*msec = (state->pFormatCtx->duration / AV_TIME_BASE) * 1000;
-		
-		__android_log_print(ANDROID_LOG_INFO, "--->", "%d", *msec);
 	} else {
 		*msec = 0;
 	}
