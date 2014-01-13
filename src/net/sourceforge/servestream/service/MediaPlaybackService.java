@@ -1,6 +1,6 @@
 /*
  * ServeStream: A HTTP stream browser/player for Android
- * Copyright 2013 William Seemann
+ * Copyright 2014 William Seemann
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,7 +35,6 @@ import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
 import android.database.Cursor;
-import android.media.audiofx.AudioEffect;
 import android.media.AudioManager;
 import android.media.AudioManager.OnAudioFocusChangeListener;
 import android.net.Uri;
@@ -496,9 +495,9 @@ public class MediaPlaybackService extends Service implements
 	    }
         
         // release all MediaPlayer resources, including the native player and wakelocks
-        Intent i = new Intent(AudioEffect.ACTION_CLOSE_AUDIO_EFFECT_CONTROL_SESSION);
-        i.putExtra(AudioEffect.EXTRA_AUDIO_SESSION, getAudioSessionId());
-        i.putExtra(AudioEffect.EXTRA_PACKAGE_NAME, getPackageName());
+        Intent i = new Intent("android.media.action.CLOSE_AUDIO_EFFECT_CONTROL_SESSION");
+        i.putExtra("android.media.extra.AUDIO_SESSION", getAudioSessionId());
+        i.putExtra("android.media.extra.PACKAGE_NAME", getPackageName());
         sendBroadcast(i);
         mPlayer.release();
         mPlayer = null;
