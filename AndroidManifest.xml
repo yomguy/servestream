@@ -111,6 +111,7 @@
 				<data android:mimeType="audio/x-mpegurl" />
         		<data android:mimeType="audio/x-scpls" />
         		<data android:mimeType="video/x-ms-asf" />
+        		<data android:mimeType="application/xspf+xml" />
 			</intent-filter>
 			<intent-filter>
 				<action android:name="android.intent.action.VIEW" />
@@ -121,6 +122,7 @@
 				<data android:pathPattern=".*\\.m3u" />
 				<data android:pathPattern=".*\\.pls" />
 				<data android:pathPattern=".*\\.asx" />
+			    <data android:pathPattern=".*\\.xspf" />
 			</intent-filter>
 			<intent-filter>
         		<action android:name="android.intent.action.VIEW" />
@@ -129,6 +131,7 @@
         		<data android:mimeType="audio/x-mpegurl" />
         		<data android:mimeType="audio/x-scpls" />
         		<data android:mimeType="video/x-ms-asf" />
+        		<data android:mimeType="application/xspf+xml" />
     		</intent-filter>
 		</activity>
         
