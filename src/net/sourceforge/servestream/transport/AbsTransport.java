@@ -104,7 +104,5 @@ public abstract class AbsTransport {
 	 */
 	public abstract boolean usesNetwork();
 	
-	public abstract boolean shouldSave();
-	
 	public abstract boolean isPotentialPlaylist();
 }

@@ -72,15 +72,33 @@
 				<category android:name="android.intent.category.LAUNCHER" />
 			</intent-filter>
 			<intent-filter>
-  				<action android:name="android.intent.action.SEND" />
-  				<category android:name="android.intent.category.DEFAULT" />
-  				<data android:mimeType="text/plain" />
-			</intent-filter>
-			<intent-filter>
 				<action android:name="android.intent.action.VIEW" />
 				<category android:name="android.intent.category.BROWSABLE" />
 				<category android:name="android.intent.category.DEFAULT" />
 				<data android:mimeType="net.sourceforge.servestream/*" />
+			</intent-filter>
+    		<meta-data
+	            android:name="android.app.default_searchable"
+                android:value=".activity.SearchableActivity" />
+		</activity>
+
+		<activity
+            android:name=".activity.AboutActivity"
+            android:theme="@style/Theme.ServeStream.Dark"
+            android:label="@string/about_pref" />
+        
+		<activity
+            android:name=".activity.AddUrlActivity"
+            android:theme="@style/Theme.ServeStream.Dark"
+            android:configChanges="keyboardHidden|orientation"
+            android:label="@string/add_new_url_label"
+            android:windowSoftInputMode="adjustResize"
+            android:launchMode="singleTop" >
+    		
+		    <intent-filter>
+  				<action android:name="android.intent.action.SEND" />
+  				<category android:name="android.intent.category.DEFAULT" />
+  				<data android:mimeType="text/plain" />
 			</intent-filter>
 			<intent-filter>
 				<action android:name="android.intent.action.VIEW" />
@@ -112,22 +130,7 @@
         		<data android:mimeType="audio/x-scpls" />
         		<data android:mimeType="video/x-ms-asf" />
     		</intent-filter>
-    		<meta-data
-	            android:name="android.app.default_searchable"
-                android:value=".activity.SearchableActivity" />
 		</activity>
-
-		<activity
-            android:name=".activity.AboutActivity"
-            android:theme="@style/Theme.ServeStream.Dark"
-            android:label="@string/about_pref" />
-        
-		<activity
-            android:name=".activity.AddUrlActivity"
-            android:theme="@style/Theme.ServeStream.Dark"
-            android:configChanges="keyboardHidden|orientation"
-            android:label="@string/add_new_url_label"
-            android:windowSoftInputMode="adjustResize" />
         
 		<activity
             android:name=".activity.BluetoothOptionsActivity"

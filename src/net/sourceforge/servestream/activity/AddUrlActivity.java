@@ -1,6 +1,6 @@
 /*
  * ServeStream: A HTTP stream browser/player for Android
- * Copyright 2013 William Seemann
+ * Copyright 2014 William Seemann
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this.getActivity() file except in compliance with the License.
@@ -18,7 +18,9 @@
 package net.sourceforge.servestream.activity;
 
 import net.sourceforge.servestream.fragment.AddUrlFragment;
+import android.content.Intent;
 import android.os.Bundle;
+import android.support.v4.app.Fragment;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarActivity;
 import android.view.MenuItem;
@@ -32,20 +34,55 @@ public class AddUrlActivity extends ActionBarActivity {
 		ActionBar actionBar = getSupportActionBar();
 		actionBar.setDisplayHomeAsUpEnabled(true);
 		
-		getSupportFragmentManager()
-			.beginTransaction()
-			.add(android.R.id.content, new AddUrlFragment(), "add_url")
-			.commit();
+	    if (null == savedInstanceState){
+	    	Fragment fragment = new AddUrlFragment();
+		
+	    	Bundle bundle = new Bundle();
+	    	bundle.putString(AddUrlFragment.URI_EXTRA, getUri());
+	    	fragment.setArguments(bundle);
+		
+	    	getSupportFragmentManager()
+				.beginTransaction()
+				.add(android.R.id.content, fragment, "add_url")
+				.commit();
+	    }
 	}
 	
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
 		switch (item.getItemId()) {
 			case android.R.id.home:
-				finish();
+    			Intent intent = new Intent(this, MainActivity.class);
+    			intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+    			startActivity(intent);
+    			finish();
 				return true;
      		default:
      			return super.onOptionsItemSelected(item);
 		}
 	}
+	
+	private String getUri() {
+		String intentUri = null;
+		
+		Intent intent = getIntent();
+		
+		if (intent == null) {
+			return null;
+		}
+		
+		// check to see if we were called by clicking on a URL
+		if (intent.getData() != null) {
+			intentUri = intent.getData().toString();
+		}
+		
+		// check to see if the application was opened from a share intent
+		if (intent.getExtras() != null && intent.getExtras().getCharSequence(Intent.EXTRA_TEXT) != null) {
+			intentUri = intent.getExtras().getCharSequence(Intent.EXTRA_TEXT).toString();
+		}
+
+		setIntent(null);
+		
+		return intentUri;
+    }
 }
