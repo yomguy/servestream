@@ -261,6 +261,11 @@ public class UriBean implements Parcelable {
 		return hash;
 	}
 
+	@Override
+	public String toString() {
+		return nickname;
+	}
+	
 	/**
 	 * @return URI identifying this HostBean
 	 */

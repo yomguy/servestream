@@ -1,6 +1,6 @@
 /*
  * ServeStream: A HTTP stream browser/player for Android
- * Copyright 2013 William Seemann
+ * Copyright 2014 William Seemann
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import net.sourceforge.servestream.R;
-import net.sourceforge.servestream.adapter.UrlListAdapter;
 import net.sourceforge.servestream.bean.UriBean;
 import net.sourceforge.servestream.dbutils.StreamDatabase;
 import android.content.Intent;
@@ -30,6 +29,7 @@ import android.os.Bundle;
 import android.support.v7.app.ActionBarActivity;
 import android.view.View;
 import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.AdapterView.OnItemClickListener;
 
@@ -68,8 +68,9 @@ public class ShortcutActivity extends ActionBarActivity {
 		StreamDatabase streamdb = new StreamDatabase(this);
 		List<UriBean> uris = new ArrayList<UriBean>();
 		uris = streamdb.getUris();
-		UrlListAdapter adapter = new UrlListAdapter(this, uris, null);
-		list.setAdapter(adapter);
 		streamdb.close();
+
+		ArrayAdapter<UriBean> adapter = new ArrayAdapter<UriBean>(this, android.R.layout.simple_list_item_1, uris);
+		list.setAdapter(adapter);
 	}
 }
