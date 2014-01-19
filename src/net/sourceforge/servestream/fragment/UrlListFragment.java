@@ -248,7 +248,7 @@ public class UrlListFragment extends ListFragment implements
 			
 			AbsTransport transport = TransportFactory.getTransport(uriBean.getProtocol());
 			transport.setUri(uriBean);
-			if (mPreferences.getBoolean(PreferenceConstants.AUTOSAVE, true) && transport.shouldSave()) {
+			if (mPreferences.getBoolean(PreferenceConstants.AUTOSAVE, true)) {
 				mStreamdb.saveUri(uriBean);
 				updateList();
 			}

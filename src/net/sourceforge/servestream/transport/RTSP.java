@@ -245,11 +245,6 @@ public class RTSP extends AbsTransport {
 	}
 	
 	@Override
-	public boolean shouldSave() {
-	    return true;
-	}
-
-	@Override
 	public InputStream getConnection() {
 		return null;
 	}

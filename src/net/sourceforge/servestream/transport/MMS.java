@@ -140,11 +140,6 @@ public class MMS extends AbsTransport {
 	}
 	
 	@Override
-	public boolean shouldSave() {
-	    return true;
-	}
-	
-	@Override
 	public boolean isPotentialPlaylist() {
 		return false;
 	}

@@ -1,6 +1,6 @@
 /*
  * ServeStream: A HTTP stream browser/player for Android
- * Copyright 2013 William Seemann
+ * Copyright 2014 William Seemann
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,6 +26,7 @@ import net.sourceforge.jplaylistparser.parser.AutoDetectParser;
 import net.sourceforge.jplaylistparser.playlist.Playlist;
 import net.sourceforge.jplaylistparser.playlist.PlaylistEntry;
 import net.sourceforge.servestream.R;
+import net.sourceforge.servestream.activity.MainActivity;
 import net.sourceforge.servestream.bean.UriBean;
 import net.sourceforge.servestream.dbutils.StreamDatabase;
 import net.sourceforge.servestream.transport.AbsTransport;
@@ -35,6 +36,7 @@ import net.sourceforge.servestream.utils.LoadingDialog.LoadingDialogListener;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.content.Intent;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -56,6 +58,8 @@ import android.widget.EditText;
 
 public class AddUrlFragment extends Fragment implements LoadingDialogListener {
 	
+	public static final String URI_EXTRA = "uri_extra";
+	
     private final static String LOADING_DIALOG = "loading_dialog";
 	
 	private EditText mUrlEditText;
@@ -64,11 +68,16 @@ public class AddUrlFragment extends Fragment implements LoadingDialogListener {
 	private Button mCancelButton;
 	private CheckBox mSavePlaylistEntriesCheckbox;
 
+	private String mUri;
+	
 	@SuppressLint("HandlerLeak")
 	private Handler mHandler = new Handler() {
 		@Override
 		public void handleMessage(Message msg) {
-			AddUrlFragment.this.getActivity().finish();
+			Intent intent = new Intent(getActivity(), MainActivity.class);
+			intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+			startActivity(intent);
+			getActivity().finish();
 		}
 	};
 	
@@ -76,6 +85,10 @@ public class AddUrlFragment extends Fragment implements LoadingDialogListener {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         
+		if (getArguments() != null && getArguments().getString(URI_EXTRA) != null) {
+			mUri = getArguments().getString(URI_EXTRA);
+		}
+		
         setRetainInstance(true);
     }
 	
@@ -88,6 +101,11 @@ public class AddUrlFragment extends Fragment implements LoadingDialogListener {
 		mConfirmButton = (Button) view.findViewById(R.id.confirm_button);
 		mNicknameEditText = (EditText) view.findViewById(R.id.nickname_edittext);
 		mSavePlaylistEntriesCheckbox = (CheckBox) view.findViewById(R.id.save_playlist_entries_checkbox);
+		
+		if (mUri != null) {
+			mUrlEditText.setText(mUri);
+			mUri = null;
+		}
 		
 		return view;
 	}
@@ -166,6 +184,10 @@ public class AddUrlFragment extends Fragment implements LoadingDialogListener {
 		}
 		
 		streamdb.close();
+		
+		Intent intent = new Intent(getActivity(), MainActivity.class);
+		intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+		startActivity(intent);
 		getActivity().finish();
 	}
     

@@ -1,6 +1,6 @@
 /*
  * ServeStream: A HTTP stream browser/player for Android
- * Copyright 2012 William Seemann
+ * Copyright 2014 William Seemann
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -111,6 +111,9 @@ public class File extends AbsTransport {
 		host.setProtocol(PROTOCOL);
 		host.setPath(uri.getPath());
 		
+		String nickname = uri.toString();
+		host.setNickname(nickname);
+		
 		return host;
 	}
 
@@ -132,11 +135,6 @@ public class File extends AbsTransport {
 	    return false;
 	}
 	
-	@Override
-	public boolean shouldSave() {
-	    return false;
-	}
-
 	@Override
 	public boolean isPotentialPlaylist() {
 		return true;
