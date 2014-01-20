@@ -140,7 +140,7 @@ int stream_component_open(State *s, int stream_index) {
 	printf("avcodec_find_decoder %s\n", codecCtx->codec_name);
 
 	// Find the decoder for the audio stream
-	codec = avcodec_find_decoder(codecCtx->codec_id);
+	/*codec = avcodec_find_decoder(codecCtx->codec_id);
 
 	if(codec == NULL) {
 	    printf("avcodec_find_decoder() failed to find audio decoder\n");
@@ -151,7 +151,7 @@ int stream_component_open(State *s, int stream_index) {
     if (!codec || (avcodec_open2(codecCtx, codec, NULL) < 0)) {
 	  	printf("avcodec_open2() failed\n");
 		return FAILURE;
-	}
+	}*/
 
 	switch(codecCtx->codec_type) {
 		case AVMEDIA_TYPE_AUDIO:
