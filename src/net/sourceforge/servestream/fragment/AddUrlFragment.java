@@ -54,6 +54,7 @@ import android.view.View.OnKeyListener;
 import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.CheckBox;
+import android.widget.CompoundButton;
 import android.widget.EditText;
 
 public class AddUrlFragment extends Fragment implements LoadingDialogListener {
@@ -147,6 +148,18 @@ public class AddUrlFragment extends Fragment implements LoadingDialogListener {
 			@Override
 			public void onClick(View v) {
 				processUri();
+			}
+		});
+		
+		mSavePlaylistEntriesCheckbox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+			
+			@Override
+			public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+				if (isChecked) {
+					mNicknameEditText.setEnabled(false);
+				} else {
+					mNicknameEditText.setEnabled(true);
+				}
 			}
 		});
 	}
