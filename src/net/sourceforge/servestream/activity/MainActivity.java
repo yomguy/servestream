@@ -22,17 +22,13 @@ import net.sourceforge.servestream.fragment.AlarmClockFragment;
 import net.sourceforge.servestream.fragment.BrowseFragment;
 import net.sourceforge.servestream.fragment.UrlListFragment;
 import net.sourceforge.servestream.fragment.UrlListFragment.BrowseIntentListener;
-import net.sourceforge.servestream.service.MediaPlaybackService;
 import net.sourceforge.servestream.utils.DownloadScannerDialog;
 import net.sourceforge.servestream.utils.MusicUtils;
 import net.sourceforge.servestream.utils.MusicUtils.ServiceToken;
 
 import android.content.ActivityNotFoundException;
-import android.content.BroadcastReceiver;
 import android.content.ComponentName;
-import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.content.res.Configuration;
 import android.net.Uri;
@@ -131,24 +127,6 @@ public class MainActivity extends ActionBarActivity implements
         
         openUri(getUri());
     }
-    
-    @Override
-	public void onResume() {
-		super.onResume();
-		
-        IntentFilter f = new IntentFilter();
-        f.addAction(MediaPlaybackService.PLAYSTATE_CHANGED);
-        f.addAction(MediaPlaybackService.META_CHANGED);
-        f.addAction(MediaPlaybackService.QUEUE_CHANGED);
-        registerReceiver(mTrackListListener, f);
-	}
-
-	@Override
-	public void onPause() {
-		super.onPause();
-		
-        unregisterReceiver(mTrackListListener);
-	}
     
 	@Override
 	public void onDestroy() {
@@ -357,16 +335,9 @@ public class MainActivity extends ActionBarActivity implements
 		return intentUri;
     }
 
-    private BroadcastReceiver mTrackListListener = new BroadcastReceiver() {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            MusicUtils.updateNowPlaying(MainActivity.this);
-        }
-    };
-	
 	@Override
 	public void onServiceConnected(ComponentName name, IBinder service) {
-		MusicUtils.updateNowPlaying(this);
+		//MusicUtils.updateNowPlaying(this);
 	}
 
 	@Override
