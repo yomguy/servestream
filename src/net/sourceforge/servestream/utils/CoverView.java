@@ -22,7 +22,6 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
-import android.graphics.Color;
 import android.os.Looper;
 import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
@@ -58,8 +57,6 @@ public final class CoverView extends View {
 		int width = getWidth();
 		int height = getHeight();
 		
-		canvas.drawColor(Color.BLACK);
-
 		if (mBitmap != null) {
 			int xOffset = (width - mBitmap.getWidth()) / 2;
 			int yOffset = (height - mBitmap.getHeight()) / 2;
