@@ -36,7 +36,6 @@ import net.sourceforge.jplaylistparser.parser.AutoDetectParser;
 import net.sourceforge.jplaylistparser.playlist.Playlist;
 import net.sourceforge.jplaylistparser.playlist.PlaylistEntry;
 import net.sourceforge.servestream.R;
-import net.sourceforge.servestream.activity.MediaPlayerActivity;
 import net.sourceforge.servestream.bean.UriBean;
 import net.sourceforge.servestream.provider.Media;
 import net.sourceforge.servestream.service.IMediaPlaybackService;
@@ -53,7 +52,6 @@ import android.content.Context;
 import android.content.ContextWrapper;
 import android.content.Intent;
 import android.content.ServiceConnection;
-import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -67,13 +65,7 @@ import android.os.AsyncTask;
 import android.os.Handler;
 import android.os.Message;
 import android.os.RemoteException;
-import android.preference.PreferenceManager;
 import android.util.Log;
-import android.view.View;
-import android.view.animation.Animation;
-import android.view.animation.AnimationUtils;
-import android.widget.ImageView;
-import android.widget.TextView;
 import android.widget.Toast;
 
 public class MusicUtils {
@@ -721,136 +713,6 @@ public class MusicUtils {
         }
         
         return d;
-    }
-    
-    public static void updateNowPlaying(Activity a) {
-        View nowPlayingView = a.findViewById(R.id.nowplaying);
-        if (nowPlayingView == null) {
-            return;
-        }
-        try {
-            if (true && MusicUtils.sService != null && MusicUtils.sService.getAudioId() != -1) {
-            	Drawable d = null;
-            	
-            	ImageView coverart = (ImageView) nowPlayingView.findViewById(R.id.coverart);
-            	
-            	SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(a);
-                if (preferences.getBoolean(PreferenceConstants.RETRIEVE_ALBUM_ART, false)) {
-                	long id = sService.getAudioId();
-                	if (id >= 0) {
-                        Bitmap b = BitmapFactory.decodeResource(a.getResources(), R.drawable.albumart_mp_unknown_list);
-                        BitmapDrawable defaultAlbumIcon = new BitmapDrawable(a.getResources(), b);
-                        // no filter or dither, it's a lot faster and we can't tell the difference
-                        defaultAlbumIcon.setFilterBitmap(false);
-                        defaultAlbumIcon.setDither(false);
-                		
-                		d = MusicUtils.getCachedArtwork(a, sService.getAudioId(), defaultAlbumIcon, true);
-                	}
-                }
-            	
-            	if (d == null) {
-            		coverart.setVisibility(View.GONE);
-            	} else {
-            		coverart.setVisibility(View.VISIBLE);
-            		coverart.setImageDrawable(d);
-            	}
-                
-            	TextView title = (TextView) nowPlayingView.findViewById(R.id.title);
-                title.setSelected(true);
-                TextView artist = (TextView) nowPlayingView.findViewById(R.id.artist);
-                artist.setSelected(true);
-        		
-                CharSequence trackName = sService.getTrackName();
-            	CharSequence artistName = sService.getArtistName();                
-            	
-                if (trackName == null || trackName.equals(Media.UNKNOWN_STRING)) {
-            		title.setText(R.string.widget_one_track_info_unavailable);
-            	} else {
-            		title.setText(trackName);
-            	}
-            		
-            	if (artistName == null || artistName.equals(Media.UNKNOWN_STRING)) {
-            		artistName = sService.getMediaUri();
-            	}
-                
-            	artist.setText(artistName);
-            	
-            	final ImageView previousButton = (ImageView) nowPlayingView.findViewById(R.id.previous_button);
-            	if (previousButton != null) {
-            		previousButton.setImageResource(R.drawable.btn_player_prev);
-            		previousButton.setOnClickListener(new View.OnClickListener() {
-						
-						@Override
-						public void onClick(View v) {
-							try {
-								sService.prev();
-							} catch (RemoteException e) {
-							}
-						}
-					});
-            	}
-            	
-                final ImageView pauseButton = (ImageView) nowPlayingView.findViewById(R.id.play_pause_button);
-            	pauseButton.setVisibility(View.VISIBLE);
-            	
-            	if (sService.isPlaying()) {
-				    pauseButton.setImageResource(R.drawable.btn_playerpreview_pause);
-				} else {
-				    pauseButton.setImageResource(R.drawable.btn_playerpreview_play);
-				}
-            	
-            	pauseButton.setOnClickListener(new View.OnClickListener() {
-
-					@Override
-					public void onClick(View v) {
-						try {
-							if (sService.isPlaying()) {
-							    sService.pause();
-							} else {
-							    sService.play();
-							}
-						} catch (RemoteException e) {
-						}
-					}
-            	});
-            	
-            	final ImageView nextButton = (ImageView) nowPlayingView.findViewById(R.id.next_button);
-            	if (nextButton != null) {
-            		nextButton.setImageResource(R.drawable.btn_player_next);
-            		nextButton.setOnClickListener(new View.OnClickListener() {
-						
-						@Override
-						public void onClick(View v) {
-							try {
-								sService.next();
-							} catch (RemoteException e) {
-							}
-						}
-					});
-            	}
-            	
-        		if (nowPlayingView.getVisibility() != View.VISIBLE) {
-        			Animation fade_in = AnimationUtils.loadAnimation(a, R.anim.player_in);
-        			nowPlayingView.startAnimation(fade_in);
-        		}
-            	
-                nowPlayingView.setVisibility(View.VISIBLE);
-                nowPlayingView.setOnClickListener(new View.OnClickListener() {
-
-                	@Override
-                    public void onClick(View v) {
-                        Context c = v.getContext();
-                        c.startActivity(new Intent(c, MediaPlayerActivity.class));
-                    }
-                });
-                
-                return;
-            }
-        } catch (RemoteException ex) {
-        }
-    	Animation fade_out = AnimationUtils.loadAnimation(a, R.anim.player_out);
-		nowPlayingView.startAnimation(fade_out);
-        nowPlayingView.setVisibility(View.GONE);
     }
     
     private final static long [] sEmptyList = new long[0];
