@@ -74,6 +74,14 @@ public class DetermineActionTask extends AsyncTask<Void, Void, Void> {
 					mList = MusicUtils.storeFile(mContext, getUri().getScrubbedUri().toString());
 				}
 			}
+		} catch (ProtocolException ex) {
+			// Ugly workaround to avoid HttpURLConnection issues in KitKat
+			if (ex.getMessage().equals("Unexpected status line: ICY 200 OK")) {
+				mAction = URL_ACTION_PLAY;
+				mList = MusicUtils.storeFile(mContext, getUri().getScrubbedUri().toString());
+			} else {
+				mAction = URL_ACTION_UNDETERMINED;
+			}
 		} catch (Exception e) {
 			e.printStackTrace();
 			mAction = URL_ACTION_UNDETERMINED;
