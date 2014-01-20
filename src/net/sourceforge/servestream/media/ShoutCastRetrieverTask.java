@@ -169,6 +169,10 @@ public class ShoutCastRetrieverTask {
 			String artist = null;
 			Metadata metadata = null;
 			
+			if (icyMetadata == null) {
+				return metadata;
+			}
+			
 			String streamTitle = null;
 			Map<String, String> parsedMetadata = new HashMap<String, String>();
 			String[] metaParts = icyMetadata.split(";");
