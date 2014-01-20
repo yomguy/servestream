@@ -17,6 +17,8 @@
 
 package net.sourceforge.servestream.utils;
 
+import java.net.ProtocolException;
+
 import net.sourceforge.servestream.bean.UriBean;
 import net.sourceforge.servestream.transport.AbsTransport;
 import net.sourceforge.servestream.transport.TransportFactory;
