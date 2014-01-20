@@ -30,7 +30,7 @@
     	android:layout_height="wrap_content"
     	android:layout_alignParentRight="true"
     	android:layout_centerVertical="true"
-    	android:src="@drawable/ic_menu_moreoverflow_holo_dark"
+    	android:src="?attr/list_item_overflow"
     	android:contentDescription="" />
     
 	<TextView

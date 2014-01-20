@@ -25,7 +25,8 @@
         <item name="attr/content_new">@drawable/content_new_dark</item>
         <item name="attr/navigation_accept">@drawable/navigation_accept_dark</item>
         <item name="attr/navigation_refresh">@drawable/navigation_refresh_dark</item>
-        <item name="attr/borderless_button">@drawable/borderless_button_dark</item>
+        <item name="attr/borderless_button">@drawable/borderless_button</item>
+        <item name="attr/list_item_overflow">@drawable/ic_menu_moreoverflow_holo_dark</item>
     </style>
     
     <style name="Theme.ServeStream.Light" parent="@style/Theme.AppCompat.Light">
@@ -34,6 +35,7 @@
         <item name="attr/navigation_accept">@drawable/navigation_accept</item>
         <item name="attr/navigation_refresh">@drawable/navigation_refresh</item>
         <item name="attr/borderless_button">@drawable/borderless_button</item>
+        <item name="attr/list_item_overflow">@drawable/ic_menu_moreoverflow_holo_light</item>
     </style>
     
 </resources>

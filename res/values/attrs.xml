@@ -6,5 +6,6 @@
     <attr name="navigation_accept" format="reference" />
     <attr name="navigation_refresh" format="reference" />
     <attr name="borderless_button" format="reference" />
+    <attr name="list_item_overflow" format="reference" />
     
 </resources>
