@@ -151,6 +151,23 @@ public class BrowseFragment extends ListFragment implements
 		}
 	}
 	
+	@Override
+	public void onResume() {
+		super.onResume();
+		
+		if (mWebpageParserTask != null &&
+				mWebpageParserTask.getStatus() != AsyncTask.Status.FINISHED) {
+			showDialog(LOADING_DIALOG);
+		}
+	}
+	
+	@Override
+	public void onPause() {
+		super.onPause();
+		
+		dismissDialog(LOADING_DIALOG);
+	}
+	
 	private void browseTo(Uri uri) {
 		mStepsBack = 0;
 		mDirectory = new UriBean[1000];
@@ -341,8 +358,8 @@ public class BrowseFragment extends ListFragment implements
 		if (prev != null) {
 			prev.dismiss();
 			ft.remove(prev);
+			ft.commit();
 		}
-		ft.commit();
 	}
 
 	@Override
