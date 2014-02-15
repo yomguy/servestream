@@ -65,6 +65,7 @@
 		<activity
 		    android:name=".activity.MainActivity"
 	   		android:theme="@style/Theme.ServeStream.Dark"
+	   		android:label="@string/play_with_label"
 		    android:launchMode="singleTop" >
 		    
 			<intent-filter>
@@ -77,6 +78,44 @@
 				<category android:name="android.intent.category.DEFAULT" />
 				<data android:mimeType="net.sourceforge.servestream/*" />
 			</intent-filter>
+			<intent-filter>
+  				<action android:name="android.intent.action.SEND" />
+  				<category android:name="android.intent.category.DEFAULT" />
+  				<data android:mimeType="text/plain" />
+			</intent-filter>
+			<intent-filter>
+				<action android:name="android.intent.action.VIEW" />
+				<category android:name="android.intent.category.BROWSABLE" />
+				<category android:name="android.intent.category.DEFAULT" />
+				<data android:scheme="http" />
+				<data android:host="*" />
+				<data android:mimeType="audio/*" />
+				<data android:mimeType="video/*" />
+				<data android:mimeType="audio/x-mpegurl" />
+        		<data android:mimeType="audio/x-scpls" />
+        		<data android:mimeType="video/x-ms-asf" />
+        		<data android:mimeType="application/xspf+xml" />
+			</intent-filter>
+			<intent-filter>
+				<action android:name="android.intent.action.VIEW" />
+				<category android:name="android.intent.category.BROWSABLE" />
+				<category android:name="android.intent.category.DEFAULT" />
+				<data android:scheme="http" />
+				<data android:host="*" />
+				<data android:pathPattern=".*\\.m3u" />
+				<data android:pathPattern=".*\\.pls" />
+				<data android:pathPattern=".*\\.asx" />
+			    <data android:pathPattern=".*\\.xspf" />
+			</intent-filter>
+			<intent-filter>
+        		<action android:name="android.intent.action.VIEW" />
+        		<category android:name="android.intent.category.DEFAULT" />
+        		<data android:scheme="file" />
+        		<data android:mimeType="audio/x-mpegurl" />
+        		<data android:mimeType="audio/x-scpls" />
+        		<data android:mimeType="video/x-ms-asf" />
+        		<data android:mimeType="application/xspf+xml" />
+    		</intent-filter>
     		<meta-data
 	            android:name="android.app.default_searchable"
                 android:value=".activity.SearchableActivity" />
