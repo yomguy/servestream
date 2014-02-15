@@ -300,7 +300,7 @@ public class MainActivity extends ActionBarActivity implements
         // Pass any configuration change to the drawer toggls
         mDrawerToggle.onConfigurationChanged(newConfig);
     }
-    
+
     private String getUri() {
 		String intentUri = null;
 		String contentType = null;
@@ -334,7 +334,7 @@ public class MainActivity extends ActionBarActivity implements
 		
 		return intentUri;
     }
-
+    
 	@Override
 	public void onServiceConnected(ComponentName name, IBinder service) {
 		//MusicUtils.updateNowPlaying(this);
