@@ -1,21 +1,21 @@
-<?xml version='1.0' encoding='UTF-8'?>
+<?xml version="1.0" encoding="UTF-8"?>
 <!--
 /*
- * ServeStream: A HTTP stream browser/player for Android
- * Copyright 2013 William Seemann
- * 
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+* ServeStream: A HTTP stream browser/player for Android
+* Copyright 2014 William Seemann
+*
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
+*
+*     http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+*/
 -->
 
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
@@ -32,14 +32,18 @@
   <string name="set_alarm_label">Wecker einstellen</string>
 
   <!-- Other -->
+  <string name="devices_label">Geräte</string>
+  <string name="autostart_label">Autostart</string>
+  <string name="opening_url_message">Öffne URL&#8230;</string>
   <string name="confirm_label">Bestätigen</string>
   <string name="cancel_label">Abbrechen</string>
   <string name="store_playlist_entries">Speichern sie individuelle Wiedergabelisteneinträge</string>
   <string name="unknown_artist_name">Unbekannter Künstler</string>
   <string name="unknown_album_name">Unbekanntes Album</string>
-  <string name="opening_url_message">Öffne URL ...</string>
+  <string name="opening_url_message">Öffne URL#8230;</string>
   <string name="url_not_opened_message">Die URL konnte nicht geöffnet werden.</string>
   <string name="find_barcode_scanner_message">Dieses Feature erfordert den ZXing Barcode-Scanner. Diese Anwendung im Markt suchen?</string>
+  <string name="donation_successful_message">Vielen Dank für die Spende!</string>
   <string name="rate_application">Möchten sie diese Anwendung im Android Markt bewerten? Feedback ist erwünscht.</string>
   <string name="rate_pos">Ja, in den Markt weiterleiten.</string>
   <string name="rate_neg">Nein, und nicht wieder fragen.</string>
@@ -62,6 +66,7 @@
 
   <!-- Actions on URLs -->
   <string name="add_to_playlist_label">Zur Wiedergabeliste hinzufügen</string>
+  <string name="autostart_on_bluetooth">Automatisch zusammen mit Bluetooth starten</string>
   <string name="edit_label">Bearbeiten</string>
   <string name="delete_label">Löschen</string>
   <string name="save_label">Speichern</string>
@@ -71,7 +76,7 @@
   <string name="url_save_confirmation_msg">Sind sie sicher, dass sie \'%1$s\' speichern möchten?</string>
 
   <!-- Mediaplayer messages -->
-  <string name="buffering_message">Pufferung. Bitte warten ...</string>
+  <string name="buffering_message">Pufferung. Bitte warten&#8230;</string>
   <string name="playback_failed">Leider wird diese Art von Mediendatei nicht unterstützt.</string>
   <string name="service_start_error_title">Wiedergabeproblem</string>
   <string name="service_start_error_msg">Leider konnte dieses Medium nicht abgespielt werden.</string>
@@ -92,6 +97,8 @@
   <string name="about_pref">Über</string>
   <string name="pref_backup_and_restore">Sichern und Wiederherstellen</string>
   <string name="pref_backup">In eine Datei sichern</string>
+  <string name="pref_bluetooth_category">Bluetooth</string>
+  <string name="pref_bluetooth_options">Bluetooth Einstellungen</string>
   <string name="pref_restore">Von einer Datei wiederherstellen</string>
   <string name="pref_donate">Spenden</string>
   <string name="pref_general_settings_category">Allgemeine Einstellungen</string>
@@ -156,16 +163,17 @@
   <string name="no_items_label">Es gibt keine Elemente in dieser Liste.</string>
   <string name="no_urls_label">Sie haben noch keine URLs eingegeben.</string>
   <string name="no_results_label">Keine Treffer gefunden.</string>
+  <string name="no_paired_devices_label">Keine gekoppelte Geräte gefunden.</string>
 
   <!-- Title for AlarmClock activity -->
   <string name="alarm_list_title">Wecker</string>
 
   <!-- Actions on alarms -->
   <string name="add_alarm">Wecker hinzufügen</string>
-  <string name="menu_edit_alarm">Bearbeiten</string>
-  <string name="delete_alarm">Löschen</string>
-  <string name="enable_alarm">Einschalten</string>
-  <string name="disable_alarm">Ausschalten</string>
+  <string name="menu_edit_alarm">Wecker bearbeiten</string>
+  <string name="delete_alarm">Wecker löschen</string>
+  <string name="enable_alarm">Wecker einschalten</string>
+  <string name="disable_alarm">Wecker ausschalten</string>
   <string name="alarm_delete_confirmation_msg">Dieser Wecker wirklich löschen?</string>
   <string name="done">Fertig</string>
   <string name="revert">Zurücksetzen</string>
@@ -187,17 +195,17 @@
   <string name="alarm_alert_snooze_set">Schlummern für <xliff:g id="minutes">%d</xliff:g> Minuten.</string>
   <string name="alarm_notify_text">Schlummern oder Wecker abschalten.</string>
   <string name="alarm_notify_snooze_label"><xliff:g id="label">%s</xliff:g> (schlummern)</string>
-  <string name="alarm_notify_snooze_text">Wecker auf <xliff:g id="time">%s</xliff:g> gesetzt. Wählen sie abbrechen.</string>
+  <string name="alarm_notify_snooze_text">Wecker auf <xliff:g id="time">%s</xliff:g> gesetzt. Hier klicken zum Abbrechen.</string>
 
   <string-array name="alarm_set">
-    <item>Dieser Alarm wird ab sofort für weniger als 1 Minute gesetzt.</item>
-    <item>Dieser Alarm wurde auf <xliff:g id="DAYS" example="2 days">%1$s</xliff:g> ab jetzt gesetzt.</item>
-    <item>Dieser Alarm wurde auf <xliff:g id="HOURS" example="2 hours">%2$s</xliff:g> ab jetzt gesetzt.</item>
-    <item>Dieser Alarm wurde auf <xliff:g id="DAYS" example="2 days">%1$s</xliff:g> und <xliff:g id="HOURS" example="2 hours">%2$s</xliff:g> ab jetzt gesetzt.</item>
-    <item>Dieser Alarm wurde auf <xliff:g id="MINUTES" example="2 minutes">%3$ s</xliff:g> gesetzt.</item>
-    <item>Dieser Alarm wurde auf <xliff:g id="DAYS" example="2 days">%1$s</xliff:g> und <xliff:g id="MINUTES" example="2 minutes">%3$s</xliff:g> ab jetzt gesetzt.</item>
-    <item>Dieser Alarm wurde auf <xliff:g id="HOURS" example="2 hours">%2$s</xliff:g> und <xliff:g id="MINUTES" example="2 minutes">%3$s</xliff:g> ab jetzt gesetzt.</item>
-    <item>Dieser Alarm wurde auf <xliff:g id="DAYS" example="2 days">%1$s</xliff:g>, <xliff:g id="HOURS" example="2 hours">%2$s</xliff:g>, und <xliff:g id="MINUTES" example="2 minutes">%3$s</xliff:g> ab jetzt gesetzt.</item>
+    <item>Dieser Wecker wird aktiv in weniger als 1 Minute.</item>
+    <item>Dieser Wecker wird aktiv in <xliff:g id="DAYS" example="2 days">%1$s</xliff:g>.</item>
+    <item>Dieser Wecker wird aktiv in <xliff:g id="HOURS" example="2 hours">%2$s</xliff:g>.</item>
+    <item>Dieser Wecker wird aktiv in <xliff:g id="DAYS" example="2 days">%1$s</xliff:g> und <xliff:g id="HOURS" example="2 hours">%2$s</xliff:g>.</item>
+    <item>Dieser Wecker wird aktiv in <xliff:g id="MINUTES" example="2 minutes">%3$ s</xliff:g>.</item>
+    <item>Dieser Wecker wird aktiv in <xliff:g id="DAYS" example="2 days">%1$s</xliff:g> und <xliff:g id="MINUTES" example="2 minutes">%3$s</xliff:g>.</item>
+    <item>Dieser Wecker wird aktiv in <xliff:g id="HOURS" example="2 hours">%2$s</xliff:g> und <xliff:g id="MINUTES" example="2 minutes">%3$s</xliff:g>.</item>
+    <item>Dieser Wecker wird aktiv in <xliff:g id="DAYS" example="2 days">%1$s</xliff:g>, <xliff:g id="HOURS" example="2 hours">%2$s</xliff:g>, und <xliff:g id="MINUTES" example="2 minutes">%3$s</xliff:g>.</item>
   </string-array>
 
   <string name="day">1 Tag</string>
@@ -232,6 +240,13 @@
 
   <string name="drawer_open">Öffne Schublade</string>
   <string name="drawer_close">Schließe Schublade</string>
+
+  <!-- Donation amounts -->
+  <string name="donation_amount">Spendenbetrag wählen</string>
+  <string name="one_dollar">"1 US$"</string>
+  <string name="four_dollars">"4 US$"</string>
+  <string name="eight_dollars">"8 US$"</string>
+  <string name="twenty_dollars">"20 US$"</string>
 
 </resources>
 
