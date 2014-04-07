@@ -74,6 +74,8 @@ void clear_l(State **ps)
 	state->abort_request = 0;
 	state->paused = 0;
 	state->last_paused = -1;
+	state->filename[0] = '\0';
+	state->headers[0] = '\0';
 }
 
 void disconnect(State **ps)
@@ -114,7 +116,7 @@ int setWriteAudioListener(State **ps, void* clazz, void (*listener) (void*, int1
     return SUCCESS;
 }
 
-int setDataSource(State **ps, const char *url)
+int setDataSource(State **ps, const char *url, const char *headers)
 {
     printf("setDataSource\n");
 
@@ -134,6 +136,10 @@ int setDataSource(State **ps, const char *url)
 
     strncpy(state->filename, url, sizeof(state->filename));
 
+    if (headers) {
+        strncpy(state->headers, headers, sizeof(state->headers));
+    }
+    
     return SUCCESS;
 }
 
@@ -333,6 +339,17 @@ int decode_frame_from_packet(State *state, AVPacket *aPacket, int *frame_size_pt
             samples = malloc(dst_bufsize);
     		memcpy(samples, dst_data[0], dst_bufsize);
     		data_size = dst_bufsize;
+
+    		if (src_data) {
+    			av_freep(&src_data[0]);
+    		}
+    		av_freep(&src_data);
+
+    		if (dst_data) {
+    			av_freep(&dst_data[0]);
+    		}
+    		av_freep(&dst_data);
+
     		swr_free(&swr_ctx);
     	} else {
     		/* if a frame has been decoded, output it */
@@ -518,6 +535,10 @@ int player_prepare(State **ps, int from_thread)
 
     AVDictionary *options = NULL;
     av_dict_set(&options, "user-agent", "FFmpegMediaPlayer", 0);
+    
+    if (state->headers) {
+    	av_dict_set(&options, "headers", state->headers, 0);
+    }
     
     if (avformat_open_input(&state->pFormatCtx, state->filename, NULL, &options) != 0) {
 	    printf("Input file could not be opened\n");
