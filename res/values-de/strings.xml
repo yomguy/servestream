@@ -40,7 +40,6 @@
   <string name="store_playlist_entries">Speichern sie individuelle Wiedergabelisteneinträge</string>
   <string name="unknown_artist_name">Unbekannter Künstler</string>
   <string name="unknown_album_name">Unbekanntes Album</string>
-  <string name="opening_url_message">Öffne URL#8230;</string>
   <string name="url_not_opened_message">Die URL konnte nicht geöffnet werden.</string>
   <string name="find_barcode_scanner_message">Dieses Feature erfordert den ZXing Barcode-Scanner. Diese Anwendung im Markt suchen?</string>
   <string name="donation_successful_message">Vielen Dank für die Spende!</string>
