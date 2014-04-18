@@ -217,8 +217,7 @@
 		</activity>
 		
 		<activity
-		    android:name=".activity.StreamEditorActivity"
-			android:configChanges="keyboardHidden|orientation" />
+		    android:name=".activity.UriEditorActivity" />
 
 		<service
 		    android:name=".service.MediaPlaybackService"

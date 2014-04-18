@@ -69,19 +69,22 @@ public class SettingsFragment extends PreferenceFragment {
 	@Override
 	public void onActivityCreated(Bundle savedInstanceState) {
 		super.onActivityCreated(savedInstanceState);
+		
+		if (savedInstanceState == null) {
 			addPreferencesFromResource(R.xml.preferences);
+
 			findPreference(PREF_BLUETOOTH_OPTIONS).setOnPreferenceClickListener(
-				new OnPreferenceClickListener() {
+					new OnPreferenceClickListener() {
 
-					@Override
-					public boolean onPreferenceClick(Preference preference) {
-						getActivity().startActivity(new Intent(
-								getActivity(), BluetoothOptionsActivity.class));
-						return true;
-					}
+						@Override
+						public boolean onPreferenceClick(Preference preference) {
+							getActivity().startActivity(new Intent(
+									getActivity(), BluetoothOptionsActivity.class));
+							return true;
+						}
 
-				});
-			
+					});
+
 			findPreference(PREF_ABOUT).setOnPreferenceClickListener(
 					new OnPreferenceClickListener() {
 
@@ -93,31 +96,32 @@ public class SettingsFragment extends PreferenceFragment {
 						}
 
 					});
-			
+
 			findPreference(PREF_DONATE).setOnPreferenceClickListener(
 					new OnPreferenceClickListener() {
 
 						@Override
 						public boolean onPreferenceClick(Preference preference) {
-					        mHelper = new IabHelper(getActivity(), PUBLIC_KEY);
-					        mHelper.startSetup(new IabHelper.OnIabSetupFinishedListener() {
-					        	public void onIabSetupFinished(IabResult result) {
-					        		if (!result.isSuccess()) {
-					        			Log.d(TAG, "Problem setting up In-app Billing: " + result);
-						        		// IAB couldn't be used lets take the user to the project's webpage instead.
-						        		Intent intent = new Intent(Intent.ACTION_VIEW);
-						        		intent.setData(Uri.parse(Constants.SERVESTREAM_DONATE_PAGE));
-						        		startActivity(intent);
-					        	    } else {
-					        	    	Log.d(TAG, "Hooray, IAB is fully set up!");
-					        	    	showDonationAmountsDialog();
-					        	    }
-					        	}
-					        });
+							mHelper = new IabHelper(getActivity(), PUBLIC_KEY);
+							mHelper.startSetup(new IabHelper.OnIabSetupFinishedListener() {
+								public void onIabSetupFinished(IabResult result) {
+									if (!result.isSuccess()) {
+										Log.d(TAG, "Problem setting up In-app Billing: " + result);
+										// IAB couldn't be used lets take the user to the project's webpage instead.
+										Intent intent = new Intent(Intent.ACTION_VIEW);
+										intent.setData(Uri.parse(Constants.SERVESTREAM_DONATE_PAGE));
+										startActivity(intent);
+									} else {
+										Log.d(TAG, "Hooray, IAB is fully set up!");
+										showDonationAmountsDialog();
+									}
+								}
+							});
 							return true;
 						}
 
 					});
+		}
 	}
 
 	@Override

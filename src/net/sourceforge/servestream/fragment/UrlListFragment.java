@@ -32,7 +32,7 @@ import net.sourceforge.servestream.utils.UriBeanLoader;
 import net.sourceforge.servestream.R;
 import net.sourceforge.servestream.activity.AddUrlActivity;
 import net.sourceforge.servestream.activity.BluetoothOptionsActivity;
-import net.sourceforge.servestream.activity.StreamEditorActivity;
+import net.sourceforge.servestream.activity.UriEditorActivity;
 import net.sourceforge.servestream.adapter.UrlListAdapter;
 import net.sourceforge.servestream.alarm.Alarm;
 import net.sourceforge.servestream.bean.UriBean;
@@ -366,7 +366,7 @@ public class UrlListFragment extends ListFragment implements
 			
 			switch (item.getItemId()) {
 				case R.id.menu_item_edit:
-					intent = new Intent(getActivity(), StreamEditorActivity.class);
+					intent = new Intent(getActivity(), UriEditorActivity.class);
 					intent.putExtra(Intent.EXTRA_TITLE, mSelectedMenuItem.getId());
 					getActivity().startActivity(intent);
 					return true;
