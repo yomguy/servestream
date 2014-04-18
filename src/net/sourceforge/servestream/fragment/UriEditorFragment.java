@@ -1,6 +1,6 @@
 /*
  * ServeStream: A HTTP stream browser/player for Android
- * Copyright 2013 William Seemann
+ * Copyright 2014 William Seemann
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package net.sourceforge.servestream.activity;
+package net.sourceforge.servestream.fragment;
 
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -36,10 +36,11 @@ import android.os.Bundle;
 import android.preference.CheckBoxPreference;
 import android.preference.ListPreference;
 import android.preference.Preference;
-import android.preference.PreferenceActivity;
-import android.view.MenuItem;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
 
-public class StreamEditorActivity extends PreferenceActivity implements OnSharedPreferenceChangeListener {
+public class UriEditorFragment extends PreferenceFragment implements OnSharedPreferenceChangeListener {
 	public class CursorPreferenceHack implements SharedPreferences {
 		protected final String table;
 		protected final long id;
@@ -205,34 +206,33 @@ public class StreamEditorActivity extends PreferenceActivity implements OnShared
 
 	}
 
-	@Override
-	public SharedPreferences getSharedPreferences(String name, int mode) {
-		//Log.d(this.getClass().toString(), String.format("getSharedPreferences(name=%s)", name));
-		return this.pref;
-	}
-
-	protected static final String TAG = StreamEditorActivity.class.getName();
+	protected static final String TAG = UriEditorFragment.class.getName();
 
 	protected StreamDatabase m_streamdb = null;
 
 	private CursorPreferenceHack pref;
 
 	@Override
-	public void onCreate(Bundle icicle) {
-		super.onCreate(icicle);
+	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+		return inflater.inflate(R.layout.fragment_uri_editor, null);
+	}
+	
+	@Override
+	public void onActivityCreated(Bundle savedInstanceState) {
+		super.onActivityCreated(savedInstanceState);
 
-		setContentView(R.layout.activity_stream_editor);
-		
-		long streamId = this.getIntent().getLongExtra(Intent.EXTRA_TITLE, -1);
+		if (savedInstanceState == null) {
+			long streamId = getActivity().getIntent().getLongExtra(Intent.EXTRA_TITLE, -1);
 
-		this.m_streamdb = new StreamDatabase(this);
+			m_streamdb = new StreamDatabase(getActivity());
 
-		this.pref = new CursorPreferenceHack(StreamDatabase.TABLE_STREAMS, streamId);
-		this.pref.registerOnSharedPreferenceChangeListener(this);
+			pref = new CursorPreferenceHack(StreamDatabase.TABLE_STREAMS, streamId);
+			pref.registerOnSharedPreferenceChangeListener(this);
 
-		this.addPreferencesFromResource(R.xml.stream_prefs);
+			addPreferencesFromResource(R.xml.stream_prefs);
 
-		this.updateSummaries();
+			updateSummaries();
+		}
 	}
 
 	@Override
@@ -240,32 +240,18 @@ public class StreamEditorActivity extends PreferenceActivity implements OnShared
 		super.onStart();
 
 		if(this.m_streamdb == null)
-			this.m_streamdb = new StreamDatabase(this);
+			this.m_streamdb = new StreamDatabase(getActivity());
 	}
 
 	@Override
 	public void onStop() {
 		super.onStop();
 
-		if(this.m_streamdb != null) {
+		if (this.m_streamdb != null) {
 			this.m_streamdb.close();
 			this.m_streamdb = null;
 		}
 	}
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        switch (item.getItemId()) {
-    		case android.R.id.home:
-    			Intent intent = new Intent(this, MainActivity.class);
-    			intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-    			startActivity(intent);
-    			return true;
-            default:
-                break;
-        }
-        return super.onOptionsItemSelected(item);
-    }
 	
 	private void updateSummaries() {
 		// for all text preferences, set hint as current database value
@@ -297,5 +283,4 @@ public class StreamEditorActivity extends PreferenceActivity implements OnShared
 		this.updateSummaries();
 
 	}
-
 }
