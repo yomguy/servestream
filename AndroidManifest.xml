@@ -205,7 +205,6 @@
 		
 		<activity
             android:name=".activity.SettingsActivity"
-            android:configChanges="keyboardHidden|orientation"
             android:label="@string/settings_label" />
         
 		<activity
