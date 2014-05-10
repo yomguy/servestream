@@ -53,7 +53,6 @@
         		android:layout_height="wrap_content"
         		android:paddingRight="6dip" 
                 android:textSize="12sp"
-        		android:textColor="#ffbbbbbb"
                 android:gravity="right" />
 
             <SeekBar
@@ -77,8 +76,8 @@
         		android:layout_height="wrap_content"
         		android:paddingLeft="6dip"
                 android:textSize="12sp"
-        		android:textColor="#ffbbbbbb"
                 android:gravity="left" />
+        
         </LinearLayout>
 
         <RelativeLayout

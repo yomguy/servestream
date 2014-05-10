@@ -27,7 +27,6 @@
     <string name="add_new_url_label">Add a new URL</string>
     <string name="now_playing_label">Play queue</string>
     <string name="organize_urls_label">Organize</string>
-    <string name="play_with_label">Play with ServeStream</string>
     <string name="media_player_label">Now playing</string>
 	<string name="alarm_clock_label">Alarm Clock</string>
 	<string name="set_alarm_label">Set Alarm</string>

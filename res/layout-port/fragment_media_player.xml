@@ -51,7 +51,6 @@
             android:layout_height="wrap_content"
             android:paddingTop="5dip"
             android:singleLine="true"
-            android:textColor="#ffa9a9a9"
             android:textSize="13sp"
             android:textStyle="normal" />
 
@@ -63,7 +62,6 @@
             android:layout_marginRight="12dip"
             android:ellipsize="marquee"
             android:singleLine="true"
-            android:textColor="#ffffffff"
             android:textSize="17sp"
             android:textStyle="bold" />
 
@@ -75,7 +73,6 @@
             android:layout_marginRight="12dip"
             android:ellipsize="marquee"
             android:singleLine="true"
-            android:textColor="#ffa9a9a9"
             android:textSize="13sp"
             android:textStyle="normal" />
 
