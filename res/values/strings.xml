@@ -317,5 +317,10 @@
     <!-- Optional button to Skip a PreferenceActivity [CHAR LIMIT=20] -->
     <string name="skip_button_label">Skip</string>
     
+    <!-- Failures -->
+    <string name="failed_no_connection">No connection to the cast device is present</string>
+    <string name="failed_no_connection_trans">Connection to the cast device has been lost. Application is trying to re-establish the connection, if possible. Please wait for a few seconds and try again.</string>
+    <string name="failed_perform_action">Failed to perform the action</string>
+    
 </resources>
 

@@ -17,23 +17,44 @@
 
 package net.sourceforge.servestream.activity;
 
+import com.google.android.gms.cast.MediaStatus;
+
 import net.sourceforge.servestream.R;
+import net.sourceforge.servestream.exceptions.CastException;
+import net.sourceforge.servestream.exceptions.NoConnectionException;
+import net.sourceforge.servestream.exceptions.TransientNetworkDisconnectionException;
 import net.sourceforge.servestream.fragment.AlarmClockFragment;
 import net.sourceforge.servestream.fragment.BrowseFragment;
 import net.sourceforge.servestream.fragment.UrlListFragment;
 import net.sourceforge.servestream.fragment.UrlListFragment.BrowseIntentListener;
+import net.sourceforge.servestream.provider.Media;
+import net.sourceforge.servestream.service.IMediaPlaybackService;
+import net.sourceforge.servestream.service.MediaPlaybackService;
 import net.sourceforge.servestream.utils.DownloadScannerDialog;
 import net.sourceforge.servestream.utils.MusicUtils;
+import net.sourceforge.servestream.utils.PreferenceConstants;
 import net.sourceforge.servestream.utils.MusicUtils.ServiceToken;
-
+import net.sourceforge.servestream.utils.Utils;
+import net.sourceforge.servestream.widgets.MiniController;
+import net.sourceforge.servestream.widgets.MiniController.OnMiniControllerChangedListener;
 import android.content.ActivityNotFoundException;
+import android.content.BroadcastReceiver;
 import android.content.ComponentName;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.ServiceConnection;
+import android.content.SharedPreferences;
 import android.content.res.Configuration;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.IBinder;
+import android.os.RemoteException;
+import android.preference.PreferenceManager;
 import android.support.v4.app.ActionBarDrawerToggle;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
@@ -53,7 +74,8 @@ import android.widget.ListView;
 
 public class MainActivity extends ActionBarActivity implements
 			ServiceConnection,
-			BrowseIntentListener {
+			BrowseIntentListener,
+			OnMiniControllerChangedListener {
 	
 	private static final String STATE_SELECTED_NAVIGATION_ITEM = "selected_navigation_item";
 	
@@ -69,8 +91,11 @@ public class MainActivity extends ActionBarActivity implements
     private CharSequence mTitle;
     private String[] mDrawerItems;
 
+    private IMediaPlaybackService mService;
 	private ServiceToken mToken;
     
+    private MiniController mMini;
+	
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -82,7 +107,7 @@ public class MainActivity extends ActionBarActivity implements
         mDrawerList = (ListView) findViewById(R.id.left_drawer);
 
         // set a custom shadow that overlays the main content when the drawer opens
-        mDrawerLayout.setDrawerShadow(R.drawable.drawer_shadow, GravityCompat.START);
+        mDrawerLayout.setDrawerShadow(Utils.getThemedIcon(this, R.attr.drawer_shadow), GravityCompat.START);
         // set up the drawer's list view with items and click listener
         mDrawerList.setAdapter(new ArrayAdapter<String>(this,
                 R.layout.drawer_list_item, mDrawerItems));
@@ -92,12 +117,15 @@ public class MainActivity extends ActionBarActivity implements
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setHomeButtonEnabled(true);
 
+        // -- Adding MiniController
+        mMini = (MiniController) findViewById(R.id.miniController1);
+        
         // ActionBarDrawerToggle ties together the the proper interactions
         // between the sliding drawer and the action bar app icon
         mDrawerToggle = new ActionBarDrawerToggle(
                 this,                  /* host Activity */
                 mDrawerLayout,         /* DrawerLayout object */
-                R.drawable.ic_drawer,  /* nav drawer image to replace 'Up' caret */
+                Utils.getThemedIcon(this, R.attr.ic_drawer),  /* nav drawer image to replace 'Up' caret */
                 R.string.drawer_open,  /* "open drawer" description for accessibility */
                 R.string.drawer_close  /* "close drawer" description for accessibility */
                 ) {
@@ -127,6 +155,24 @@ public class MainActivity extends ActionBarActivity implements
         
         openUri(getUri());
     }
+    
+    @Override
+	public void onResume() {
+		super.onResume();
+		
+        IntentFilter f = new IntentFilter();
+        f.addAction(MediaPlaybackService.PLAYSTATE_CHANGED);
+        f.addAction(MediaPlaybackService.META_CHANGED);
+        f.addAction(MediaPlaybackService.QUEUE_CHANGED);
+        registerReceiver(mTrackListListener, f);
+	}
+
+	@Override
+	public void onPause() {
+		super.onPause();
+		
+        unregisterReceiver(mTrackListListener);
+	}
     
 	@Override
 	public void onDestroy() {
@@ -335,13 +381,25 @@ public class MainActivity extends ActionBarActivity implements
 		return intentUri;
     }
     
+    private BroadcastReceiver mTrackListListener = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+        	updateNowPlaying();
+        }
+    };
+    
 	@Override
 	public void onServiceConnected(ComponentName name, IBinder service) {
-		//MusicUtils.updateNowPlaying(this);
+		mService = IMediaPlaybackService.Stub.asInterface(service);
+		mMini.setOnMiniControllerChangedListener(this);
+		mMini.setVisibility(View.VISIBLE);
+		updateNowPlaying();
 	}
 
 	@Override
 	public void onServiceDisconnected(ComponentName name) {
+		//mMini.setLoadingVisibility(false);
+		//mMini.removeOnMiniControllerChangedListener(this);
 		finish();
 	}
 
@@ -423,5 +481,125 @@ public class MainActivity extends ActionBarActivity implements
 
 		ft.add(0, newFragment, tag);
 		ft.commit();
+	}
+
+	@Override
+	public void onFailed(int resourceId, int statusCode) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void onPlayPauseClicked(View v) throws CastException,
+			TransientNetworkDisconnectionException, NoConnectionException {
+		try {
+			if (mService.isPlaying()) {
+				mService.pause();
+			} else {
+				mService.play();
+			}
+		} catch (RemoteException e) {
+		}
+		
+	}
+
+	@Override
+	public void onTargetActivityInvoked(Context context)
+			throws TransientNetworkDisconnectionException,
+			NoConnectionException {
+		startActivity(new Intent(this, MediaPlayerActivity.class));
+	}
+	
+	private void updateNowPlaying() {
+		if (mMini == null) {
+			return;
+		}
+		try {
+			if (true && mService != null && mService.getAudioId() != -1) {
+				Drawable d = null;
+
+				SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
+				if (preferences.getBoolean(PreferenceConstants.RETRIEVE_ALBUM_ART, false)) {
+					long id = mService.getAudioId();
+					if (id >= 0) {
+						Bitmap b = BitmapFactory.decodeResource(this.getResources(), R.drawable.albumart_mp_unknown_list);
+						mMini.setIcon(b);
+						BitmapDrawable defaultAlbumIcon = new BitmapDrawable(this.getResources(), b);
+						// no filter or dither, it's a lot faster and we can't tell the difference
+						defaultAlbumIcon.setFilterBitmap(false);
+						defaultAlbumIcon.setDither(false);
+
+						d = MusicUtils.getCachedArtwork(this, mService.getAudioId(), defaultAlbumIcon, true);
+					}
+				}
+
+				/*if (d == null) {
+					mCoverart.setVisibility(View.GONE);
+				} else {
+					mCoverart.setVisibility(View.VISIBLE);
+					mCoverart.setImageDrawable(d);
+				}*/
+
+				CharSequence trackName = mService.getTrackName();
+				CharSequence artistName = mService.getArtistName();                
+
+				if (trackName == null || trackName.equals(Media.UNKNOWN_STRING)) {
+					mMini.setTitle(getString(R.string.widget_one_track_info_unavailable));
+				} else {
+					mMini.setTitle(trackName.toString());
+				}
+
+				if (artistName == null || artistName.equals(Media.UNKNOWN_STRING)) {
+					artistName = mService.getMediaUri();
+				}
+
+				mMini.setSubTitle(artistName.toString());
+
+				/*if (mPreviousButton != null) {
+					mPreviousButton.setImageResource(R.drawable.ic_av_previous);
+					mPreviousButton.setOnClickListener(new View.OnClickListener() {
+
+						@Override
+						public void onClick(View v) {
+							try {
+								mService.prev();
+							} catch (RemoteException e) {
+							}
+						}
+					});
+				}*/
+
+				if (mService.isPlaying()) {
+					mMini.setPlaybackStatus(MediaStatus.PLAYER_STATE_PLAYING, -1);
+				} else {
+					mMini.setPlaybackStatus(MediaStatus.PLAYER_STATE_PAUSED, -1);
+				}
+
+				/*if (mNextButton != null) {
+					mNextButton.setImageResource(R.drawable.ic_av_next);
+					mNextButton.setOnClickListener(new View.OnClickListener() {
+
+						@Override
+						public void onClick(View v) {
+							try {
+								mService.next();
+							} catch (RemoteException e) {
+							}
+						}
+					});
+				}*/
+
+				/*if (mNowPlayingView.getVisibility() != View.VISIBLE) {
+					Animation fade_in = AnimationUtils.loadAnimation(getActivity(), R.anim.player_in);
+					mNowPlayingView.startAnimation(fade_in);
+				}*/
+
+				return;
+			}
+		} catch (RemoteException ex) {
+		}
+		/*Animation fade_out = AnimationUtils.loadAnimation(getActivity(), R.anim.player_out);
+		mNowPlayingView.startAnimation(fade_out);
+		mNowPlayingView.setVisibility(View.GONE);*/
 	}
 }

@@ -36,11 +36,12 @@
         	android:layout_height="0dip"
         	android:layout_weight="1" />
     
-    	<fragment
-    	    android:id="@+id/nowplaying"
-    	    android:name="net.sourceforge.servestream.fragment.NowPlayingFragment"
-        	android:layout_width="wrap_content"
-        	android:layout_height="wrap_content" />
+    	<net.sourceforge.servestream.widgets.MiniController
+        	android:id="@+id/miniController1"
+        	android:layout_width="fill_parent"
+        	android:layout_height="wrap_content"
+        	android:background="@drawable/shadow7"
+        	android:visibility="gone" />
     
     </LinearLayout>
     

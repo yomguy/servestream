@@ -46,7 +46,7 @@
 		android:allowBackup="true"
 		android:backupAgent=".service.BackupAgent"
 		android:killAfterRestore="true"
-		android:theme="@style/Theme.ServeStream.Dark" >
+		android:theme="@style/Theme.ServeStream.DarkActionBar" >
 
 		<meta-data
 		    android:name="com.google.android.backup.api_key"
@@ -64,8 +64,6 @@
 
 		<activity
 		    android:name=".activity.MainActivity"
-	   		android:theme="@style/Theme.ServeStream.Dark"
-	   		android:label="@string/play_with_label"
 		    android:launchMode="singleTop" >
 		    
 			<intent-filter>
@@ -123,12 +121,10 @@
 
 		<activity
             android:name=".activity.AboutActivity"
-            android:theme="@style/Theme.ServeStream.Dark"
             android:label="@string/about_pref" />
         
 		<activity
             android:name=".activity.AddUrlActivity"
-            android:theme="@style/Theme.ServeStream.Dark"
             android:configChanges="keyboardHidden|orientation"
             android:label="@string/add_new_url_label"
             android:windowSoftInputMode="adjustResize"
@@ -176,23 +172,19 @@
         
 		<activity
             android:name=".activity.BluetoothOptionsActivity"
-            android:theme="@style/Theme.ServeStream.Dark"
             android:label="@string/pref_bluetooth_options" />
 
 		<activity
 		    android:name=".activity.NowPlayingActivity"
-		    android:theme="@style/Theme.ServeStream.Dark"
 			android:label="@string/now_playing_label" />
 		
 		<activity
             android:name=".activity.OrganizeUrlsActivity"
-            android:theme="@style/Theme.ServeStream.Dark"
             android:configChanges="orientation"
             android:label="@string/organize_urls_label" />
         
 		<activity
 		    android:name=".activity.SearchableActivity"
-		    android:theme="@style/Theme.ServeStream.Dark"
 		    android:launchMode="singleTop" >
         	<intent-filter>
             	<action android:name="android.intent.action.SEARCH" />
@@ -208,8 +200,7 @@
             android:label="@string/settings_label" />
         
 		<activity
-		    android:name=".activity.ShortcutActivity"
-			android:theme="@style/Theme.ServeStream.Dark" >
+		    android:name=".activity.ShortcutActivity" >
 			<intent-filter>
 				<action android:name="android.intent.action.CREATE_SHORTCUT" />
 				<category android:name="android.intent.category.DEFAULT" />
@@ -225,7 +216,6 @@
 
         <activity
             android:name=".activity.MediaPlayerActivity"
-            android:theme="@style/Theme.ServeStream.Dark"
             android:label="@string/media_player_label"
             android:launchMode="singleTop"
             android:exported="false" >
@@ -286,7 +276,6 @@
 
         <activity
             android:name=".activity.AlarmClockActivity"
-            android:theme="@style/Theme.ServeStream.Dark"
             android:label="@string/alarm_clock_label"
             android:excludeFromRecents="true"
             android:configChanges="orientation|keyboardHidden|keyboard|navigation"

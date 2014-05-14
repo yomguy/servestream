@@ -26,7 +26,10 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 
+import net.sourceforge.servestream.R;
+import android.content.Context;
 import android.os.Environment;
+import android.util.TypedValue;
 
 public class Utils {
     
@@ -236,5 +239,11 @@ public class Utils {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
+    }
+    
+    public static int getThemedIcon(Context context, int resid) {
+    	TypedValue typedvalueattr = new TypedValue();
+    	context.getTheme().resolveAttribute(resid, typedvalueattr, true);
+    	return typedvalueattr.resourceId;
     }
 }

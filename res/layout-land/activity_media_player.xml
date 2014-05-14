@@ -82,7 +82,7 @@
 
         <RelativeLayout
             android:layout_width="fill_parent"
-            android:layout_height="60dip"
+            android:layout_height="75dip"
             android:orientation="horizontal" >
 
             <ImageButton
@@ -95,7 +95,7 @@
                 android:paddingRight="10dip"
                 android:paddingTop="8dip"
                 android:background="@null"
-                android:src="@drawable/btn_player_shuffle_normal" />
+                android:src="@null" />
             
             <LinearLayout
                 android:layout_width="fill_parent"
@@ -114,7 +114,7 @@
                     android:layout_width="0dip"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:src="@drawable/btn_player_prev" />
+                    android:src="@drawable/ic_av_previous" />
 
                 <ImageButton
                     android:id="@+id/play_pause_button"
@@ -123,7 +123,7 @@
                     android:layout_weight="1"
                     android:paddingBottom="20dip"
                     android:background="@null"
-                    android:src="@drawable/btn_player_play" />
+                    android:src="@drawable/ic_av_play_over_video_large" />
 
                 <net.sourceforge.servestream.button.RepeatingImageButton
                     android:id="@+id/next_button"
@@ -132,7 +132,7 @@
                     android:layout_weight="1"
                     android:paddingBottom="20dip"
                     android:background="@null"
-                    android:src="@drawable/btn_player_next" />
+                    android:src="@drawable/ic_av_next" />
                 
             </LinearLayout>
 
@@ -146,7 +146,7 @@
                 android:paddingRight="12dip"
                 android:paddingTop="8dip"
                 android:background="@null"
-                android:src="@drawable/btn_player_repeat_normal" />
+                android:src="@null" />
             
         </RelativeLayout>
         

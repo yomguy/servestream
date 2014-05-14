@@ -185,7 +185,7 @@ public class NowPlayingFragment extends Fragment implements ServiceConnection {
 				mArtist.setText(artistName);
 
 				if (mPreviousButton != null) {
-					mPreviousButton.setImageResource(R.drawable.btn_player_prev);
+					mPreviousButton.setImageResource(R.drawable.ic_av_previous);
 					mPreviousButton.setOnClickListener(new View.OnClickListener() {
 
 						@Override
@@ -201,9 +201,9 @@ public class NowPlayingFragment extends Fragment implements ServiceConnection {
 				mPauseButton.setVisibility(View.VISIBLE);
 
 				if (mService.isPlaying()) {
-					mPauseButton.setImageResource(R.drawable.btn_playerpreview_pause);
+					mPauseButton.setImageResource(R.drawable.ic_av_pause_over_video_large);
 				} else {
-					mPauseButton.setImageResource(R.drawable.btn_playerpreview_play);
+					mPauseButton.setImageResource(R.drawable.ic_av_play_over_video_large);
 				}
 
 				mPauseButton.setOnClickListener(new View.OnClickListener() {
@@ -222,7 +222,7 @@ public class NowPlayingFragment extends Fragment implements ServiceConnection {
 				});
 
 				if (mNextButton != null) {
-					mNextButton.setImageResource(R.drawable.btn_player_next);
+					mNextButton.setImageResource(R.drawable.ic_av_next);
 					mNextButton.setOnClickListener(new View.OnClickListener() {
 
 						@Override
