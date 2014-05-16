@@ -24,6 +24,7 @@
         <item name="attr/action_search">@drawable/ic_action_search_dark</item>
         <item name="attr/content_new">@drawable/ic_action_new_dark</item>
         <item name="attr/drawer_shadow">@drawable/drawer_shadow_dark</item>
+        <item name="attr/ic_action_volume_on">@drawable/ic_action_volume_on_light</item>
         <item name="attr/ic_drawer">@drawable/ic_drawer_dark</item>
         <item name="attr/navigation_accept">@drawable/ic_action_accept_dark</item>
         <item name="attr/navigation_refresh">@drawable/ic_action_refresh_dark</item>
@@ -36,6 +37,7 @@
         <item name="attr/content_new">@drawable/ic_action_new_light</item>
         <item name="attr/drawer_shadow">@drawable/drawer_shadow_light</item>
         <item name="attr/ic_drawer">@drawable/ic_drawer_light</item>
+        <item name="attr/ic_action_volume_on">@drawable/ic_action_volume_on_light</item>
         <item name="attr/navigation_accept">@drawable/ic_action_accept_light</item>
         <item name="attr/navigation_refresh">@drawable/ic_action_refresh_light</item>
         <item name="attr/borderless_button">@drawable/borderless_button</item>
@@ -47,6 +49,7 @@
         <item name="attr/content_new">@drawable/ic_action_new_dark</item>
         <item name="attr/drawer_shadow">@drawable/drawer_shadow_dark</item>
         <item name="attr/ic_drawer">@drawable/ic_drawer_light</item>
+        <item name="attr/ic_action_volume_on">@drawable/ic_action_volume_on_dark</item>
         <item name="attr/navigation_accept">@drawable/ic_action_accept_dark</item>
         <item name="attr/navigation_refresh">@drawable/ic_action_refresh_dark</item>
         <item name="attr/borderless_button">@drawable/borderless_button</item>

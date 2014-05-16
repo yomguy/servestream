@@ -21,6 +21,11 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
       xmlns:yourapp="http://schemas.android.com/apk/res-auto" >
     <item
+    	android:id="@+id/menu_volume"
+        android:icon="?attr/ic_action_volume_on"
+        yourapp:showAsAction="always|collapseActionView"
+        yourapp:actionLayout="@layout/action_bar_media_player"/>
+    <item
         android:id="@+id/menu_play_queue"
         android:icon="@drawable/icn_play_queue"
         yourapp:showAsAction="always" />

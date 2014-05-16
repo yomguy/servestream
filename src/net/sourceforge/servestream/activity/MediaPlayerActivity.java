@@ -29,7 +29,6 @@ import net.sourceforge.servestream.utils.PreferenceConstants;
 import net.sourceforge.servestream.utils.MusicUtils.ServiceToken;
 import net.sourceforge.servestream.utils.SleepTimerDialog;
 import net.sourceforge.servestream.utils.SleepTimerDialog.SleepTimerDialogListener;
-
 import android.app.AlertDialog;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
@@ -58,13 +57,13 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentStatePagerAdapter;
 import android.support.v4.app.FragmentTransaction;
+import android.support.v4.view.MenuItemCompat;
 import android.support.v4.view.ViewPager;
 import android.support.v4.view.ViewPager.OnPageChangeListener;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarActivity;
 import android.util.Log;
 import android.view.KeyEvent;
-import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -125,15 +124,8 @@ public class MediaPlayerActivity extends ActionBarActivity implements MusicUtils
         
 		ActionBar actionBar = getSupportActionBar();
 		actionBar.setDisplayHomeAsUpEnabled(true);
-        actionBar.setDisplayShowCustomEnabled(true);
         actionBar.setDisplayShowTitleEnabled(false);
         
-        LayoutInflater inflater = getLayoutInflater();
-        View v = inflater.inflate(R.layout.action_bar_media_player, null);
-        mVolume = (SeekBar) v.findViewById(R.id.volume_bar);
-        
-        actionBar.setCustomView(v);
-		
         setVolumeControlStream(AudioManager.STREAM_MUSIC);
 
         mPreferences = PreferenceManager.getDefaultSharedPreferences(this);
@@ -166,8 +158,6 @@ public class MediaPlayerActivity extends ActionBarActivity implements MusicUtils
             seeker.setOnSeekBarChangeListener(mSeekListener);
         }
         mProgress.setMax(1000);
-        
-        mVolume.setOnSeekBarChangeListener(mVolumeListener);
         
         mPager = (ViewPager) findViewById(R.id.pager);
     }
@@ -411,7 +401,13 @@ public class MediaPlayerActivity extends ActionBarActivity implements MusicUtils
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         MenuInflater inflater = getMenuInflater();
+    	
+		// Inflate the menu; this adds items to the action bar if it is present.
         inflater.inflate(R.menu.media_player, menu);
+		final MenuItem item = menu.findItem(R.id.menu_volume);
+		View view = MenuItemCompat.getActionView(item);
+		mVolume = (SeekBar) view.findViewById(R.id.volume_bar);
+        mVolume.setOnSeekBarChangeListener(mVolumeListener);
         return true;
     }
 
@@ -1138,8 +1134,10 @@ public class MediaPlayerActivity extends ActionBarActivity implements MusicUtils
         AudioManager audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
         int curVolume = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC);
         int maxVolume = audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC);
-        mVolume.setProgress(curVolume);
-        mVolume.setMax(maxVolume);
+        if (mVolume != null) {
+        	mVolume.setProgress(curVolume);
+        	mVolume.setMax(maxVolume);
+        }
 	}
 	
 	public void showDialog(String tag) {
