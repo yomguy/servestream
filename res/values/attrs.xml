@@ -10,4 +10,12 @@
     <attr name="navigation_refresh" format="reference" />
     <attr name="borderless_button" format="reference" />
     <attr name="list_item_overflow" format="reference" />
+    
+    <attr name="ic_av_repeat" format="reference" />
+    <attr name="ic_av_previous" format="reference" />
+    <attr name="ic_av_pause_over_video_large" format="reference" />
+    <attr name="ic_av_play_over_video_large" format="reference" />
+    <attr name="ic_av_next" format="reference" />
+    <attr name="ic_av_shuffle" format="reference" />
+    
 </resources>

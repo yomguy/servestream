@@ -30,6 +30,13 @@
         <item name="attr/navigation_refresh">@drawable/ic_action_refresh_dark</item>
         <item name="attr/borderless_button">@drawable/borderless_button</item>
         <item name="attr/list_item_overflow">@drawable/ic_action_overflow_dark</item>
+        
+        <item name="attr/ic_av_repeat">@drawable/ic_av_repeat_dark</item>
+    	<item name="attr/ic_av_previous">@drawable/ic_av_previous_dark</item>
+    	<item name="attr/ic_av_pause_over_video_large">@drawable/ic_av_pause_over_video_large_dark</item>
+    	<item name="attr/ic_av_play_over_video_large">@drawable/ic_av_play_over_video_large_dark</item>
+    	<item name="attr/ic_av_next">@drawable/ic_av_next_dark</item>
+    	<item name="attr/ic_av_shuffle">@drawable/ic_av_shuffle_dark</item>
     </style>
     
     <style name="Theme.ServeStream.Light" parent="@style/Theme.AppCompat.Light">
@@ -43,6 +50,13 @@
         <item name="attr/borderless_button">@drawable/borderless_button</item>
         <item name="attr/list_item_overflow">@drawable/ic_action_overflow_light</item>
         <item name="attr/float_background_color">@android:color/transparent</item>
+        
+        <item name="attr/ic_av_repeat">@drawable/ic_av_repeat_dark</item>
+    	<item name="attr/ic_av_previous">@drawable/ic_av_previous_dark</item>
+    	<item name="attr/ic_av_pause_over_video_large">@drawable/ic_av_pause_over_video_large_dark</item>
+    	<item name="attr/ic_av_play_over_video_large">@drawable/ic_av_play_over_video_large_dark</item>
+    	<item name="attr/ic_av_next">@drawable/ic_av_next_dark</item>
+    	<item name="attr/ic_av_shuffle">@drawable/ic_av_shuffle_dark</item>
     </style>
     
     <style name="Theme.ServeStream.DarkActionBar" parent="@style/Theme.AppCompat.Light.DarkActionBar">
@@ -56,6 +70,13 @@
         <item name="attr/borderless_button">@drawable/borderless_button</item>
         <item name="attr/list_item_overflow">@drawable/ic_action_overflow_light</item>
         <item name="attr/float_background_color">@android:color/transparent</item>
+        
+        <item name="attr/ic_av_repeat">@drawable/ic_av_repeat_light</item>
+    	<item name="attr/ic_av_previous">@drawable/ic_av_previous_light</item>
+    	<item name="attr/ic_av_pause_over_video_large">@drawable/ic_av_pause_over_video_large_light</item>
+    	<item name="attr/ic_av_play_over_video_large">@drawable/ic_av_play_over_video_large_light</item>
+    	<item name="attr/ic_av_next">@drawable/ic_av_next_light</item>
+    	<item name="attr/ic_av_shuffle">@drawable/ic_av_shuffle_light</item>
     </style>
     
 </resources>
