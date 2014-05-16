@@ -24,7 +24,7 @@
 	android:layout_height="wrap_content"
 	android:padding="10dip" >
 
-    <ImageButton
+    <ImageView
 	    android:id="@+id/overflow_menu_button"
     	android:layout_width="50dp"
     	android:layout_height="fill_parent"

@@ -44,7 +44,7 @@
 		android:layout_alignParentLeft="true"
 		android:layout_toLeftOf="@id/overflow_menu_button" />
 	
-	<ImageButton
+	<ImageView
 	    android:id="@id/overflow_menu_button"
     	android:layout_width="50dp"
     	android:layout_height="fill_parent"
