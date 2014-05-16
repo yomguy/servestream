@@ -18,4 +18,7 @@
     <attr name="ic_av_next" format="reference" />
     <attr name="ic_av_shuffle" format="reference" />
     
+    <attr name="ic_av_play" format="reference" />
+    <attr name="ic_av_pause" format="reference" />
+    
 </resources>

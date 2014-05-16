@@ -26,6 +26,7 @@ import net.sourceforge.servestream.service.IMediaPlaybackService;
 import net.sourceforge.servestream.service.MediaPlaybackService;
 import net.sourceforge.servestream.utils.MusicUtils;
 import net.sourceforge.servestream.utils.PreferenceConstants;
+import net.sourceforge.servestream.utils.Utils;
 import net.sourceforge.servestream.utils.MusicUtils.ServiceToken;
 
 import android.content.AsyncQueryHandler;
@@ -876,9 +877,9 @@ public class NowPlayingActivity extends ActionBarActivity implements
             // which is not really a playlist)
             if ( (cursor.getPosition() == id)) {
             	if (isPlaying) {
-            		iv.setImageResource(R.drawable.indicator_ic_mp_playing_list);
+            		iv.setImageResource(Utils.getThemedIcon(NowPlayingActivity.this, R.attr.ic_av_play));
             	} else {
-            		iv.setImageResource(R.drawable.indicator_ic_mp_paused_list);
+            		iv.setImageResource(Utils.getThemedIcon(NowPlayingActivity.this, R.attr.ic_av_pause));
             	}
                 iv.setVisibility(View.VISIBLE);
             } else {
