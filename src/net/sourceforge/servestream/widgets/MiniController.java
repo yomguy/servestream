@@ -65,6 +65,8 @@ public class MiniController extends RelativeLayout implements IMiniController {
     protected TextView mTitle;
     protected TextView mSubTitle;
     protected ImageView mPlayPause;
+    protected ImageView mPrevious;
+    protected ImageView mNext;
     protected ProgressBar mLoading;
     public static final int PLAYBACK = 1;
     public static final int PAUSE = 2;
@@ -143,6 +145,48 @@ public class MiniController extends RelativeLayout implements IMiniController {
             }
         });
 
+        if (mPrevious != null) {
+        	mPrevious.setOnClickListener(new OnClickListener() {
+
+                @Override
+                public void onClick(View v) {
+                    if (null != mListener) {
+                        setLoadingVisibility(true);
+                        try {
+                            mListener.onPreviousClicked(v);
+                        } catch (CastException e) {
+                            mListener.onFailed(R.string.failed_perform_action, -1);
+                        } catch (TransientNetworkDisconnectionException e) {
+                            mListener.onFailed(R.string.failed_no_connection_trans, -1);
+                        } catch (NoConnectionException e) {
+                            mListener.onFailed(R.string.failed_no_connection, -1);
+                        }
+                    }
+                }
+            });
+        }
+        
+        if (mNext != null) {
+        	mNext.setOnClickListener(new OnClickListener() {
+
+                @Override
+                public void onClick(View v) {
+                    if (null != mListener) {
+                        setLoadingVisibility(true);
+                        try {
+                            mListener.onNextClicked(v);
+                        } catch (CastException e) {
+                            mListener.onFailed(R.string.failed_perform_action, -1);
+                        } catch (TransientNetworkDisconnectionException e) {
+                            mListener.onFailed(R.string.failed_no_connection_trans, -1);
+                        } catch (NoConnectionException e) {
+                            mListener.onFailed(R.string.failed_no_connection, -1);
+                        }
+                    }
+                }
+            });
+        }
+        
         mContainer.setOnClickListener(new OnClickListener() {
 
             @Override
@@ -171,11 +215,18 @@ public class MiniController extends RelativeLayout implements IMiniController {
         loadViews();
     }
 
-    @Override
-    final public void setIcon(Bitmap bm) {
-        mIcon.setImageBitmap(bm);
+    //@Override
+    final public void setIcon(Drawable bm) {
+        //mIcon.setImageBitmap(bm);
+    	mIcon.setImageDrawable(bm);
     }
 
+	@Override
+	public void setIcon(Bitmap bitmap) {
+		// TODO Auto-generated method stub
+		
+	}
+    
     @Override
     public void setIcon(Uri uri) {
         if (null != mIconUri && mIconUri.equals(uri)) {
@@ -270,6 +321,8 @@ public class MiniController extends RelativeLayout implements IMiniController {
         mTitle = (TextView) findViewById(R.id.titleView);
         mSubTitle = (TextView) findViewById(R.id.subTitleView);
         mPlayPause = (ImageView) findViewById(R.id.playPauseView);
+        mPrevious = (ImageView) findViewById(R.id.previousView);
+        mNext = (ImageView) findViewById(R.id.nextView);
         mLoading = (ProgressBar) findViewById(R.id.loadingView);
         mContainer = findViewById(R.id.bigContainer);
     }
@@ -307,6 +360,28 @@ public class MiniController extends RelativeLayout implements IMiniController {
                 TransientNetworkDisconnectionException, NoConnectionException;
 
         /**
+         * Notification that user has clicked on the Previous button
+         *
+         * @param v
+         * @throws TransientNetworkDisconnectionException
+         * @throws NoConnectionException
+         * @throws CastException
+         */
+        public void onPreviousClicked(View v) throws CastException,
+                TransientNetworkDisconnectionException, NoConnectionException;
+        
+        /**
+         * Notification that user has clicked on the Next button
+         *
+         * @param v
+         * @throws TransientNetworkDisconnectionException
+         * @throws NoConnectionException
+         * @throws CastException
+         */
+        public void onNextClicked(View v) throws CastException,
+                TransientNetworkDisconnectionException, NoConnectionException;
+        
+        /**
          * Notification that the user has clicked on the album art
          *
          * @param context
@@ -317,5 +392,4 @@ public class MiniController extends RelativeLayout implements IMiniController {
                 throws TransientNetworkDisconnectionException, NoConnectionException;
 
     }
-
 }

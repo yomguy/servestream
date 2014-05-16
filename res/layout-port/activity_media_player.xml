@@ -81,7 +81,7 @@
 
         <RelativeLayout
             android:layout_width="fill_parent"
-            android:layout_height="60dip"
+            android:layout_height="70dip"
             android:orientation="horizontal" >
 
             <ImageButton
@@ -122,7 +122,8 @@
                     android:layout_weight="1"
                     android:paddingBottom="20dip"
                     android:background="@null"
-                    android:src="@drawable/ic_av_play_over_video_large" />
+                    android:src="@drawable/ic_av_play_over_video_large"
+                    android:scaleType="centerInside" />
 
                 <net.sourceforge.servestream.button.RepeatingImageButton
                     android:id="@+id/next_button"
@@ -132,6 +133,7 @@
                     android:paddingBottom="20dip"
                     android:background="@null"
                     android:src="@drawable/ic_av_next" />
+            
             </LinearLayout>
 
             <ImageButton

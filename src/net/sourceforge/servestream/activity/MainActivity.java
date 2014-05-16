@@ -68,6 +68,8 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
@@ -165,6 +167,8 @@ public class MainActivity extends ActionBarActivity implements
         f.addAction(MediaPlaybackService.META_CHANGED);
         f.addAction(MediaPlaybackService.QUEUE_CHANGED);
         registerReceiver(mTrackListListener, f);
+        
+        updateNowPlaying();
 	}
 
 	@Override
@@ -392,14 +396,14 @@ public class MainActivity extends ActionBarActivity implements
 	public void onServiceConnected(ComponentName name, IBinder service) {
 		mService = IMediaPlaybackService.Stub.asInterface(service);
 		mMini.setOnMiniControllerChangedListener(this);
-		mMini.setVisibility(View.VISIBLE);
 		updateNowPlaying();
 	}
 
 	@Override
 	public void onServiceDisconnected(ComponentName name) {
-		//mMini.setLoadingVisibility(false);
-		//mMini.removeOnMiniControllerChangedListener(this);
+		Animation fade_out = AnimationUtils.loadAnimation(this, R.anim.player_out);
+		mMini.startAnimation(fade_out);
+		mMini.setVisibility(View.GONE);
 		finish();
 	}
 
@@ -504,6 +508,24 @@ public class MainActivity extends ActionBarActivity implements
 	}
 
 	@Override
+	public void onPreviousClicked(View v) throws CastException,
+			TransientNetworkDisconnectionException, NoConnectionException {
+		try {
+			mService.prev();
+		} catch (RemoteException e) {
+		}
+	}
+
+	@Override
+	public void onNextClicked(View v) throws CastException,
+			TransientNetworkDisconnectionException, NoConnectionException {
+		try {
+			mService.next();
+		} catch (RemoteException e) {
+		}
+	}
+	
+	@Override
 	public void onTargetActivityInvoked(Context context)
 			throws TransientNetworkDisconnectionException,
 			NoConnectionException {
@@ -523,7 +545,6 @@ public class MainActivity extends ActionBarActivity implements
 					long id = mService.getAudioId();
 					if (id >= 0) {
 						Bitmap b = BitmapFactory.decodeResource(this.getResources(), R.drawable.albumart_mp_unknown_list);
-						mMini.setIcon(b);
 						BitmapDrawable defaultAlbumIcon = new BitmapDrawable(this.getResources(), b);
 						// no filter or dither, it's a lot faster and we can't tell the difference
 						defaultAlbumIcon.setFilterBitmap(false);
@@ -533,12 +554,12 @@ public class MainActivity extends ActionBarActivity implements
 					}
 				}
 
-				/*if (d == null) {
-					mCoverart.setVisibility(View.GONE);
+				if (d == null) {
+					//mCoverart.setVisibility(View.GONE);
 				} else {
-					mCoverart.setVisibility(View.VISIBLE);
-					mCoverart.setImageDrawable(d);
-				}*/
+					//mCoverart.setVisibility(View.VISIBLE);
+					mMini.setIcon(d);
+				}
 
 				CharSequence trackName = mService.getTrackName();
 				CharSequence artistName = mService.getArtistName();                
@@ -555,51 +576,25 @@ public class MainActivity extends ActionBarActivity implements
 
 				mMini.setSubTitle(artistName.toString());
 
-				/*if (mPreviousButton != null) {
-					mPreviousButton.setImageResource(R.drawable.ic_av_previous);
-					mPreviousButton.setOnClickListener(new View.OnClickListener() {
-
-						@Override
-						public void onClick(View v) {
-							try {
-								mService.prev();
-							} catch (RemoteException e) {
-							}
-						}
-					});
-				}*/
-
 				if (mService.isPlaying()) {
 					mMini.setPlaybackStatus(MediaStatus.PLAYER_STATE_PLAYING, -1);
 				} else {
 					mMini.setPlaybackStatus(MediaStatus.PLAYER_STATE_PAUSED, -1);
 				}
 
-				/*if (mNextButton != null) {
-					mNextButton.setImageResource(R.drawable.ic_av_next);
-					mNextButton.setOnClickListener(new View.OnClickListener() {
+				if (mMini.getVisibility() != View.VISIBLE) {
+					Animation fade_in = AnimationUtils.loadAnimation(this, R.anim.player_in);
+					mMini.startAnimation(fade_in);
+				}
 
-						@Override
-						public void onClick(View v) {
-							try {
-								mService.next();
-							} catch (RemoteException e) {
-							}
-						}
-					});
-				}*/
-
-				/*if (mNowPlayingView.getVisibility() != View.VISIBLE) {
-					Animation fade_in = AnimationUtils.loadAnimation(getActivity(), R.anim.player_in);
-					mNowPlayingView.startAnimation(fade_in);
-				}*/
-
+				mMini.setVisibility(View.VISIBLE);
+				
 				return;
 			}
 		} catch (RemoteException ex) {
 		}
-		/*Animation fade_out = AnimationUtils.loadAnimation(getActivity(), R.anim.player_out);
-		mNowPlayingView.startAnimation(fade_out);
-		mNowPlayingView.setVisibility(View.GONE);*/
+		Animation fade_out = AnimationUtils.loadAnimation(this, R.anim.player_out);
+		mMini.startAnimation(fade_out);
+		mMini.setVisibility(View.GONE);
 	}
 }
