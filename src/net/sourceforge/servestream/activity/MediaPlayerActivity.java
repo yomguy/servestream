@@ -29,6 +29,7 @@ import net.sourceforge.servestream.utils.PreferenceConstants;
 import net.sourceforge.servestream.utils.MusicUtils.ServiceToken;
 import net.sourceforge.servestream.utils.SleepTimerDialog;
 import net.sourceforge.servestream.utils.SleepTimerDialog.SleepTimerDialogListener;
+import net.sourceforge.servestream.utils.Utils;
 import android.app.AlertDialog;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
@@ -857,13 +858,13 @@ public class MediaPlayerActivity extends ActionBarActivity implements MusicUtils
         try {
             switch (mService.getRepeatMode()) {
                 case MediaPlaybackService.REPEAT_ALL:
-                    //mRepeatButton.setImageResource(R.drawable.btn_player_repeat_checked);
+                    mRepeatButton.setImageResource(R.drawable.ic_av_repeat_selected);
                     break;
                 case MediaPlaybackService.REPEAT_CURRENT:
-                    //mRepeatButton.setImageResource(R.drawable.btn_player_repeat_one_checked);
+                    mRepeatButton.setImageResource(R.drawable.ic_av_repeat_one_selected);
                     break;
                 default:
-                    //mRepeatButton.setImageResource(R.drawable.btn_player_repeat_normal);
+                    mRepeatButton.setImageResource(Utils.getThemedIcon(this, R.attr.ic_av_repeat));
                     break;
             }
         } catch (RemoteException ex) {
@@ -875,10 +876,10 @@ public class MediaPlayerActivity extends ActionBarActivity implements MusicUtils
         try {
             switch (mService.getShuffleMode()) {
                 case MediaPlaybackService.SHUFFLE_NONE:
-                    //mShuffleButton.setImageResource(R.drawable.btn_player_shuffle_normal);
+                    mShuffleButton.setImageResource(Utils.getThemedIcon(this, R.attr.ic_av_shuffle));
                     break;
                 default:
-                    //mShuffleButton.setImageResource(R.drawable.btn_player_shuffle_checked);
+                    mShuffleButton.setImageResource(R.drawable.ic_av_shuffle_selected);
                     break;
             }
         } catch (RemoteException ex) {
@@ -888,9 +889,9 @@ public class MediaPlayerActivity extends ActionBarActivity implements MusicUtils
     private void setPauseButtonImage() {
         try {
             if (mService != null && mService.isPlaying()) {
-                mPauseButton.setImageResource(R.drawable.ic_av_pause_over_video_large);
+                mPauseButton.setImageResource(Utils.getThemedIcon(this, R.attr.ic_av_pause_over_video_large));
             } else {
-                mPauseButton.setImageResource(R.drawable.ic_av_play_over_video_large);
+                mPauseButton.setImageResource(Utils.getThemedIcon(this, R.attr.ic_av_play_over_video_large));
             }
         } catch (RemoteException ex) {
         }
