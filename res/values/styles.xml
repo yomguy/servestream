@@ -42,6 +42,7 @@
         <item name="attr/navigation_refresh">@drawable/ic_action_refresh_light</item>
         <item name="attr/borderless_button">@drawable/borderless_button</item>
         <item name="attr/list_item_overflow">@drawable/ic_action_overflow_light</item>
+        <item name="attr/float_background_color">@android:color/transparent</item>
     </style>
     
     <style name="Theme.ServeStream.DarkActionBar" parent="@style/Theme.AppCompat.Light.DarkActionBar">
@@ -54,6 +55,7 @@
         <item name="attr/navigation_refresh">@drawable/ic_action_refresh_dark</item>
         <item name="attr/borderless_button">@drawable/borderless_button</item>
         <item name="attr/list_item_overflow">@drawable/ic_action_overflow_light</item>
+        <item name="attr/float_background_color">@android:color/transparent</item>
     </style>
     
 </resources>
