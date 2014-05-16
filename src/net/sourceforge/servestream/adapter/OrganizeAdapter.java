@@ -21,29 +21,34 @@ import java.util.List;
 
 import net.sourceforge.servestream.R;
 import net.sourceforge.servestream.bean.UriBean;
-
 import android.app.Activity;
 import android.content.Context;
+import android.os.Handler;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
+import android.widget.CheckBox;
+import android.widget.CompoundButton;
 import android.widget.TextView;
  
 public class OrganizeAdapter extends ArrayAdapter<UriBean> {
     private Context context;
     private List<UriBean> rowItems;
+    private Handler mHandler;
  
-    public OrganizeAdapter(Context context, List<UriBean> rowItems) {
+    public OrganizeAdapter(Context context, List<UriBean> rowItems, Handler handler) {
 		super(context, R.layout.organize_item, rowItems);
         this.context = context;
         this.rowItems = rowItems;
+        mHandler = handler;
     }
  
     /*private view holder class*/
     private class ViewHolder {
         TextView nickname;
         TextView caption;
+        CheckBox checkbox;
     }
  
     public View getView(int position, View convertView, ViewGroup parent) {
@@ -56,6 +61,7 @@ public class OrganizeAdapter extends ArrayAdapter<UriBean> {
             holder = new ViewHolder();
 			holder.nickname = (TextView) convertView.findViewById(android.R.id.text1);
 			holder.caption = (TextView) convertView.findViewById(android.R.id.text2);
+			holder.checkbox = (CheckBox) convertView.findViewById(R.id.checkbox);
             convertView.setTag(holder);
         } else {
             holder = (ViewHolder) convertView.getTag();
@@ -82,6 +88,13 @@ public class OrganizeAdapter extends ArrayAdapter<UriBean> {
 		}
 
 		holder.caption.setText(lastConnect);
+		holder.checkbox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+			
+			@Override
+			public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+				mHandler.sendEmptyMessage(0);
+			}
+		});
 
         return convertView;
     }

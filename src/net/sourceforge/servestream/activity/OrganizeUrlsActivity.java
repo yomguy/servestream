@@ -26,14 +26,19 @@ import net.sourceforge.servestream.bean.UriBean;
 import net.sourceforge.servestream.dbutils.StreamDatabase;
 import net.sourceforge.servestream.dslv.DragSortController;
 import net.sourceforge.servestream.dslv.DragSortListView;
+import android.annotation.SuppressLint;
 import android.content.ContentValues;
 import android.content.Intent;
 import android.content.res.TypedArray;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
 import android.support.v4.view.MenuItemCompat;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarActivity;
+import android.support.v7.view.ActionMode;
 import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.MenuItem;
 
 public class OrganizeUrlsActivity extends ActionBarActivity {
@@ -44,6 +49,18 @@ public class OrganizeUrlsActivity extends ActionBarActivity {
 	
 	private OrganizeAdapter mAdapter;
 	private StreamDatabase mStreamdb;
+	
+	private ActionMode mActionMode;
+	
+	@SuppressLint("HandlerLeak")
+	private Handler mHandler = new Handler() {
+		@Override
+		public void handleMessage(Message msg) {
+			if (mActionMode == null) {
+				startSupportActionMode(mActionModeCallback);
+			}
+		}
+	};
 	
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -65,7 +82,7 @@ public class OrganizeUrlsActivity extends ActionBarActivity {
 		controller.setDragHandleId(R.id.drag_handle);
 		list.setOnTouchListener(controller);
 		
-		mAdapter = new OrganizeAdapter(this, new ArrayList<UriBean>());
+		mAdapter = new OrganizeAdapter(this, new ArrayList<UriBean>(), mHandler);
 		list.setAdapter(mAdapter);
 	}
 	
@@ -166,6 +183,38 @@ public class OrganizeUrlsActivity extends ActionBarActivity {
 		@Override
 		public void remove(int which) {
 			mAdapter.remove(mAdapter.getItem(which));
+		}
+	};
+
+	private ActionMode.Callback mActionModeCallback = new ActionMode.Callback() {
+
+		@Override
+		public boolean onActionItemClicked(ActionMode mode, MenuItem item) {
+			switch (item.getItemId()) {
+			case R.id.menu_item_delete:
+				mode.finish(); // Action picked, so close the CAB
+				return true;
+			default:
+				return false;
+			}
+		}
+
+		@Override
+		public boolean onCreateActionMode(ActionMode mode, Menu menu) {
+			MenuInflater inflater = mode.getMenuInflater();
+			inflater.inflate(R.menu.organize_urls_menu, menu);
+			return true;
+		}
+
+		@Override
+		public void onDestroyActionMode(ActionMode mode) {
+			mActionMode = null;
+		}
+
+		@Override
+		public boolean onPrepareActionMode(ActionMode mode, Menu menu) {
+			mActionMode = mode;
+			return false;
 		}
 	};
 }
