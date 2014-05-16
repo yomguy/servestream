@@ -28,7 +28,6 @@ import net.sourceforge.servestream.utils.MusicUtils;
 import net.sourceforge.servestream.utils.OverflowClickListener;
 import net.sourceforge.servestream.utils.RateDialog;
 import net.sourceforge.servestream.utils.UriBeanLoader;
-
 import net.sourceforge.servestream.R;
 import net.sourceforge.servestream.activity.AddUrlActivity;
 import net.sourceforge.servestream.activity.BluetoothOptionsActivity;
@@ -38,7 +37,6 @@ import net.sourceforge.servestream.alarm.Alarm;
 import net.sourceforge.servestream.bean.UriBean;
 import net.sourceforge.servestream.dbutils.StreamDatabase;
 import net.sourceforge.servestream.utils.PreferenceConstants;
-
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -63,19 +61,18 @@ import android.support.v4.app.ListFragment;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.Loader;
 import android.support.v7.widget.PopupMenu;
-
+import android.view.ContextMenu;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.view.MenuItem.OnMenuItemClickListener;
 import android.view.View;
 import android.view.ViewGroup;
-
 import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.Toast;
 import android.widget.AdapterView.OnItemClickListener;
-
 import net.sourceforge.servestream.utils.DetermineActionTask;
 
 public class UrlListFragment extends ListFragment implements
@@ -160,6 +157,7 @@ public class UrlListFragment extends ListFragment implements
 				processUri(uriBean.getUri().toString());
 			}
 		});
+		registerForContextMenu(list);
 
 		mAdapter = new UrlListAdapter(getActivity(), new ArrayList<UriBean>(), this);
 		setListAdapter(mAdapter);
@@ -233,6 +231,73 @@ public class UrlListFragment extends ListFragment implements
 	        default:
 	        	return super.onOptionsItemSelected(item);
 	    }
+	}
+
+	@Override
+	public void onCreateContextMenu(ContextMenu menu, View v, ContextMenu.ContextMenuInfo menuInfo) {
+		// create menu to handle editing, deleting and sharing of URLs
+		AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo) menuInfo;
+		final UriBean uri = (UriBean) getListView().getItemAtPosition(info.position);
+
+		// set the menu to the name of the URL
+		menu.setHeaderTitle(uri.getNickname());
+
+		// edit the URL
+		android.view.MenuItem edit = menu.add(R.string.edit_label);
+		edit.setOnMenuItemClickListener(new OnMenuItemClickListener() {
+			public boolean onMenuItemClick(android.view.MenuItem arg0) {
+				Intent intent = new Intent(getActivity(), UriEditorActivity.class);
+				intent.putExtra(Intent.EXTRA_TITLE, uri.getId());
+				getActivity().startActivity(intent);
+				return true;
+			}
+		});
+		
+		// delete the URL
+		android.view.MenuItem delete = menu.add(R.string.delete);
+		delete.setOnMenuItemClickListener(new OnMenuItemClickListener() {
+			public boolean onMenuItemClick(android.view.MenuItem item) {
+				// prompt user to make sure they really want this.getActivity()
+				new AlertDialog.Builder(getActivity())
+					.setMessage(getString(R.string.url_delete_confirmation_msg, uri.getNickname()))
+					.setPositiveButton(R.string.confirm_label, new DialogInterface.OnClickListener() {
+						public void onClick(DialogInterface dialog, int which) {
+							mStreamdb.deleteUri(uri);
+							ContentResolver resolver = getActivity().getContentResolver();
+							resolver.update(
+									Alarm.Columns.CONTENT_URI,
+									null, null, new String[] { String.valueOf(uri.getId()) });
+							updateList();
+						}
+						})
+					.setNegativeButton(R.string.cancel_label, null).create().show();
+				return true;
+			}
+		});
+		
+		// add to playlist
+		android.view.MenuItem add = menu.add(R.string.add_to_playlist_label);
+		add.setOnMenuItemClickListener(new OnMenuItemClickListener() {
+			public boolean onMenuItemClick(android.view.MenuItem item) {
+				MusicUtils.addToCurrentPlaylistFromURL(getActivity(), uri, mQueueHandler);
+				return true;
+			}
+		});
+		
+		// share the URL
+		android.view.MenuItem share = menu.add(R.string.share_label);
+		share.setOnMenuItemClickListener(new OnMenuItemClickListener() {
+			public boolean onMenuItemClick(android.view.MenuItem item) {
+				String url = uri.getUri().toString();
+				String appName = getString(R.string.app_name);
+				
+				Intent intent = new Intent(Intent.ACTION_SEND);
+				intent.setType("text/plain");
+				intent.putExtra(Intent.EXTRA_TEXT, getString(R.string.share_signature, url, appName));
+				startActivity(Intent.createChooser(intent, getString(R.string.share_label)));
+				return true;
+			}
+		});
 	}
 	
 	private boolean processUri(String input) {

@@ -32,7 +32,6 @@ import net.sourceforge.servestream.utils.OverflowClickListener;
 import net.sourceforge.servestream.utils.LoadingDialog.LoadingDialogListener;
 import net.sourceforge.servestream.utils.MusicUtils;
 import net.sourceforge.servestream.utils.WebpageParserTask;
-
 import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.bluetooth.BluetoothAdapter;
@@ -53,10 +52,12 @@ import android.support.v4.app.FragmentTransaction;
 import android.support.v4.app.ListFragment;
 import android.support.v7.widget.PopupMenu;
 import android.util.SparseArray;
+import android.view.ContextMenu;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.LayoutInflater;
+import android.view.MenuItem.OnMenuItemClickListener;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
@@ -132,6 +133,7 @@ public class BrowseFragment extends ListFragment implements
 		        browseTo(uri);
 			}
 	    });
+		registerForContextMenu(list);
 
 	    if (mAdapter == null) {
 	    	mAdapter = new BrowseAdapter(getActivity(), new ArrayList<UriBean>(), this);
@@ -166,6 +168,84 @@ public class BrowseFragment extends ListFragment implements
 		super.onPause();
 		
 		dismissDialog(LOADING_DIALOG);
+	}
+	
+    @Override
+	public void onCreateContextMenu(ContextMenu menu, View v, ContextMenu.ContextMenuInfo menuInfo) {
+
+		// create menu to handle stream URLs
+		
+		// create menu to handle deleting and sharing lists		
+		final AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo) menuInfo;
+        final UriBean uri = (UriBean) getListView().getAdapter().getItem(info.position);
+		
+		try {
+			final String streamURL = uri.getUri().toString();
+		
+		// set the menu title to the name attribute of the URL link
+		menu.setHeaderTitle(uri.getNickname());
+
+		// save the URL
+		android.view.MenuItem save = menu.add(R.string.save_label);
+		save.setOnMenuItemClickListener(new OnMenuItemClickListener() {
+			public boolean onMenuItemClick(android.view.MenuItem arg0) {
+				// prompt user to make sure they really want this
+				new AlertDialog.Builder(BrowseFragment.this.getActivity())
+					.setMessage(getString(R.string.url_save_confirmation_msg, streamURL))
+					.setPositiveButton(R.string.confirm_label, new DialogInterface.OnClickListener() {
+						public void onClick(DialogInterface dialog, int which) {
+                            saveUri(uri);
+                            BrowseFragment.this.getActivity().sendBroadcast(new Intent(UrlListFragment.UPDATE_LIST));
+						}
+						})
+					.setNegativeButton(android.R.string.cancel, null).create().show();
+				return true;
+			}
+		});
+	
+		// view the URL
+		android.view.MenuItem view = menu.add(R.string.view_url_label);
+		view.setOnMenuItemClickListener(new OnMenuItemClickListener() {
+			public boolean onMenuItemClick(android.view.MenuItem arg0) {
+				// display the URL
+				new AlertDialog.Builder(BrowseFragment.this.getActivity())
+					.setMessage(streamURL)
+					.setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
+						public void onClick(DialogInterface dialog, int which) {
+                            return;
+						}
+						}).create().show();
+				return true;
+			}
+		});
+		
+		} catch(Exception ex) {
+			ex.printStackTrace();
+		}
+		
+		// add to playlist
+		android.view.MenuItem add = menu.add(R.string.add_to_playlist_label);
+		add.setOnMenuItemClickListener(new OnMenuItemClickListener() {
+			public boolean onMenuItemClick(android.view.MenuItem item) {
+				MusicUtils.addToCurrentPlaylistFromURL(BrowseFragment.this.getActivity(), uri, mQueueHandler);
+				return true;
+			}
+		});
+		
+		// share the URL
+		android.view.MenuItem share = menu.add(R.string.share_label);
+		share.setOnMenuItemClickListener(new OnMenuItemClickListener() {
+			public boolean onMenuItemClick(android.view.MenuItem item) {
+				String url = uri.getUri().toString();
+				String appName = getString(R.string.app_name);
+				
+				Intent intent = new Intent(Intent.ACTION_SEND);
+				intent.setType("text/plain");
+				intent.putExtra(Intent.EXTRA_TEXT, getString(R.string.share_signature, url, appName));
+				startActivity(Intent.createChooser(intent, getString(R.string.share_label)));
+				return true;
+			}
+		});
 	}
 	
 	private void browseTo(Uri uri) {
