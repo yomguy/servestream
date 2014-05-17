@@ -30,7 +30,7 @@
     	android:layout_height="fill_parent"
     	android:layout_alignParentRight="true"
     	android:layout_centerVertical="true"
-    	android:src="?attr/list_item_overflow"
+    	android:src="?attr/ic_action_overflow"
     	android:background="@null"
     	android:scaleType="center"
     	android:contentDescription="" />

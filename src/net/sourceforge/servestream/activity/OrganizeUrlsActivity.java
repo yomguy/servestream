@@ -118,7 +118,7 @@ public class OrganizeUrlsActivity extends ActionBarActivity {
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		super.onCreateOptionsMenu(menu);
-		TypedArray drawables = obtainStyledAttributes(new int[] { R.attr.navigation_accept });
+		TypedArray drawables = obtainStyledAttributes(new int[] { R.attr.ic_action_accept });
 		MenuItem item = menu.add(Menu.NONE, MENU_ID_ACCEPT, Menu.NONE, R.string.confirm_label);
 		item.setIcon(drawables.getDrawable(0));
 	    MenuItemCompat.setShowAsAction(item,

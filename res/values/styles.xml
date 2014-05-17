@@ -21,15 +21,15 @@
     
     <style name="Theme.ServeStream.Dark" parent="@style/Theme.AppCompat">
         <item name="android:windowBackground">@android:color/black</item>
-        <item name="attr/action_search">@drawable/ic_action_search_dark</item>
+        <item name="attr/ic_action_search">@drawable/ic_action_search_dark</item>
         <item name="attr/ic_action_new">@drawable/ic_action_new_dark</item>
         <item name="attr/drawer_shadow">@drawable/drawer_shadow_dark</item>
         <item name="attr/ic_action_volume_on">@drawable/ic_action_volume_on_light</item>
         <item name="attr/ic_drawer">@drawable/ic_drawer_dark</item>
-        <item name="attr/navigation_accept">@drawable/ic_action_accept_dark</item>
-        <item name="attr/navigation_refresh">@drawable/ic_action_refresh_dark</item>
+        <item name="attr/ic_action_accept">@drawable/ic_action_accept_dark</item>
+        <item name="attr/ic_action_refresh">@drawable/ic_action_refresh_dark</item>
         <item name="attr/borderless_button">@drawable/borderless_button</item>
-        <item name="attr/list_item_overflow">@drawable/ic_action_overflow_dark</item>
+        <item name="attr/ic_action_overflow">@drawable/ic_action_overflow_dark</item>
         
         <item name="attr/ic_av_repeat">@drawable/ic_av_repeat_dark</item>
     	<item name="attr/ic_av_previous">@drawable/ic_av_previous_dark</item>
@@ -43,15 +43,15 @@
     </style>
     
     <style name="Theme.ServeStream.Light" parent="@style/Theme.AppCompat.Light">
-        <item name="attr/action_search">@drawable/ic_action_search_light</item>
+        <item name="attr/ic_action_search">@drawable/ic_action_search_light</item>
         <item name="attr/ic_action_new">@drawable/ic_action_new_light</item>
         <item name="attr/drawer_shadow">@drawable/drawer_shadow_light</item>
         <item name="attr/ic_drawer">@drawable/ic_drawer_light</item>
         <item name="attr/ic_action_volume_on">@drawable/ic_action_volume_on_light</item>
-        <item name="attr/navigation_accept">@drawable/ic_action_accept_light</item>
-        <item name="attr/navigation_refresh">@drawable/ic_action_refresh_light</item>
+        <item name="attr/ic_action_accept">@drawable/ic_action_accept_light</item>
+        <item name="attr/ic_action_refresh">@drawable/ic_action_refresh_light</item>
         <item name="attr/borderless_button">@drawable/borderless_button</item>
-        <item name="attr/list_item_overflow">@drawable/ic_action_overflow_light</item>
+        <item name="attr/ic_action_overflow">@drawable/ic_action_overflow_light</item>
         <item name="attr/float_background_color">@android:color/transparent</item>
         
         <item name="attr/ic_av_repeat">@drawable/ic_av_repeat_light</item>
@@ -66,15 +66,15 @@
     </style>
     
     <style name="Theme.ServeStream.DarkActionBar" parent="@style/Theme.AppCompat.Light.DarkActionBar">
-        <item name="attr/action_search">@drawable/ic_action_search_dark</item>
+        <item name="attr/ic_action_search">@drawable/ic_action_search_dark</item>
         <item name="attr/ic_action_new">@drawable/ic_action_new_dark</item>
         <item name="attr/drawer_shadow">@drawable/drawer_shadow_dark</item>
         <item name="attr/ic_drawer">@drawable/ic_drawer_light</item>
         <item name="attr/ic_action_volume_on">@drawable/ic_action_volume_on_dark</item>
-        <item name="attr/navigation_accept">@drawable/ic_action_accept_dark</item>
-        <item name="attr/navigation_refresh">@drawable/ic_action_refresh_dark</item>
+        <item name="attr/ic_action_accept">@drawable/ic_action_accept_dark</item>
+        <item name="attr/ic_action_refresh">@drawable/ic_action_refresh_dark</item>
         <item name="attr/borderless_button">@drawable/borderless_button</item>
-        <item name="attr/list_item_overflow">@drawable/ic_action_overflow_light</item>
+        <item name="attr/ic_action_overflow">@drawable/ic_action_overflow_light</item>
         <item name="attr/float_background_color">@android:color/transparent</item>
         
         <item name="attr/ic_av_repeat">@drawable/ic_av_repeat_light</item>
