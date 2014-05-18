@@ -65,6 +65,7 @@ import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarActivity;
 import android.util.Log;
 import android.view.KeyEvent;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -123,9 +124,15 @@ public class MediaPlayerActivity extends ActionBarActivity implements MusicUtils
         super.onCreate(icicle);
         setContentView(R.layout.activity_media_player);
         
-		ActionBar actionBar = getSupportActionBar();
+        ActionBar actionBar = getSupportActionBar();
 		actionBar.setDisplayHomeAsUpEnabled(true);
-        actionBar.setDisplayShowTitleEnabled(false);
+        //actionBar.setDisplayShowCustomEnabled(true);
+        //actionBar.setDisplayShowTitleEnabled(false);
+        
+        LayoutInflater inflater = getLayoutInflater();
+        View v = inflater.inflate(R.layout.action_bar_media_player_header, null);
+        
+        //actionBar.setCustomView(v);
         
         setVolumeControlStream(AudioManager.STREAM_MUSIC);
 

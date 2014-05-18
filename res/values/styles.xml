@@ -42,6 +42,9 @@
     	
     	<item name="attr/ic_av_play">@drawable/ic_av_play_dark</item>
     	<item name="attr/ic_av_pause">@drawable/ic_av_pause_dark</item>
+    	
+        <item name="attr/media_player_metadata_color_primary">@color/media_player_metadata_color_primary_dark</item>
+        <item name="attr/media_player_metadata_color_secondary">@color/media_player_metadata_color_primary_dark</item>
     </style>
     
     <style name="Theme.ServeStream.DarkActionBar" parent="@style/Theme.AppCompat.Light.DarkActionBar">
@@ -67,6 +70,9 @@
     	
     	<item name="attr/ic_av_play">@drawable/ic_av_play_light</item>
     	<item name="attr/ic_av_pause">@drawable/ic_av_pause_light</item>
+    	
+        <item name="attr/media_player_metadata_color_primary">@color/media_player_metadata_color_primary_light</item>
+        <item name="attr/media_player_metadata_color_secondary">@color/media_player_metadata_color_primary_light</item>
     </style>
     
 </resources>

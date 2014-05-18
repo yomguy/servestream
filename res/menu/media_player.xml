@@ -24,7 +24,7 @@
     	android:id="@+id/menu_volume"
         android:icon="?attr/ic_action_volume_on"
         yourapp:showAsAction="always|collapseActionView"
-        yourapp:actionLayout="@layout/action_bar_media_player"/>
+        yourapp:actionLayout="@layout/action_bar_volume_action_view"/>
     <item
         android:id="@+id/menu_play_queue"
         android:icon="@drawable/icn_play_queue"

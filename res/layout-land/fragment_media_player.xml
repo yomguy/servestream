@@ -51,6 +51,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:singleLine="true"
+            android:textColor="?attr/media_player_metadata_color_primary"
             android:textSize="13sp"
             android:textStyle="normal" />
 
@@ -62,6 +63,7 @@
             android:layout_marginRight="18dip"
             android:ellipsize="marquee"
             android:singleLine="true"
+            android:textColor="?attr/media_player_metadata_color_secondary"
             android:textSize="17sp"
             android:textStyle="bold" />
 
@@ -73,6 +75,7 @@
             android:layout_marginRight="18dip"
             android:ellipsize="marquee"
             android:singleLine="true"
+            android:textColor="?attr/media_player_metadata_color_primary"
             android:textSize="13sp"
             android:textStyle="normal" />
 

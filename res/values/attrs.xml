@@ -23,4 +23,6 @@
     <attr name="ic_av_play" format="reference" />
     <attr name="ic_av_pause" format="reference" />
     
+    <attr name="media_player_metadata_color_primary" format="color" />
+    <attr name="media_player_metadata_color_secondary" format="color" />
 </resources>
