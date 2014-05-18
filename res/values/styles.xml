@@ -30,6 +30,7 @@
         <item name="attr/ic_action_refresh">@drawable/ic_action_refresh_dark</item>
         <item name="attr/borderless_button">@drawable/borderless_button</item>
         <item name="attr/ic_action_overflow">@drawable/ic_action_overflow_dark</item>
+        <item name="attr/ic_action_settings">@drawable/ic_action_setings_dark</item>
         
         <item name="attr/ic_av_repeat">@drawable/ic_av_repeat_dark</item>
     	<item name="attr/ic_av_previous">@drawable/ic_av_previous_dark</item>
@@ -52,6 +53,7 @@
         <item name="attr/ic_action_refresh">@drawable/ic_action_refresh_light</item>
         <item name="attr/borderless_button">@drawable/borderless_button</item>
         <item name="attr/ic_action_overflow">@drawable/ic_action_overflow_light</item>
+        <item name="attr/ic_action_settings">@drawable/ic_action_setings_light</item>
         <item name="attr/float_background_color">@android:color/transparent</item>
         
         <item name="attr/ic_av_repeat">@drawable/ic_av_repeat_light</item>
@@ -75,6 +77,7 @@
         <item name="attr/ic_action_refresh">@drawable/ic_action_refresh_dark</item>
         <item name="attr/borderless_button">@drawable/borderless_button</item>
         <item name="attr/ic_action_overflow">@drawable/ic_action_overflow_light</item>
+        <item name="attr/ic_action_settings">@drawable/ic_action_setings_light</item>
         <item name="attr/float_background_color">@android:color/transparent</item>
         
         <item name="attr/ic_av_repeat">@drawable/ic_av_repeat_light</item>
