@@ -71,8 +71,6 @@ public class AlarmClockFragment extends ListFragment implements
     
     //private SharedPreferences mPrefs;
     private LayoutInflater mFactory;
-    private ListView mAlarmsList;
-    private View mAddAlarm;
     private AlarmTimeAdapter mAdapter;
 
     @Override
@@ -84,37 +82,19 @@ public class AlarmClockFragment extends ListFragment implements
     }
     
 	@Override
-	public View onCreateView(LayoutInflater inflater, ViewGroup container,
-			Bundle savedInstanceState) {
-		View view = inflater.inflate(R.layout.fragment_alarm_clock, container, false);
-        mAlarmsList = (ListView) view.findViewById(android.R.id.list);
-        mAddAlarm = view.findViewById(R.id.add_alarm);
-        return view;
-	}
-
-	@Override
 	public void onActivityCreated (Bundle savedInstanceState) {
 		super.onActivityCreated(savedInstanceState);
-	     
+	    
+		setListShownNoAnimation(true);
+		
         mFactory = LayoutInflater.from(getActivity());
         
         mAdapter = new AlarmTimeAdapter(getActivity(), null, false);
-        mAlarmsList.setAdapter(mAdapter);
-        mAlarmsList.setVerticalScrollBarEnabled(true);
-        mAlarmsList.setOnItemClickListener(this);
-        mAlarmsList.setOnCreateContextMenuListener(this);
-
-        mAddAlarm.setOnClickListener(new View.OnClickListener() {
-                public void onClick(View v) {
-                    addNewAlarm();
-                }
-            });
-        // Make the entire view selected when focused.
-        mAddAlarm.setOnFocusChangeListener(new View.OnFocusChangeListener() {
-                public void onFocusChange(View v, boolean hasFocus) {
-                    v.setSelected(hasFocus);
-                }
-        });
+        ListView list = getListView();
+        list.setAdapter(mAdapter);
+        list.setVerticalScrollBarEnabled(true);
+        list.setOnItemClickListener(this);
+        list.setOnCreateContextMenuListener(this);
         
         getLoaderManager().initLoader(URL_LOADER, null, this);
 	}
@@ -231,7 +211,7 @@ public class AlarmClockFragment extends ListFragment implements
                 return true;
 
             case R.id.enable_alarm:
-                final Cursor c = (Cursor) mAlarmsList.getAdapter()
+                final Cursor c = (Cursor) getListAdapter()
                         .getItem(info.position);
                 final Alarm alarm = new Alarm(c);
                 Alarms.enableAlarm(getActivity(), alarm.id, !alarm.enabled);
@@ -272,7 +252,7 @@ public class AlarmClockFragment extends ListFragment implements
         // Use the current item to create a custom view for the header.
         final AdapterContextMenuInfo info = (AdapterContextMenuInfo) menuInfo;
         final Cursor c =
-                (Cursor) mAlarmsList.getAdapter().getItem((int) info.position);
+                (Cursor) getListAdapter().getItem((int) info.position);
         final Alarm alarm = new Alarm(c);
 
         // Construct the Calendar to compute the time.
