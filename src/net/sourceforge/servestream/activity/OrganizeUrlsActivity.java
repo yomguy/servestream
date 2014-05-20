@@ -1,6 +1,6 @@
 /*
  * ServeStream: A HTTP stream browser/player for Android
- * Copyright 2013 William Seemann
+ * Copyright 2014 William Seemann
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,13 +26,10 @@ import net.sourceforge.servestream.bean.UriBean;
 import net.sourceforge.servestream.dbutils.StreamDatabase;
 import net.sourceforge.servestream.dslv.DragSortController;
 import net.sourceforge.servestream.dslv.DragSortListView;
-import android.annotation.SuppressLint;
 import android.content.ContentValues;
 import android.content.Intent;
 import android.content.res.TypedArray;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Message;
 import android.support.v4.view.MenuItemCompat;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarActivity;
@@ -40,6 +37,9 @@ import android.support.v7.view.ActionMode;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ListView;
 
 public class OrganizeUrlsActivity extends ActionBarActivity {
 
@@ -51,16 +51,6 @@ public class OrganizeUrlsActivity extends ActionBarActivity {
 	private StreamDatabase mStreamdb;
 	
 	private ActionMode mActionMode;
-	
-	@SuppressLint("HandlerLeak")
-	private Handler mHandler = new Handler() {
-		@Override
-		public void handleMessage(Message msg) {
-			if (mActionMode == null) {
-				startSupportActionMode(mActionModeCallback);
-			}
-		}
-	};
 	
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -82,8 +72,20 @@ public class OrganizeUrlsActivity extends ActionBarActivity {
 		controller.setDragHandleId(R.id.drag_handle);
 		list.setOnTouchListener(controller);
 		
-		mAdapter = new OrganizeAdapter(this, new ArrayList<UriBean>(), mHandler);
+		mAdapter = new OrganizeAdapter(this, new ArrayList<UriBean>());
 		list.setAdapter(mAdapter);
+		list.setItemsCanFocus(false);
+		list.setChoiceMode(ListView.CHOICE_MODE_MULTIPLE);
+		list.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+
+			@Override
+			public void onItemClick(AdapterView<?> parent, View view,
+					int position, long id) {
+				if (mActionMode == null) {
+					startSupportActionMode(mActionModeCallback);
+				}
+			}
+		});
 	}
 	
 	public void onStart() {
@@ -137,7 +139,11 @@ public class OrganizeUrlsActivity extends ActionBarActivity {
 	}
 	
 	private synchronized void saveChanges() {
-		List<UriBean> uris = mAdapter.getItems();
+		List<UriBean> uris = new ArrayList<UriBean>();
+		
+		for (int i = 0; i < mAdapter.getCount(); i++) {
+			uris.add(mAdapter.getItem(i));
+		}
 		
 		List<UriBean> urisToDelete = new ArrayList<UriBean>();
 		

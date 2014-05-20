@@ -2,7 +2,7 @@
 <!--
 /*
  * ServeStream: A HTTP stream browser/player for Android
- * Copyright 2013 William Seemann
+ * Copyright 2014 William Seemann
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,44 +18,40 @@
  */
 -->
 
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-	android:layout_width="fill_parent"
-	android:layout_height="wrap_content"
-	android:orientation="horizontal" >
+<net.sourceforge.servestream.utils.CustomMultipleChoiceLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content" >
+
+    <CheckBox
+        android:id="@+id/check_box"
+        android:layout_width="wrap_content"
+        android:layout_height="64dip"
+        android:layout_alignParentLeft="true"
+        android:layout_centerVertical="true"
+        android:clickable="false"
+        android:focusable="false" />
+
+    <TextView
+        android:id="@android:id/text1"
+        android:layout_width="wrap_content"
+        android:layout_height="64dip"
+    	android:textAppearance="?android:attr/textAppearanceLarge"
+    	android:gravity="center_vertical"
+    	android:checkMark="?android:attr/listChoiceIndicatorMultiple"
+    	android:paddingStart="5dip"
+    	android:paddingEnd="5dip"
+        android:layout_toRightOf="@id/check_box"
+        android:layout_toLeftOf="@+id/drag_handle"
+        android:focusable="false" />
     
     <ImageView
-    	android:id="@+id/drag_handle"
+    	android:id="@id/drag_handle"
     	android:layout_width="wrap_content"
-    	android:layout_height="fill_parent"
-    	android:background="@drawable/ic_drag_queue" />
-  
-  	<LinearLayout
-    	android:layout_width="wrap_content"
-    	android:layout_height="wrap_content"
-    	android:layout_weight="1"
-    	android:orientation="vertical"
-    	android:padding="10dip" >
-    
-    	<TextView
-    		android:id="@android:id/text1"  
-			android:layout_width="wrap_content"
-			android:layout_height="wrap_content"
-			android:paddingRight="20dip"
-			android:singleLine="true"
-			android:ellipsize="end"
-			android:textAppearance="?android:attr/textAppearanceLarge" />
-	
-		<TextView
-			android:id="@android:id/text2"  
-			android:layout_width="wrap_content"
-			android:layout_height="wrap_content"
-        	android:textAppearance="?android:attr/textAppearanceSmall" />
-		
-	</LinearLayout>
+    	android:layout_height="64dip"
+    	android:layout_alignParentRight="true"
+    	android:layout_centerVertical="true"
+    	android:background="@drawable/ic_drag_queue"
+    	android:contentDescription="" />
 
-  	<CheckBox
-        android:id="@+id/checkbox"
-    	android:layout_width="wrap_content"
-    	android:layout_height="fill_parent" />
-  	
-</LinearLayout>
+</net.sourceforge.servestream.utils.CustomMultipleChoiceLayout>
