@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package net.sourceforge.servestream.fragment;
+package net.sourceforge.servestream.preference;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;

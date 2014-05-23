@@ -39,6 +39,7 @@ import net.sourceforge.servestream.exceptions.CastException;
 import net.sourceforge.servestream.exceptions.NoConnectionException;
 import net.sourceforge.servestream.exceptions.OnFailedListener;
 import net.sourceforge.servestream.exceptions.TransientNetworkDisconnectionException;
+import net.sourceforge.servestream.utils.Utils;
 
 import java.net.URL;
 
@@ -87,9 +88,9 @@ public class MiniController extends RelativeLayout implements IMiniController {
         super(context, attrs);
         LayoutInflater inflater = LayoutInflater.from(context);
         inflater.inflate(R.layout.mini_controller, this);
-        mPauseDrawable = getResources().getDrawable(R.drawable.ic_mini_controller_pause);
-        mPlayDrawable = getResources().getDrawable(R.drawable.ic_mini_controller_play);
-        mStopDrawable = getResources().getDrawable(R.drawable.ic_mini_controller_stop);
+        mPauseDrawable = getResources().getDrawable(Utils.getThemedIcon(context, R.attr.ic_mini_controller_pause));
+        mPlayDrawable = getResources().getDrawable(Utils.getThemedIcon(context, R.attr.ic_mini_controller_play));
+        //mStopDrawable = getResources().getDrawable(R.drawable.ic_mini_controller_stop);
         loadViews();
         setupCallbacks();
     }

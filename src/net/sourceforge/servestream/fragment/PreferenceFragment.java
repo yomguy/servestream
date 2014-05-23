@@ -17,300 +17,244 @@
 
 package net.sourceforge.servestream.fragment;
 
+import java.math.BigInteger;
+import java.security.SecureRandom;
+
 import net.sourceforge.servestream.R;
+import net.sourceforge.servestream.activity.AboutActivity;
+import net.sourceforge.servestream.activity.BluetoothOptionsActivity;
+import net.sourceforge.servestream.billing.IabHelper;
+import net.sourceforge.servestream.billing.IabResult;
+import net.sourceforge.servestream.billing.Purchase;
+import net.sourceforge.servestream.utils.BackupUtils;
+import net.sourceforge.servestream.utils.Constants;
+import net.sourceforge.servestream.preference.PreferenceConstants;
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Message;
 import android.preference.Preference;
-import android.preference.PreferenceGroup;
-import android.preference.PreferenceManager;
+import android.preference.Preference.OnPreferenceChangeListener;
+import android.preference.Preference.OnPreferenceClickListener;
 import android.preference.PreferenceScreen;
-import android.support.v4.app.Fragment;
-import android.view.KeyEvent;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
-import android.view.View.OnKeyListener;
 import android.view.ViewGroup;
-import android.widget.ListView;
+import android.widget.Toast;
 
-public abstract class PreferenceFragment extends Fragment implements
-		PreferenceManagerCompat.OnPreferenceTreeClickListener {
-    
-	private static final String PREFERENCES_TAG = "android:preferences";
+public class PreferenceFragment extends net.sourceforge.servestream.preference.PreferenceFragment {
+	private static final String TAG = PreferenceFragment.class.getName();
 
-    private PreferenceManager mPreferenceManager;
-    private ListView mList;
-    private boolean mHavePrefs;
-    private boolean mInitDone;
-
-    /**
-     * The starting request code given out to preference framework.
-     */
-    private static final int FIRST_REQUEST_CODE = 100;
-
-    private static final int MSG_BIND_PREFERENCES = 1;
-    private Handler mHandler = new Handler() {
-        @Override
-        public void handleMessage(Message msg) {
-            switch (msg.what) {
-
-                case MSG_BIND_PREFERENCES:
-                    bindPreferences();
-                    break;
-            }
-        }
-    };
-
-    final private Runnable mRequestFocus = new Runnable() {
-        public void run() {
-            mList.focusableViewAvailable(mList);
-        }
-    };
-
-    /**
-     * Interface that PreferenceFragment's containing activity should
-     * implement to be able to process preference items that wish to
-     * switch to a new fragment.
-     */
-    public interface OnPreferenceStartFragmentCallback {
-        /**
-         * Called when the user has clicked on a Preference that has
-         * a fragment class name associated with it.  The implementation
-         * to should instantiate and switch to an instance of the given
-         * fragment.
-         */
-        boolean onPreferenceStartFragment(PreferenceFragment caller, Preference pref);
-    }
+	private static final String PUBLIC_KEY = "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAr6Z/tJghrCn7OSo2lWndIo+tibBhZN/mQ/Spu4IsorzHwMVW3BKPzIiyqkZa78sEs6cH68HvfoAW7QpDgJ021ZKQZaTV3m714TkLZ9RZr+rtMdPBvRkcyVWtDj3L941I4cjczs08AhAcxoIRDtA3hHZ1sKfjEgHRY19Z8oas7+f2CqCoCdRBrBCQAN55YrFw06SsnGCjHuGQgx3+pzcxuNO91s7HvJIYtCDMz+dquvQ5cU51Ia5uG3HB8ezFoag1qMq65wGed3uXANwHZUconDG6ZMYhTF4hgsS2/6es0rDZSqsgqOQ8pRIBKSg0aRmvneW6+liSycMAoL+/hl8yRwIDAQAB";
+	private static final String DONATION_SKU_SMALL = "donation_small";
+	private static final String DONATION_SKU_MEDIUM = "donation_medium";
+	private static final String DONATION_SKU_LARGE = "donation_large";
+	private static final String DONATION_SKU_XLARGE = "donation_xlarge";
 	
-    @Override
-	public void onCreate(Bundle paramBundle) {
-		super.onCreate(paramBundle);
-		mPreferenceManager = PreferenceManagerCompat.newInstance(getActivity(), FIRST_REQUEST_CODE);
-		PreferenceManagerCompat.setFragment(mPreferenceManager, this);
+	private String mPayload;
+	
+	private static final String PREF_BLUETOOTH_OPTIONS = "bluetooth_options";
+	private static final String PREF_BACKUP = "backup";
+	private static final String PREF_RESTORE = "restore";
+	private static final String PREF_ABOUT = "about";
+	private static final String PREF_DONATE = "donate";
+	
+	private IabHelper mHelper;
+	
+	@Override
+	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+		return inflater.inflate(R.layout.fragment_settings, null);
 	}
 	
-    @Override
-	public View onCreateView(LayoutInflater paramLayoutInflater, ViewGroup paramViewGroup,
-			Bundle paramBundle) {
-		return paramLayoutInflater.inflate(R.layout.preference_list_fragment, paramViewGroup,
-				false);
-	}
-    
-    @Override
-    public void onActivityCreated(Bundle savedInstanceState) {
-        super.onActivityCreated(savedInstanceState);
-
-        if (mHavePrefs) {
-            bindPreferences();
-        }
-
-        mInitDone = true;
-
-        if (savedInstanceState != null) {
-            Bundle container = savedInstanceState.getBundle(PREFERENCES_TAG);
-            if (container != null) {
-                final PreferenceScreen preferenceScreen = getPreferenceScreen();
-                if (preferenceScreen != null) {
-                    preferenceScreen.restoreHierarchyState(container);
-                }
-            }
-        }
-    }
-    
-    @Override
-    public void onStart() {
-        super.onStart();
-        PreferenceManagerCompat.setOnPreferenceTreeClickListener(mPreferenceManager, this);
-    }
-    
-    @Override
-	public void onStop() {
-		super.onStop();
-		PreferenceManagerCompat.dispatchActivityStop(mPreferenceManager);
-		PreferenceManagerCompat.setOnPreferenceTreeClickListener(mPreferenceManager, null);
-	}
-    
-    @Override
-	public void onDestroyView() {
-		mList = null;
-		mHandler.removeCallbacks(mRequestFocus);
-		mHandler.removeMessages(MSG_BIND_PREFERENCES);
-		super.onDestroyView();
-	}
-    
-    @Override
-	public void onDestroy() {
-		super.onDestroy();
-		PreferenceManagerCompat.dispatchActivityDestroy(mPreferenceManager);
-	}
-    
-    @Override
-    public void onSaveInstanceState(Bundle outState) {
-        super.onSaveInstanceState(outState);
-
-        final PreferenceScreen preferenceScreen = getPreferenceScreen();
-        if (preferenceScreen != null) {
-            Bundle container = new Bundle();
-            preferenceScreen.saveHierarchyState(container);
-            outState.putBundle(PREFERENCES_TAG, container);
-        }
-    }
-    
-    @Override
-	public void onActivityResult(int requestCode, int resultCode, Intent data) {
-		super.onActivityResult(requestCode, resultCode, data);
+	@Override
+	public void onActivityCreated(Bundle savedInstanceState) {
+		super.onActivityCreated(savedInstanceState);
 		
-        PreferenceManagerCompat.dispatchActivityResult(mPreferenceManager, requestCode, resultCode, data);
+		if (savedInstanceState == null) {
+			addPreferencesFromResource(R.xml.preferences);
+
+			findPreference(PREF_BLUETOOTH_OPTIONS).setOnPreferenceClickListener(
+					new OnPreferenceClickListener() {
+
+						@Override
+						public boolean onPreferenceClick(Preference preference) {
+							getActivity().startActivity(new Intent(
+									getActivity(), BluetoothOptionsActivity.class));
+							return true;
+						}
+
+					});
+
+			findPreference(PREF_ABOUT).setOnPreferenceClickListener(
+					new OnPreferenceClickListener() {
+
+						@Override
+						public boolean onPreferenceClick(Preference preference) {
+							getActivity().startActivity(new Intent(
+									getActivity(), AboutActivity.class));
+							return true;
+						}
+
+					});
+
+			findPreference(PREF_DONATE).setOnPreferenceClickListener(
+					new OnPreferenceClickListener() {
+
+						@Override
+						public boolean onPreferenceClick(Preference preference) {
+							mHelper = new IabHelper(getActivity(), PUBLIC_KEY);
+							mHelper.startSetup(new IabHelper.OnIabSetupFinishedListener() {
+								public void onIabSetupFinished(IabResult result) {
+									if (!result.isSuccess()) {
+										Log.d(TAG, "Problem setting up In-app Billing: " + result);
+										// IAB couldn't be used lets take the user to the project's webpage instead.
+										Intent intent = new Intent(Intent.ACTION_VIEW);
+										intent.setData(Uri.parse(Constants.SERVESTREAM_DONATE_PAGE));
+										startActivity(intent);
+									} else {
+										Log.d(TAG, "Hooray, IAB is fully set up!");
+										showDonationAmountsDialog();
+									}
+								}
+							});
+							return true;
+						}
+
+					});
+			
+			findPreference(PreferenceConstants.THEME).setOnPreferenceChangeListener(
+                    new OnPreferenceChangeListener() {
+
+                        @Override
+                        public boolean onPreferenceChange(Preference preference, Object newValue) {
+                        	Intent i = getActivity().getIntent();
+                            //i.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK
+                            i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                            getActivity().finish();
+                            startActivity(i);
+                            return true;
+                        }
+                    });
+		}
 	}
-    
-    /**
-     * Returns the {@link PreferenceManager} used by this fragment.
-     * @return The {@link PreferenceManager}.
-     */
-    public PreferenceManager getPreferenceManager() {
-        return mPreferenceManager;
-    }
-    
-    /**
-     * Sets the root of the preference hierarchy that this fragment is showing.
-     *
-     * @param preferenceScreen The root {@link PreferenceScreen} of the preference hierarchy.
-     */
-    public void setPreferenceScreen(PreferenceScreen preferenceScreen) {
-        if (PreferenceManagerCompat.setPreferences(mPreferenceManager, preferenceScreen) && preferenceScreen != null) {
-            mHavePrefs = true;
-            if (mInitDone) {
-                postBindPreferences();
-            }
-        }
-    }
-    
-    /**
-     * Gets the root of the preference hierarchy that this fragment is showing.
-     *
-     * @return The {@link PreferenceScreen} that is the root of the preference
-     *         hierarchy.
-     */
-    public PreferenceScreen getPreferenceScreen() {
-        return PreferenceManagerCompat.getPreferenceScreen(mPreferenceManager);
-    }
-    
-    /**
-     * Adds preferences from activities that match the given {@link Intent}.
-     *
-     * @param intent The {@link Intent} to query activities.
-     */
-    public void addPreferencesFromIntent(Intent intent) {
-        requirePreferenceManager();
 
-        setPreferenceScreen(PreferenceManagerCompat.inflateFromIntent(mPreferenceManager, intent, getPreferenceScreen()));
-    }
-    
-    /**
-     * Inflates the given XML resource and adds the preference hierarchy to the current
-     * preference hierarchy.
-     *
-     * @param preferencesResId The XML resource ID to inflate.
-     */
-    public void addPreferencesFromResource(int preferencesResId) {
-        requirePreferenceManager();
-
-        setPreferenceScreen(PreferenceManagerCompat.inflateFromResource(mPreferenceManager, getActivity(),
-        		preferencesResId, getPreferenceScreen()));
-    }
-    
-    /**
-     * {@inheritDoc}
-     */
-    public boolean onPreferenceTreeClick(PreferenceScreen preferenceScreen,
-            Preference preference) {
-        //if (preference.getFragment() != null &&
-    	if (
-                getActivity() instanceof OnPreferenceStartFragmentCallback) {
-            return ((OnPreferenceStartFragmentCallback)getActivity()).onPreferenceStartFragment(
-                    this, preference);
+	@Override
+	public void onDestroy() {
+	    super.onDestroy();
+        if (mHelper != null) {
+            mHelper.dispose();
+            mHelper = null;
         }
-        return false;
+	}
+	
+	@Override
+	public boolean onPreferenceTreeClick (PreferenceScreen preferenceScreen, Preference preference) {
+		if (preference.getKey() != null) {
+			if (preference.getKey().equals(PREF_BACKUP)) {
+				BackupUtils.backup(getActivity());
+			} else if (preference.getKey().equals(PREF_RESTORE)) {
+				BackupUtils.restore(getActivity());
+			} 
+		}
+		
+		return true;
+	}
+
+	private void showDonationAmountsDialog() {
+		AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+		builder.setTitle(R.string.donation_amount)
+			.setItems(R.array.donation_amounts,
+				new DialogInterface.OnClickListener() {
+
+				@Override
+				public void onClick(DialogInterface dialog, int which) {
+					makeDonation(which);
+					dialog.dismiss();
+				}
+			})
+			.setNegativeButton(android.R.string.cancel, null);
+
+		builder.create().show();
+	}
+	
+    private void makeDonation(int which) {
+    	String donationSku;
+
+    	switch (which) {
+    		case (0):
+    			donationSku = DONATION_SKU_SMALL;
+    			break;
+    		case (1):
+    			donationSku = DONATION_SKU_MEDIUM;
+    			break;
+    		case (2):
+    			donationSku = DONATION_SKU_LARGE;
+    			break;
+    		case (3):
+    			donationSku = DONATION_SKU_XLARGE;
+    			break;
+    		default:
+    			return;
+    	}
+
+    	mPayload = new BigInteger(130, new SecureRandom()).toString(32);
+    	mHelper.launchPurchaseFlow(getActivity(), donationSku, 10001,
+    			mPurchaseFinishedListener, mPayload);
     }
 	
-    /**
-     * Finds a {@link Preference} based on its key.
-     *
-     * @param key The key of the preference to retrieve.
-     * @return The {@link Preference} with the key, or null.
-     * @see PreferenceGroup#findPreference(CharSequence)
-     */
-    public Preference findPreference(CharSequence key) {
-        if (mPreferenceManager == null) {
-            return null;
+    /** Verifies the developer payload of a purchase. */
+    boolean verifyDeveloperPayload(Purchase p) {
+        String payload = p.getDeveloperPayload();
+
+        if (mPayload.equals(payload)) {
+        	return true;
+        } else {
+        	return false;
         }
-        return mPreferenceManager.findPreference(key);
     }
     
-    private void requirePreferenceManager() {
-        if (mPreferenceManager == null) {
-            throw new RuntimeException("This should be called after super.onCreate.");
-        }
-    }
-	
-    private void postBindPreferences() {
-        if (mHandler.hasMessages(MSG_BIND_PREFERENCES)) return;
-        mHandler.obtainMessage(MSG_BIND_PREFERENCES).sendToTarget();
-    }
-    
-    private void bindPreferences() {
-        final PreferenceScreen preferenceScreen = getPreferenceScreen();
-        if (preferenceScreen != null) {
-            preferenceScreen.bind(getListView());
-        }
-    }
+	// Callback for when a purchase is finished
+    IabHelper.OnIabPurchaseFinishedListener mPurchaseFinishedListener = new IabHelper.OnIabPurchaseFinishedListener() {
+        public void onIabPurchaseFinished(IabResult result, Purchase purchase) {
+            Log.d(TAG, "Purchase finished: " + result + ", purchase: " + purchase);
 
-    public ListView getListView() {
-        ensureList();
-        return mList;
-    }
+            // if we were disposed of in the meantime, quit.
+            if (mHelper == null) return;
 
-    private void ensureList() {
-        if (mList != null) {
-            return;
-        }
-        View root = getView();
-        if (root == null) {
-            throw new IllegalStateException("Content view not yet created");
-        }
-        View rawListView = root.findViewById(android.R.id.list);
-        if (!(rawListView instanceof ListView)) {
-            throw new RuntimeException(
-                    "Content has view with id attribute 'android.R.id.list' "
-                    + "that is not a ListView class");
-        }
-        mList = (ListView)rawListView;
-        if (mList == null) {
-            throw new RuntimeException(
-                    "Your content must have a ListView whose id attribute is " +
-                    "'android.R.id.list'");
-        }
-        mList.setOnKeyListener(mListOnKeyListener);
-        mHandler.post(mRequestFocus);
-    }
-
-    private OnKeyListener mListOnKeyListener = new OnKeyListener() {
-
-        @Override
-        public boolean onKey(View v, int keyCode, KeyEvent event) {
-            Object selectedItem = mList.getSelectedItem();
-            if (selectedItem instanceof Preference) {
-                @SuppressWarnings("unused")
-				View selectedView = mList.getSelectedView();
-                //return ((Preference)selectedItem).onKey(
-                //        selectedView, keyCode, event);
-                return false;
+            if (result.isFailure()) {
+                complain("Error purchasing: " + result);
+                return;
             }
-            return false;
-        }
+            if (!verifyDeveloperPayload(purchase)) {
+                complain("Error purchasing. Authenticity verification failed.");
+                return;
+            }
 
+            Log.d(TAG, "Purchase successful.");
+
+            if (purchase.getSku().equals(DONATION_SKU_SMALL) ||
+            		purchase.getSku().equals(DONATION_SKU_MEDIUM) ||
+            		purchase.getSku().equals(DONATION_SKU_LARGE) ||
+            		purchase.getSku().equals(DONATION_SKU_XLARGE)) {
+            	Toast.makeText(getActivity(), getString(R.string.donation_successful_message), Toast.LENGTH_LONG).show();
+            	mHelper.consumeAsync(purchase, mConsumeFinishedListener);
+            }
+        }
     };
-	
+    
+    // Called when consumption is complete
+    IabHelper.OnConsumeFinishedListener mConsumeFinishedListener = new IabHelper.OnConsumeFinishedListener() {
+        public void onConsumeFinished(Purchase purchase, IabResult result) {
+            Log.d(TAG, "Consumption finished. Purchase: " + purchase + ", result: " + result);
 
+            // if we were disposed of in the meantime, quit.
+            if (mHelper == null) return;
+        }
+    };
+    
+    private void complain(String message) {
+        Log.e(TAG, "**** Error: " + message);
+    }
 }

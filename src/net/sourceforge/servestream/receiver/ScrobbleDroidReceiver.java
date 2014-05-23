@@ -19,7 +19,7 @@ package net.sourceforge.servestream.receiver;
 
 import net.sourceforge.servestream.provider.Media;
 import net.sourceforge.servestream.service.MediaPlaybackService;
-import net.sourceforge.servestream.utils.PreferenceConstants;
+import net.sourceforge.servestream.preference.PreferenceConstants;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;

@@ -18,6 +18,7 @@
 package net.sourceforge.servestream.activity;
 
 import net.sourceforge.servestream.fragment.UriEditorFragment;
+import net.sourceforge.servestream.preference.UserPreferences;
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -30,6 +31,7 @@ public class UriEditorActivity extends ActionBarActivity {
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
+        setTheme(UserPreferences.getTheme());
 		super.onCreate(savedInstanceState);
 		
 		ActionBar actionBar = getSupportActionBar();

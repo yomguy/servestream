@@ -36,7 +36,7 @@ import net.sourceforge.servestream.adapter.UrlListAdapter;
 import net.sourceforge.servestream.alarm.Alarm;
 import net.sourceforge.servestream.bean.UriBean;
 import net.sourceforge.servestream.dbutils.StreamDatabase;
-import net.sourceforge.servestream.utils.PreferenceConstants;
+import net.sourceforge.servestream.preference.PreferenceConstants;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.AlertDialog;

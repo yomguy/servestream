@@ -121,12 +121,16 @@
 	<string name="pref_retrievealbumart_summary">"Display and store embedded album art"</string>
 	<string name="pref_retrieveshoutcastmetadata_title">"Retrieve SHOUTcast metadata"</string>
 	<string name="pref_retrieveshoutcastmetadata_summary">"Read and display metadata for SHOUTcast streams (experimental)"</string>
+	<string name="pref_theme_title_light">Light</string>
+	<string name="pref_theme_title_dark">Dark</string>
 	<string name="pref_useproxy_title">"Use proxy"</string>
 	<string name="pref_proxy_title">"Proxy"</string>
 	<string name="pref_sendscrobblerinfo_title">"Last.fm Scrobbling"</string>
 	<string name="pref_sendscrobblerinfo_summary">"Enable Last.fm Scrobbing. Must have \"Simple LastFM Scrobbler\" or \"Scrobble Droid\" installed."</string>
 	<string name="pref_sendbluetoothmetadata_title">"Send metadata"</string>
 	<string name="pref_sendbluetoothmetadata_summary">"Send metadata to paired bluetooth devices (Note: will automatically send metadata to scrobbling apps)"</string>
+	<string name="pref_set_theme_title">Select theme</string>
+	<string name="pref_set_theme_summary">Change the appearance of ServeStream</string>
 	<string name="pref_wakelock_title">Screen wake lock</string>
 	<string name="pref_wakelock_summary">Keep screen from dimming or going to sleep</string>
 	<string name="pref_wifilock_title">"Keep Wi-Fi active"</string>

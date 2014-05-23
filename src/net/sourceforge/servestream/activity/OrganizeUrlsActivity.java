@@ -26,6 +26,7 @@ import net.sourceforge.servestream.bean.UriBean;
 import net.sourceforge.servestream.dbutils.StreamDatabase;
 import net.sourceforge.servestream.dslv.DragSortController;
 import net.sourceforge.servestream.dslv.DragSortListView;
+import net.sourceforge.servestream.preference.UserPreferences;
 import android.content.ContentValues;
 import android.content.Intent;
 import android.content.res.TypedArray;
@@ -54,6 +55,7 @@ public class OrganizeUrlsActivity extends ActionBarActivity {
 	
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
+        setTheme(UserPreferences.getTheme());
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_organize_urls);
 		

@@ -24,6 +24,7 @@ import java.util.Set;
 
 import net.sourceforge.servestream.R;
 import net.sourceforge.servestream.adapter.BluetoothOptionsListAdapter;
+import net.sourceforge.servestream.preference.UserPreferences;
 import net.sourceforge.servestream.utils.ObjectSerializer;
 import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
@@ -47,6 +48,7 @@ public class BluetoothOptionsActivity extends Activity {
 	@SuppressWarnings("unchecked")
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
+        setTheme(UserPreferences.getTheme());
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_bluetooth_options);
 		

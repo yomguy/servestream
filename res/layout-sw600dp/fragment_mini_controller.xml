@@ -57,7 +57,6 @@
             	android:layout_width="wrap_content"
             	android:layout_height="wrap_content"
             	android:textSize="16.0dip"
-            	android:textColor="#ffffffff"
             	android:singleLine="true"
             	android:ellipsize="marquee" />
 
@@ -67,7 +66,6 @@
         		android:layout_height="wrap_content"
         		android:paddingTop="2.0dip"
             	android:textSize="12.0dip"
-        		android:textColor="#ffbbbbbb"
         		android:singleLine="true"
         		android:ellipsize="marquee" />
         	

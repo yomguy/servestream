@@ -25,4 +25,12 @@
     
     <attr name="media_player_metadata_color_primary" format="color" />
     <attr name="media_player_metadata_color_secondary" format="color" />
+    
+    <attr name="ic_mini_controller_pause" format="reference" />
+    <attr name="ic_mini_controller_play" format="reference" />
+    <attr name="ic_mini_controller_stop" format="reference" />
+    
+    <attr name="divider_horizontal" format="reference" />
+    
+    <attr name="now_playing_item_color" format="color" />
 </resources>

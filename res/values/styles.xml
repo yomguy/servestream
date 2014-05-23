@@ -45,6 +45,13 @@
     	
         <item name="attr/media_player_metadata_color_primary">@color/media_player_metadata_color_primary_dark</item>
         <item name="attr/media_player_metadata_color_secondary">@color/media_player_metadata_color_primary_dark</item>
+        
+        <item name="attr/ic_mini_controller_pause">@drawable/ic_av_pause_dark</item>
+    	<item name="attr/ic_mini_controller_play">@drawable/ic_av_play_dark</item>
+    	<item name="attr/ic_mini_controller_stop">@drawable/ic_av_stop</item>
+    	
+    	<item name="attr/divider_horizontal">@android:drawable/divider_horizontal_dark</item>
+    	<item name="attr/now_playing_item_color">@color/now_playing_item_color_dark</item>
     </style>
     
     <style name="Theme.ServeStream.DarkActionBar" parent="@style/Theme.AppCompat.Light.DarkActionBar">
@@ -73,6 +80,13 @@
     	
         <item name="attr/media_player_metadata_color_primary">@color/media_player_metadata_color_primary_light</item>
         <item name="attr/media_player_metadata_color_secondary">@color/media_player_metadata_color_primary_light</item>
+        
+        <item name="attr/ic_mini_controller_pause">@drawable/ic_av_pause_light</item>
+    	<item name="attr/ic_mini_controller_play">@drawable/ic_av_play_light</item>
+    	<item name="attr/ic_mini_controller_stop">@drawable/ic_av_stop</item>
+    	
+    	<item name="attr/divider_horizontal">@android:drawable/divider_horizontal_bright</item>
+    	<item name="attr/now_playing_item_color">@color/now_playing_item_color_light</item>
     </style>
     
 </resources>

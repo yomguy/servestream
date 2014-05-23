@@ -41,6 +41,7 @@
 	<uses-permission android:name="com.android.vending.BILLING" />
 	
 	<application
+	    android:name="net.sourceforge.servestream.ServeStreamApp"
 		android:icon="@drawable/ic_launcher"
 		android:label="@string/app_name"
 		android:allowBackup="true"
@@ -196,7 +197,7 @@
 		
 		
 		<activity
-            android:name=".activity.SettingsActivity"
+            android:name=".activity.PreferenceActivity"
             android:label="@string/settings_label" />
         
 		<activity

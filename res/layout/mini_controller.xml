@@ -20,7 +20,7 @@
         android:layout_alignParentRight="true"
         android:layout_centerVertical="true"
         android:layout_marginRight="4dp"
-        android:src="@drawable/ic_mini_controller_pause"/>
+        android:src="?attr/ic_av_pause"/>
 
     <ProgressBar
         android:id="@+id/loadingView"

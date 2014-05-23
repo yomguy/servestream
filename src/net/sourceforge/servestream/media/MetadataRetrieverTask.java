@@ -20,7 +20,7 @@ package net.sourceforge.servestream.media;
 import java.util.HashMap;
 
 import net.sourceforge.servestream.provider.Media;
-import net.sourceforge.servestream.utils.PreferenceConstants;
+import net.sourceforge.servestream.preference.PreferenceConstants;
 
 import android.content.Context;
 import android.content.SharedPreferences;

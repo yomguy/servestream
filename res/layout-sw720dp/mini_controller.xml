@@ -28,14 +28,14 @@
         	android:layout_height="match_parent"
         	android:gravity="center"
         	android:background="?attr/borderless_button"
-        	android:src="@drawable/ic_mini_controller_pause"/>
+        	android:src="?attr/ic_av_previous"/>
         
     	<ImageView
         	android:id="@+id/playPauseView"
         	android:layout_width="match_parent"
         	android:layout_height="match_parent"
       	    android:gravity="center"
-        	android:src="@drawable/ic_mini_controller_pause"/>
+        	android:src="?attr/ic_av_pause"/>
 
     	<ImageButton
         	android:id="@+id/nextView"
@@ -43,7 +43,7 @@
         	android:layout_height="match_parent"
         	android:gravity="center"
         	android:background="?attr/borderless_button"
-        	android:src="@drawable/ic_mini_controller_pause"/>
+        	android:src="?attr/ic_av_next"/>
     	
     </LinearLayout>
     

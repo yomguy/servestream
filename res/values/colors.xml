@@ -19,14 +19,19 @@
 -->
 
 <resources>
+    
     <color name="blue">#ff00c8ff</color>
     <color name="selection_background_color_dark">#FEBB20</color>
     <color name="selection_background_color_light">#FEBB20</color>
     
-    <color name="media_player_metadata_color_primary_dark">#ffa9a9a9</color>
+    <color name="media_player_metadata_color_primary_dark">@android:color/white</color>
     <color name="media_player_metadata_color_secondary_dark">@android:color/white</color>
     
     <color name="media_player_metadata_color_primary_light">@android:color/black</color>
     <color name="media_player_metadata_color_secondary_light">@android:color/black</color>
+    
+    <color name="now_playing_item_color_light">@android:color/black</color>
+    <color name="now_playing_item_color_dark">@android:color/white</color>
+    
 </resources>
 

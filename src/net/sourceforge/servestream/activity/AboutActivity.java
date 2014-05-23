@@ -18,6 +18,7 @@
 package net.sourceforge.servestream.activity;
 
 import net.sourceforge.servestream.R;
+import net.sourceforge.servestream.preference.UserPreferences;
 import android.os.Bundle;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarActivity;
@@ -29,6 +30,7 @@ public class AboutActivity extends ActionBarActivity {
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
+        setTheme(UserPreferences.getTheme());
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_about);	
 		

@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package net.sourceforge.servestream.utils;
+package net.sourceforge.servestream.preference;
 
 import android.os.Build;
 
@@ -36,6 +36,7 @@ public final class PreferenceConstants {
 	public static final String SEND_SCROBBLER_INFO = "sendscrobblerinfo";
 	public static final String SEND_BLUETOOTH_METADATA = "sendbluetoothmetadata";
 	public static final String RATE_APPLICATION_FLAG = "rateapplicationflag";
+	public static final String THEME = "theme";
 	
 	/* Backup identifiers */
 	public static final String BACKUP_PREF_KEY = "prefs";

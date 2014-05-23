@@ -18,6 +18,7 @@
 package net.sourceforge.servestream.activity;
 
 import net.sourceforge.servestream.fragment.AddUrlFragment;
+import net.sourceforge.servestream.preference.UserPreferences;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
@@ -29,6 +30,7 @@ public class AddUrlActivity extends ActionBarActivity {
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
+        setTheme(UserPreferences.getTheme());
 		super.onCreate(savedInstanceState);
 		
 		ActionBar actionBar = getSupportActionBar();

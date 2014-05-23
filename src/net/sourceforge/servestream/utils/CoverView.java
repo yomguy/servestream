@@ -18,6 +18,7 @@
 package net.sourceforge.servestream.utils;
 
 import net.sourceforge.servestream.R;
+import net.sourceforge.servestream.preference.PreferenceConstants;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;

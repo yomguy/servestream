@@ -23,6 +23,7 @@ import net.sourceforge.servestream.alarm.AlarmPreference;
 import net.sourceforge.servestream.alarm.Alarms;
 import net.sourceforge.servestream.alarm.RepeatPreference;
 import net.sourceforge.servestream.alarm.ToastMaster;
+import net.sourceforge.servestream.preference.UserPreferences;
 import android.app.AlertDialog;
 import android.app.TimePickerDialog;
 import android.content.Context;
@@ -71,6 +72,7 @@ public class SetAlarmActivity extends PreferenceActivity
      */
     @Override
     protected void onCreate(Bundle icicle) {
+        setTheme(UserPreferences.getTheme());
         super.onCreate(icicle);
 
         // Override the default content view.

@@ -7,6 +7,7 @@ import java.util.Locale;
 import net.sourceforge.servestream.R;
 import net.sourceforge.servestream.adapter.SearchAdapter;
 import net.sourceforge.servestream.bean.UriBean;
+import net.sourceforge.servestream.preference.UserPreferences;
 import android.app.SearchManager;
 import android.content.Intent;
 import android.os.Bundle;
@@ -24,6 +25,7 @@ public class SearchableActivity extends ActionBarActivity {
 	
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
+        setTheme(UserPreferences.getTheme());
 	    super.onCreate(savedInstanceState);
 	    setContentView(R.layout.activity_searchable);
 

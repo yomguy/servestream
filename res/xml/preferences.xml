@@ -20,6 +20,18 @@
 
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
 
+    <PreferenceCategory android:title="@string/pref_ui_category">
+    
+        <ListPreference
+            android:key="theme"
+            android:title="@string/pref_set_theme_title"
+            android:summary="@string/pref_set_theme_summary"
+            android:defaultValue="0"
+            android:entryValues="@array/theme_values"
+            android:entries="@array/theme_options" />
+    
+    </PreferenceCategory>
+    
 	<PreferenceCategory
 		android:title="@string/pref_general_settings_category" >
 

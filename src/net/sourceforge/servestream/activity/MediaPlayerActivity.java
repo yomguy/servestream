@@ -25,7 +25,8 @@ import net.sourceforge.servestream.service.MediaPlaybackService;
 import net.sourceforge.servestream.utils.LoadingDialog;
 import net.sourceforge.servestream.utils.LoadingDialog.LoadingDialogListener;
 import net.sourceforge.servestream.utils.MusicUtils;
-import net.sourceforge.servestream.utils.PreferenceConstants;
+import net.sourceforge.servestream.preference.PreferenceConstants;
+import net.sourceforge.servestream.preference.UserPreferences;
 import net.sourceforge.servestream.utils.MusicUtils.ServiceToken;
 import net.sourceforge.servestream.utils.SleepTimerDialog;
 import net.sourceforge.servestream.utils.SleepTimerDialog.SleepTimerDialogListener;
@@ -121,6 +122,7 @@ public class MediaPlayerActivity extends ActionBarActivity implements MusicUtils
     /** Called when the activity is first created. */
     @Override
     public void onCreate(Bundle icicle) {
+    	setTheme(UserPreferences.getTheme());
         super.onCreate(icicle);
         setContentView(R.layout.activity_media_player);
         
@@ -360,7 +362,7 @@ public class MediaPlayerActivity extends ActionBarActivity implements MusicUtils
         		showDialog(SLEEP_TIMER_DIALOG);
         		return true;
         	case (R.id.menu_item_settings):
-        		startActivity(new Intent(MediaPlayerActivity.this, SettingsActivity.class));
+        		startActivity(new Intent(MediaPlayerActivity.this, PreferenceActivity.class));
         		return true;
         	case EFFECTS_PANEL: {
                 try {

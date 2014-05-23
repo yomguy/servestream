@@ -25,7 +25,8 @@ import net.sourceforge.servestream.provider.Media;
 import net.sourceforge.servestream.service.IMediaPlaybackService;
 import net.sourceforge.servestream.service.MediaPlaybackService;
 import net.sourceforge.servestream.utils.MusicUtils;
-import net.sourceforge.servestream.utils.PreferenceConstants;
+import net.sourceforge.servestream.preference.PreferenceConstants;
+import net.sourceforge.servestream.preference.UserPreferences;
 import net.sourceforge.servestream.utils.Utils;
 import net.sourceforge.servestream.utils.MusicUtils.ServiceToken;
 
@@ -99,6 +100,7 @@ public class NowPlayingActivity extends ActionBarActivity implements
     /** Called when the activity is first created. */
     @Override
     public void onCreate(Bundle icicle) {
+        setTheme(UserPreferences.getTheme());
         super.onCreate(icicle);
         setContentView(R.layout.activity_now_playing);
 

@@ -17,7 +17,7 @@
 
 package net.sourceforge.servestream.service;
 
-import net.sourceforge.servestream.utils.PreferenceConstants;
+import net.sourceforge.servestream.preference.PreferenceConstants;
 
 import android.app.backup.BackupManager;
 import android.content.Context;

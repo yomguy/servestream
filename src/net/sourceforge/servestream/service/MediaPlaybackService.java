@@ -74,7 +74,7 @@ import net.sourceforge.servestream.transport.AbsTransport;
 import net.sourceforge.servestream.transport.TransportFactory;
 import net.sourceforge.servestream.utils.DetermineActionTask;
 import net.sourceforge.servestream.utils.MusicUtils;
-import net.sourceforge.servestream.utils.PreferenceConstants;
+import net.sourceforge.servestream.preference.PreferenceConstants;
 import net.sourceforge.servestream.utils.Utils;
 
 /**
