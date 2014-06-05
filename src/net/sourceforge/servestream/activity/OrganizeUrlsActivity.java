@@ -35,6 +35,7 @@ import android.support.v4.view.MenuItemCompat;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarActivity;
 import android.support.v7.view.ActionMode;
+import android.util.SparseBooleanArray;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -48,6 +49,7 @@ public class OrganizeUrlsActivity extends ActionBarActivity {
 	
 	private List<UriBean> mBaselineUris;
 	
+	private DragSortListView mList;
 	private OrganizeAdapter mAdapter;
 	private StreamDatabase mStreamdb;
 	
@@ -62,23 +64,20 @@ public class OrganizeUrlsActivity extends ActionBarActivity {
 		ActionBar actionBar = getSupportActionBar();
 		actionBar.setDisplayHomeAsUpEnabled(true);
 		
-		DragSortListView list = (DragSortListView) findViewById(android.R.id.list);
-		list.setEmptyView(findViewById(android.R.id.empty));
-		list.setDropListener(dropListener);
-		list.setRemoveListener(removeListener);
+		mList = (DragSortListView) findViewById(android.R.id.list);
+		mList.setEmptyView(findViewById(android.R.id.empty));
+		mList.setDropListener(dropListener);
 
-		DragSortController controller = new DragSortController(list);
+		DragSortController controller = new DragSortController(mList);
 		controller.setDragInitMode(DragSortController.ON_DRAG);
-		controller.setRemoveMode(DragSortController.FLING_REMOVE);
-        controller.setRemoveEnabled(true);
 		controller.setDragHandleId(R.id.drag_handle);
-		list.setOnTouchListener(controller);
+		mList.setOnTouchListener(controller);
 		
 		mAdapter = new OrganizeAdapter(this, new ArrayList<UriBean>());
-		list.setAdapter(mAdapter);
-		list.setItemsCanFocus(false);
-		list.setChoiceMode(ListView.CHOICE_MODE_MULTIPLE);
-		list.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+		mList.setAdapter(mAdapter);
+		mList.setItemsCanFocus(false);
+		mList.setChoiceMode(ListView.CHOICE_MODE_MULTIPLE);
+		mList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
 
 			@Override
 			public void onItemClick(AdapterView<?> parent, View view,
@@ -186,21 +185,30 @@ public class OrganizeUrlsActivity extends ActionBarActivity {
 		}
 	};
 
-	private DragSortListView.RemoveListener removeListener = new DragSortListView.RemoveListener() {
-
-		@Override
-		public void remove(int which) {
-			mAdapter.remove(mAdapter.getItem(which));
-		}
-	};
-
 	private ActionMode.Callback mActionModeCallback = new ActionMode.Callback() {
 
 		@Override
 		public boolean onActionItemClicked(ActionMode mode, MenuItem item) {
 			switch (item.getItemId()) {
 			case R.id.menu_item_delete:
+				SparseBooleanArray checked = mList.getCheckedItemPositions();
+				List<UriBean> selectedItems = new ArrayList<UriBean>();
+		        for (int i = 0; i < checked.size(); i++) {
+		            // Item position in adapter
+		            int position = checked.keyAt(i);
+		            // Add sport if it is checked i.e.) == TRUE!
+		            if (checked.valueAt(i)) {
+		                selectedItems.add(mAdapter.getItem(position));
+		            }
+		        }
+		        
+		        for (int i = 0; i < selectedItems.size(); i++) {
+		        	mStreamdb.deleteUri(selectedItems.get(i));
+		        }
+		        
 				mode.finish(); // Action picked, so close the CAB
+				
+				updateList();
 				return true;
 			default:
 				return false;
