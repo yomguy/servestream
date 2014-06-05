@@ -21,6 +21,8 @@
 #include <libavutil/opt.h>
 #include <ffmpeg_mediametadataretriever.h>
 
+#include <stdio.h>
+
 const int TARGET_IMAGE_FORMAT = PIX_FMT_RGB24;
 const int TARGET_IMAGE_CODEC = CODEC_ID_PNG;
 
@@ -30,6 +32,7 @@ const char *VIDEO_CODEC = "video_codec";
 const char *ICY_METADATA = "icy_metadata";
 //const char *ICY_ARTIST = "icy_artist";
 //const char *ICY_TITLE = "icy_title";
+const char *ROTATE = "rotate";
 
 const int SUCCESS = 0;
 const int FAILURE = -1;
@@ -125,6 +128,17 @@ void set_codec(AVFormatContext *ic, int i) {
 	}
 }
 
+void set_rotation(State *s) {
+    
+	if (!extract_metadata(&s, ROTATE) && s->video_st && s->video_st->metadata) {
+		AVDictionaryEntry *entry = av_dict_get(s->video_st->metadata, ROTATE, NULL, AV_DICT_IGNORE_SUFFIX);
+        
+        if (entry && entry->value) {
+            av_dict_set(&s->pFormatCtx->metadata, ROTATE, entry->value, 0);
+        }
+	}
+}
+
 int stream_component_open(State *s, int stream_index) {
 	AVFormatContext *pFormatCtx = s->pFormatCtx;
 	AVCodecContext *codecCtx;
@@ -140,7 +154,7 @@ int stream_component_open(State *s, int stream_index) {
 	printf("avcodec_find_decoder %s\n", codecCtx->codec_name);
 
 	// Find the decoder for the audio stream
-	/*codec = avcodec_find_decoder(codecCtx->codec_id);
+	codec = avcodec_find_decoder(codecCtx->codec_id);
 
 	if(codec == NULL) {
 	    printf("avcodec_find_decoder() failed to find audio decoder\n");
@@ -151,7 +165,7 @@ int stream_component_open(State *s, int stream_index) {
     if (!codec || (avcodec_open2(codecCtx, codec, NULL) < 0)) {
 	  	printf("avcodec_open2() failed\n");
 		return FAILURE;
-	}*/
+	}
 
 	switch(codecCtx->codec_type) {
 		case AVMEDIA_TYPE_AUDIO:
@@ -169,7 +183,7 @@ int stream_component_open(State *s, int stream_index) {
 	return SUCCESS;
 }
 
-int set_data_source(State **ps, const char* path) {
+int set_data_source(State **ps, const char* path, const char* headers) {
 	printf("set_data_source\n");
 	int audio_index = -1;
 	int video_index = -1;
@@ -198,6 +212,10 @@ int set_data_source(State **ps, const char* path) {
     AVDictionary *options = NULL;
     av_dict_set(&options, "icy", "1", 0);
     av_dict_set(&options, "user-agent", "FFmpegMediaMetadataRetriever", 0);
+    
+    if (headers) {
+        av_dict_set(&options, "headers", headers, 0);
+    }
     
     if (avformat_open_input(&state->pFormatCtx, path, NULL, &options) != 0) {
 	    printf("Metadata could not be retrieved\n");
@@ -232,9 +250,9 @@ int set_data_source(State **ps, const char* path) {
 		set_codec(state->pFormatCtx, i);
 	}
 
-	/*if (audio_index >= 0) {
+	if (audio_index >= 0) {
 		stream_component_open(state, audio_index);
-	}*/
+	}
 
 	if (video_index >= 0) {
 		stream_component_open(state, video_index);
@@ -246,6 +264,8 @@ int set_data_source(State **ps, const char* path) {
 		return FAILURE;
 	}*/
 
+    set_rotation(state);
+    
 	/*printf("Found metadata\n");
 	AVDictionaryEntry *tag = NULL;
 	while ((tag = av_dict_get(state->pFormatCtx->metadata, "", tag, AV_DICT_IGNORE_SUFFIX))) {
@@ -257,6 +277,21 @@ int set_data_source(State **ps, const char* path) {
 	return SUCCESS;
 }
 
+int set_data_source_fd(State **ps, int fd, int64_t offset, int64_t length) {
+    char path[256] = "";
+
+    //int myfd = dup(fd);
+    FILE *file = fdopen(fd, "rb");
+    
+    if (file && (fseek(file, offset, SEEK_SET) == 0)) {
+        //int fdd = fileno(file);
+        char str[20];
+        sprintf(str, "pipe:%d", fd);
+        strcat(path, str);
+    }
+    
+    return set_data_source(ps, path, NULL);
+}
 
 const char* extract_metadata(State **ps, const char* key) {
 	printf("extract_metadata\n");
@@ -271,6 +306,10 @@ const char* extract_metadata(State **ps, const char* key) {
 	if (key) {
 		if (av_dict_get(state->pFormatCtx->metadata, key, NULL, AV_DICT_IGNORE_SUFFIX)) {
 			value = av_dict_get(state->pFormatCtx->metadata, key, NULL, AV_DICT_IGNORE_SUFFIX)->value;
+		} else if (state->audio_st && av_dict_get(state->audio_st->metadata, key, NULL, AV_DICT_IGNORE_SUFFIX)) {
+			value = av_dict_get(state->audio_st->metadata, key, NULL, AV_DICT_IGNORE_SUFFIX)->value;
+		} else if (state->video_st && av_dict_get(state->video_st->metadata, key, NULL, AV_DICT_IGNORE_SUFFIX)) {
+			value = av_dict_get(state->video_st->metadata, key, NULL, AV_DICT_IGNORE_SUFFIX)->value;
 		}
 	}
 
