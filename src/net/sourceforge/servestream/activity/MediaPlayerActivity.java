@@ -127,7 +127,9 @@ public class MediaPlayerActivity extends ActionBarActivity implements MusicUtils
         setContentView(R.layout.activity_media_player);
         
         ActionBar actionBar = getSupportActionBar();
-		actionBar.setDisplayHomeAsUpEnabled(true);
+		//actionBar.setDisplayHomeAsUpEnabled(true);
+		actionBar.setHomeButtonEnabled(true);
+		actionBar.setIcon(Utils.getThemedIcon(this, R.attr.ic_action_cancel));
         //actionBar.setDisplayShowCustomEnabled(true);
         //actionBar.setDisplayShowTitleEnabled(false);
         
