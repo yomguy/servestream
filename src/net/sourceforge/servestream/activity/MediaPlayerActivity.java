@@ -418,6 +418,14 @@ public class MediaPlayerActivity extends ActionBarActivity implements MusicUtils
 		View view = MenuItemCompat.getActionView(item);
 		mVolume = (SeekBar) view.findViewById(R.id.volume_bar);
         mVolume.setOnSeekBarChangeListener(mVolumeListener);
+        ImageButton cancelButton = (ImageButton) view.findViewById(R.id.cancel_button);
+        cancelButton.setOnClickListener(new View.OnClickListener() {
+			
+			@Override
+			public void onClick(View v) {
+				MenuItemCompat.collapseActionView(item);
+			}
+		});
         return true;
     }
 

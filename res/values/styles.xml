@@ -32,6 +32,7 @@
         <item name="attr/ic_action_overflow">@drawable/ic_action_overflow_dark</item>
         <item name="attr/ic_action_settings">@drawable/ic_action_settings_dark</item>
         <item name="attr/ic_action_discard">@drawable/ic_action_settings_dark</item>
+        <item name="attr/ic_action_cancel">@drawable/ic_action_cancel_dark</item>
         
         <item name="attr/ic_av_repeat">@drawable/ic_av_repeat_dark</item>
     	<item name="attr/ic_av_previous">@drawable/ic_av_previous_dark</item>
@@ -66,6 +67,7 @@
         <item name="attr/ic_action_overflow">@drawable/ic_action_overflow_light</item>
         <item name="attr/ic_action_settings">@drawable/ic_action_settings_dark</item>
         <item name="attr/ic_action_discard">@drawable/ic_action_discard_dark</item>
+        <item name="attr/ic_action_cancel">@drawable/ic_action_cancel_dark</item>
         <item name="attr/float_background_color">@android:color/transparent</item>
         
         <item name="attr/ic_av_repeat">@drawable/ic_av_repeat_light</item>
