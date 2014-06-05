@@ -18,6 +18,7 @@
 package net.sourceforge.servestream.activity;
 
 import net.sourceforge.servestream.R;
+import net.sourceforge.servestream.adapter.NavListAdapter;
 import net.sourceforge.servestream.fragment.AlarmClockFragment;
 import net.sourceforge.servestream.fragment.BrowseFragment;
 import net.sourceforge.servestream.fragment.UrlListFragment;
@@ -50,7 +51,6 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
 import android.widget.ListView;
 
 public class MainActivity extends ActionBarActivity implements
@@ -87,8 +87,9 @@ public class MainActivity extends ActionBarActivity implements
         // set a custom shadow that overlays the main content when the drawer opens
         mDrawerLayout.setDrawerShadow(Utils.getThemedIcon(this, R.attr.drawer_shadow), GravityCompat.START);
         // set up the drawer's list view with items and click listener
-        mDrawerList.setAdapter(new ArrayAdapter<String>(this,
-                R.layout.drawer_list_item, mDrawerItems));
+        mDrawerList.setAdapter(new NavListAdapter(this));
+        		//ArrayAdapter<String>(this,
+                //R.layout.drawer_list_item, mDrawerItems));
         mDrawerList.setOnItemClickListener(new DrawerItemClickListener());
 
         // enable ActionBar app icon to behave as action to toggle nav drawer
@@ -245,6 +246,12 @@ public class MainActivity extends ActionBarActivity implements
     }
 
     private void selectItem(int position) {
+    	if (position == 4) {
+    		startActivity(new Intent(this, PreferenceActivity.class));
+        	mDrawerLayout.closeDrawer(mDrawerList);
+    	    return;
+        }
+    	
     	FragmentManager fragmentManager = getSupportFragmentManager();
     	Fragment fragment = getSupportFragmentManager().findFragmentByTag(mTag);
     	

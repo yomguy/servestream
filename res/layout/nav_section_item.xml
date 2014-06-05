@@ -18,16 +18,23 @@
  */
 -->
 
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:gravity="center_vertical" >
+    android:background="@android:color/transparent"
+    android:orientation="vertical" >
 
- 	<net.sourceforge.servestream.dslv.DragSortListView
-	    android:id="@android:id/list"
-	    android:layout_width="match_parent"
-        android:layout_height="0dip"
-        android:layout_weight="1" />
+    <TextView
+        android:id="@+id/txtvTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentLeft="true"
+        android:layout_marginTop="16dp"
+        android:paddingBottom="4dp"
+        android:textColor="#fff"
+        android:textSize="@dimen/text_size_small"
+        android:typeface="sans"
+        android:visibility="gone" />
 
-</LinearLayout>
+</RelativeLayout>
