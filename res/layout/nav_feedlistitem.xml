@@ -41,14 +41,14 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_centerVertical="true"
+        android:textColor="?android:attr/textColorPrimary"
+        android:textSize="@dimen/text_size_navdrawer"
         android:layout_marginBottom="14dp"
         android:layout_marginLeft="12dp"
         android:layout_marginRight="48dp"
         android:layout_marginTop="14dp"
         android:layout_toRightOf="@id/imgvCover"
         android:ellipsize="end"
-        android:lines="1"
-        android:textColor="#fff"
-        android:textSize="@dimen/text_size_navdrawer" />
+        android:lines="1" />
 
 </RelativeLayout>

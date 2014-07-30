@@ -51,8 +51,9 @@
         android:layout_height="match_parent"
         android:layout_gravity="start"
         android:choiceMode="singleChoice"
-        android:divider="@drawable/appwidget_divider"
-        android:dividerHeight="1dp"
-        android:background="#111" />
+        android:background="?attr/nav_drawer_background"
+        android:scrollbarStyle="outsideOverlay"
+        android:paddingLeft="8dp"
+        android:paddingRight="8dp"/>
     
 </android.support.v4.widget.DrawerLayout>

@@ -11,6 +11,7 @@
     <attr name="borderless_button" format="reference" />
     <attr name="ic_action_overflow" format="reference" />
     <attr name="ic_action_settings" format="reference" />
+    <attr name="ic_action_settings_drawer" format="reference" />
     <attr name="ic_action_discard" format="reference" />
     <attr name="ic_action_cancel" format="reference" />
     
@@ -34,4 +35,6 @@
     <attr name="divider_horizontal" format="reference" />
     
     <attr name="now_playing_item_color" format="color" />
+    
+    <attr name="nav_drawer_background" format="color"/>
 </resources>

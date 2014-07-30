@@ -31,34 +31,36 @@ import android.widget.TextView;
 /**
  * BaseAdapter for the navigation drawer
  */
-public class NavListAdapter extends BaseAdapter {
+public class NavigationDrawerAdapter extends BaseAdapter {
     public static final int VIEW_TYPE_COUNT = 3;
     public static final int VIEW_TYPE_NAV = 0;
-    public static final int VIEW_TYPE_SECTION_DIVIDER = 1;
     public static final int VIEW_TYPE_SUBSCRIPTION = 2;
 
-    public static final int[] NAV_TITLES = {R.string.url_label, R.string.browse_label, R.string.alarm_clock_label};
+    public static String [] NAV_TITLES;
 
-    public static final int SUBSCRIPTION_OFFSET = 1 + NAV_TITLES.length;
+    public static int SUBSCRIPTION_OFFSET;
 
     private Context mContext;
+    private ItemAccess mItemAccess;
 
-    public NavListAdapter(Context context) {
+    public NavigationDrawerAdapter(Context context, ItemAccess itemAccess) {
         mContext = context;
+        mItemAccess = itemAccess;
+        
+        NAV_TITLES = mContext.getResources().getStringArray(R.array.drawer_items);
+        SUBSCRIPTION_OFFSET = 1 + NAV_TITLES.length;
     }
 
     @Override
     public int getCount() {
-        return NAV_TITLES.length + 1 + 1;//itemAccess.getCount();
+        return NAV_TITLES.length + 1;//itemAccess.getCount();
     }
 
     @Override
     public Object getItem(int position) {
         int viewType = getItemViewType(position);
         if (viewType == VIEW_TYPE_NAV) {
-            return mContext.getString(NAV_TITLES[position]);
-        } else if (viewType == VIEW_TYPE_SECTION_DIVIDER) {
-            return "";
+            return NAV_TITLES[position];
         } else {
             return null;
         }
@@ -73,8 +75,6 @@ public class NavListAdapter extends BaseAdapter {
     public int getItemViewType(int position) {
         if (0 <= position && position < NAV_TITLES.length) {
             return VIEW_TYPE_NAV;
-        } else if (position < NAV_TITLES.length + 1) {
-            return VIEW_TYPE_SECTION_DIVIDER;
         } else {
             return VIEW_TYPE_SUBSCRIPTION;
         }
@@ -91,14 +91,12 @@ public class NavListAdapter extends BaseAdapter {
         View v = null;
         if (viewType == VIEW_TYPE_NAV) {
             v = getNavView((String) getItem(position), position, convertView, parent);
-        } else if (viewType == VIEW_TYPE_SECTION_DIVIDER) {
-            v = getSectionDividerView((String) getItem(position), position, convertView, parent);
         } else {
             v = getFeedView(position - SUBSCRIPTION_OFFSET, convertView, parent);
         }
         if (v != null) {
             TextView txtvTitle = (TextView) v.findViewById(R.id.txtvTitle);
-            if (position == 0) {
+            if (position == mItemAccess.getSelectedItemIndex()) {
                 txtvTitle.setTypeface(null, Typeface.BOLD);
             } else {
                 txtvTitle.setTypeface(null, Typeface.NORMAL);
@@ -128,29 +126,6 @@ public class NavListAdapter extends BaseAdapter {
         return convertView;
     }
 
-    private View getSectionDividerView(String title, int position, View convertView, ViewGroup parent) {
-        SectionHolder holder;
-        if (convertView == null) {
-            holder = new SectionHolder();
-            LayoutInflater inflater = (LayoutInflater) mContext
-                    .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-
-            convertView = inflater.inflate(R.layout.nav_section_item, null);
-
-            holder.title = (TextView) convertView.findViewById(R.id.txtvTitle);
-            convertView.setTag(holder);
-        } else {
-            holder = (SectionHolder) convertView.getTag();
-        }
-
-        holder.title.setText(title);
-
-        convertView.setEnabled(false);
-        convertView.setOnClickListener(null);
-
-        return convertView;
-    }
-
     private View getFeedView(int feedPos, View convertView, ViewGroup parent) {
         FeedHolder holder;
 
@@ -168,8 +143,8 @@ public class NavListAdapter extends BaseAdapter {
             holder = (FeedHolder) convertView.getTag();
         }
 
-        holder.title.setText("Settings");
-        holder.image.setImageResource(Utils.getThemedIcon(mContext, R.attr.ic_action_settings));
+        holder.title.setText(mContext.getString(R.string.action_settings));
+        holder.image.setImageResource(Utils.getThemedIcon(mContext, R.attr.ic_action_settings_drawer));
         //ImageLoader.getInstance().loadThumbnailBitmap(feed.getImage(), holder.image, (int) context.getResources().getDimension(R.dimen.thumbnail_length_navlist));
 
         return convertView;
@@ -187,5 +162,9 @@ public class NavListAdapter extends BaseAdapter {
     static class FeedHolder {
         TextView title;
         ImageView image;
+    }
+    
+    public interface ItemAccess {
+        public int getSelectedItemIndex();
     }
 }

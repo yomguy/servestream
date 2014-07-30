@@ -28,10 +28,10 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:gravity="center_vertical"
+        android:textColor="?android:attr/textColorPrimary"
+        android:textSize="@dimen/text_size_navdrawer"
         android:minHeight="?android:attr/listPreferredItemHeight"
         android:paddingLeft="16dp"
-        android:paddingRight="16dp"
-        android:textAppearance="?android:attr/textAppearanceMedium"
-        android:textColor="#fff" />
+        android:paddingRight="16dp" />
 
 </RelativeLayout>
