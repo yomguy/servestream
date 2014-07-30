@@ -248,7 +248,12 @@ public class MainActivity extends ActionBarActivity implements
     }
 
     private void selectItem(int position) {
-		mCurrentSelectedPosition = position;
+		if (position == 3) {
+			startActivity(new Intent(this, PreferenceActivity.class));
+			return;
+		}
+    	
+    	mCurrentSelectedPosition = position;
     	
     	FragmentManager fragmentManager = getSupportFragmentManager();
     	Fragment fragment = getSupportFragmentManager().findFragmentByTag(mTag);
