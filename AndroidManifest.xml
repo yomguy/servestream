@@ -180,11 +180,6 @@
 			android:label="@string/now_playing_label" />
 		
 		<activity
-            android:name=".activity.OrganizeUrlsActivity"
-            android:configChanges="orientation"
-            android:label="@string/organize_urls_label" />
-        
-		<activity
 		    android:name=".activity.SearchableActivity"
 		    android:launchMode="singleTop" >
         	<intent-filter>
