@@ -47,6 +47,7 @@ import android.os.SystemClock;
 import android.preference.PreferenceManager;
 import android.provider.MediaStore;
 import android.support.v4.app.NotificationCompat;
+import android.support.v4.app.TaskStackBuilder;
 import android.util.Log;
 import android.widget.RemoteViews;
 import android.widget.Toast;
@@ -1405,9 +1406,10 @@ public class MediaPlaybackService extends Service implements
         	contentText = getString(R.string.notification_artist_album, artist, album);
         }
         
-        PendingIntent contentIntent = PendingIntent.getActivity(this, 0,
-                new Intent(this, MediaPlayerActivity.class)
-                .addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP), 0);
+      	TaskStackBuilder stackBuilder = TaskStackBuilder.create(this);
+    	stackBuilder.addNextIntentWithParentStack(new Intent(this, MediaPlayerActivity.class)
+        	.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP));
+    	PendingIntent contentIntent = stackBuilder.getPendingIntent((int) System.currentTimeMillis(), 0);
         
         NotificationCompat.Builder status = new NotificationCompat.Builder(this)
         		.setContentTitle(trackName)

@@ -219,6 +219,9 @@
                 <action android:name="net.sourceforge.servestream.PLAYBACK_VIEWER" />
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
+        	<meta-data
+            	android:name="android.support.PARENT_ACTIVITY"
+            	android:value="net.sourceforge.servestream.activity.MainActivity" />
         </activity>
         
         <receiver
