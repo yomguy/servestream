@@ -20,7 +20,7 @@ package net.sourceforge.servestream.service;
 import java.io.IOException;
 
 import net.sourceforge.servestream.alarm.AlarmProvider.DatabaseHelper;
-import net.sourceforge.servestream.dbutils.StreamDatabase;
+import net.sourceforge.servestream.database.StreamDatabase;
 import net.sourceforge.servestream.preference.PreferenceConstants;
 import android.app.backup.BackupAgentHelper;
 import android.app.backup.BackupDataInput;

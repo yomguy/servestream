@@ -24,7 +24,7 @@ import java.net.URLDecoder;
 import java.util.Map;
 
 import net.sourceforge.servestream.bean.UriBean;
-import net.sourceforge.servestream.dbutils.StreamDatabase;
+import net.sourceforge.servestream.database.StreamDatabase;
 import net.sourceforge.servestream.utils.Utils;
 
 import android.net.Uri;

@@ -22,7 +22,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 
-import net.sourceforge.servestream.dbutils.StreamDatabase;
+import net.sourceforge.servestream.database.StreamDatabase;
 
 import android.content.ContentValues;
 import android.net.Uri;

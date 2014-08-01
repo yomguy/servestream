@@ -20,7 +20,7 @@ package net.sourceforge.servestream.utils;
 import java.util.List;
 
 import net.sourceforge.servestream.bean.UriBean;
-import net.sourceforge.servestream.dbutils.StreamDatabase;
+import net.sourceforge.servestream.database.StreamDatabase;
 
 import android.content.Context;
 import android.support.v4.content.AsyncTaskLoader;

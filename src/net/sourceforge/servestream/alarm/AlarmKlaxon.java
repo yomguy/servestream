@@ -19,7 +19,7 @@ package net.sourceforge.servestream.alarm;
 
 import net.sourceforge.servestream.R;
 import net.sourceforge.servestream.bean.UriBean;
-import net.sourceforge.servestream.dbutils.StreamDatabase;
+import net.sourceforge.servestream.database.StreamDatabase;
 import net.sourceforge.servestream.utils.DetermineActionTask;
 import net.sourceforge.servestream.utils.MusicUtils;
 import net.sourceforge.servestream.utils.MusicUtils.ServiceToken;

@@ -24,7 +24,7 @@ import net.sourceforge.servestream.R;
 import net.sourceforge.servestream.activity.BluetoothOptionsActivity;
 import net.sourceforge.servestream.adapter.BrowseAdapter;
 import net.sourceforge.servestream.bean.UriBean;
-import net.sourceforge.servestream.dbutils.StreamDatabase;
+import net.sourceforge.servestream.database.StreamDatabase;
 import net.sourceforge.servestream.transport.TransportFactory;
 import net.sourceforge.servestream.utils.DetermineActionTask;
 import net.sourceforge.servestream.utils.LoadingDialog;

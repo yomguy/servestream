@@ -21,7 +21,7 @@ import java.util.List;
 
 import net.sourceforge.servestream.R;
 import net.sourceforge.servestream.bean.UriBean;
-import net.sourceforge.servestream.dbutils.StreamDatabase;
+import net.sourceforge.servestream.database.StreamDatabase;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;

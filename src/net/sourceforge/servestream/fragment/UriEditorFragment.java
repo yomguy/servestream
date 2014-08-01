@@ -24,7 +24,7 @@ import java.util.Map;
 import java.util.Set;
 
 import net.sourceforge.servestream.R;
-import net.sourceforge.servestream.dbutils.StreamDatabase;
+import net.sourceforge.servestream.database.StreamDatabase;
 import net.sourceforge.servestream.preference.PreferenceFragment;
 import android.content.ContentValues;
 import android.content.Intent;

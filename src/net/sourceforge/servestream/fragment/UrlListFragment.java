@@ -35,7 +35,7 @@ import net.sourceforge.servestream.activity.UriEditorActivity;
 import net.sourceforge.servestream.adapter.UrlListAdapter;
 import net.sourceforge.servestream.alarm.Alarm;
 import net.sourceforge.servestream.bean.UriBean;
-import net.sourceforge.servestream.dbutils.StreamDatabase;
+import net.sourceforge.servestream.database.StreamDatabase;
 import net.sourceforge.servestream.dslv.DragSortController;
 import net.sourceforge.servestream.dslv.DragSortListView;
 import net.sourceforge.servestream.preference.PreferenceConstants;
