@@ -372,7 +372,7 @@ static JNINativeMethod nativeMethods[] = {
 int register_net_sourceforge_servestream_media_FFmpegMediaMetadataRetriever(JNIEnv *env)
 {
     int numMethods = (sizeof(nativeMethods) / sizeof( (nativeMethods)[0]));
-    jclass clazz = env->FindClass("wseemann/media/FFmpegMediaMetadataRetriever");
+    jclass clazz = env->FindClass("net/sourceforge/servestream/media/FFmpegMediaMetadataRetriever");
     jint ret = env->RegisterNatives(clazz, nativeMethods, numMethods);
     env->DeleteLocalRef(clazz);
     return ret;

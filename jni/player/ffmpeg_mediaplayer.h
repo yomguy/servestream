@@ -1,12 +1,13 @@
 /*
- * ServeStream: A HTTP stream browser/player for Android
+ * FFmpegMediaPlayer: A unified interface for playing audio files and streams.
+ *
  * Copyright 2014 William Seemann
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -82,6 +83,9 @@ typedef struct State {
 	
 	char *allow[0];
 	char *block[0];
+	
+	int             fd;
+	int64_t         offset;
 } State;
 
 void init(State **ps);
@@ -89,7 +93,8 @@ void disconnect(State **ps);
 int setNotifyListener(State **ps,  void* clazz, void (*listener) (void*, int, int, int, int));
 int setInitAudioTrackListener(State **ps,  void* clazz, int (*listener) (void*, int, int, int));
 int setWriteAudioListener(State **ps,  void* clazz, void (*listener) (void*, int16_t *, int, int));
-int setDataSource(State **ps, const char *url, const char *headers);
+int setDataSourceURI(State **ps, const char *url, const char *headers);
+int setDataSourceFD(State **ps, int fd, int64_t offset, int64_t length);
 int suspend();
 int resume();
 int setMetadataFilter(State **ps, char *allow[], char *block[]);

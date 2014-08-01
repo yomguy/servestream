@@ -41,7 +41,6 @@ import android.content.SharedPreferences;
 import android.database.AbstractCursor;
 import android.database.CharArrayBuffer;
 import android.database.Cursor;
-import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.media.AudioManager;
 import android.net.Uri;
@@ -53,6 +52,7 @@ import android.provider.MediaStore;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarActivity;
 import android.util.Log;
+import android.util.TypedValue;
 import android.view.ContextMenu;
 import android.view.KeyEvent;
 import android.view.MenuItem;
@@ -167,7 +167,7 @@ public class NowPlayingActivity extends ActionBarActivity implements
             mAdapter = new TrackListAdapter(
                     getApplication(), // need to use application context to avoid leaks
                     this,
-                    R.layout.now_playing_item,
+                    R.layout.list_item_now_playing,
                     null, // cursor
                     new String[] {},
                     new int[] {});
@@ -311,7 +311,6 @@ public class NowPlayingActivity extends ActionBarActivity implements
             } else if (intent.getAction().equals(MediaPlaybackService.META_RETRIEVED)) {
             	if (isDragging()) {
             	    mShouldRefresh = true;
-            	    System.out.println("dsdsdsssssssssssss=================>");
             	} else {
                 	if (mAdapter != null) {
                 		Cursor c = new NowPlayingCursor(MusicUtils.sService, mCursorCols);
@@ -801,6 +800,10 @@ public class NowPlayingActivity extends ActionBarActivity implements
             vh.line2 = (TextView) v.findViewById(R.id.line2);
             vh.line2.setTextAppearance(NowPlayingActivity.this, android.R.style.TextAppearance_Small);
             vh.duration = (TextView) v.findViewById(R.id.duration);
+            TypedValue tv = new TypedValue();
+            if (getTheme().resolveAttribute(android.R.attr.textColorPrimary, tv, true)) {
+            	vh.duration.setTextColor(context.getResources().getColor(tv.resourceId));
+            }
             vh.play_indicator = (ImageView) v.findViewById(R.id.play_indicator);
             vh.buffer1 = new CharArrayBuffer(100);
             vh.buffer2 = new char[200];

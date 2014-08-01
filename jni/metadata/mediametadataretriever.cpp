@@ -1,7 +1,9 @@
 /*
- * ServeStream: A HTTP stream browser/player for Android
- * Copyright 2014 William Seemann
+ * FFmpegMediaMetadataRetriever: A unified interface for retrieving frame 
+ * and meta data from an input media file.
  *
+ * Copyright 2014 William Seemann
+ * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -40,7 +42,7 @@ MediaMetadataRetriever::~MediaMetadataRetriever()
 
 int MediaMetadataRetriever::setDataSource(const char *srcUrl, const char *headers)
 {
-	return ::set_data_source(&state, srcUrl, headers);
+	return ::set_data_source_uri(&state, srcUrl, headers);
 }
 
 int MediaMetadataRetriever::setDataSource(int fd, int64_t offset, int64_t length)

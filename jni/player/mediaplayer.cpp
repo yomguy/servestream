@@ -1,12 +1,13 @@
 /*
- * ServeStream: A HTTP stream browser/player for Android
+ * FFmpegMediaPlayer: A unified interface for playing audio files and streams.
+ *
  * Copyright 2014 William Seemann
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -23,7 +24,6 @@
 #include <sys/stat.h>
 #include <Errors.h>
 #include <mediaplayer.h>
-#include <android/log.h>
 
 extern "C" {
     #include "libavcodec/avcodec.h"
@@ -173,12 +173,30 @@ status_t MediaPlayer::setDataSource(const char *url, const char *headers)
     	    ::setNotifyListener(&state, this, notifyListener);
     	    ::setInitAudioTrackListener(&state, this, initAudioTrackListener);
     	    ::setWriteAudioListener(&state, this, writeAudioListener);
-    	    err = ::setDataSource(&state, url, headers);
+    	    err = ::setDataSourceURI(&state, url, headers);
     	    if (err == NO_ERROR) {
     	    	err = setDataSource(state);
     	    }
         //}
     }
+    return err;
+}
+
+status_t MediaPlayer::setDataSource(int fd, int64_t offset, int64_t length)
+{
+	__android_log_print(ANDROID_LOG_VERBOSE, LOG_TAG, "setDataSource(%d, %lld, %lld)", fd, offset, length);
+    status_t err = UNKNOWN_ERROR;
+    //const sp<IMediaPlayerService>& service(getMediaPlayerService());
+    //if (state != 0) {
+        //sp<IMediaPlayer> player(service->create(getpid(), this, fd, offset, length, mAudioSessionId));
+    	State *state = NULL;
+    	::init(&state);
+    	::setNotifyListener(&state, this, notifyListener);
+    	::setInitAudioTrackListener(&state, this, initAudioTrackListener);
+    	::setWriteAudioListener(&state, this, writeAudioListener);
+    	err = ::setDataSourceFD(&state, fd, offset, length);
+        err = setDataSource(state);
+    //}
     return err;
 }
 
@@ -695,7 +713,7 @@ int MediaPlayer::initAudioTrack(int sampleRateInHz, int channelConfig, int fromT
 
 void MediaPlayer::writeAudio(int16_t *samples, int frame_size_ptr, int fromThread)
 {
-	//__android_log_write(ANDROID_LOG_VERBOSE, LOG_TAG, "MediaPlayer::writeAudio");
+	__android_log_write(ANDROID_LOG_VERBOSE, LOG_TAG, "MediaPlayer::writeAudio");
     
     MediaPlayerListener* listener = mListener;
 

@@ -17,8 +17,17 @@
 
 package net.sourceforge.servestream.media;
 
+import android.content.ContentResolver;
+import android.content.Context;
+import android.content.res.AssetFileDescriptor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.net.Uri;
+
+import java.io.FileDescriptor;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.util.Map;
 
 /**
  * FFmpegMediaMetadataRetriever class provides a unified interface for retrieving
@@ -58,13 +67,128 @@ public class FFmpegMediaMetadataRetriever
     public native void setDataSource(String path) throws IllegalArgumentException;
     
     /**
+     * Sets the data source (URI) to use. Call this
+     * method before the rest of the methods in this class. This method may be
+     * time-consuming.
+     *
+     * @param uri The URI of the input media.
+     * @param headers the headers to be sent together with the request for the data
+     * @throws IllegalArgumentException If the URI is invalid.
+     */
+    public void setDataSource(String uri,  Map<String, String> headers)
+            throws IllegalArgumentException {
+        int i = 0;
+        String[] keys = new String[headers.size()];
+        String[] values = new String[headers.size()];
+        for (Map.Entry<String, String> entry: headers.entrySet()) {
+            keys[i] = entry.getKey();
+            values[i] = entry.getValue();
+            ++i;
+        }
+        _setDataSource(uri, keys, values);
+    }
+
+    private native void _setDataSource(
+        String uri, String[] keys, String[] values)
+        throws IllegalArgumentException;
+
+    /**
+     * Sets the data source (FileDescriptor) to use.  It is the caller's
+     * responsibility to close the file descriptor. It is safe to do so as soon
+     * as this call returns. Call this method before the rest of the methods in
+     * this class. This method may be time-consuming.
+     * 
+     * @param fd the FileDescriptor for the file you want to play
+     * @param offset the offset into the file where the data to be played starts,
+     * in bytes. It must be non-negative
+     * @param length the length in bytes of the data to be played. It must be
+     * non-negative.
+     * @throws IllegalArgumentException if the arguments are invalid
+     */
+    public native void setDataSource(FileDescriptor fd, long offset, long length)
+            throws IllegalArgumentException;
+    
+    /**
+     * Sets the data source (FileDescriptor) to use. It is the caller's
+     * responsibility to close the file descriptor. It is safe to do so as soon
+     * as this call returns. Call this method before the rest of the methods in
+     * this class. This method may be time-consuming.
+     * 
+     * @param fd the FileDescriptor for the file you want to play
+     * @throws IllegalArgumentException if the FileDescriptor is invalid
+     */
+    public void setDataSource(FileDescriptor fd)
+            throws IllegalArgumentException {
+        // intentionally less than LONG_MAX
+        setDataSource(fd, 0, 0x7ffffffffffffffL);
+    }
+    
+    /**
+     * Sets the data source as a content Uri. Call this method before 
+     * the rest of the methods in this class. This method may be time-consuming.
+     * 
+     * @param context the Context to use when resolving the Uri
+     * @param uri the Content URI of the data you want to play
+     * @throws IllegalArgumentException if the Uri is invalid
+     * @throws SecurityException if the Uri cannot be used due to lack of
+     * permission.
+     */
+    public void setDataSource(Context context, Uri uri)
+        throws IllegalArgumentException, SecurityException {
+        if (uri == null) {
+            throw new IllegalArgumentException();
+        }
+        
+        String scheme = uri.getScheme();
+        if(scheme == null || scheme.equals("file")) {
+            setDataSource(uri.getPath());
+            return;
+        }
+
+        AssetFileDescriptor fd = null;
+        try {
+            ContentResolver resolver = context.getContentResolver();
+            try {
+                fd = resolver.openAssetFileDescriptor(uri, "r");
+            } catch(FileNotFoundException e) {
+                throw new IllegalArgumentException();
+            }
+            if (fd == null) {
+                throw new IllegalArgumentException();
+            }
+            FileDescriptor descriptor = fd.getFileDescriptor();
+            if (!descriptor.valid()) {
+                throw new IllegalArgumentException();
+            }
+            // Note: using getDeclaredLength so that our behavior is the same
+            // as previous versions when the content provider is returning
+            // a full file.
+            if (fd.getDeclaredLength() < 0) {
+                setDataSource(descriptor);
+            } else {
+                setDataSource(descriptor, fd.getStartOffset(), fd.getDeclaredLength());
+            }
+            return;
+        } catch (SecurityException ex) {
+        } finally {
+            try {
+                if (fd != null) {
+                    fd.close();
+                }
+            } catch(IOException ioEx) {
+            }
+        }
+        setDataSource(uri.toString());
+    }
+    
+    /**
      * Call this method after setDataSource(). This method retrieves the 
      * meta data value associated with the keyCode.
      * 
      * The keyCode currently supported is listed below as METADATA_XXX
      * constants. With any other value, it returns a null pointer.
      * 
-     * @param key One of the constants listed below at the end of the class.
+     * @param keyCode One of the constants listed below at the end of the class.
      * @return The meta data value associate with the given keyCode on success; 
      * null on failure.
      */
@@ -96,12 +220,12 @@ public class FFmpegMediaMetadataRetriever
      * {@link #OPTION_CLOSEST} often has larger performance overhead compared
      * to the other options if there is no sync frame located at timeUs.
      *
-     * @return A Bitmap containing a representative video frame, which
+     * @return A Bitmap containing a representative video frame, which 
      *         can be null, if such a frame cannot be retrieved.
      */
     public Bitmap getFrameAtTime(long timeUs, int option) {
         if (option < OPTION_PREVIOUS_SYNC ||
-                option > OPTION_CLOSEST) {
+            option > OPTION_CLOSEST) {
             throw new IllegalArgumentException("Unsupported option: " + option);
         }
 
@@ -359,7 +483,7 @@ public class FFmpegMediaMetadataRetriever
      * This key retrieves the video rotation angle in degrees, if available.
      * The video rotation angle may be 0, 90, 180, or 270 degrees.
      */
-    public static final String METADATA_KEY_VIDEO_ROTATION = "rotation";
+    public static final String METADATA_KEY_VIDEO_ROTATION = "rotate";
     /**
      * The metadata key to retrieve the main creator of the work.
      */
@@ -371,5 +495,9 @@ public class FFmpegMediaMetadataRetriever
     /**
      * The metadata key to retrieve the name of the work.
      */
-   // private static final String METADATA_KEY_ICY_TITLE = "icy_title";
+    //private static final String METADATA_KEY_ICY_TITLE = "icy_title";
+    /**
+     * This metadata key retrieves the average framerate (in frames/sec), if available.
+     */
+    public static final String METADATA_KEY_FRAMERATE = "framerate";
 }

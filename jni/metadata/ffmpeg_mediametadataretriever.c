@@ -1,7 +1,9 @@
 /*
- * ServeStream: A HTTP stream browser/player for Android
- * Copyright 2014 William Seemann
+ * FFmpegMediaMetadataRetriever: A unified interface for retrieving frame 
+ * and meta data from an input media file.
  *
+ * Copyright 2014 William Seemann
+ * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -33,6 +35,7 @@ const char *ICY_METADATA = "icy_metadata";
 //const char *ICY_ARTIST = "icy_artist";
 //const char *ICY_TITLE = "icy_title";
 const char *ROTATE = "rotate";
+const char *FRAMERATE = "framerate";
 
 const int SUCCESS = 0;
 const int FAILURE = -1;
@@ -139,6 +142,24 @@ void set_rotation(State *s) {
 	}
 }
 
+void set_framerate(State *s) {
+	char value[30] = "0";
+	
+	if (s->video_st && s->video_st->avg_frame_rate.den && s->video_st->avg_frame_rate.num) {
+		double d = av_q2d(s->video_st->avg_frame_rate);
+		uint64_t v = lrintf(d * 100);
+		if (v % 100) {
+			sprintf(value, "%3.2f", d);
+		} else if (v % (100 * 1000)) {
+			sprintf(value,  "%1.0f", d);
+		} else {
+			sprintf(value, "%1.0fk", d / 1000);
+		}
+		
+	    av_dict_set(&s->pFormatCtx->metadata, FRAMERATE, value, 0);
+	}
+}
+
 int stream_component_open(State *s, int stream_index) {
 	AVFormatContext *pFormatCtx = s->pFormatCtx;
 	AVCodecContext *codecCtx;
@@ -183,27 +204,13 @@ int stream_component_open(State *s, int stream_index) {
 	return SUCCESS;
 }
 
-int set_data_source(State **ps, const char* path, const char* headers) {
+int set_data_source_l(State **ps, const char* path) {
 	printf("set_data_source\n");
 	int audio_index = -1;
 	int video_index = -1;
 	int i;
 
 	State *state = *ps;
-	
-	if (state && state->pFormatCtx) {
-		avformat_close_input(&state->pFormatCtx);
-	}
-
-	if (!state) {
-		state = av_mallocz(sizeof(State));
-	}
-
-	state->pFormatCtx = NULL;
-	state->audio_stream = -1;
-	state->video_stream = -1;
-	state->audio_st = NULL;
-	state->video_st = NULL;
 	
 	char duration[30] = "0";
 
@@ -213,8 +220,13 @@ int set_data_source(State **ps, const char* path, const char* headers) {
     av_dict_set(&options, "icy", "1", 0);
     av_dict_set(&options, "user-agent", "FFmpegMediaMetadataRetriever", 0);
     
-    if (headers) {
-        av_dict_set(&options, "headers", headers, 0);
+    if (state->headers) {
+        av_dict_set(&options, "headers", state->headers, 0);
+    }
+    
+    if (state->offset > 0) {
+        state->pFormatCtx = avformat_alloc_context();
+        state->pFormatCtx->skip_initial_bytes = state->offset;
     }
     
     if (avformat_open_input(&state->pFormatCtx, path, NULL, &options) != 0) {
@@ -265,6 +277,7 @@ int set_data_source(State **ps, const char* path, const char* headers) {
 	}*/
 
     set_rotation(state);
+    set_framerate(state);
     
 	/*printf("Found metadata\n");
 	AVDictionaryEntry *tag = NULL;
@@ -277,20 +290,64 @@ int set_data_source(State **ps, const char* path, const char* headers) {
 	return SUCCESS;
 }
 
+void init(State **ps) {
+	State *state = *ps;
+
+	if (state && state->pFormatCtx) {
+		avformat_close_input(&state->pFormatCtx);
+	}
+
+	if (state && state->fd != -1) {
+		close(state->fd);
+	}
+	
+	if (!state) {
+		state = av_mallocz(sizeof(State));
+	}
+
+	state->pFormatCtx = NULL;
+	state->audio_stream = -1;
+	state->video_stream = -1;
+	state->audio_st = NULL;
+	state->video_st = NULL;
+	state->fd = -1;
+	state->offset = 0;
+	state->headers = NULL;
+
+	*ps = state;
+}
+
+int set_data_source_uri(State **ps, const char* path, const char* headers) {
+	State *state = *ps;
+	
+	init(&state);
+	
+	state->headers = headers;
+	
+	*ps = state;
+	
+	return set_data_source_l(ps, path);
+}
+
 int set_data_source_fd(State **ps, int fd, int64_t offset, int64_t length) {
     char path[256] = "";
 
-    //int myfd = dup(fd);
-    FILE *file = fdopen(fd, "rb");
+	State *state = *ps;
+	
+	init(&state);
+    	
+    int myfd = dup(fd);
+
+    char str[20];
+    sprintf(str, "pipe:%d", myfd);
+    strcat(path, str);
     
-    if (file && (fseek(file, offset, SEEK_SET) == 0)) {
-        //int fdd = fileno(file);
-        char str[20];
-        sprintf(str, "pipe:%d", fd);
-        strcat(path, str);
-    }
+    state->fd = myfd;
+    state->offset = offset;
     
-    return set_data_source(ps, path, NULL);
+	*ps = state;
+    
+    return set_data_source_l(ps, path);
 }
 
 const char* extract_metadata(State **ps, const char* key) {
@@ -394,6 +451,8 @@ int get_embedded_picture(State **ps, AVPacket *pkt) {
 void convert_image(AVCodecContext *pCodecCtx, AVFrame *pFrame, AVPacket *avpkt, int *got_packet_ptr) {
 	AVCodecContext *codecCtx;
 	AVCodec *codec;
+	AVPicture dst_picture;
+	AVFrame *frame;
 	
 	*got_packet_ptr = 0;
 
@@ -422,16 +481,19 @@ void convert_image(AVCodecContext *pCodecCtx, AVFrame *pFrame, AVPacket *avpkt, 
 		goto fail;
 	}
 
-	AVFrame *pFrameRGB = avcodec_alloc_frame();
+	frame = avcodec_alloc_frame();
 	
-	if (!pFrameRGB) {
+	if (!frame) {
 		goto fail;
 	}
-
-    avpicture_alloc((AVPicture *) pFrameRGB,
+	
+    avpicture_alloc(&dst_picture,
     		TARGET_IMAGE_FORMAT,
     		codecCtx->width,
     		codecCtx->height);
+    
+    /* copy data and linesize picture pointers to frame */
+    *((AVPicture *)frame) = dst_picture;
     
 	struct SwsContext *scalerCtx = sws_getContext(pCodecCtx->width, 
 			pCodecCtx->height, 
@@ -451,18 +513,20 @@ void convert_image(AVCodecContext *pCodecCtx, AVFrame *pFrame, AVPacket *avpkt, 
     		pFrame->linesize,
     		0,
     		pFrame->height,
-    		pFrameRGB->data,
-    		pFrameRGB->linesize);
+    		frame->data,
+    		frame->linesize);
 	
-	int ret = avcodec_encode_video2(codecCtx, avpkt, pFrameRGB, got_packet_ptr);
+	int ret = avcodec_encode_video2(codecCtx, avpkt, frame, got_packet_ptr);
 	
 	if (ret < 0) {
 		*got_packet_ptr = 0;
 	}
 	
+    av_free(dst_picture.data[0]);
+	
 	// TODO is this right?
 	fail:
-	av_free(pFrameRGB);
+    av_free(frame);
 	
 	if (codecCtx) {
 		avcodec_close(codecCtx);
@@ -479,9 +543,14 @@ void convert_image(AVCodecContext *pCodecCtx, AVFrame *pFrame, AVPacket *avpkt, 
 }
 
 void decode_frame(State *state, AVPacket *pkt, int *got_frame, int64_t desired_frame_number) {
-	AVFrame *frame = NULL;
-	
+	// Allocate video frame
+	AVFrame *frame = avcodec_alloc_frame();
+
 	*got_frame = 0;
+	
+	if (!frame) {
+	    return;
+	}
 	
 	// Read frames and return the first one found
 	while (av_read_frame(state->pFormatCtx, pkt) >= 0) {
@@ -494,13 +563,6 @@ void decode_frame(State *state, AVPacket *pkt, int *got_frame, int64_t desired_f
 			if (!is_supported_format(codec_id)) {
 	            *got_frame = 0;
 	            
-	        	// Allocate video frame
-	            frame = avcodec_alloc_frame();
-
-	            if (!frame) {
-	            	break;
-	            }
-	            
 				// Decode video frame
 				if (avcodec_decode_video2(state->video_st->codec, frame, got_frame, pkt) <= 0) {
 					*got_frame = 0;
@@ -511,12 +573,10 @@ void decode_frame(State *state, AVPacket *pkt, int *got_frame, int64_t desired_f
 				if (*got_frame) {
 					if (desired_frame_number == -1 ||
 							(desired_frame_number != -1 && frame->pkt_pts >= desired_frame_number)) {
-						AVPacket packet;
-					    av_init_packet(&packet);
-        	            packet.data = NULL;
-        	            packet.size = 0;
-						convert_image(state->video_st->codec, frame, &packet, got_frame);
-						*pkt = packet;
+					    av_init_packet(pkt);
+						pkt->data = NULL;
+      	            	pkt->size = 0;
+						convert_image(state->video_st->codec, frame, pkt, got_frame);
 						break;
 					}
 				}
@@ -528,7 +588,7 @@ void decode_frame(State *state, AVPacket *pkt, int *got_frame, int64_t desired_f
 	}
 	
 	// Free the frame
-	av_free(frame);
+	avcodec_free_frame(&frame);
 }
 
 int get_frame_at_time(State **ps, int64_t timeUs, int option, AVPacket *pkt) {
@@ -613,6 +673,10 @@ void release(State **ps) {
     if (state) {
     	if (state->pFormatCtx) {
     		avformat_close_input(&state->pFormatCtx);
+    	}
+    	
+    	if (state->fd != -1) {
+    		close(state->fd);
     	}
     	
     	av_freep(&state);
