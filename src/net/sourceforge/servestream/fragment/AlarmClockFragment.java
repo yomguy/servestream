@@ -45,6 +45,7 @@ import android.widget.CursorAdapter;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import java.util.Calendar;
 
@@ -71,6 +72,7 @@ public class AlarmClockFragment extends ListFragment implements
     
     //private SharedPreferences mPrefs;
     private LayoutInflater mFactory;
+    private ListView mAlarmsList;
     private AlarmTimeAdapter mAdapter;
 
     @Override
@@ -84,18 +86,18 @@ public class AlarmClockFragment extends ListFragment implements
 	@Override
 	public void onActivityCreated (Bundle savedInstanceState) {
 		super.onActivityCreated(savedInstanceState);
-	    
+	     
 		setListShownNoAnimation(true);
 		
         mFactory = LayoutInflater.from(getActivity());
         
         mAdapter = new AlarmTimeAdapter(getActivity(), null, false);
-        ListView list = getListView();
-        list.setAdapter(mAdapter);
-        list.setVerticalScrollBarEnabled(true);
-        list.setOnItemClickListener(this);
-        list.setOnCreateContextMenuListener(this);
-        
+        mAlarmsList = getListView();
+        mAlarmsList.setAdapter(mAdapter);
+        mAlarmsList.setVerticalScrollBarEnabled(true);
+        mAlarmsList.setOnItemClickListener(this);
+        mAlarmsList.setOnCreateContextMenuListener(this);
+
         getLoaderManager().initLoader(URL_LOADER, null, this);
 	}
 	
@@ -105,7 +107,7 @@ public class AlarmClockFragment extends ListFragment implements
                 : R.drawable.ic_indicator_off);
         Alarms.enableAlarm(getActivity(), alarm.id, enabled);
         if (enabled) {
-        	SetAlarmActivity.popAlarmSetToast(getActivity(), alarm.hour, alarm.minutes,
+        	popAlarmSetToast(getActivity(), alarm.hour, alarm.minutes,
                     alarm.daysOfWeek);
         }
     }
@@ -211,12 +213,12 @@ public class AlarmClockFragment extends ListFragment implements
                 return true;
 
             case R.id.enable_alarm:
-                final Cursor c = (Cursor) getListAdapter()
+                final Cursor c = (Cursor) mAlarmsList.getAdapter()
                         .getItem(info.position);
                 final Alarm alarm = new Alarm(c);
                 Alarms.enableAlarm(getActivity(), alarm.id, !alarm.enabled);
                 if (!alarm.enabled) {
-                	SetAlarmActivity.popAlarmSetToast(getActivity(), alarm.hour, alarm.minutes,
+                	popAlarmSetToast(getActivity(), alarm.hour, alarm.minutes,
                             alarm.daysOfWeek);
                 }
                 return true;
@@ -252,7 +254,7 @@ public class AlarmClockFragment extends ListFragment implements
         // Use the current item to create a custom view for the header.
         final AdapterContextMenuInfo info = (AdapterContextMenuInfo) menuInfo;
         final Cursor c =
-                (Cursor) getListAdapter().getItem((int) info.position);
+                (Cursor) mAlarmsList.getAdapter().getItem((int) info.position);
         final Alarm alarm = new Alarm(c);
 
         // Construct the Calendar to compute the time.
@@ -329,4 +331,57 @@ public class AlarmClockFragment extends ListFragment implements
 	public void onLoaderReset(Loader<Cursor> loader) {
 		mAdapter.changeCursor(null);
 	}
+	
+    /**
+     * Display a toast that tells the user how long until the alarm
+     * goes off.  This helps prevent "am/pm" mistakes.
+     */
+    public static void popAlarmSetToast(Context context, int hour, int minute,
+                                 Alarm.DaysOfWeek daysOfWeek) {
+        popAlarmSetToast(context,
+                Alarms.calculateAlarm(hour, minute, daysOfWeek)
+                .getTimeInMillis());
+    }
+
+    static void popAlarmSetToast(Context context, long timeInMillis) {
+        String toastText = formatToast(context, timeInMillis);
+        Toast toast = Toast.makeText(context, toastText, Toast.LENGTH_LONG);
+        ToastMaster.setToast(toast);
+        toast.show();
+    }
+    
+    /**
+     * format "Alarm set for 2 days 7 hours and 53 minutes from
+     * now"
+     */
+    static String formatToast(Context context, long timeInMillis) {
+        long delta = timeInMillis - System.currentTimeMillis();
+        long hours = delta / (1000 * 60 * 60);
+        long minutes = delta / (1000 * 60) % 60;
+        long days = hours / 24;
+        hours = hours % 24;
+
+        String daySeq = (days == 0) ? "" :
+                (days == 1) ? context.getString(R.string.day) :
+                context.getString(R.string.days, Long.toString(days));
+
+        String minSeq = (minutes == 0) ? "" :
+                (minutes == 1) ? context.getString(R.string.minute) :
+                context.getString(R.string.minutes, Long.toString(minutes));
+
+        String hourSeq = (hours == 0) ? "" :
+                (hours == 1) ? context.getString(R.string.hour) :
+                context.getString(R.string.hours, Long.toString(hours));
+
+        boolean dispDays = days > 0;
+        boolean dispHour = hours > 0;
+        boolean dispMinute = minutes > 0;
+
+        int index = (dispDays ? 1 : 0) |
+                    (dispHour ? 2 : 0) |
+                    (dispMinute ? 4 : 0);
+
+        String[] formats = context.getResources().getStringArray(R.array.alarm_set);
+        return String.format(formats[index], daySeq, hourSeq, minSeq);
+    }
 }
