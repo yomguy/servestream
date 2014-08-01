@@ -26,7 +26,6 @@
     <string name="settings_label">Paramètres</string>
     <string name="add_new_url_label">Ajouter une nouvelle URL</string>
     <string name="now_playing_label">En cours de lecture</string>
-    <string name="organize_urls_label">Organiser</string>
     <string name="media_player_label">En cours de lecture</string>
 	<string name="alarm_clock_label">Alarme</string>
 	<string name="set_alarm_label">Mettre une alarme</string>

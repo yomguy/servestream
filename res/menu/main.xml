@@ -1,10 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android" >
     <item
-        android:id="@+id/menu_item_organize_urls"
-        android:title="@string/organize_urls_label"
-        android:icon="@android:drawable/ic_menu_share" />
-    <item
         android:id="@+id/menu_item_settings"
         android:title="@string/settings_label"
         android:icon="?attr/ic_action_settings" />

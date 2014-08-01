@@ -26,7 +26,6 @@
     <string name="settings_label">Настройки</string>
     <string name="add_new_url_label">Add a new URL</string>
     <string name="now_playing_label">Сейчас играет</string>
-    <string name="organize_urls_label">Упорядочить</string>
     <string name="media_player_label">Сейчас в программе</string>
 	<string name="alarm_clock_label">Будильник</string>
 	<string name="set_alarm_label">Установить сигнал</string>

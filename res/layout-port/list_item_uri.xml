@@ -23,7 +23,19 @@
 	android:layout_width="fill_parent"
 	android:layout_height="wrap_content"
 	android:padding="10dip" >
-		
+
+    <ImageView
+    	android:id="@+id/drag_handle"
+    	android:layout_width="wrap_content"
+    	android:layout_height="match_parent"
+    	android:layout_alignParentLeft="true"
+    	android:layout_centerVertical="true"
+    	android:layout_marginRight="10dip"
+    	android:src="@drawable/ic_drag_queue"
+    	android:background="@null"
+    	android:scaleType="center"
+    	android:contentDescription="" />
+    
 	<TextView
 		android:id="@android:id/text1"  
 		android:layout_width="wrap_content"
@@ -32,7 +44,7 @@
 		android:singleLine="true"
 		android:ellipsize="end"
 		android:textAppearance="?android:attr/textAppearanceLarge"
-		android:layout_alignParentLeft="true"
+		android:layout_toRightOf="@id/drag_handle"
 		android:layout_toLeftOf="@+id/overflow_menu_button" />
 
 	<TextView
@@ -41,7 +53,7 @@
 		android:layout_height="wrap_content"
         android:textAppearance="?android:attr/textAppearanceSmall"
 		android:layout_below="@android:id/text1"
-		android:layout_alignParentLeft="true"
+		android:layout_toRightOf="@id/drag_handle"
 		android:layout_toLeftOf="@id/overflow_menu_button" />
 	
 	<ImageView

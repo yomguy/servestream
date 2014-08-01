@@ -26,7 +26,6 @@
   <string name="settings_label">Einstellungen</string>
   <string name="add_new_url_label">Hinzufügen einer neuen URL</string>
   <string name="now_playing_label">Wiedergabeliste</string>
-  <string name="organize_urls_label">Organisieren</string>
   <string name="media_player_label">Jetzt abspielen</string>
   <string name="alarm_clock_label">Wecker</string>
   <string name="set_alarm_label">Wecker einstellen</string>

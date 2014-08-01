@@ -26,7 +26,6 @@
     <string name="settings_label">Configuración</string>
     <string name="add_new_url_label">Añadir URL</string>
     <string name="now_playing_label">Cola de reproducción</string>
-    <string name="organize_urls_label">Organizar</string>
     <string name="media_player_label">Reproduciendo</string>
 	<string name="alarm_clock_label">Reloj Alarma</string>
 	<string name="set_alarm_label">Programar Alarma</string>

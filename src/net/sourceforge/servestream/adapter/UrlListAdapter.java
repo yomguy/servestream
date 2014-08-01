@@ -38,7 +38,7 @@ public class UrlListAdapter extends ArrayAdapter<UriBean> {
     private OverflowClickListener mListener;
  
     public UrlListAdapter(Context context, List<UriBean> rowItems, OverflowClickListener listener) {
-		super(context, R.layout.url_list_item, rowItems);
+		super(context, R.layout.list_item_uri, rowItems);
         mContext = context;
         mRowItems = rowItems;
         mListener = listener;
@@ -57,7 +57,7 @@ public class UrlListAdapter extends ArrayAdapter<UriBean> {
         LayoutInflater mInflater = (LayoutInflater)
         		mContext.getSystemService(Activity.LAYOUT_INFLATER_SERVICE);
         if (convertView == null) {
-            convertView = mInflater.inflate(R.layout.url_list_item, null);
+            convertView = mInflater.inflate(R.layout.list_item_uri, null);
             holder = new ViewHolder();
 			holder.nickname = (TextView) convertView.findViewById(android.R.id.text1);
 			holder.caption = (TextView) convertView.findViewById(android.R.id.text2);
