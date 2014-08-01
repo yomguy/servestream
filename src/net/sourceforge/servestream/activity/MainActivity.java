@@ -187,7 +187,7 @@ public class MainActivity extends ActionBarActivity implements
         // Handle action buttons
         switch (item.getItemId()) {
 			case (R.id.menu_item_settings):
-				startActivity(new Intent(this, PreferenceActivity.class));
+				startActivity(new Intent(this, SettingsActivity.class));
 				return true;
 			case (R.id.menu_item_scan):
 				try {
@@ -253,7 +253,7 @@ public class MainActivity extends ActionBarActivity implements
 
     private void selectItem(int position) {
 		if (position == 3) {
-			startActivity(new Intent(this, PreferenceActivity.class));
+			startActivity(new Intent(this, SettingsActivity.class));
 	    	mDrawerLayout.closeDrawer(mDrawerList);
 			return;
 		}

@@ -192,7 +192,7 @@
 		
 		
 		<activity
-            android:name=".activity.PreferenceActivity"
+            android:name=".activity.SettingsActivity"
             android:label="@string/settings_label" />
         
 		<activity

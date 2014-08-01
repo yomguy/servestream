@@ -17,7 +17,7 @@
 
 package net.sourceforge.servestream.activity;
 
-import net.sourceforge.servestream.fragment.PreferenceFragment;
+import net.sourceforge.servestream.fragment.SettingsFragment;
 import net.sourceforge.servestream.preference.UserPreferences;
 import android.os.Bundle;
 import android.support.v4.app.FragmentTransaction;
@@ -25,7 +25,7 @@ import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarActivity;
 import android.view.MenuItem;
 
-public class PreferenceActivity extends ActionBarActivity {
+public class SettingsActivity extends ActionBarActivity {
 	
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -37,7 +37,7 @@ public class PreferenceActivity extends ActionBarActivity {
 		
 		if (savedInstanceState == null) {
 			FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
-			transaction.add(android.R.id.content, new PreferenceFragment());
+			transaction.add(android.R.id.content, new SettingsFragment());
 			transaction.commit();
 		}
 	}

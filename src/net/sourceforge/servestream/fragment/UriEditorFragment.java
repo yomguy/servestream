@@ -25,7 +25,7 @@ import java.util.Set;
 
 import net.sourceforge.servestream.R;
 import net.sourceforge.servestream.dbutils.StreamDatabase;
-
+import net.sourceforge.servestream.preference.PreferenceFragment;
 import android.content.ContentValues;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -36,9 +36,6 @@ import android.os.Bundle;
 import android.preference.CheckBoxPreference;
 import android.preference.ListPreference;
 import android.preference.Preference;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
 
 public class UriEditorFragment extends PreferenceFragment implements OnSharedPreferenceChangeListener {
 	public class CursorPreferenceHack implements SharedPreferences {
@@ -212,11 +209,6 @@ public class UriEditorFragment extends PreferenceFragment implements OnSharedPre
 
 	private CursorPreferenceHack pref;
 
-	@Override
-	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-		return inflater.inflate(R.layout.fragment_uri_editor, null);
-	}
-	
 	@Override
 	public void onActivityCreated(Bundle savedInstanceState) {
 		super.onActivityCreated(savedInstanceState);

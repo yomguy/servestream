@@ -363,7 +363,7 @@ public class MediaPlayerActivity extends ActionBarActivity implements MusicUtils
         		showDialog(SLEEP_TIMER_DIALOG);
         		return true;
         	case (R.id.menu_item_settings):
-        		startActivity(new Intent(MediaPlayerActivity.this, PreferenceActivity.class));
+        		startActivity(new Intent(MediaPlayerActivity.this, SettingsActivity.class));
         		return true;
         	case EFFECTS_PANEL: {
                 try {

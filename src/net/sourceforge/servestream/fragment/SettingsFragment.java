@@ -40,13 +40,10 @@ import android.preference.Preference.OnPreferenceChangeListener;
 import android.preference.Preference.OnPreferenceClickListener;
 import android.preference.PreferenceScreen;
 import android.util.Log;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
 import android.widget.Toast;
 
-public class PreferenceFragment extends net.sourceforge.servestream.preference.PreferenceFragment {
-	private static final String TAG = PreferenceFragment.class.getName();
+public class SettingsFragment extends net.sourceforge.servestream.preference.PreferenceFragment {
+	private static final String TAG = SettingsFragment.class.getName();
 
 	private static final String PUBLIC_KEY = "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAr6Z/tJghrCn7OSo2lWndIo+tibBhZN/mQ/Spu4IsorzHwMVW3BKPzIiyqkZa78sEs6cH68HvfoAW7QpDgJ021ZKQZaTV3m714TkLZ9RZr+rtMdPBvRkcyVWtDj3L941I4cjczs08AhAcxoIRDtA3hHZ1sKfjEgHRY19Z8oas7+f2CqCoCdRBrBCQAN55YrFw06SsnGCjHuGQgx3+pzcxuNO91s7HvJIYtCDMz+dquvQ5cU51Ia5uG3HB8ezFoag1qMq65wGed3uXANwHZUconDG6ZMYhTF4hgsS2/6es0rDZSqsgqOQ8pRIBKSg0aRmvneW6+liSycMAoL+/hl8yRwIDAQAB";
 	private static final String DONATION_SKU_SMALL = "donation_small";
@@ -63,11 +60,6 @@ public class PreferenceFragment extends net.sourceforge.servestream.preference.P
 	private static final String PREF_DONATE = "donate";
 	
 	private IabHelper mHelper;
-	
-	@Override
-	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-		return inflater.inflate(R.layout.fragment_settings, null);
-	}
 	
 	@Override
 	public void onActivityCreated(Bundle savedInstanceState) {
