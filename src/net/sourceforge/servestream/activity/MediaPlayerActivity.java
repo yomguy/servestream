@@ -64,7 +64,6 @@ import android.support.v4.view.ViewPager;
 import android.support.v4.view.ViewPager.OnPageChangeListener;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarActivity;
-import android.support.v7.view.ActionMode;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
@@ -385,6 +384,8 @@ public class MediaPlayerActivity extends ActionBarActivity implements MusicUtils
 	public boolean onPrepareOptionsMenu(Menu menu) {
 		super.onPrepareOptionsMenu(menu);
 
+		updateVolumeBar();
+		
 		if (Build.VERSION.SDK_INT >= 9) {
 			// Don't offer the audio effects display when running on an OS
 			// before API level 9 because it relies on the getAudioSessionId method,
@@ -423,12 +424,6 @@ public class MediaPlayerActivity extends ActionBarActivity implements MusicUtils
         return true;
     }
 
-    @Override
-    public void onSupportActionModeStarted(ActionMode mode) {
-    	super.onSupportActionModeStarted(mode);
-    	updateVolumeBar();
-    }
-    
     private final int keyboard[][] = {
         {
             KeyEvent.KEYCODE_Q,

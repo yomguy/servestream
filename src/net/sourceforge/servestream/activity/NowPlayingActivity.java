@@ -29,7 +29,6 @@ import net.sourceforge.servestream.preference.PreferenceConstants;
 import net.sourceforge.servestream.preference.UserPreferences;
 import net.sourceforge.servestream.utils.Utils;
 import net.sourceforge.servestream.utils.MusicUtils.ServiceToken;
-
 import android.content.AsyncQueryHandler;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
@@ -42,6 +41,7 @@ import android.content.SharedPreferences;
 import android.database.AbstractCursor;
 import android.database.CharArrayBuffer;
 import android.database.Cursor;
+import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.media.AudioManager;
 import android.net.Uri;
@@ -797,7 +797,9 @@ public class NowPlayingActivity extends ActionBarActivity implements
             
             ViewHolder vh = new ViewHolder();
             vh.line1 = (TextView) v.findViewById(R.id.line1);
+            vh.line1.setTextAppearance(NowPlayingActivity.this, android.R.style.TextAppearance_Medium);
             vh.line2 = (TextView) v.findViewById(R.id.line2);
+            vh.line2.setTextAppearance(NowPlayingActivity.this, android.R.style.TextAppearance_Small);
             vh.duration = (TextView) v.findViewById(R.id.duration);
             vh.play_indicator = (ImageView) v.findViewById(R.id.play_indicator);
             vh.buffer1 = new CharArrayBuffer(100);

@@ -31,8 +31,5 @@
     <color name="media_player_metadata_color_primary_light">@android:color/black</color>
     <color name="media_player_metadata_color_secondary_light">@android:color/black</color>
     
-    <color name="now_playing_item_color_light">@android:color/black</color>
-    <color name="now_playing_item_color_dark">@android:color/white</color>
-    
 </resources>
 
