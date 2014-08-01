@@ -23,6 +23,7 @@ import java.security.SecureRandom;
 import net.sourceforge.servestream.R;
 import net.sourceforge.servestream.activity.AboutActivity;
 import net.sourceforge.servestream.activity.BluetoothOptionsActivity;
+import net.sourceforge.servestream.activity.MainActivity;
 import net.sourceforge.servestream.billing.IabHelper;
 import net.sourceforge.servestream.billing.IabResult;
 import net.sourceforge.servestream.billing.Purchase;
@@ -129,11 +130,11 @@ public class PreferenceFragment extends net.sourceforge.servestream.preference.P
 
                         @Override
                         public boolean onPreferenceChange(Preference preference, Object newValue) {
-                        	Intent i = getActivity().getIntent();
-                            //i.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK
-                            i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                            getActivity().finish();
-                            startActivity(i);
+                			Intent intent = new Intent(getActivity(), MainActivity.class);
+                			intent.putExtra("restart_app", true);
+                			intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                			startActivity(intent);
+                			getActivity().finish();
                             return true;
                         }
                     });

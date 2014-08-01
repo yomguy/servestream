@@ -130,8 +130,15 @@ public class MainActivity extends ActionBarActivity implements
     	super.onNewIntent(intent);
 		
         setIntent(intent);
-        
-        openUri(getUri());
+    	
+    	if (intent.hasExtra("restart_app")) {
+    		Intent i = getIntent();
+    		i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+    		finish();
+    		startActivity(i);
+    	} else {
+    		openUri(getUri());
+    	}
     }
     
 	@Override
