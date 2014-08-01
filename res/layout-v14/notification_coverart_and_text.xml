@@ -42,7 +42,7 @@
         android:layout_alignParentTop="true"
         android:scaleType="centerInside"
         android:background="@drawable/bg_notification_button"
-        android:src="@drawable/icn_notification_dismiss" />
+        android:src="@drawable/ic_av_close_sm_dark" />
 
     <TextView
         android:id="@+id/firstLine"
