@@ -55,6 +55,7 @@ import net.sourceforge.servestream.alarm.Alarm;
 import net.sourceforge.servestream.alarm.Alarms;
 import net.sourceforge.servestream.alarm.DigitalClock;
 import net.sourceforge.servestream.alarm.ToastMaster;
+import net.sourceforge.servestream.utils.Utils;
 
 /**
  * AlarmClock application.
@@ -104,7 +105,7 @@ public class AlarmClockFragment extends ListFragment implements
     private void updateIndicatorAndAlarm(boolean enabled, ImageView bar,
             Alarm alarm) {
         bar.setImageResource(enabled ? R.drawable.ic_indicator_on
-                : R.drawable.ic_indicator_off);
+                : Utils.getThemedIcon(getActivity(), R.attr.ic_indicator_off));
         Alarms.enableAlarm(getActivity(), alarm.id, enabled);
         if (enabled) {
         	popAlarmSetToast(getActivity(), alarm.hour, alarm.minutes,
@@ -136,7 +137,7 @@ public class AlarmClockFragment extends ListFragment implements
             final ImageView barOnOff =
                     (ImageView) indicator.findViewById(R.id.bar_onoff);
             barOnOff.setImageResource(alarm.enabled ?
-                    R.drawable.ic_indicator_on : R.drawable.ic_indicator_off);
+                    R.drawable.ic_indicator_on : Utils.getThemedIcon(getActivity(), R.attr.ic_indicator_off));
 
             // Set the initial state of the clock "checkbox"
             final CheckBox clockOnOff =

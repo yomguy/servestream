@@ -35,7 +35,7 @@
             android:id="@+id/clock_onoff"
             android:focusable="false"
             android:clickable="false"
-            android:background="@drawable/indicator_clock_onoff"
+            android:background="?attr/indicator_clock_onoff"
             android:duplicateParentState="true"
             android:layout_height="wrap_content"
             android:layout_width="wrap_content"
@@ -48,7 +48,7 @@
             android:layout_height="wrap_content"
             android:layout_gravity="center"
             android:paddingTop="4dip"
-            android:src="@drawable/ic_indicator_off" />
+            android:src="?attr/ic_indicator_off" />
         
     </LinearLayout>
 

@@ -21,5 +21,5 @@
 <selector xmlns:android="http://schemas.android.com/apk/res/android">
     <item android:state_pressed="true" android:state_window_focused="true"
         android:drawable="@drawable/ic_clock_alarm_selected" />
-    <item android:drawable="@drawable/ic_clock_alarm_on" />
+    <item android:drawable="@drawable/ic_clock_alarm_on_light" />
 </selector>
