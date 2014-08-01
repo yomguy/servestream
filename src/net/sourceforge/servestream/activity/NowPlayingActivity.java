@@ -145,8 +145,6 @@ public class NowPlayingActivity extends ActionBarActivity implements
 		
 	    DragSortController controller = new DragSortController(mList);
 		controller.setDragInitMode(DragSortController.ON_DRAG);
-		controller.setRemoveMode(DragSortController.FLING_REMOVE);
-        controller.setRemoveEnabled(true);
 		controller.setDragHandleId(R.id.drag);
 		mList.setOnTouchListener(controller);
 		mList.setOnCreateContextMenuListener(this);
@@ -949,11 +947,6 @@ public class NowPlayingActivity extends ActionBarActivity implements
             //((DragSortListView.AdapterWrapper)mList.getAdapter()).notifyDataSetChanged();
             NowPlayingActivity.this.mList.invalidateViews();
             mDeletedOneRow = true;
-        }
-        
-        @Override
-        public void remove(int which) {
-			removePlaylistItem(which);
         }
         
         /**
