@@ -1,11 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
-<menu xmlns:android="http://schemas.android.com/apk/res/android" >
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+      xmlns:yourapp="http://schemas.android.com/apk/res-auto" >
     <item
         android:id="@+id/menu_item_settings"
         android:title="@string/settings_label"
-        android:icon="?attr/ic_action_settings" />
+        android:icon="?attr/ic_action_settings"
+        yourapp:showAsAction="never" />
     <item
         android:id="@+id/menu_item_scan"
         android:title="@string/list_menu_scan"
-        android:icon="@drawable/ic_menu_scan" />
+        android:icon="@drawable/ic_menu_scan"
+        yourapp:showAsAction="never" />
 </menu>
