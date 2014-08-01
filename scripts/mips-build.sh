@@ -16,7 +16,7 @@ mkdir -p build/ffmpeg
 cd ffmpeg
 
 # Don't build any neon version for now
-for version in x86; do
+for version in mips; do
 
 	DEST=$WORKING_DIR/build/ffmpeg
 	FLAGS="--target-os=linux --cross-prefix=mipsel-linux-android- --arch=mips"
@@ -32,17 +32,22 @@ for version in x86; do
 	FLAGS="$FLAGS --disable-avdevice"
 	FLAGS="$FLAGS --disable-postproc"
 	FLAGS="$FLAGS --disable-avfilter"
-	FLAGS="$FLAGS --disable-everything"
 	FLAGS="$FLAGS --disable-gpl"
-	FLAGS="$FLAGS --enable-demuxer=aac,flac,h263,h264,m4v,matroska,mp3,mpegvideo,ogg,pcm_alaw,pcm_f32be,pcm_f32le,pcm_f64be,pcm_f64le,pcm_mulaw,pcm_s16be,pcm_s16le,pcm_s24be"
-	FLAGS="$FLAGS --enable-demuxer=pcm_s24le,pcm_s32be,pcm_s32le,pcm_s8,pcm_u16be,pcm_u16le,pcm_u24be,pcm_u24le,pcm_u32be,pcm_u32le,pcm_u8,rtp,rtsp,sdp,wav"
-	FLAGS="$FLAGS --enable-parser=aac,aac_latm,flac,h263,h264,mpeg4video,mpegaudio,mpegvideo,vorbis,vp8"
-	FLAGS="$FLAGS --enable-decoder=aac,aac_latm,flac,mjpeg,mp3,vorbis,wmalossless,wmapro,wmav1,wmav2,wmavoice"
-	FLAGS="$FLAGS --enable-protocol=file,http,https,mmsh,mmst"
+        FLAGS="$FLAGS --disable-encoders"
+	FLAGS="$FLAGS --disable-hwaccels"
+	FLAGS="$FLAGS --disable-muxers"
+	FLAGS="$FLAGS --disable-bsfs"
+	FLAGS="$FLAGS --disable-protocols"
+	FLAGS="$FLAGS --disable-indevs"
+	FLAGS="$FLAGS --disable-outdevs"
+	FLAGS="$FLAGS --disable-devices"
+	FLAGS="$FLAGS --disable-filters"
+	FLAGS="$FLAGS --enable-encoder=png"
+	FLAGS="$FLAGS --enable-protocol=file,http,https,mmsh,mmst,pipe"
 	FLAGS="$FLAGS --disable-debug"
 
 	case "$version" in
-		x86)
+		mips)
 			EXTRA_CFLAGS=""
 			EXTRA_LDFLAGS=""
 			ABI="mips"
