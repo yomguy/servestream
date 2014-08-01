@@ -64,6 +64,7 @@ import android.support.v4.view.ViewPager;
 import android.support.v4.view.ViewPager.OnPageChangeListener;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarActivity;
+import android.support.v7.view.ActionMode;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
@@ -127,9 +128,8 @@ public class MediaPlayerActivity extends ActionBarActivity implements MusicUtils
         setContentView(R.layout.activity_media_player);
         
         ActionBar actionBar = getSupportActionBar();
-		//actionBar.setDisplayHomeAsUpEnabled(true);
+		actionBar.setDisplayHomeAsUpEnabled(true);
 		actionBar.setHomeButtonEnabled(true);
-		actionBar.setIcon(Utils.getThemedIcon(this, R.attr.ic_action_cancel));
         //actionBar.setDisplayShowCustomEnabled(true);
         //actionBar.setDisplayShowTitleEnabled(false);
         
@@ -420,17 +420,15 @@ public class MediaPlayerActivity extends ActionBarActivity implements MusicUtils
 		View view = MenuItemCompat.getActionView(item);
 		mVolume = (SeekBar) view.findViewById(R.id.volume_bar);
         mVolume.setOnSeekBarChangeListener(mVolumeListener);
-        ImageButton cancelButton = (ImageButton) view.findViewById(R.id.cancel_button);
-        cancelButton.setOnClickListener(new View.OnClickListener() {
-			
-			@Override
-			public void onClick(View v) {
-				MenuItemCompat.collapseActionView(item);
-			}
-		});
         return true;
     }
 
+    @Override
+    public void onSupportActionModeStarted(ActionMode mode) {
+    	super.onSupportActionModeStarted(mode);
+    	updateVolumeBar();
+    }
+    
     private final int keyboard[][] = {
         {
             KeyEvent.KEYCODE_Q,

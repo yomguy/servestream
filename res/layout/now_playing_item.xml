@@ -46,7 +46,7 @@
     <TextView
         android:id="@+id/duration"
         android:textSize="12sp"
-        android:textColor="@android:color/black"
+        android:textColor="?android:attr/textColorPrimary"
         android:textStyle="bold"
         android:paddingLeft="4dip"
         android:paddingRight="11dip"
@@ -59,7 +59,7 @@
     <TextView
         android:id="@+id/line1"
         android:textAppearance="?android:attr/textAppearanceMedium"
-        android:textColor="@android:color/black"
+        android:textColor="?android:attr/textColorPrimary"
         android:layout_width="wrap_content"
         android:paddingLeft="9dip"
         android:layout_height="wrap_content"
@@ -73,7 +73,7 @@
         android:id="@+id/line2"
         android:visibility="visible"
         android:textAppearance="?android:attr/textAppearanceSmall"
-        android:textColor="@android:color/black"
+        android:textColor="?android:attr/textColorPrimary"
         android:singleLine="true"
         android:ellipsize="end"
         android:paddingLeft="9dip"
