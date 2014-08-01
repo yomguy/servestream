@@ -364,6 +364,8 @@ public class MainActivity extends ActionBarActivity implements
 	}
 
 	private void openUri(String uri) {
+		mCurrentSelectedPosition = 0;
+		
 		Bundle args = new Bundle();
 		args.putString(UrlListFragment.ARG_TARGET_URI, uri);
     	
@@ -395,6 +397,8 @@ public class MainActivity extends ActionBarActivity implements
 	
 	@Override
 	public void browseToUri(Uri uri) {
+		mCurrentSelectedPosition = 1;
+		
 		Bundle args = new Bundle();
 		args.putString(UrlListFragment.ARG_TARGET_URI, uri.toString());
     	
