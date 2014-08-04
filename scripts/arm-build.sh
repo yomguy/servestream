@@ -5,11 +5,31 @@ if [ "$NDK" = "" ]; then
 	export NDK=${HOME}/android-ndk
 fi
 
-SYSROOT=$NDK/platforms/android-14/arch-arm
-WORKING_DIR=`pwd`
-# Expand the prebuilt/* path into the correct one
-TOOLCHAIN=`echo $NDK/toolchains/arm-linux-androideabi-4.6/prebuilt/linux-x86*`
+# Detect OS
+OS=`uname`
+HOST_ARCH=`uname -m`
+export CCACHE=; type ccache >/dev/null 2>&1 && export CCACHE=ccache
+if [ $OS == 'Linux' ]; then
+	export HOST_SYSTEM=linux-$HOST_ARCH
+elif [ $OS == 'Darwin' ]; then
+	export HOST_SYSTEM=darwin-$HOST_ARCH
+fi
+
+SOURCE=`pwd`
+
+TOOLCHAIN=/tmp/servestream
+SYSROOT=$TOOLCHAIN/sysroot/
+
+export CROSS_PREFIX=arm-linux-androideabi-
+$NDK/build/tools/make-standalone-toolchain.sh --toolchain=${CROSS_PREFIX}4.6 --platform=android-8 \
+--system=$HOST_SYSTEM --install-dir=$TOOLCHAIN
+
 export PATH=$TOOLCHAIN/bin:$PATH
+export CC="$CCACHE ${CROSS_PREFIX}gcc"
+export CXX=${CROSS_PREFIX}g++
+export LD=${CROSS_PREFIX}ld
+export AR=${CROSS_PREFIX}ar
+export STRIP=${CROSS_PREFIX}strip
 
 rm -rf build/ffmpeg
 mkdir -p build/ffmpeg
@@ -18,8 +38,11 @@ cd ffmpeg
 # Don't build any neon version for now
 for version in armv5te armv7a; do
 
-	DEST=$WORKING_DIR/build/ffmpeg
-	FLAGS="--target-os=linux --cross-prefix=arm-linux-androideabi- --arch=arm"
+	DEST=$SOURCE/build/ffmpeg
+	FLAGS="--target-os=linux"
+	FLAGS="$FLAGS --enable-cross-compile"
+    FLAGS="$FLAGS --cross-prefix=$CROSS_PREFIX"
+    FLAGS="$FLAGS --arch=arm"
 	FLAGS="$FLAGS --sysroot=$SYSROOT"
 	FLAGS="$FLAGS --soname-prefix=/data/data/net.sourceforge.servestream/lib/"
 	FLAGS="$FLAGS --enable-shared --disable-symver"
@@ -33,7 +56,7 @@ for version in armv5te armv7a; do
 	FLAGS="$FLAGS --disable-postproc"
 	FLAGS="$FLAGS --disable-avfilter"
 	FLAGS="$FLAGS --disable-gpl"
-        FLAGS="$FLAGS --disable-encoders"
+    FLAGS="$FLAGS --disable-encoders"
 	FLAGS="$FLAGS --disable-hwaccels"
 	FLAGS="$FLAGS --disable-muxers"
 	FLAGS="$FLAGS --disable-bsfs"
@@ -56,21 +79,23 @@ for version in armv5te armv7a; do
 			;;
 		armv7a)
 			EXTRA_CFLAGS="-march=armv7-a -mfloat-abi=softfp"
-			EXTRA_LDFLAGS=""
-			ABI="armeabi-v7a"
+            EXTRA_LDFLAGS=""
+            CFLAGS=""
+            ABI="armeabi-v7a"
 			;;
 		*)
 			EXTRA_CFLAGS=""
-			EXTRA_LDFLAGS=""
-			ABI="armeabi"
+            EXTRA_LDFLAGS=""
+            CFLAGS=""
+            ABI="armeabi"
 			;;
 	esac
 	DEST="$DEST/$ABI"
 	FLAGS="$FLAGS --prefix=$DEST"
 
 	mkdir -p $DEST
-	echo $FLAGS --extra-cflags="$EXTRA_CFLAGS" --extra-ldflags="$EXTRA_LDFLAGS" > $DEST/info.txt
-	./configure $FLAGS --extra-cflags="$EXTRA_CFLAGS" --extra-ldflags="$EXTRA_LDFLAGS" | tee $DEST/configuration.txt
+	echo $FLAGS --extra-cflags="$CFLAGS $EXTRA_CFLAGS" --extra-ldflags="$EXTRA_LDFLAGS" > $DEST/info.txt
+	./configure $FLAGS --extra-cflags="$CFLAGS $EXTRA_CFLAGS" --extra-ldflags="$EXTRA_LDFLAGS" | tee $DEST/configuration.txt
 	[ $PIPESTATUS == 0 ] || exit 1
 	make clean
 	make -j4 || exit 1
