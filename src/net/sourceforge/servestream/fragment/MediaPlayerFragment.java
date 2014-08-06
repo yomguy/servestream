@@ -18,6 +18,8 @@
 package net.sourceforge.servestream.fragment;
 
 import net.sourceforge.servestream.R;
+import net.sourceforge.servestream.bitmap.DatabaseImageFetcher;
+import net.sourceforge.servestream.bitmap.ImageCache;
 import net.sourceforge.servestream.provider.Media;
 import net.sourceforge.servestream.service.IMediaPlaybackService;
 import net.sourceforge.servestream.service.MediaPlaybackService;
@@ -26,6 +28,7 @@ import net.sourceforge.servestream.utils.CoverView.CoverViewListener;
 import net.sourceforge.servestream.utils.MusicUtils;
 import net.sourceforge.servestream.utils.MusicUtils.ServiceToken;
 
+import android.annotation.SuppressLint;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
@@ -35,7 +38,6 @@ import android.content.ServiceConnection;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
-import android.os.Looper;
 import android.os.Message;
 import android.os.RemoteException;
 import android.support.v4.app.Fragment;
@@ -46,24 +48,33 @@ import android.widget.TextView;
 
 public class MediaPlayerFragment extends Fragment implements CoverViewListener {
 	
-    private Worker mAlbumArtWorker;
-    private AlbumArtHandler mAlbumArtHandler;
+    private static final String IMAGE_CACHE_DIR = "large_album_art";
+	
     private IMediaPlaybackService mService = null;
     
     private ServiceToken mToken;
 
     private TextView mTrackNumber;
     
+    private DatabaseImageFetcher mImageFetcher;
+    
+	@SuppressLint("HandlerLeak")
+	private Handler mAlbumArtHandler = new Handler() {
+		@Override
+		public void handleMessage(Message msg) {
+			if (mImageFetcher != null && mService != null) {
+				mImageFetcher.loadImage(msg.obj, mAlbum);
+			}
+		}
+	};
+    
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container,
 			Bundle savedInstanceState) {
 		View view = inflater.inflate(R.layout.fragment_media_player, container, false);
 		
-		mAlbumArtWorker = new Worker("album art worker");
-        mAlbumArtHandler = new AlbumArtHandler(mAlbumArtWorker.getLooper());
-        
         mAlbum = (CoverView) view.findViewById(R.id.album_art);
-        mAlbum.setup(mAlbumArtWorker.getLooper(), this);
+        mAlbum.setup(this);
         mTrackName = (TextView) view.findViewById(R.id.trackname);
         mTrackName.setSelected(true);
         mArtistAndAlbumName = (TextView) view.findViewById(R.id.artist_and_album);
@@ -93,9 +104,22 @@ public class MediaPlayerFragment extends Fragment implements CoverViewListener {
     @Override
     public void onResume() {
         super.onResume();
+        if (mImageFetcher != null) {
+        	mImageFetcher.setExitTasksEarly(false);
+        }
         updateTrackInfo();
     }
 
+    @Override
+    public void onPause() {
+        super.onPause();
+        if (mImageFetcher != null) {
+        	mImageFetcher.setPauseWork(false);
+        	mImageFetcher.setExitTasksEarly(true);
+        	mImageFetcher.flushCache();
+        }
+    }
+    
     @Override
     public void onStop() {
         getActivity().unregisterReceiver(mStatusListener);
@@ -106,8 +130,10 @@ public class MediaPlayerFragment extends Fragment implements CoverViewListener {
     
     @Override
     public void onDestroy() {
-        mAlbumArtWorker.quit();
         super.onDestroy();
+        if (mImageFetcher != null) {
+        	mImageFetcher.closeCache();
+        }
     }
     
     private ServiceConnection osc = new ServiceConnection() {
@@ -136,8 +162,8 @@ public class MediaPlayerFragment extends Fragment implements CoverViewListener {
     private TextView mArtistAndAlbumName;
     private TextView mTrackName;
 
-    private static final int GET_ALBUM_ART = 3;
-    private static final int REFRESH_ALBUM_ART = 4;
+    //private static final int GET_ALBUM_ART = 3;
+    //private static final int REFRESH_ALBUM_ART = 4;
 
     private BroadcastReceiver mStatusListener = new BroadcastReceiver() {
         @Override
@@ -150,21 +176,15 @@ public class MediaPlayerFragment extends Fragment implements CoverViewListener {
             } else if (action.equals(MediaPlaybackService.ART_CHANGED)) {
                 try {
                 	if (mService != null) {
-                		mAlbumArtHandler.removeMessages(REFRESH_ALBUM_ART);
-                		mAlbumArtHandler.obtainMessage(REFRESH_ALBUM_ART, new IdWrapper(mService.getTrackId())).sendToTarget();
+                		Message message  = mAlbumArtHandler.obtainMessage();
+                		message.obj = mService.getTrackId();
+                		mAlbumArtHandler.sendMessage(message);
                 	}
 				} catch (RemoteException e) {
 				}
             }
         }
     };
-    
-    private static class IdWrapper {
-        public long id;
-        IdWrapper(long id) {
-            this.id = id;
-        }
-    }
     
     private void updateTrackInfo() {
         if (mService == null) {
@@ -203,84 +223,41 @@ public class MediaPlayerFragment extends Fragment implements CoverViewListener {
             }
             
             mArtistAndAlbumName.setText(artistAndAlbumName);
-            mAlbumArtHandler.removeMessages(GET_ALBUM_ART);
-            mAlbumArtHandler.obtainMessage(GET_ALBUM_ART, new IdWrapper(mService.getTrackId())).sendToTarget();
+
+            //mAlbumArtHandler.removeMessages();
+       		Message message  = mAlbumArtHandler.obtainMessage();
+    		message.obj = mService.getTrackId();
+    		mAlbumArtHandler.sendMessage(message);
         } catch (RemoteException ex) {
         }
     }
     
-    public class AlbumArtHandler extends Handler {
-        private long mId = -1;
-        
-        public AlbumArtHandler(Looper looper) {
-            super(looper);
-        }
-        
-        @Override
-        public void handleMessage(Message msg)
-        {
-            long id = ((IdWrapper) msg.obj).id;
-            
-            if (((msg.what == GET_ALBUM_ART && mId != id)
-            		|| msg.what == REFRESH_ALBUM_ART)
-            		&& id >= 0) {
-            	if (mAlbum.generateBitmap(id)) {
-            		mId = id;
-            	}
-            }
-        }
-    }
-    
-    private static class Worker implements Runnable {
-        private final Object mLock = new Object();
-        private Looper mLooper;
-        
-        /**
-         * Creates a worker thread with the given name. The thread
-         * then runs a {@link android.os.Looper}.
-         * @param name A name for the new thread
-         */
-        Worker(String name) {
-            Thread t = new Thread(null, this, name);
-            t.setPriority(Thread.MIN_PRIORITY);
-            t.start();
-            synchronized (mLock) {
-                while (mLooper == null) {
-                    try {
-                        mLock.wait();
-                    } catch (InterruptedException ex) {
-                    }
-                }
-            }
-        }
-        
-        public Looper getLooper() {
-            return mLooper;
-        }
-        
-        public void run() {
-            synchronized (mLock) {
-                Looper.prepare();
-                mLooper = Looper.myLooper();
-                mLock.notifyAll();
-            }
-            Looper.loop();
-        }
-        
-        public void quit() {
-            mLooper.quit();
-        }
-    }
-
 	@Override
-	public void onCoverViewInitialized() {
-        if (mService == null) {
+	public void onCoverViewInitialized(int width, int height) {
+        if (mImageFetcher == null) {
+        	int imageThumbSize = Math.min(width, height);
+        
+        	ImageCache.ImageCacheParams cacheParams =
+        			new ImageCache.ImageCacheParams(getActivity(), IMAGE_CACHE_DIR);
+
+        	cacheParams.setMemCacheSizePercent(0.25f); // Set memory cache to 25% of app memory
+
+        	// The ImageFetcher takes care of loading images into our ImageView children asynchronously
+        	mImageFetcher = new DatabaseImageFetcher(getActivity(), imageThumbSize);
+        	mImageFetcher.setLoadingImage(R.drawable.albumart_mp_unknown);
+        	mImageFetcher.addImageCache(getActivity().getSupportFragmentManager(), cacheParams);
+        }
+        
+		if (mService == null) {
             return;
         }
-        
+       
         try {
-            mAlbumArtHandler.removeMessages(GET_ALBUM_ART);
-			mAlbumArtHandler.obtainMessage(GET_ALBUM_ART, new IdWrapper(mService.getTrackId())).sendToTarget();
+            //mAlbumArtHandler.removeMessages(GET_ALBUM_ART);
+       		
+            Message message  = mAlbumArtHandler.obtainMessage();
+    		message.obj = mService.getTrackId();
+    		mAlbumArtHandler.sendMessage(message);
 		} catch (RemoteException e) {
 		}
 	}

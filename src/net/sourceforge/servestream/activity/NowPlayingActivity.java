@@ -18,6 +18,9 @@
 package net.sourceforge.servestream.activity;
 
 import net.sourceforge.servestream.R;
+import net.sourceforge.servestream.bitmap.DatabaseImageFetcher;
+import net.sourceforge.servestream.bitmap.ImageCache;
+import net.sourceforge.servestream.bitmap.RecyclingImageView;
 import net.sourceforge.servestream.dslv.DragSortController;
 import net.sourceforge.servestream.dslv.DragSortListView;
 import net.sourceforge.servestream.dslv.SimpleDragSortCursorAdapter;
@@ -41,7 +44,6 @@ import android.content.SharedPreferences;
 import android.database.AbstractCursor;
 import android.database.CharArrayBuffer;
 import android.database.Cursor;
-import android.graphics.drawable.Drawable;
 import android.media.AudioManager;
 import android.net.Uri;
 import android.os.Bundle;
@@ -74,6 +76,9 @@ public class NowPlayingActivity extends ActionBarActivity implements
 			MusicUtils.Defs, ServiceConnection {
 	
     private static final String TAG = NowPlayingActivity.class.getName();
+    
+    private static final String IMAGE_CACHE_DIR = "small_album_art";
+    private DatabaseImageFetcher mImageFetcher;
     
     private DragSortListView mList;
     
@@ -109,6 +114,18 @@ public class NowPlayingActivity extends ActionBarActivity implements
         
         setVolumeControlStream(AudioManager.STREAM_MUSIC);
 		
+        int imageThumbSize = getResources().getDimensionPixelSize(R.dimen.image_thumbnail_size);
+        
+        ImageCache.ImageCacheParams cacheParams =
+    			new ImageCache.ImageCacheParams(this, IMAGE_CACHE_DIR);
+
+    	cacheParams.setMemCacheSizePercent(0.25f); // Set memory cache to 25% of app memory
+
+    	// The ImageFetcher takes care of loading images into our ImageView children asynchronously
+    	mImageFetcher = new DatabaseImageFetcher(this, imageThumbSize);
+    	mImageFetcher.setLoadingImage(R.drawable.albumart_mp_unknown_list);
+    	mImageFetcher.addImageCache(getSupportFragmentManager(), cacheParams);
+        
         mPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         
         mList = (DragSortListView) findViewById(android.R.id.list);
@@ -228,6 +245,7 @@ public class NowPlayingActivity extends ActionBarActivity implements
         // by clearing its DatasetObservers, which setListAdapter(null) does.
         mList.setAdapter(null);
         mAdapter = null;
+      	mImageFetcher.closeCache();
         super.onDestroy();
     }
     
@@ -235,9 +253,19 @@ public class NowPlayingActivity extends ActionBarActivity implements
     public void onResume() {
         super.onResume();
         
+        mImageFetcher.setExitTasksEarly(false);
+        
         if (mTrackCursor != null) {
         	mList.invalidateViews();
         }
+    }
+    
+    @Override
+    public void onPause() {
+        super.onPause();
+        mImageFetcher.setPauseWork(false);
+        mImageFetcher.setExitTasksEarly(true);
+        mImageFetcher.flushCache();
     }
     
     @Override
@@ -706,7 +734,7 @@ public class NowPlayingActivity extends ActionBarActivity implements
             ImageView play_indicator;
             CharArrayBuffer buffer1;
             char [] buffer2;
-            ImageView icon;
+            RecyclingImageView icon;
         }
 
         class TrackQueryHandler extends AsyncQueryHandler {
@@ -805,7 +833,7 @@ public class NowPlayingActivity extends ActionBarActivity implements
             vh.play_indicator = (ImageView) v.findViewById(R.id.play_indicator);
             vh.buffer1 = new CharArrayBuffer(100);
             vh.buffer2 = new char[200];
-            vh.icon = (ImageView) v.findViewById(R.id.icon);
+            vh.icon = (RecyclingImageView) v.findViewById(R.id.icon);
             v.setTag(vh);
             return v;
         }
@@ -846,18 +874,15 @@ public class NowPlayingActivity extends ActionBarActivity implements
             builder.getChars(0, len, vh.buffer2, 0);
             vh.line2.setText(vh.buffer2, 0, len);
 
-            ImageView iv = vh.icon;
-            iv.setVisibility(View.GONE);
+            RecyclingImageView iv1 = vh.icon;
+            iv1.setVisibility(View.GONE);
             if (mPreferences.getBoolean(PreferenceConstants.RETRIEVE_ALBUM_ART, false)) {
             	long id = cursor.getInt(mAudioIdIdx);
-        		Drawable d = MusicUtils.getCachedMediumArtwork(NowPlayingActivity.this, id);
-        		if (d != null) {
-        			iv.setImageDrawable(d);
-        			iv.setVisibility(View.VISIBLE);
-        		}
+            	mImageFetcher.loadImage(id, iv1);
+        		iv1.setVisibility(View.VISIBLE);
             }
             
-            iv = vh.play_indicator;
+            ImageView iv2 = vh.play_indicator;
             long id = -1;
             boolean isPlaying = false;
             if (MusicUtils.sService != null) {
@@ -882,13 +907,13 @@ public class NowPlayingActivity extends ActionBarActivity implements
             // which is not really a playlist)
             if ( (cursor.getPosition() == id)) {
             	if (isPlaying) {
-            		iv.setImageResource(Utils.getThemedIcon(NowPlayingActivity.this, R.attr.ic_av_play));
+            		iv2.setImageResource(Utils.getThemedIcon(NowPlayingActivity.this, R.attr.ic_av_play));
             	} else {
-            		iv.setImageResource(Utils.getThemedIcon(NowPlayingActivity.this, R.attr.ic_av_pause));
+            		iv2.setImageResource(Utils.getThemedIcon(NowPlayingActivity.this, R.attr.ic_av_pause));
             	}
-                iv.setVisibility(View.VISIBLE);
+                iv2.setVisibility(View.VISIBLE);
             } else {
-                iv.setVisibility(View.GONE);
+                iv2.setVisibility(View.GONE);
             }
         }
         

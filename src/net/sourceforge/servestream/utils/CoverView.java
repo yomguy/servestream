@@ -1,6 +1,6 @@
 /*
  * ServeStream: A HTTP stream browser/player for Android
- * Copyright 2013 William Seemann
+ * Copyright 2014 William Seemann
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,31 +17,21 @@
 
 package net.sourceforge.servestream.utils;
 
-import net.sourceforge.servestream.R;
-import net.sourceforge.servestream.preference.PreferenceConstants;
+import net.sourceforge.servestream.bitmap.RecyclingImageView;
 import android.content.Context;
-import android.content.SharedPreferences;
-import android.graphics.Bitmap;
-import android.graphics.Canvas;
-import android.os.Looper;
-import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
 import android.util.AttributeSet;
 import android.view.View;
 
-public final class CoverView extends View {
+public final class CoverView extends RecyclingImageView {
 	
-	private SharedPreferences mPreferences = null;
 	private CoverViewListener mListener;
 	
-	private Bitmap mBitmap = null;
-
 	public CoverView(Context context, AttributeSet attributes) {
 		super(context, attributes);
-		mPreferences = PreferenceManager.getDefaultSharedPreferences(context);
 	}
 
-	public void setup(Looper looper, Fragment fragment) {
+	public void setup(Fragment fragment) {
 		// Verify that the host activity implements the callback interface
 	    try {
 	    	// Instantiate the CoverViewListener so we can send events to the host
@@ -54,54 +44,14 @@ public final class CoverView extends View {
 	}
 
 	@Override
-	protected void onDraw(Canvas canvas) {
-		int width = getWidth();
-		int height = getHeight();
-		
-		if (mBitmap != null) {
-			int xOffset = (width - mBitmap.getWidth()) / 2;
-			int yOffset = (height - mBitmap.getHeight()) / 2;
-			canvas.drawBitmap(mBitmap, xOffset, yOffset, null);
-		}
-	}
-
-	@Override
 	protected void onSizeChanged(int w, int h, int oldw, int oldh) {
 		if (w != 0 && h != 0) {
 			if (mListener != null) {
-				mListener.onCoverViewInitialized();
+				mListener.onCoverViewInitialized(w, h);
 			}
 		}
 	}
 	
-	public boolean generateBitmap(long id) {
-		Bitmap b = null;
-		
-		int width = getWidth();
-		int height = getHeight();
-		
-		if (width == 0 || height == 0) {
-			return false;
-		}
-
-		int scale = Math.min(width, height);
-		
-		Context context = getContext();
-
-		if (mPreferences.getBoolean(PreferenceConstants.RETRIEVE_ALBUM_ART, false)) {
-			b = MusicUtils.getLargeCachedArtwork(context, id, scale, scale);
-		}
-		
-		if (b == null) {
-			b = MusicUtils.getDefaultArtwork(context, R.drawable.albumart_mp_unknown, scale, scale);
-		}
-		
-		mBitmap = b;
-		postInvalidate();
-		
-		return true;
-	}
-
 	@Override
 	protected void onMeasure(int widthSpec, int heightSpec) {
 		int width = View.MeasureSpec.getSize(widthSpec);
@@ -119,6 +69,6 @@ public final class CoverView extends View {
     /* The activity that creates an instance of this class must
      * implement this interface in order to receive event callbacks. */
     public interface CoverViewListener {
-        public void onCoverViewInitialized();
+        public void onCoverViewInitialized(int width, int height);
     }
 }

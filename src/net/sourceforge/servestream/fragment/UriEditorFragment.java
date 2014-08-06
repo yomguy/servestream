@@ -97,12 +97,7 @@ public class UriEditorFragment extends net.sourceforge.servestream.preference.Pr
 	        String val = (String) newValue;
             // Set the summary based on the new label.
 			preference.setSummary(val);
-            //if (val != null && !val.equals(((EditTextPreference) preference).getText())) {
-            	// Call through to the generic listener.
-                return UriEditorFragment.this.onPreferenceChange(preference,
-                    newValue);
-            //}
-            //return true;
+            return UriEditorFragment.this.onPreferenceChange(preference, newValue);
 		}
 		
 	};
@@ -129,11 +124,8 @@ public class UriEditorFragment extends net.sourceforge.servestream.preference.Pr
     	mProtocol.setText(bean.getProtocol());
     	mUsername.setSummary(bean.getUsername());
     	mUsername.setText(bean.getUsername());
-    	mPassword.setSummary(bean.getPassword());
+    	mPassword.setSummary(scrubField(bean.getPassword()));
     	mPassword.setText(bean.getPassword());
-		//if (key.equals("password") && value != null) {
-		//	value = new String(new char[value.length()]).replace("\0", "*");
-		//}
     	mHostname.setSummary(bean.getHostname());
     	mHostname.setText(bean.getHostname());
     	mPort.setSummary(String.valueOf(bean.getPort()));
@@ -146,6 +138,14 @@ public class UriEditorFragment extends net.sourceforge.servestream.preference.Pr
     	mReference.setText(bean.getReference());
     }
 
+    private String scrubField(String value) {
+		if (value != null) {
+			return new String(new char[value.length()]).replace("\0", "*");
+		}
+		
+		return value;
+    }
+    
     private void saveUri(final Preference preference, Object newValue) {
     	String value = (String) newValue;
     	

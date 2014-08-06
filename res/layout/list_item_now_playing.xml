@@ -35,10 +35,11 @@
         	android:layout_height="match_parent"
         	android:background="@drawable/ic_drag_queue" />
         
-    	<ImageView
+    	<net.sourceforge.servestream.bitmap.RecyclingImageView
         	android:id="@+id/icon"
         	android:layout_width="64dip"
         	android:layout_height="64dip"
+        	android:scaleType="centerCrop"
         	android:contentDescription="" />
     
     </LinearLayout>

@@ -42,5 +42,8 @@
     <dimen name="text_size_small">14sp</dimen>
     <dimen name="text_size_navdrawer">16sp</dimen>
     <dimen name="thumbnail_length_navlist">42dp</dimen>
+    
+    <dimen name="image_thumbnail_size">64dp</dimen>
+    <dimen name="image_notification_size">128dip</dimen>
 
 </resources>

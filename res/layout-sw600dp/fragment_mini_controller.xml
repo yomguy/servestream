@@ -37,7 +37,7 @@
     	android:orientation="horizontal"
         android:background="?attr/borderless_button" >
     
-    	<ImageView
+    	<net.sourceforge.servestream.bitmap.RecyclingImageView
         	android:id="@+id/coverart"
         	android:layout_width="56.0dip"
         	android:layout_height="56.0dip"

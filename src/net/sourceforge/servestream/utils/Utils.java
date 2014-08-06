@@ -26,7 +26,6 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 
-import net.sourceforge.servestream.R;
 import android.content.Context;
 import android.os.Environment;
 import android.util.TypedValue;

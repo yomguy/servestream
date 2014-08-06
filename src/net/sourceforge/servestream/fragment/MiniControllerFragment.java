@@ -19,6 +19,9 @@ package net.sourceforge.servestream.fragment;
 
 import net.sourceforge.servestream.R;
 import net.sourceforge.servestream.activity.MediaPlayerActivity;
+import net.sourceforge.servestream.bitmap.DatabaseImageFetcher;
+import net.sourceforge.servestream.bitmap.ImageCache;
+import net.sourceforge.servestream.bitmap.RecyclingImageView;
 import net.sourceforge.servestream.provider.Media;
 import net.sourceforge.servestream.service.IMediaPlaybackService;
 import net.sourceforge.servestream.service.MediaPlaybackService;
@@ -33,10 +36,6 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.content.SharedPreferences;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.graphics.drawable.BitmapDrawable;
-import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.os.RemoteException;
@@ -52,8 +51,11 @@ import android.widget.TextView;
 
 public class MiniControllerFragment extends Fragment implements ServiceConnection {
 	
+    private static final String IMAGE_CACHE_DIR = "small_album_art";
+    private DatabaseImageFetcher mImageFetcher;
+	
 	private View mNowPlayingView;
-	private ImageView mCoverart;
+	private RecyclingImageView mCoverart;
 	private TextView mTitle;
 	private TextView mArtist;
 	private ImageView mPreviousButton;
@@ -68,6 +70,18 @@ public class MiniControllerFragment extends Fragment implements ServiceConnectio
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 		
+        int imageThumbSize = getResources().getDimensionPixelSize(R.dimen.image_thumbnail_size);
+        
+        ImageCache.ImageCacheParams cacheParams =
+    			new ImageCache.ImageCacheParams(getActivity(), IMAGE_CACHE_DIR);
+
+    	cacheParams.setMemCacheSizePercent(0.25f); // Set memory cache to 25% of app memory
+
+    	// The ImageFetcher takes care of loading images into our ImageView children asynchronously
+    	mImageFetcher = new DatabaseImageFetcher(getActivity(), imageThumbSize);
+    	mImageFetcher.setLoadingImage(R.drawable.albumart_mp_unknown_list);
+    	mImageFetcher.addImageCache(getActivity().getSupportFragmentManager(), cacheParams);
+        
 		mToken = MusicUtils.bindToService(getActivity(), this);
     }
 	
@@ -76,7 +90,7 @@ public class MiniControllerFragment extends Fragment implements ServiceConnectio
 			Bundle savedInstanceState) {
 		View view = inflater.inflate(R.layout.fragment_mini_controller, container, false);
 		mNowPlayingView = view.findViewById(R.id.nowplaying);
-		mCoverart = (ImageView) view.findViewById(R.id.coverart);
+		mCoverart = (RecyclingImageView) view.findViewById(R.id.coverart);
 		mTitle = (TextView) view.findViewById(R.id.title);
 		mArtist = (TextView) view.findViewById(R.id.artist);
 		mPreviousButton = (ImageView) view.findViewById(R.id.previous_button);
@@ -96,6 +110,8 @@ public class MiniControllerFragment extends Fragment implements ServiceConnectio
 	public void onResume() {
 		super.onResume();
 		
+        mImageFetcher.setExitTasksEarly(false);
+		
         IntentFilter f = new IntentFilter();
         f.addAction(MediaPlaybackService.PLAYSTATE_CHANGED);
         f.addAction(MediaPlaybackService.META_CHANGED);
@@ -108,6 +124,10 @@ public class MiniControllerFragment extends Fragment implements ServiceConnectio
 		super.onPause();
 		
         getActivity().unregisterReceiver(mTrackListListener);
+        
+        mImageFetcher.setPauseWork(false);
+        mImageFetcher.setExitTasksEarly(true);
+        mImageFetcher.flushCache();
 	}
 	
 	@Override
@@ -116,6 +136,8 @@ public class MiniControllerFragment extends Fragment implements ServiceConnectio
 		mService = null;
 		
 		super.onDestroy();
+		
+		mImageFetcher.closeCache();
 	}
 
     private BroadcastReceiver mTrackListListener = new BroadcastReceiver() {
@@ -144,27 +166,18 @@ public class MiniControllerFragment extends Fragment implements ServiceConnectio
 		}
 		try {
 			if (true && mService != null && mService.getAudioId() != -1) {
-				Drawable d = null;
+				long id = -1;
 
 				SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(getActivity());
 				if (preferences.getBoolean(PreferenceConstants.RETRIEVE_ALBUM_ART, false)) {
-					long id = mService.getAudioId();
-					if (id >= 0) {
-						Bitmap b = BitmapFactory.decodeResource(getActivity().getResources(), R.drawable.albumart_mp_unknown_list);
-						BitmapDrawable defaultAlbumIcon = new BitmapDrawable(getActivity().getResources(), b);
-						// no filter or dither, it's a lot faster and we can't tell the difference
-						defaultAlbumIcon.setFilterBitmap(false);
-						defaultAlbumIcon.setDither(false);
-
-						d = MusicUtils.getCachedArtwork(getActivity(), mService.getAudioId(), defaultAlbumIcon, true);
-					}
+					id = mService.getAudioId();
 				}
 
-				if (d == null) {
+				if (id == -1) {
 					mCoverart.setVisibility(View.GONE);
 				} else {
+					mImageFetcher.loadImage(id, mCoverart);
 					mCoverart.setVisibility(View.VISIBLE);
-					mCoverart.setImageDrawable(d);
 				}
 
 				mTitle.setSelected(true);

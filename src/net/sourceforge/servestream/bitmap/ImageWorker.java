@@ -51,6 +51,7 @@ public abstract class ImageWorker {
     private final Object mPauseWorkLock = new Object();
 
     protected Resources mResources;
+    protected Context mContext;
 
     private static final int MESSAGE_CLEAR = 0;
     private static final int MESSAGE_INIT_DISK_CACHE = 1;
@@ -58,6 +59,7 @@ public abstract class ImageWorker {
     private static final int MESSAGE_CLOSE = 3;
 
     protected ImageWorker(Context context) {
+    	mContext = context;
         mResources = context.getResources();
     }
 
