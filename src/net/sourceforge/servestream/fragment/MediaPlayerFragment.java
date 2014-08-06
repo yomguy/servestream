@@ -18,7 +18,7 @@
 package net.sourceforge.servestream.fragment;
 
 import net.sourceforge.servestream.R;
-import net.sourceforge.servestream.bitmap.DatabaseImageFetcher;
+import net.sourceforge.servestream.bitmap.DatabaseImageResizer;
 import net.sourceforge.servestream.bitmap.ImageCache;
 import net.sourceforge.servestream.provider.Media;
 import net.sourceforge.servestream.service.IMediaPlaybackService;
@@ -56,13 +56,14 @@ public class MediaPlayerFragment extends Fragment implements CoverViewListener {
 
     private TextView mTrackNumber;
     
-    private DatabaseImageFetcher mImageFetcher;
+    private DatabaseImageResizer mImageFetcher;
     
 	@SuppressLint("HandlerLeak")
 	private Handler mAlbumArtHandler = new Handler() {
 		@Override
 		public void handleMessage(Message msg) {
 			if (mImageFetcher != null && mService != null) {
+	        	mImageFetcher.setLoadingImage(R.drawable.albumart_mp_unknown);
 				mImageFetcher.loadImage(msg.obj, mAlbum);
 			}
 		}
@@ -162,8 +163,7 @@ public class MediaPlayerFragment extends Fragment implements CoverViewListener {
     private TextView mArtistAndAlbumName;
     private TextView mTrackName;
 
-    //private static final int GET_ALBUM_ART = 3;
-    //private static final int REFRESH_ALBUM_ART = 4;
+    private static final int GET_ALBUM_ART = 3;
 
     private BroadcastReceiver mStatusListener = new BroadcastReceiver() {
         @Override
@@ -176,7 +176,8 @@ public class MediaPlayerFragment extends Fragment implements CoverViewListener {
             } else if (action.equals(MediaPlaybackService.ART_CHANGED)) {
                 try {
                 	if (mService != null) {
-                		Message message  = mAlbumArtHandler.obtainMessage();
+                		mAlbumArtHandler.removeMessages(GET_ALBUM_ART);
+                		Message message  = mAlbumArtHandler.obtainMessage(GET_ALBUM_ART);
                 		message.obj = mService.getTrackId();
                 		mAlbumArtHandler.sendMessage(message);
                 	}
@@ -224,8 +225,8 @@ public class MediaPlayerFragment extends Fragment implements CoverViewListener {
             
             mArtistAndAlbumName.setText(artistAndAlbumName);
 
-            //mAlbumArtHandler.removeMessages();
-       		Message message  = mAlbumArtHandler.obtainMessage();
+            mAlbumArtHandler.removeMessages(GET_ALBUM_ART);
+       		Message message  = mAlbumArtHandler.obtainMessage(GET_ALBUM_ART);
     		message.obj = mService.getTrackId();
     		mAlbumArtHandler.sendMessage(message);
         } catch (RemoteException ex) {
@@ -243,8 +244,7 @@ public class MediaPlayerFragment extends Fragment implements CoverViewListener {
         	cacheParams.setMemCacheSizePercent(0.25f); // Set memory cache to 25% of app memory
 
         	// The ImageFetcher takes care of loading images into our ImageView children asynchronously
-        	mImageFetcher = new DatabaseImageFetcher(getActivity(), imageThumbSize);
-        	mImageFetcher.setLoadingImage(R.drawable.albumart_mp_unknown);
+        	mImageFetcher = new DatabaseImageResizer(getActivity(), imageThumbSize);
         	mImageFetcher.addImageCache(getActivity().getSupportFragmentManager(), cacheParams);
         }
         
@@ -253,9 +253,8 @@ public class MediaPlayerFragment extends Fragment implements CoverViewListener {
         }
        
         try {
-            //mAlbumArtHandler.removeMessages(GET_ALBUM_ART);
-       		
-            Message message  = mAlbumArtHandler.obtainMessage();
+            mAlbumArtHandler.removeMessages(GET_ALBUM_ART);
+            Message message  = mAlbumArtHandler.obtainMessage(GET_ALBUM_ART);
     		message.obj = mService.getTrackId();
     		mAlbumArtHandler.sendMessage(message);
 		} catch (RemoteException e) {

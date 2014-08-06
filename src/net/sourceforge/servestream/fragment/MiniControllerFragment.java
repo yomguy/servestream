@@ -19,7 +19,7 @@ package net.sourceforge.servestream.fragment;
 
 import net.sourceforge.servestream.R;
 import net.sourceforge.servestream.activity.MediaPlayerActivity;
-import net.sourceforge.servestream.bitmap.DatabaseImageFetcher;
+import net.sourceforge.servestream.bitmap.DatabaseImageResizer;
 import net.sourceforge.servestream.bitmap.ImageCache;
 import net.sourceforge.servestream.bitmap.RecyclingImageView;
 import net.sourceforge.servestream.provider.Media;
@@ -52,7 +52,7 @@ import android.widget.TextView;
 public class MiniControllerFragment extends Fragment implements ServiceConnection {
 	
     private static final String IMAGE_CACHE_DIR = "small_album_art";
-    private DatabaseImageFetcher mImageFetcher;
+    private DatabaseImageResizer mImageFetcher;
 	
 	private View mNowPlayingView;
 	private RecyclingImageView mCoverart;
@@ -78,7 +78,7 @@ public class MiniControllerFragment extends Fragment implements ServiceConnectio
     	cacheParams.setMemCacheSizePercent(0.25f); // Set memory cache to 25% of app memory
 
     	// The ImageFetcher takes care of loading images into our ImageView children asynchronously
-    	mImageFetcher = new DatabaseImageFetcher(getActivity(), imageThumbSize);
+    	mImageFetcher = new DatabaseImageResizer(getActivity(), imageThumbSize);
     	mImageFetcher.setLoadingImage(R.drawable.albumart_mp_unknown_list);
     	mImageFetcher.addImageCache(getActivity().getSupportFragmentManager(), cacheParams);
         

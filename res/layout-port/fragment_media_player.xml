@@ -32,8 +32,9 @@
 
         <net.sourceforge.servestream.utils.CoverView
             android:id="@+id/album_art"
-            android:layout_width="fill_parent"
-            android:layout_height="fill_parent" />
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:scaleType="fitXY" />
 
     </LinearLayout>
 

@@ -18,7 +18,7 @@
 package net.sourceforge.servestream.activity;
 
 import net.sourceforge.servestream.R;
-import net.sourceforge.servestream.bitmap.DatabaseImageFetcher;
+import net.sourceforge.servestream.bitmap.DatabaseImageResizer;
 import net.sourceforge.servestream.bitmap.ImageCache;
 import net.sourceforge.servestream.bitmap.RecyclingImageView;
 import net.sourceforge.servestream.dslv.DragSortController;
@@ -78,7 +78,7 @@ public class NowPlayingActivity extends ActionBarActivity implements
     private static final String TAG = NowPlayingActivity.class.getName();
     
     private static final String IMAGE_CACHE_DIR = "small_album_art";
-    private DatabaseImageFetcher mImageFetcher;
+    private DatabaseImageResizer mImageFetcher;
     
     private DragSortListView mList;
     
@@ -122,7 +122,7 @@ public class NowPlayingActivity extends ActionBarActivity implements
     	cacheParams.setMemCacheSizePercent(0.25f); // Set memory cache to 25% of app memory
 
     	// The ImageFetcher takes care of loading images into our ImageView children asynchronously
-    	mImageFetcher = new DatabaseImageFetcher(this, imageThumbSize);
+    	mImageFetcher = new DatabaseImageResizer(this, imageThumbSize);
     	mImageFetcher.setLoadingImage(R.drawable.albumart_mp_unknown_list);
     	mImageFetcher.addImageCache(getSupportFragmentManager(), cacheParams);
         

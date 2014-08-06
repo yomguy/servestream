@@ -121,6 +121,16 @@ public class ImageCache {
     }
 
     /**
+     * Return an {@link ImageCache} instance.
+     *
+     * @param cacheParams The cache parameters to use if the ImageCache needs instantiation.
+     * @return An ImageCache object
+     */
+    public static ImageCache getInstance(ImageCacheParams cacheParams) {
+        return new ImageCache(cacheParams);
+    }
+    
+    /**
      * Initialize the cache, providing all parameters.
      *
      * @param cacheParams The cache parameters to initialize the cache

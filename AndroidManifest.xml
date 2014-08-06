@@ -208,6 +208,7 @@
 
 		<service
 		    android:name=".service.MediaPlaybackService"
+		    android:exported="true"
 			android:description="@string/media_service_desc" />
 
         <activity

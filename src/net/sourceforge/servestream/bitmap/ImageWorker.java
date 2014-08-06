@@ -104,6 +104,103 @@ public abstract class ImageWorker {
     }
 
     /**
+     * Load an image specified by the data parameter into an ImageView (override
+     * {@link ImageWorker#processBitmap(Object)} to define the processing logic). A memory and
+     * disk cache will be used if an {@link ImageCache} has been added using
+     * {@link ImageWorker#addImageCache(android.support.v4.app.FragmentManager, ImageCache.ImageCacheParams)}. If the
+     * image is found in the memory cache, it is set immediately, otherwise an {@link AsyncTask}
+     * will be created to asynchronously load the bitmap.
+     *
+     * @param data The URL of the image to download.
+     * @param imageView The ImageView to bind the downloaded image to.
+     */
+    public Bitmap loadImage(Object data) {
+        if (data == null) {
+            return null;
+        }
+
+        BitmapDrawable value = null;
+
+        if (mImageCache != null) {
+            value = mImageCache.getBitmapFromMemCache(String.valueOf(data));
+        }
+
+        if (value != null) {
+            // Bitmap found in memory cache
+            return value.getBitmap();
+        } else {
+            //BEGIN_INCLUDE(load_bitmap_in_background)
+            if (BuildConfig.DEBUG) {
+                Log.d(TAG, "doInBackground - starting work");
+            }
+
+            final String dataString = String.valueOf(data);
+            Bitmap bitmap = null;
+            BitmapDrawable drawable = null;
+
+            // Wait here if work is paused and the task is not cancelled
+            synchronized (mPauseWorkLock) {
+                while (mPauseWork) {
+                    try {
+                        mPauseWorkLock.wait();
+                    } catch (InterruptedException e) {}
+                }
+            }
+
+            // If the image cache is available and this task has not been cancelled by another
+            // thread and the ImageView that was originally bound to this task is still bound back
+            // to this task and our "exit early" flag is not set then try and fetch the bitmap from
+            // the cache
+            if (mImageCache != null
+                    && !mExitTasksEarly) {
+                bitmap = mImageCache.getBitmapFromDiskCache(dataString);
+            }
+
+            // If the bitmap was not found in the cache and this task has not been cancelled by
+            // another thread and the ImageView that was originally bound to this task is still
+            // bound back to this task and our "exit early" flag is not set, then call the main
+            // process method (as implemented by a subclass)
+            if (bitmap == null
+                    && !mExitTasksEarly) {
+                bitmap = processBitmap(data);
+            }
+
+            // If the bitmap was processed and the image cache is available, then add the processed
+            // bitmap to the cache for future use. Note we don't check if the task was cancelled
+            // here, if it was, and the thread is still running, we may as well add the processed
+            // bitmap to our cache as it might be used again in the future
+            if (bitmap != null) {
+                if (Utils.hasHoneycomb()) {
+                    // Running on Honeycomb or newer, so wrap in a standard BitmapDrawable
+                    drawable = new BitmapDrawable(mResources, bitmap);
+                } else {
+                    // Running on Gingerbread or older, so wrap in a RecyclingBitmapDrawable
+                    // which will recycle automagically
+                    drawable = new RecyclingBitmapDrawable(mResources, bitmap);
+                }
+
+                if (mImageCache != null) {
+                    mImageCache.addBitmapToCache(dataString, drawable);
+                }
+                
+                if (BuildConfig.DEBUG) {
+                    Log.d(TAG, "doInBackground - finished work");
+                }
+                
+                return drawable.getBitmap();
+                //END_INCLUDE(load_bitmap_in_background)
+            } else {
+                if (BuildConfig.DEBUG) {
+                    Log.d(TAG, "doInBackground - finished work");
+                }
+            	
+            	return null;
+                //END_INCLUDE(load_bitmap_in_background)
+            }
+        }
+    }
+    
+    /**
      * Set placeholder bitmap that shows when the the background thread is running.
      *
      * @param bitmap
@@ -134,6 +231,18 @@ public abstract class ImageWorker {
         new CacheAsyncTask().execute(MESSAGE_INIT_DISK_CACHE);
     }
 
+    /**
+     * Adds an {@link ImageCache} to this {@link ImageWorker} to handle disk and memory bitmap
+     * caching.
+     * @param fragmentManager
+     * @param cacheParams The cache parameters to use for the image cache.
+     */
+    public void addImageCache(ImageCache.ImageCacheParams cacheParams) {
+        mImageCacheParams = cacheParams;
+        mImageCache = ImageCache.getInstance(mImageCacheParams);
+        new CacheAsyncTask().execute(MESSAGE_INIT_DISK_CACHE);
+    }
+    
     /**
      * Adds an {@link ImageCache} to this {@link ImageWorker} to handle disk and memory bitmap
      * caching.

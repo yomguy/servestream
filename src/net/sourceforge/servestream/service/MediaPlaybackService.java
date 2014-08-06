@@ -35,6 +35,7 @@ import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
 import android.database.Cursor;
+import android.graphics.Bitmap;
 import android.media.AudioManager;
 import android.media.AudioManager.OnAudioFocusChangeListener;
 import android.net.Uri;
@@ -61,6 +62,8 @@ import java.util.Vector;
 import net.sourceforge.servestream.R;
 import net.sourceforge.servestream.activity.MediaPlayerActivity;
 import net.sourceforge.servestream.bean.UriBean;
+import net.sourceforge.servestream.bitmap.DatabaseImageResizer;
+import net.sourceforge.servestream.bitmap.ImageCache;
 import net.sourceforge.servestream.media.Metadata;
 import net.sourceforge.servestream.media.MetadataRetrieverTask;
 import net.sourceforge.servestream.media.MultiPlayer;
@@ -135,6 +138,9 @@ public class MediaPlaybackService extends Service implements
 
     public static final String BLUETOOTH_DEVICE_PAIRED = "net.sourceforge.servestream.musicservicecommand.bluetooth_device_paired";
     
+    private static final String NOTIFICATION_IMAGE_CACHE_DIR = "notification_album_art";
+    private static final String LOCK_SCREEN_IMAGE_CACHE_DIR = "lock_screen_album_art";
+    
     public static final int SLEEP_TIMER_OFF = 0;
     
     public static final int TRACK_ENDED = 1;
@@ -200,6 +206,9 @@ public class MediaPlaybackService extends Service implements
     private boolean mRetrieveShoutCastMetadata = false;
     private ShoutCastRetrieverTask mShoutCastRetrieverTask;
     private MetadataRetrieverTask mMetadataRetrieverTask;
+    
+    private DatabaseImageResizer mNotificationImageFetcher;
+    private DatabaseImageResizer mLockScreenImageFetcher;
     
     private Handler mMediaplayerHandler = new Handler() {
         float mCurrentVolume = 1.0f;
@@ -430,6 +439,24 @@ public class MediaPlaybackService extends Service implements
     public void onCreate() {
         super.onCreate();
 
+        int imageThumbSize = getResources().getDimensionPixelSize(R.dimen.image_notification_size);
+        
+        ImageCache.ImageCacheParams cacheParams =
+    			new ImageCache.ImageCacheParams(this, NOTIFICATION_IMAGE_CACHE_DIR);
+
+    	cacheParams.setMemCacheSizePercent(0.25f); // Set memory cache to 25% of app memory
+        
+    	mNotificationImageFetcher = new DatabaseImageResizer(this, imageThumbSize);
+    	mNotificationImageFetcher.addImageCache(cacheParams);
+        
+        cacheParams =
+    			new ImageCache.ImageCacheParams(this, LOCK_SCREEN_IMAGE_CACHE_DIR);
+
+    	cacheParams.setMemCacheSizePercent(0.25f); // Set memory cache to 25% of app memory
+    	
+    	mLockScreenImageFetcher = new DatabaseImageResizer(this, 600);
+    	mLockScreenImageFetcher.addImageCache(cacheParams);
+    	
         mAudioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
         mMediaButtonReceiverComponent = new ComponentName(this, MediaButtonIntentReceiver.class);
         mAudioManager.registerMediaButtonEventReceiver(mMediaButtonReceiverComponent);
@@ -531,7 +558,9 @@ public class MediaPlaybackService extends Service implements
             mUnmountReceiver = null;
         }
     	Utils.deleteAllFiles();
-        MusicUtils.clearAlbumArtCache();
+        
+        mNotificationImageFetcher.closeCache();
+        mLockScreenImageFetcher.closeCache();
         
         super.onDestroy();
     }
@@ -973,7 +1002,7 @@ public class MediaPlaybackService extends Service implements
             metadataEditor.putString(7, getTrackName());
             metadataEditor.putLong(9, getDuration());
             if (mPreferences.getBoolean(PreferenceConstants.RETRIEVE_ALBUM_ART, false)) {
-            	metadataEditor.putBitmap(100, MusicUtils.getCachedBitmapArtwork(this, getTrackId()));
+            	metadataEditor.putBitmap(100, getAlbumArt(false));
             }
             metadataEditor.apply();
         }
@@ -1419,11 +1448,13 @@ public class MediaPlaybackService extends Service implements
 		
         int trackId = getTrackId();
 	    if (mPreferences.getBoolean(PreferenceConstants.RETRIEVE_ALBUM_ART, false) && trackId != -1) {
-	    	status.setLargeIcon(MusicUtils.getNotificationArtwork(this, trackId));
-            status.setSmallIcon(R.drawable.notification_icon);
-	    } else {
-	    	status.setSmallIcon(R.drawable.notification_icon);
+	    	Bitmap bitmap = getAlbumArt(true);
+	    	if (bitmap != null) {
+	        	status.setLargeIcon(bitmap);
+	    	}
 	    }
+	    
+    	status.setSmallIcon(R.drawable.notification_icon);
         
 	    Notification notification = status.build();
 	    
@@ -1484,7 +1515,10 @@ public class MediaPlaybackService extends Service implements
     	
         int trackId = getTrackId();
 	    if (mPreferences.getBoolean(PreferenceConstants.RETRIEVE_ALBUM_ART, false) && trackId != -1) {
-	    	rv.setImageViewBitmap(R.id.coverart, MusicUtils.getNotificationArtwork(this, trackId));
+	    	Bitmap bitmap = getAlbumArt(true);
+	    	if (bitmap != null) {
+	    		rv.setImageViewBitmap(R.id.coverart, bitmap);
+	    	}
 	    }
         
     	// set the text for the notifications
@@ -1521,7 +1555,10 @@ public class MediaPlaybackService extends Service implements
     	
         int trackId = getTrackId();
 	    if (mPreferences.getBoolean(PreferenceConstants.RETRIEVE_ALBUM_ART, false) && trackId != -1) {
-	    	rv.setImageViewBitmap(R.id.coverart, MusicUtils.getNotificationArtwork(this, trackId));
+	    	Bitmap bitmap = getAlbumArt(true);
+	    	if (bitmap != null) {
+	    		rv.setImageViewBitmap(R.id.coverart, bitmap);
+	    	}
 	    }
         
     	// set the text for the notifications
@@ -1986,6 +2023,20 @@ public class MediaPlaybackService extends Service implements
     		}
     		
     		return mCursor.getInt(mCursor.getColumnIndexOrThrow(Media.MediaColumns.DURATION));
+    	}
+    }
+    
+    public Bitmap getAlbumArt(boolean small) {
+    	synchronized(this) {
+    		if (mCursor == null) {
+    		    return null;
+    		}
+    		
+    		if (small) {
+    			return mNotificationImageFetcher.loadImage(getTrackId());
+    		} else {
+    			return mLockScreenImageFetcher.loadImage(getTrackId());
+    		}
     	}
     }
     

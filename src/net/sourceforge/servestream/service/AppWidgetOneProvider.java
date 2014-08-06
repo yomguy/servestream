@@ -21,7 +21,6 @@ import net.sourceforge.servestream.R;
 import net.sourceforge.servestream.activity.MainActivity;
 import net.sourceforge.servestream.activity.MediaPlayerActivity;
 import net.sourceforge.servestream.provider.Media;
-import net.sourceforge.servestream.utils.MusicUtils;
 import android.app.PendingIntent;
 import android.appwidget.AppWidgetManager;
 import android.appwidget.AppWidgetProvider;
@@ -31,6 +30,7 @@ import android.content.Intent;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.support.v4.app.TaskStackBuilder;
 import android.view.View;
 import android.widget.RemoteViews;
 
@@ -52,8 +52,6 @@ public class AppWidgetOneProvider extends AppWidgetProvider {
         return sInstance;
     }
 
-    private long mCoverArtId = -1;
-    
     @Override
     public void onUpdate(Context context, AppWidgetManager appWidgetManager, int[] appWidgetIds) {
         defaultAppWidget(context, appWidgetIds);
@@ -158,16 +156,8 @@ public class AppWidgetOneProvider extends AppWidgetProvider {
             
             views.setImageViewBitmap(R.id.coverart, b);
             
-        	long id = service.getAudioId();
-        	
-        	if (id != mCoverArtId) {
-        		//MusicUtils.clearWidgetArtCache();
-        	}
-        	
-        	if (id >= 0) {
-        		b = MusicUtils.getWidgetArtwork(service, id);
-        		views.setImageViewBitmap(R.id.coverart, b);
-        		mCoverArtId = id;
+        	if (service.getAudioId() >= 0) {
+        		views.setImageViewBitmap(R.id.coverart, service.getAlbumArt(true));
         	}
             
             // Link actions buttons to intents
@@ -191,9 +181,10 @@ public class AppWidgetOneProvider extends AppWidgetProvider {
         final ComponentName serviceName = new ComponentName(context, MediaPlaybackService.class);
         
         if (playerActive) {
-            intent = new Intent(context, MediaPlayerActivity.class);
-            pendingIntent = PendingIntent.getActivity(context,
-                    0 /* no requestCode */, intent, 0 /* no flags */);
+          	TaskStackBuilder stackBuilder = TaskStackBuilder.create(context);
+        	stackBuilder.addNextIntentWithParentStack(new Intent(context, MediaPlayerActivity.class)
+            	.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP));
+        	pendingIntent = stackBuilder.getPendingIntent((int) System.currentTimeMillis(), 0);
             views.setOnClickPendingIntent(R.id.appwidget_two, pendingIntent);
         } else {
             intent = new Intent(context, MainActivity.class);
