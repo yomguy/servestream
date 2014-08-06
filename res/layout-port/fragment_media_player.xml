@@ -34,7 +34,8 @@
             android:id="@+id/album_art"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:scaleType="fitXY" />
+            android:scaleType="fitXY"
+            android:background="@drawable/albumart_mp_unknown" />
 
     </LinearLayout>
 
