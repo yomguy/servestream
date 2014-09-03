@@ -17,7 +17,7 @@
  * limitations under the License.
  */
 -->
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools" >
     
     <style name="Theme.ServeStream.Dark" parent="@style/Theme.AppCompat">
         <item name="android:windowBackground">@android:color/black</item>
@@ -99,6 +99,11 @@
     	
     	<item name="attr/ic_indicator_off">@drawable/ic_indicator_off_light</item>
     	<item name="attr/indicator_clock_onoff">@drawable/indicator_clock_onoff_light</item>
+    	
+    	<item name="android:actionModeCutDrawable" tools:targetApi="11">@drawable/ic_action_cut</item>
+        <item name="android:actionModeCopyDrawable" tools:targetApi="11">@drawable/ic_action_copy</item>
+        <item name="android:actionModePasteDrawable" tools:targetApi="11">@drawable/ic_action_paste</item>
+        <item name="android:actionModeSelectAllDrawable" tools:targetApi="14">@drawable/ic_action_select_all</item>
     </style>
     
 </resources>
