@@ -31,8 +31,8 @@ import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
-import com.google.android.gms.cast.MediaInfo;
-import com.google.android.gms.cast.MediaStatus;
+//import com.google.android.gms.cast.MediaInfo;
+//import com.google.android.gms.cast.MediaStatus;
 
 import net.sourceforge.servestream.R;
 import net.sourceforge.servestream.exceptions.CastException;
@@ -77,7 +77,7 @@ public class MiniController extends RelativeLayout implements IMiniController {
     private Drawable mPauseDrawable;
     private Drawable mPlayDrawable;
     private View mContainer;
-    private int mStreamType = MediaInfo.STREAM_TYPE_BUFFERED;
+    //private int mStreamType = MediaInfo.STREAM_TYPE_BUFFERED;
     private Drawable mStopDrawable;
 
     /**
@@ -122,7 +122,7 @@ public class MiniController extends RelativeLayout implements IMiniController {
 
     @Override
     public void setStreamType(int streamType) {
-        this.mStreamType = streamType;
+        //this.mStreamType = streamType;
     }
 
     private void setupCallbacks() {
@@ -272,7 +272,7 @@ public class MiniController extends RelativeLayout implements IMiniController {
 
     @Override
     public void setPlaybackStatus(int state, int idleReason) {
-        switch (state) {
+        /*switch (state) {
             case MediaStatus.PLAYER_STATE_PLAYING:
                 mPlayPause.setVisibility(View.VISIBLE);
                 mPlayPause.setImageDrawable(getPauseStopButton());
@@ -309,7 +309,7 @@ public class MiniController extends RelativeLayout implements IMiniController {
                 mPlayPause.setVisibility(View.INVISIBLE);
                 setLoadingVisibility(false);
                 break;
-        }
+        }*/
     }
 
     @Override
@@ -333,14 +333,14 @@ public class MiniController extends RelativeLayout implements IMiniController {
     }
 
     private Drawable getPauseStopButton() {
-        switch (mStreamType) {
+        /*switch (mStreamType) {
             case MediaInfo.STREAM_TYPE_BUFFERED:
                 return mPauseDrawable;
             case MediaInfo.STREAM_TYPE_LIVE:
                 return mStopDrawable;
-            default:
+            default:*/
                 return mPauseDrawable;
-        }
+        //}
     }
 
     /**

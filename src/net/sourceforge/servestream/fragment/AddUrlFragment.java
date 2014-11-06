@@ -21,10 +21,10 @@ import java.io.IOException;
 
 import org.xml.sax.SAXException;
 
-import net.sourceforge.jplaylistparser.exception.JPlaylistParserException;
-import net.sourceforge.jplaylistparser.parser.AutoDetectParser;
-import net.sourceforge.jplaylistparser.playlist.Playlist;
-import net.sourceforge.jplaylistparser.playlist.PlaylistEntry;
+import wseemann.media.jplaylistparser.exception.JPlaylistParserException;
+import wseemann.media.jplaylistparser.parser.AutoDetectParser;
+import wseemann.media.jplaylistparser.playlist.Playlist;
+import wseemann.media.jplaylistparser.playlist.PlaylistEntry;
 import net.sourceforge.servestream.R;
 import net.sourceforge.servestream.activity.MainActivity;
 import net.sourceforge.servestream.bean.UriBean;
