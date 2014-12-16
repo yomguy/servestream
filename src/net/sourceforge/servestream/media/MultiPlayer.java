@@ -19,6 +19,8 @@ package net.sourceforge.servestream.media;
 
 import android.content.Context;
 import android.media.MediaPlayer;
+import android.os.Handler;
+import android.os.Message;
 import android.util.Log;
 
 import java.io.IOException;
@@ -41,7 +43,7 @@ import net.sourceforge.servestream.service.MediaPlaybackService;
 public final class MultiPlayer implements HTTPRequestListener {
 	private static final String TAG = MultiPlayer.class.getName();
 	
-	private MultiPlayerListener mListener;
+    private Handler mHandler;
 	
 	private NativePlayer mNativeMediaPlayer = new NativePlayer();
 	private DownloadPlayer mDownloadMediaPlayer;
@@ -57,15 +59,7 @@ public final class MultiPlayer implements HTTPRequestListener {
     }
 
     public MultiPlayer(Context context) {
-    	// Verify that the host activity implements the callback interface
-        try {
-            // Instantiate the MultiPlayerListener so we can send events with it
-            mListener = (MultiPlayerListener) context;
-        } catch (ClassCastException e) {
-            // The activity doesn't implement the interface, throw exception
-            throw new ClassCastException(context.toString()
-                    + " must implement MultiPlayerListener");
-        }
+
     }
     
     public void setDataSource(Context context, long id) {
@@ -115,15 +109,11 @@ public final class MultiPlayer implements HTTPRequestListener {
         } catch (IOException ex) {
         	Log.v(TAG, "Error initializing media player");
             mIsInitialized = false;
-            if (mListener != null) {
-            	mListener.onError(this, 0, 0);
-            }
+            sendErrorMessage(0);
         } catch (IllegalArgumentException ex) {
         	Log.v(TAG, "Error initializing media player");
             mIsInitialized = false;
-            if (mListener != null) {
-            	mListener.onError(this, 0, 0);
-            }
+            sendErrorMessage(0);
         }
     }
         
@@ -163,15 +153,17 @@ public final class MultiPlayer implements HTTPRequestListener {
     public void pause() {
         mMediaPlayer.pause();
     }
-        
+    
+    public void setHandler(Handler handler) {
+        mHandler = handler;
+    }
+    
     private AbstractMediaPlayer.OnPreparedListener onPreparedListener = new AbstractMediaPlayer.OnPreparedListener() {
 		public void onPrepared(AbstractMediaPlayer mp) {
 			Log.i(TAG, "onPreparedListener called");
 			
 	        mIsInitialized = true;
-            if (mListener != null) {
-            	mListener.onPrepared(MultiPlayer.this);
-            }
+	        mHandler.sendEmptyMessage(MediaPlaybackService.PREPARED);
 		}
     };
     
@@ -180,9 +172,7 @@ public final class MultiPlayer implements HTTPRequestListener {
         	Log.i(TAG, "onCompletionListener called");
         	
             if (mIsInitialized) {
-                if (mListener != null) {
-                	mListener.onCompletion(MultiPlayer.this);
-                }
+                mHandler.sendEmptyMessage(MediaPlaybackService.TRACK_ENDED);
             }
         }
     };
@@ -198,15 +188,11 @@ public final class MultiPlayer implements HTTPRequestListener {
             		mNativeMediaPlayer = new NativePlayer();
             		mMediaPlayer = mNativeMediaPlayer;
             		
-                    if (mListener != null) {
-                    	mListener.onError(MultiPlayer.this, MediaPlaybackService.SERVER_DIED, 0);
-                    }
+                    sendErrorMessage(MediaPlaybackService.SERVER_DIED);
             		return true;
             	default:
             		mIsInitialized = false;
-                    if (mListener != null) {
-                    	mListener.onError(MultiPlayer.this, 0, 0);
-                    }
+            		sendErrorMessage(0);
             		break;
             }
             return false;
@@ -218,9 +204,7 @@ public final class MultiPlayer implements HTTPRequestListener {
 		public boolean onInfo(AbstractMediaPlayer mp, int what, int extra) {
 			switch (what) {
 				case AbstractMediaPlayer.MEDIA_INFO_METADATA_UPDATE:
-                    if (mListener != null) {
-                    	mListener.onInfo(MultiPlayer.this, 0, 0);
-                    }
+                    mHandler.sendEmptyMessage(MediaPlaybackService.INFO);
 					return true;
     			default:
     				break;    	
@@ -324,10 +308,9 @@ public final class MultiPlayer implements HTTPRequestListener {
 		setDataSource(null, path, -1, false, useFFmpegPlayer, "");
 	}
 	
-	public interface MultiPlayerListener {
-        void onPrepared(MultiPlayer mp);
-        void onCompletion(MultiPlayer mp);
-        void onError(MultiPlayer mp, int what, int extra);
-        void onInfo(MultiPlayer mp, int what, int extra);
+	private void sendErrorMessage(int arg1) {
+        Message message = mHandler.obtainMessage();
+        message.arg1 = arg1;
+        mHandler.sendMessage(message);
 	}
 }

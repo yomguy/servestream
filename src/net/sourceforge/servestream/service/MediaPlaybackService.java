@@ -45,6 +45,7 @@ import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
 import android.os.SystemClock;
+import android.os.PowerManager.WakeLock;
 import android.preference.PreferenceManager;
 import android.provider.MediaStore;
 import android.support.v4.app.NotificationCompat;
@@ -68,7 +69,6 @@ import net.sourceforge.servestream.media.Metadata;
 import net.sourceforge.servestream.media.MetadataRetrieverTask;
 import net.sourceforge.servestream.media.MultiPlayer;
 import net.sourceforge.servestream.media.MetadataRetrieverListener;
-import net.sourceforge.servestream.media.MultiPlayer.MultiPlayerListener;
 import net.sourceforge.servestream.media.ShoutCastRetrieverTask;
 import net.sourceforge.servestream.provider.Media;
 import net.sourceforge.servestream.receiver.ConnectivityReceiver;
@@ -88,7 +88,6 @@ import net.sourceforge.servestream.utils.Utils;
 public class MediaPlaybackService extends Service implements 
 		OnSharedPreferenceChangeListener,
 		MetadataRetrieverListener,
-		MultiPlayerListener,
 		DetermineActionTask.MusicRetrieverPreparedListener {
 
     /** used to specify whether enqueue() should start playing
@@ -144,11 +143,15 @@ public class MediaPlaybackService extends Service implements
     public static final int SLEEP_TIMER_OFF = 0;
     
     public static final int TRACK_ENDED = 1;
+    private static final int RELEASE_WAKELOCK = 2;
     public static final int SERVER_DIED = 3;
     private static final int FOCUSCHANGE = 4;
     private static final int FADEDOWN = 5;
     private static final int FADEUP = 6;
-    public static final int TRACK_WENT_TO_NEXT = 7;
+    private static final int TRACK_WENT_TO_NEXT = 7;
+    public static final int PREPARED = 8;
+    public static final int ERROR = 9;
+    public static final int INFO = 10;
     private static final int MAX_HISTORY_SIZE = 100;
     
     private MultiPlayer mPlayer;
@@ -175,6 +178,7 @@ public class MediaPlaybackService extends Service implements
     };
     private final static int IDCOLIDX = 0;
     private BroadcastReceiver mUnmountReceiver = null;
+    private WakeLock mWakeLock;
     private int mServiceStartId = -1;
     private boolean mServiceInUse = false;
     private boolean mIsSupposedToBePlaying = false;
@@ -210,10 +214,12 @@ public class MediaPlaybackService extends Service implements
     private DatabaseImageResizer mNotificationImageFetcher;
     private DatabaseImageResizer mLockScreenImageFetcher;
     
+    @SuppressLint("HandlerLeak")
     private Handler mMediaplayerHandler = new Handler() {
         float mCurrentVolume = 1.0f;
         @Override
         public void handleMessage(Message msg) {
+            MusicUtils.debugLog("mMediaplayerHandler.handleMessage " + msg.what);
             switch (msg.what) {
                 case FADEDOWN:
                     mCurrentVolume -= .05f;
@@ -233,6 +239,17 @@ public class MediaPlaybackService extends Service implements
                     }
                     mPlayer.setVolume(mCurrentVolume);
                     break;
+                case SERVER_DIED:
+                    if (mIsSupposedToBePlaying) {
+                        gotoNext(true);
+                    } else {
+                        // the server died when we were idle, so just
+                        // reopen the same song (it will start again
+                        // from the beginning though when the user
+                        // restarts)
+                        openCurrentAndNext();
+                    }
+                    break;
                 case TRACK_WENT_TO_NEXT:
                     mPlayPos = mNextPlayPos;
                     if (mCursor != null) {
@@ -244,7 +261,58 @@ public class MediaPlaybackService extends Service implements
                     updateNotification(false);
                     setNextTrack();
                     break;
+                case TRACK_ENDED:
+                    if (mRepeatMode == REPEAT_CURRENT) {
+                        seek(0);
+                        play();
+                    } else {
+                        gotoNext(false);
+                    }
+                    break;
+                case PREPARED:
+                    Intent i = new Intent("android.media.action.OPEN_AUDIO_EFFECT_CONTROL_SESSION");
+                    i.putExtra("android.media.extra.AUDIO_SESSION", getAudioSessionId());
+                    i.putExtra("android.media.extra.PACKAGE_NAME", getPackageName());
+                    sendBroadcast(i);
+                	removeStickyBroadcast(new Intent(START_DIALOG));
+                    sendBroadcast(new Intent(STOP_DIALOG));
+                    play();
+                    notifyChange(META_CHANGED);
+                    notifyChange(PLAYBACK_STARTED);
                     
+            		if (mRetrieveShoutCastMetadata) {
+            			if (mShoutCastRetrieverTask != null) {
+            				mShoutCastRetrieverTask.stop();
+            				mShoutCastRetrieverTask = null;
+            			}
+            			
+            			mShoutCastRetrieverTask = new ShoutCastRetrieverTask(MediaPlaybackService.this, mPlayList[mPlayPos]);
+            			mShoutCastRetrieverTask.start();
+            		}
+            		break;
+                case ERROR:
+                	int what = msg.arg1;
+            		if (what == SERVER_DIED) {
+            			if (mIsSupposedToBePlaying) {
+            				gotoNext(true);
+                        } else {
+                        	// the server died when we were idle, so just
+                            // reopen the same song (it will start again
+                            // from the beginning though when the user
+                            // restarts)
+                            openCurrentAndNext();
+                        }
+            		} else {
+            			handleError();
+            		}
+            		break;
+                case INFO:
+                   	notifyChange(META_CHANGED);
+                	break;
+                case RELEASE_WAKELOCK:
+                    mWakeLock.release();
+                    break;
+
                 case FOCUSCHANGE:
                     // This code is here so we can better synchronize it with the code that
                     // handles fade-in
@@ -289,61 +357,28 @@ public class MediaPlaybackService extends Service implements
             }
         }
     };
+    
+    @SuppressLint("HandlerLeak")
+    private Handler mInitialMediaplayerHandler = new Handler() {
+        @Override
+        public void handleMessage(Message msg) {
+            MusicUtils.debugLog("mInitialMediaplayerHandler.handleMessage " + msg.what);
+        	mPlayer.setHandler(mMediaplayerHandler);
+            switch (msg.what) {
+                case PREPARED:
+                    Intent i = new Intent("android.media.action.OPEN_AUDIO_EFFECT_CONTROL_SESSION");
+                    i.putExtra("android.media.extra.AUDIO_SESSION", getAudioSessionId());
+                    i.putExtra("android.media.extra.PACKAGE_NAME", getPackageName());
+                    sendBroadcast(i);
+            		break;
+                case ERROR:
+            		break;
 
-    @Override
-	public void onPrepared(MultiPlayer mp) {
-        Intent i = new Intent("android.media.action.OPEN_AUDIO_EFFECT_CONTROL_SESSION");
-        i.putExtra("android.media.extra.AUDIO_SESSION", getAudioSessionId());
-        i.putExtra("android.media.extra.PACKAGE_NAME", getPackageName());
-        sendBroadcast(i);
-    	removeStickyBroadcast(new Intent(START_DIALOG));
-        sendBroadcast(new Intent(STOP_DIALOG));
-        play();
-        notifyChange(META_CHANGED);
-        notifyChange(PLAYBACK_STARTED);
-        
-		if (mRetrieveShoutCastMetadata) {
-			if (mShoutCastRetrieverTask != null) {
-				mShoutCastRetrieverTask.stop();
-				mShoutCastRetrieverTask = null;
-			}
-			
-			mShoutCastRetrieverTask = new ShoutCastRetrieverTask(MediaPlaybackService.this, mPlayList[mPlayPos]);
-			mShoutCastRetrieverTask.start();
-		}
-	}
-
-	@Override
-	public void onCompletion(MultiPlayer mp) {
-        if (mRepeatMode == REPEAT_CURRENT) {
-            seek(0);
-            play();
-        } else {
-            gotoNext(false);
-        }
-	}
-
-	@Override
-	public void onError(MultiPlayer mp, int what, int extra) {
-		if (what == SERVER_DIED) {
-			if (mIsSupposedToBePlaying) {
-				gotoNext(true);
-            } else {
-            	// the server died when we were idle, so just
-                // reopen the same song (it will start again
-                // from the beginning though when the user
-                // restarts)
-                openCurrentAndNext();
+                default:
+                    break;
             }
-		} else {
-			handleError();
-		}
-	}
-
-	@Override
-	public void onInfo(MultiPlayer mp, int what, int extra) {
-    	notifyChange(META_CHANGED);
-	}
+        }
+    };
     
 	/* (non-Javadoc)
 	 * @see android.content.SharedPreferences.OnSharedPreferenceChangeListener#onSharedPreferenceChanged(android.content.SharedPreferences, java.lang.String)
@@ -495,6 +530,7 @@ public class MediaPlaybackService extends Service implements
 
         // Needs to be done in this thread, since otherwise ApplicationContext.getPowerManager() crashes.
         mPlayer = new MultiPlayer(this);
+        mPlayer.setHandler(mMediaplayerHandler);
 
         reloadQueue();
         notifyChange(QUEUE_CHANGED);
@@ -722,11 +758,11 @@ public class MediaPlaybackService extends Service implements
             mQuietMode = true;
             //openCurrentAndNext();
             mQuietMode = false;
-            if (!mPlayer.isInitialized()) {
+            /*if (!mPlayer.isInitialized()) {
                 // couldn't restore the saved state
                 mPlayListLen = 0;
                 return;
-            }
+            }*/
             
             long seekpos = mPreferences.getLong("seekpos", 0);
             seek(seekpos >= 0 && seekpos < duration() ? seekpos : 0);

@@ -19,6 +19,7 @@ package net.sourceforge.servestream.utils;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.util.ArrayList;
@@ -57,6 +58,7 @@ import android.os.AsyncTask;
 import android.os.Handler;
 import android.os.Message;
 import android.os.RemoteException;
+import android.text.format.Time;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -485,5 +487,51 @@ public class MusicUtils {
             c.close();
         }
         return id;
+    }
+    
+    static class LogEntry {
+        Object item;
+        long time;
+
+        LogEntry(Object o) {
+            item = o;
+            time = System.currentTimeMillis();
+        }
+
+        void dump(PrintWriter out) {
+            sTime.set(time);
+            out.print(sTime.toString() + " : ");
+            if (item instanceof Exception) {
+                ((Exception)item).printStackTrace(out);
+            } else {
+                out.println(item);
+            }
+        }
+    }
+    
+    private static LogEntry[] sMusicLog = new LogEntry[100];
+    private static int sLogPtr = 0;
+    private static Time sTime = new Time();
+
+    public static void debugLog(Object o) {
+
+        sMusicLog[sLogPtr] = new LogEntry(o);
+        sLogPtr++;
+        if (sLogPtr >= sMusicLog.length) {
+            sLogPtr = 0;
+        }
+    }
+
+    static void debugDump(PrintWriter out) {
+        for (int i = 0; i < sMusicLog.length; i++) {
+            int idx = (sLogPtr + i);
+            if (idx >= sMusicLog.length) {
+                idx -= sMusicLog.length;
+            }
+            LogEntry entry = sMusicLog[idx];
+            if (entry != null) {
+                entry.dump(out);
+            }
+        }
     }
 }
