@@ -5,12 +5,13 @@
     android:layout_height="wrap_content"
     android:paddingTop="0dp" >
 
-    <ImageView
+    <net.sourceforge.servestream.bitmap.RecyclingImageView
         android:id="@+id/iconView"
         android:layout_width="@dimen/mini_controller_icon_width"
         android:layout_height="@dimen/mini_controller_icon_height"
         android:layout_alignParentLeft="true"
-        android:layout_marginLeft="7dp" />
+        android:layout_marginLeft="7dp"
+        android:src="@drawable/albumart_mp_unknown_list"/>
 
     <ImageView
         android:id="@+id/playPauseView"
@@ -19,7 +20,7 @@
         android:layout_alignParentRight="true"
         android:layout_centerVertical="true"
         android:layout_marginRight="4dp"
-        android:src="?attr/ic_av_pause"/>
+        android:src="?attr/ic_mini_controller_pause"/>
 
     <ProgressBar
         android:id="@+id/loadingView"

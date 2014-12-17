@@ -363,13 +363,21 @@ public class MediaPlaybackService extends Service implements
         @Override
         public void handleMessage(Message msg) {
             MusicUtils.debugLog("mInitialMediaplayerHandler.handleMessage " + msg.what);
-        	mPlayer.setHandler(mMediaplayerHandler);
             switch (msg.what) {
                 case PREPARED:
-                    Intent i = new Intent("android.media.action.OPEN_AUDIO_EFFECT_CONTROL_SESSION");
+                    long seekpos = mPreferences.getLong("seekpos", 0);
+                    seek(seekpos >= 0 && seekpos < duration() ? seekpos : 0);
+                    Log.d(LOGTAG, "restored queue, currently at position "
+                            + position() + "/" + duration()
+                            + " (requested " + seekpos + ")");
+                	
+                	Intent i = new Intent("android.media.action.OPEN_AUDIO_EFFECT_CONTROL_SESSION");
                     i.putExtra("android.media.extra.AUDIO_SESSION", getAudioSessionId());
                     i.putExtra("android.media.extra.PACKAGE_NAME", getPackageName());
                     sendBroadcast(i);
+                	removeStickyBroadcast(new Intent(START_DIALOG));
+                    sendBroadcast(new Intent(STOP_DIALOG));
+                    notifyChange(PLAYSTATE_CHANGED);
             		break;
                 case ERROR:
             		break;
@@ -762,13 +770,13 @@ public class MediaPlaybackService extends Service implements
                 // couldn't restore the saved state
                 mPlayListLen = 0;
                 return;
-            }*/
+            }
             
             long seekpos = mPreferences.getLong("seekpos", 0);
             seek(seekpos >= 0 && seekpos < duration() ? seekpos : 0);
             Log.d(LOGTAG, "restored queue, currently at position "
                     + position() + "/" + duration()
-                    + " (requested " + seekpos + ")");
+                    + " (requested " + seekpos + ")");*/
             
             int repmode = mPreferences.getInt("repeatmode", REPEAT_NONE);
             if (repmode != REPEAT_ALL && repmode != REPEAT_CURRENT) {

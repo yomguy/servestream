@@ -89,12 +89,12 @@ public class MiniControllerFragment extends Fragment implements ServiceConnectio
 	public View onCreateView(LayoutInflater inflater, ViewGroup container,
 			Bundle savedInstanceState) {
 		View view = inflater.inflate(R.layout.fragment_mini_controller, container, false);
-		mNowPlayingView = view.findViewById(R.id.nowplaying);
-		mCoverart = (RecyclingImageView) view.findViewById(R.id.coverart);
-		mTitle = (TextView) view.findViewById(R.id.title);
-		mArtist = (TextView) view.findViewById(R.id.artist);
+		mNowPlayingView = view.findViewById(R.id.miniController1);
+		mCoverart = (RecyclingImageView) view.findViewById(R.id.iconView);
+		mTitle = (TextView) view.findViewById(R.id.titleView);
+		mArtist = (TextView) view.findViewById(R.id.subTitleView);
 		mPreviousButton = (ImageView) view.findViewById(R.id.previous_button);
-		mPauseButton = (ImageView) view.findViewById(R.id.play_pause_button);
+		mPauseButton = (ImageView) view.findViewById(R.id.playPauseView);
 		mNextButton = (ImageView) view.findViewById(R.id.next_button);
 		
 		return view;
@@ -174,7 +174,7 @@ public class MiniControllerFragment extends Fragment implements ServiceConnectio
 				}
 
 				if (id == -1) {
-					mCoverart.setVisibility(View.GONE);
+					//mCoverart.setVisibility(View.GONE);
 				} else {
 					mImageFetcher.loadImage(id, mCoverart);
 					mCoverart.setVisibility(View.VISIBLE);
