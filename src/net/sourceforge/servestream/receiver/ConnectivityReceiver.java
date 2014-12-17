@@ -17,6 +17,8 @@
 
 package net.sourceforge.servestream.receiver;
 
+import java.lang.reflect.Field;
+
 import net.sourceforge.servestream.service.MediaPlaybackService;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -27,7 +29,6 @@ import android.net.NetworkInfo;
 import android.net.NetworkInfo.State;
 import android.net.wifi.WifiManager;
 import android.net.wifi.WifiManager.WifiLock;
-import android.os.Build;
 import android.util.Log;
 
 public class ConnectivityReceiver extends BroadcastReceiver {
@@ -48,10 +49,12 @@ public class ConnectivityReceiver extends BroadcastReceiver {
 		
 		// prevent WIFI throttling when the screen is off
 	    int lockType = WifiManager.WIFI_MODE_FULL;
-	    if (Build.VERSION.SDK_INT >= 12) {
-	    	lockType = 3;
+	    try {
+	    	Field field = wm.getClass().getField("WIFI_MODE_FULL_HIGH_PERF");
+	    	lockType = (Integer) field.get(null);
+	    } catch (Exception ex) {
 	    }
-		
+	    
 		mWifiLock = wm.createWifiLock(lockType, TAG);
 
 		final NetworkInfo info = cm.getActiveNetworkInfo();
@@ -65,7 +68,7 @@ public class ConnectivityReceiver extends BroadcastReceiver {
 		filter.addAction(ConnectivityManager.CONNECTIVITY_ACTION);
 		context.registerReceiver(this, filter);
 	}
-
+	
 	@Override
 	public void onReceive(Context context, Intent intent) {
 		final String action = intent.getAction();
