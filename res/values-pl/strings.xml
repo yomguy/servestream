@@ -1,0 +1,330 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!--
+/*
+ * ServeStream: A HTTP stream browser/player for Android
+ * Copyright 2015 William Seemann
+ * 
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+-->
+
+<resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
+	
+    <!-- Activity titles -->
+    <string name="url_label">Adresy</string>
+    <string name="browse_label">Przeglądaj</string>
+    <string name="settings_label">Ustawienia</string>
+    <string name="add_new_url_label">Dodaj nowy adres</string>
+    <string name="now_playing_label">Odtwarzaj kolejkę</string>
+    <string name="media_player_label">Teraz odtwarzane</string>
+	<string name="alarm_clock_label">Budzik</string>
+	<string name="set_alarm_label">Ustaw alarm</string>
+    
+    <!-- Other -->
+    <string name="devices_label">Urządzenia</string>
+    <string name="autostart_label">Automatyczne uruchamianie</string>
+    <string name="opening_url_message">Otwieranie adresu&#8230;</string>
+    <string name="confirm_label">Potwierdź</string>
+    <string name="cancel_label">Anuluj</string>
+    <string name="store_playlist_entries">Przechowuj pojedyncze elementy listy odtwarzania</string>
+    <string name="unknown_artist_name">Nieznany wykonawca</string>
+    <string name="unknown_album_name">Nieznany album</string>
+    <string name="url_not_opened_message">Adres nie mógł zostać otwarty.</string>
+	<string name="find_barcode_scanner_message">Ta funkcja wymaga skanera kodów kreskowych ZXing. Czy chcesz znaleźć tą aplikację?</string>
+	<string name="donation_successful_message">Dziękujemy za twoją wpłatę!</string>
+    <string name="rate_application">Czy chciałbyś ocenić tą aplikację w sklepie Play? Uwagi mile widziane.</string>
+	<string name="rate_pos">"Tak, zabierz mnie do sklepu"</string>
+	<string name="rate_neg">"Nie i nie pytaj ponownie"</string>
+    <string name="list_menu_backup">Kopia zapasowa</string>
+    <string name="list_menu_effects">Efekty dźwiękowe</string>
+	<string name="list_menu_refresh">Odśwież</string>
+	<string name="list_menu_scan">Skanuj</string>
+	<string name="list_menu_search">Szukaj</string>
+    <string name="list_menu_stop">Stop</string>
+	
+    <!-- Bind -->
+	<string name="bind_never">Nigdy niepołączony</string>
+	<string name="bind_minutes">%1$s minut temu</string>
+	<string name="bind_hours">%1$s godzin temu</string>
+	<string name="bind_days">%1$s dni temu</string>
+
+	<!-- Share messages -->
+	<string name="share_signature">%1$s \n\n\n\nWysłano używając %2$s</string>
+	
+	<!-- Actions on URLs -->
+    <string name="add_to_playlist_label">Dodaj do listy odtwarzania</string>
+    <string name="autostart_on_bluetooth">Automatyczne uruchamianie wraz z bluetooth</string>
+	<string name="edit_label">Edytuj</string>
+	<string name="delete_label">Usuń</string>
+	<string name="save_label">Zapisz</string>
+	<string name="share_label">Udostępnij</string>
+	<string name="view_url_label">Zobacz adres</string>
+	<string name="url_delete_confirmation_msg">Czy napewno chcesz usunąć \'%1$s\'?</string>
+	<string name="url_save_confirmation_msg">Czy napewno chcesz zapisać \'%1$s\'?</string>
+	
+	<!-- Mediaplayer messages -->
+	<string name="buffering_message">Buforowanie. Proszę czekać&#8230;</string>
+    <string name="playback_failed">Przepraszamy, odtwarzacz nie wspiera tego typu pliku multimedialnego.</string>
+    <string name="service_start_error_title">Problem z odtwarzaniem</string>
+    <string name="service_start_error_msg">Przepraszamy, media nie mogły zostać odtworzone.</string>
+    
+	<string name="cannot_play_media_title">Nie można odtworzyć pliku multimedialnego</string>
+	<string name="cannot_play_media_message">Przepraszamy, ten plik nie może zostać odtworzony.</string>
+	
+	<!-- Shuffle -->
+    <string name="shuffle_on_notif">Odtwarzanie losowe jest włączone</string>
+    <string name="shuffle_off_notif">Odtwarzanie losowe jest wyłączone</string>
+
+    <!-- Repeat -->
+    <string name="repeat_off_notif">Powtarzanie jest wyłączone</string>
+    <string name="repeat_current_notif">Powtarzanie aktualnie odtwarzanych multimediów</string>
+    <string name="repeat_all_notif">Powtarzanie wszystkich multimediów</string>
+	
+    <!-- Preferences -->
+    <string name="other_pref">Inne</string>
+    <string name="about_pref">O programie</string>
+    <string name="pref_backup_and_restore">Kopia zapasowa i przywracanie</string>
+    <string name="pref_backup">Utwórz kopię zapasową w pliku JSON</string>
+    <string name="pref_bluetooth_category">Bluetooth</string>
+    <string name="pref_bluetooth_options">Opcje bluetooth</string>
+    <string name="pref_restore">Przywróć z pliku JSON</string>
+    <string name="pref_donate">Wspomóż</string>
+	<string name="pref_general_settings_category">Ustawienia ogólne</string>
+	<string name="pref_playback_category">Ustawienia odtwarzania</string>
+	<string name="pref_network_category">Sieć</string>
+	<string name="pref_social_media_category">Ustawienia portali społecznościowych</string>
+	<string name="pref_ui_category">Interfejs użytkownika</string>
+	<string name="pref_autosave_title">Automatycznie zapisuj adresy</string>
+	<string name="pref_autosave_summary">Automatycznie zapisuj otwierane adresy</string>
+	<string name="pref_headphonepause_title">"Słuchawki powodują pauzę"</string>
+	<string name="pref_headphonepause_summary">"Wstrzymaj odtwarzanie po odłączeniu słuchawek"</string>
+	<string name="pref_progressivedownload_title">"Pobieranie progresywne"</string>
+	<string name="pref_progressivedownload_summary">"Używaj pobierania progresywnego dla odtwarzania"</string>
+	<string name="pref_ffmpegplayer_title">"Używaj odtwarzacza opartego o FFmpeg"</string>
+	<string name="pref_ffmpegplayer_summary">"Używaj odtwarzacza multimedialnego opartego o FFmpeg do odtwarzania"</string>
+	<string name="pref_retrievemetadata_title">"Pobieraj metadane"</string>
+	<string name="pref_retrievemetadata_summary">"Odczytuj i wyświetlaj metadane"</string>
+	<string name="pref_retrievealbumart_title">"Pobieraj okładki"</string>
+	<string name="pref_retrievealbumart_summary">"Wyświetlaj i przechowuj osadzone okładki albumów"</string>
+	<string name="pref_retrieveshoutcastmetadata_title">"Pobieraj metadane SHOUTCAST"</string>
+	<string name="pref_retrieveshoutcastmetadata_summary">"Odczytuj i wyświetlaj metadane dla strumieni SHOUTCAST (eksperymentalne)"</string>
+	<string name="pref_theme_title_light">Jasny</string>
+	<string name="pref_theme_title_dark">Ciemny</string>
+	<string name="pref_useproxy_title">"Używaj serwera proxy"</string>
+	<string name="pref_proxy_title">"Proxy"</string>
+	<string name="pref_sendscrobblerinfo_title">"Scrobblowanie do last.fm"</string>
+	<string name="pref_sendscrobblerinfo_summary">"Włącz scrobblowanie do Last.fm. Wymaga instalacji \"Simple LastFM Scrobbler\" lub \"Scrobble Droid\"."</string>
+	<string name="pref_sendbluetoothmetadata_title">"Wysyłaj metadane"</string>
+	<string name="pref_sendbluetoothmetadata_summary">"Wysyłaj metadane do powiązanych urządzeń bluetooth (Uwaga: to także wyśle dane do aplikacji scrobblujących)"</string>
+	<string name="pref_set_theme_title">Wybierz motyw</string>
+	<string name="pref_set_theme_summary">Zmień wygląd ServeStream</string>
+	<string name="pref_wakelock_title">Wybudzanie ekranu</string>
+	<string name="pref_wakelock_summary">Zapobiegaj wygaszeniu lub wyłączeniu ekranu</string>
+	<string name="pref_wifilock_title">"Utrzymuj aktywność wi-fi"</string>
+	<string name="pref_wifilock_summary">"Zapobiegaj wyłączeniu wi-fi, gdy sesja jest aktywna"</string>
+
+    <!-- Sleep timer -->
+    <string name="set_sleeptimer_label">Wyłącznik czasowy</string>
+    <string name="disable_sleeptimer_label">Wyłączony</string>
+    <string name="enable_sleeptimer_label">Ustaw</string>
+    <string name="sleep_timer_label">Wyłącznik czasowy</string>
+    <string name="sleep_timer_on_notif">Wyłącznik czasowy jest ustawiony na</string>
+    <string name="sleep_timer_off_notif">Wyłącznik czasowy jest wyłączony</string>
+
+    <!-- Stream preferences -->
+	<string name="streampref_nickname_title">Własna nazwa</string>
+	<string name="streampref_connection_category">Ustawienia połączenia</string>
+	<string name="streampref_protocol_title">Protokół</string>
+	<string name="streampref_username_title">Nazwa użytkownika</string>
+	<string name="streampref_password_title">Hasło</string>
+	<string name="streampref_hostname_title">Adres hosta</string>
+	<string name="streampref_port_title">Port</string>
+	<string name="streampref_path_title">Ścieżka</string>
+	<string name="streampref_query_title">Zapytanie</string>
+	<string name="streampref_reference_title">Odniesienie</string>
+
+    <!--  Widget -->
+	<string name="widget_one_track_info_unavailable">"Brak informacji o utworze"</string>
+    
+    <!-- 'Add URL' Activity labels -->
+    <string name="text_url_label">Wpisz adres  strumienia lub serwera tutaj:</string>
+    <string name="error_url_label">Wpisz poprawny adres</string>
+    <string name="text_nickname_label">Wpisz nazwę własną tutaj (opcjonalnie):</string>
+    
+    <!-- Empty list labels -->
+    <string name="no_items_label">Nie ma żadnych elementów na tej liście.</string>
+    <string name="no_urls_label">Nie wprowadziłeś jeszcze żadnych adresów.</string>
+    <string name="no_results_label">Nie znaleziono wyników.</string>
+    <string name="no_paired_devices_label">Nie znaleziono powiązanych urządzeń.</string>
+    
+    <!-- Title for AlarmClock activity -->
+    <string name="alarm_list_title">Alarmy</string>
+
+    <!-- Actions on alarms -->
+    <string name="add_alarm">Dodaj alarm</string>
+    <string name="menu_edit_alarm">Edytuj alarm</string>
+    <string name="delete_alarm">Usuń alarm</string>
+    <string name="enable_alarm">Włącz alarm</string>
+    <string name="disable_alarm">Wyłącz alarm</string>
+    <string name="alarm_delete_confirmation_msg">Ten alarm zostanie usunięty.</string>
+    <string name="done">Gotowe</string>
+    <string name="revert">Cofnij</string>
+    <string name="delete">Usuń</string>
+
+    <!-- Alarm preferences -->
+    <string name="time">Czas</string>
+    <string name="alarm_repeat">Powtarzaj</string>
+    <string name="alert">Dzwonek</string>
+    <string name="silent_alarm_summary">Cichy</string>
+    <string name="alarm_vibrate">Wibracje</string>
+    <string name="label">Etykieta</string>
+    <string name="default_label">Alarm</string>
+    
+    <!-- Alarm alert -->
+    <string name="alarm_alert_dismiss_text">Odrzuć</string>
+    <string name="alarm_alert_alert_silenced">Wyciszono alarm po <xliff:g id="minutes">%d</xliff:g> minutach</string>
+    <string name="alarm_alert_snooze_text">Dżemka</string>
+    <string name="alarm_alert_snooze_set">Dżemka na <xliff:g id="minutes">%d</xliff:g> minut.</string>
+    <string name="alarm_notify_text">Wybierz dżemkę lub odrzucenie alarmu.</string>
+    <string name="alarm_notify_snooze_label"><xliff:g id="label">%s</xliff:g> (dżemka)</string>
+    <string name="alarm_notify_snooze_text">Ustawiono alarm na <xliff:g id="time">%s</xliff:g>. Wybierz, aby anulować.</string>
+    
+    <string-array name="alarm_set">
+        <item>Ten alarm jest ustawiony na mniej niż jedną minutę od teraz.</item>
+        <item>Ten alarm jest ustawiony na <xliff:g id="DAYS" example="2 days">%1$s</xliff:g> od teraz.</item>
+        <item>Ten alarm jest ustawiony na <xliff:g id="HOURS" example="2 hours">%2$s</xliff:g> od teraz.</item>
+        <item>Ten alarm jest ustawiony na <xliff:g id="DAYS" example="2 days">%1$s</xliff:g> i <xliff:g id="HOURS" example="2 hours">%2$s</xliff:g> od teraz.</item>
+        <item>Ten alarm jest ustawiony na <xliff:g id="MINUTES" example="2 minutes">%3$s</xliff:g> od teraz.</item>
+        <item>Ten alarm jest ustawiony na <xliff:g id="DAYS" example="2 days">%1$s</xliff:g> i <xliff:g id="MINUTES" example="2 minutes">%3$s</xliff:g> od teraz.</item>
+        <item>Ten alarm jest ustawiony na <xliff:g id="HOURS" example="2 hours">%2$s</xliff:g> i <xliff:g id="MINUTES" example="2 minutes">%3$s</xliff:g> od teraz.</item>
+        <item>Ten alarm jest ustawiony na <xliff:g id="DAYS" example="2 days">%1$s</xliff:g>, <xliff:g id="HOURS" example="2 hours">%2$s</xliff:g>, i <xliff:g id="MINUTES" example="2 minutes">%3$s</xliff:g> od teraz.</item>
+    </string-array>
+
+    <string name="day">"1 dzień"</string>
+    <string name="days">"<xliff:g id="days">%s</xliff:g> dni"</string>
+    <string name="hour">1 godzina</string>
+    <string name="hours"><xliff:g id="hours">%s</xliff:g> godzin</string>
+    <string name="minute">"1 minuta"</string>
+    <string name="minutes">"<xliff:g id="minutes">%s</xliff:g> minut"</string>
+    <string name="every_day">codziennie</string>
+    <string name="never">Nigdy</string>
+    <string name="day_concat">", "</string>
+
+    <!-- Service descriptions -->
+    <string name="media_service_desc">"Pozwala na odtwarzanie mediów w tle"</string>
+    <string name="alarm_klaxon_service_desc">Usługa odtwarzania dźwięków dla alarmów.</string>
+
+    <!-- Playlist actions -->
+    <string name="remove_from_playlist">Usuń z listy odtwarzania</string>
+    <string name="emptyplaylist">Wybrana lista odtwarzania jest pusta.</string>
+    
+    <!-- Notification actions -->
+    <string name="previous_action_title">Poprzednie</string>
+    <string name="togglepause_action_title">Przełącz pauzę</string>
+    <string name="next_action_title">Następne</string>
+    
+    <plurals name="NNNtrackstoplaylist">
+        <!-- message shown when one song was added -->
+        <item quantity="one">Dodano 1 piosenkę do listy odtwarzania.</item>
+        <!-- message shown when zero or more than one song was added -->
+        <item quantity="other"><xliff:g id="number" example="27">%d</xliff:g> piosenek dodanych do listy odtwarzania.</item>
+        
+        <item quantity="few"></item>
+        <item quantity="many"></item>
+    </plurals>
+    
+    <string name="drawer_open">Otwórz szufladę</string>
+    <string name="drawer_close">Zamknij szufladę</string>
+    
+    <!-- Donation amounts -->
+    <string name="donation_amount">Wybierz kwotę, jaką chcesz podarować </string>
+    
+    <string name="one_dollar">"1 dolar"</string>
+    <string name="four_dollars">"4 dolary"</string>
+    <string name="eight_dollars">"8 dolarów"</string>
+    <string name="twenty_dollars">"20 dolarów"</string>
+    
+    <string name="action_settings">Ustawienia</string>
+    <string name="hello_world">Witaj świecie!</string>
+    <string name="cast_app_name">GoogleCastPlayer</string>
+    <string name="media_route_menu_title">Odtwarzaj przez&#8230;</string>
+    <string name="list_of_videos">Wybierz klip video</string>
+    <string name="casting_to_device">Wyświetlanie na %1$s</string>
+    <string name="ok">OK</string>
+    <string name="no_device">(Brak Wybranego Urządzenia)</string>
+    <string name="error">Błąd</string>
+    <string name="pause">Pauza</string>
+    <string name="play">Odtwarzaj</string>
+    <string name="stop">Stop</string>
+    <string name="mute">Wycisz</string>
+    <string name="unmute">Wyłącz wyciszenie</string>
+    <string name="loading">Ładowanie&#8230;</string>
+    <string name="no_video_found">Nie znaleziono pliku video</string>
+    <string name="about_app">O DemoCast Player</string>
+    <string name="version">Wersja: %1$s</string>
+    <string name="session_reconnection_attempt">Próbuję odzyskać poprzednią sesję&#8230;</string>
+
+    <!-- Error messages -->
+    <string name="failed_to_set_volume">Ustawianie głośności nie powiodło się</string>
+    <string name="failed_to_launch_app">Nie udało się uruchomić aplikacji</string>
+    <string name="failed_to_set_mute">Nie udało się dostosować głośności wyciszenia</string>
+    <string name="failed_to_find_app">Aplikacja, którą próbujesz uruchomić nie jest dostępna na twoim urządzeniu chromecast</string>
+    <string name="failed_app_launch_timeout">Upłynął czas oczekiwania dla twojej prośby o uruchomienie aplikacji!</string>
+    <string name="failed_to_play">Nie udało się uruchomić odtwarzania multimediów</string>
+    <string name="failed_to_pause">Nie udało się wstrzymać odtwarzania multimediów</string>
+    <string name="failed_to_connect">Nie można było połączyć się z urządzeniem</string>
+    <string name="failed_to_seek">Nie udało się przewinąć do określonej pozycji na urządzeniu zdalnym</string>
+    <string name="video_error_media_load_timeout">Upłynął czas oczekiwania na załadowanie multimediów</string>
+    <string name="video_error_server_unaccessible">Serwer multimediów był nieosiągalny</string>
+    <string name="video_error_unknown_error">Nie udało się załadować video</string>
+    <string name="connection_temp_lost">Połączenie z urządzeniem cast jest tymczasowo utracone</string>
+    <string name="connection_recovered">Połączenie z urządzeniem cast zostało odzyskane</string>
+    <string name="connection_lost_retry">Połączenie z urządzeniem cast zostało tymczasowo utracone. Aplikacja próbuje je odzyskać, proszę spróbować później</string>
+    <string name="connection_lost">Nie istnieje połączenie z urządzeniem cast</string>
+    <string name="failed_to_perfrom_action">Przepraszam, napotkałem na problemy wykonując zlecone przez Ciebie zadania</string>
+    <string name="oops">Ups</string>
+
+    <!-- Preferences -->
+    <string name="prefs_header_application">Zachowanie aplikacji</string>
+    <string name="prefs_header_application_summary">Steruj zachowaniem aplikacji na telewizorze</string>
+    <string name="prefs_termination_policy_default">0</string>
+    <string name="prefs_termination_policy_dialog_title">Podczas Rozłączania</string>
+    <string name="prefs_volume_title">Przypisanie Głośności</string>
+    <string name="prefs_volume_title_summary">Kontrolki %1$s</string>
+    <string name="prefs_volume_dialog_title">Przypisanie Głośności</string>
+    <string name="prefs_volume_default">urządzenie</string>
+    <string name="title_activity_test">DziałanieTestowe</string>
+
+    <!-- Tabs -->
+    <string name="tab_videos_title">Video</string>
+    <string name="tab_music_title">Piosenki</string>
+    <string name="tab_photos_title">Zdjęcia</string>
+
+    <!-- One-time help screen -->
+    <string name="showcase_simple_title">Dotknij, by wyświetlić muzykę, zdjęcia i filmy na telewizorze</string>
+    <string name="showcase_simple_message"></string>
+    
+    <!--  Strings for possible PreferenceActivity Back/Next buttons -->
+    <string name="back_button_label">Wstecz</string>
+    <string name="next_button_label">Dalej</string>
+
+    <!-- Optional button to Skip a PreferenceActivity [CHAR LIMIT=20] -->
+    <string name="skip_button_label">Pomiń</string>
+    
+    <!-- Failures -->
+    <string name="failed_no_connection">Nie istnieje połączenie z urządzeniem cast</string>
+    <string name="failed_no_connection_trans">Połączenie z urządzeniem cast zostało utracone. Aplikacja spróbuje je ponownie ustanowić o ile to możliwe. Proszę odczekać kilka sekund i spróbować ponownie.</string>
+    <string name="failed_perform_action">Nie udało się wykonać akcji</string>
+    
+</resources>
+
