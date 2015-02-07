@@ -37,7 +37,4 @@
     <attr name="now_playing_item_color" format="color" />
     
     <attr name="nav_drawer_background" format="color"/>
-    
-    <attr name="ic_indicator_off" format="reference" />
-    <attr name="indicator_clock_onoff" format="reference" />
 </resources>

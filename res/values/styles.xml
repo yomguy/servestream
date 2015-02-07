@@ -55,9 +55,6 @@
     	<item name="attr/divider_horizontal">@android:drawable/divider_horizontal_dark</item>
     	
     	<item name="attr/nav_drawer_background">#3B3B3B</item>
-    	
-    	<item name="attr/ic_indicator_off">@drawable/ic_indicator_off_dark</item>
-    	<item name="attr/indicator_clock_onoff">@drawable/indicator_clock_onoff_dark</item>
     </style>
     
     <style name="Theme.ServeStream.DarkActionBar" parent="@style/Theme.AppCompat.Light.DarkActionBar">
@@ -96,9 +93,6 @@
     	<item name="attr/divider_horizontal">@android:drawable/divider_horizontal_bright</item>
     	
     	<item name="attr/nav_drawer_background">@android:color/white</item>
-    	
-    	<item name="attr/ic_indicator_off">@drawable/ic_indicator_off_light</item>
-    	<item name="attr/indicator_clock_onoff">@drawable/indicator_clock_onoff_light</item>
     	
     	<item name="android:actionModeCutDrawable" tools:targetApi="11">@drawable/ic_action_cut</item>
         <item name="android:actionModeCopyDrawable" tools:targetApi="11">@drawable/ic_action_copy</item>

@@ -39,7 +39,6 @@
     <string name="store_playlist_entries">Store individual playlist entries</string>
     <string name="unknown_artist_name">Unknown artist</string>
     <string name="unknown_album_name">Unknown album</string>
-    <string name="opening_url_message">Opening URL&#8230;</string>
     <string name="url_not_opened_message">The url could not be opened.</string>
 	<string name="find_barcode_scanner_message">This feature requires the ZXing barcode scanner. Find this application?</string>
 	<string name="donation_successful_message">Thank you for your donation!</string>
@@ -60,7 +59,6 @@
 	<string name="bind_days">%1$s days ago</string>
 
 	<!-- Share messages -->
-	<string name="share_label">Share via</string>
 	<string name="share_signature">%1$s \n\n\n\nSent using %2$s</string>
 	
 	<!-- Actions on URLs -->
@@ -71,7 +69,6 @@
 	<string name="save_label">Save</string>
 	<string name="share_label">Share</string>
 	<string name="view_url_label">View URL</string>
-	<string name="url_delete_confirmation_msg">Are you sure you want to delete \'%1$s\'?</string>
 	<string name="url_save_confirmation_msg">Are you sure you want to save \'%1$s\'?</string>
 	
 	<!-- Mediaplayer messages -->

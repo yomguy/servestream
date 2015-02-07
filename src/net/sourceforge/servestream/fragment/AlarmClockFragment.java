@@ -42,7 +42,7 @@ import android.widget.AdapterView.AdapterContextMenuInfo;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.CheckBox;
 import android.widget.CursorAdapter;
-import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -55,7 +55,6 @@ import net.sourceforge.servestream.alarm.Alarm;
 import net.sourceforge.servestream.alarm.Alarms;
 import net.sourceforge.servestream.alarm.DigitalClock;
 import net.sourceforge.servestream.alarm.ToastMaster;
-import net.sourceforge.servestream.utils.Utils;
 
 /**
  * AlarmClock application.
@@ -102,10 +101,8 @@ public class AlarmClockFragment extends ListFragment implements
         getLoaderManager().initLoader(URL_LOADER, null, this);
 	}
 	
-    private void updateIndicatorAndAlarm(boolean enabled, ImageView bar,
+    private void updateIndicatorAndAlarm(boolean enabled,
             Alarm alarm) {
-        bar.setImageResource(enabled ? R.drawable.ic_indicator_on
-                : Utils.getThemedIcon(getActivity(), R.attr.ic_indicator_off));
         Alarms.enableAlarm(getActivity(), alarm.id, enabled);
         if (enabled) {
         	popAlarmSetToast(getActivity(), alarm.hour, alarm.minutes,
@@ -133,12 +130,6 @@ public class AlarmClockFragment extends ListFragment implements
 
             View indicator = view.findViewById(R.id.indicator);
 
-            // Set the initial resource for the bar image.
-            final ImageView barOnOff =
-                    (ImageView) indicator.findViewById(R.id.bar_onoff);
-            barOnOff.setImageResource(alarm.enabled ?
-                    R.drawable.ic_indicator_on : Utils.getThemedIcon(getActivity(), R.attr.ic_indicator_off));
-
             // Set the initial state of the clock "checkbox"
             final CheckBox clockOnOff =
                     (CheckBox) indicator.findViewById(R.id.clock_onoff);
@@ -149,7 +140,7 @@ public class AlarmClockFragment extends ListFragment implements
                     public void onClick(View v) {
                         clockOnOff.toggle();
                         updateIndicatorAndAlarm(clockOnOff.isChecked(),
-                                barOnOff, alarm);
+                                alarm);
                     }
             });
 
@@ -265,7 +256,7 @@ public class AlarmClockFragment extends ListFragment implements
         final String time = Alarms.formatTime(getActivity(), cal);
 
         // Inflate the custom view and set each TextView's text.
-        final View v = mFactory.inflate(R.layout.context_menu_header, null);
+        final View v = mFactory.inflate(R.layout.context_menu_header, new LinearLayout(getActivity()), false);
         TextView textView = (TextView) v.findViewById(R.id.header_time);
         textView.setText(time);
         textView = (TextView) v.findViewById(R.id.header_label);
