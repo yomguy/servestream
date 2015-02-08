@@ -93,9 +93,9 @@ public class MiniControllerFragment extends Fragment implements ServiceConnectio
 		mCoverart = (RecyclingImageView) view.findViewById(R.id.iconView);
 		mTitle = (TextView) view.findViewById(R.id.titleView);
 		mArtist = (TextView) view.findViewById(R.id.subTitleView);
-		mPreviousButton = (ImageView) view.findViewById(R.id.previous_button);
+		mPreviousButton = (ImageView) view.findViewById(R.id.previousView);
 		mPauseButton = (ImageView) view.findViewById(R.id.playPauseView);
-		mNextButton = (ImageView) view.findViewById(R.id.next_button);
+		mNextButton = (ImageView) view.findViewById(R.id.nextView);
 		
 		return view;
 	}

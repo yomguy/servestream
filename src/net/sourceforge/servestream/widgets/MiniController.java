@@ -21,7 +21,6 @@ import net.sourceforge.servestream.R;
 import android.content.Context;
 import android.util.AttributeSet;
 import android.view.LayoutInflater;
-import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 
 /**
