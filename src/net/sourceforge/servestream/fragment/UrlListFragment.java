@@ -185,7 +185,9 @@ public class UrlListFragment extends ListFragment implements
 					for (int i = 0; i < checked.size(); i++) {
 			            if (checked.valueAt(i)) {
 			            	View v = getListView().getChildAt(checked.keyAt(i));
-			            	v.setBackgroundColor(getActivity().getResources().getColor(R.color.selection_background_color_light));
+			            	if (v != null) {
+			            		v.setBackgroundColor(getActivity().getResources().getColor(R.color.selection_background_color_light));
+			            	}
 			            }
 			        }
 					
@@ -562,8 +564,10 @@ public class UrlListFragment extends ListFragment implements
 	        
 	        for (int i = 0; i < getListView().getCount(); i++) {
 	        	View view = getListView().getChildAt(i);
-	            view.setBackgroundResource(0);
-            	getListView().setItemChecked(i, false);
+	        	if (view != null) {
+	        		view.setBackgroundResource(0);
+	        		getListView().setItemChecked(i, false);
+	        	}
 	        }
             
 	        mAdapter.notifyDataSetChanged();
