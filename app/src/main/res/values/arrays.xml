@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
+    
+    <string-array name="drawer_items">
+        <item>@string/url_label</item>
+        <item>@string/browse_label</item>
+        <item>@string/alarm_clock_label</item>
+    </string-array>
+    
+    <string-array name="donation_amounts">
+        <item>@string/one_dollar</item>
+        <item>@string/four_dollars</item>
+        <item>@string/eight_dollars</item>
+        <item>@string/twenty_dollars</item>
+    </string-array>
+    
+    <string-array name="theme_options">
+        <item>@string/pref_theme_title_light</item>
+        <item>@string/pref_theme_title_dark</item>
+    </string-array>
+
+    <string-array name="theme_values">
+        <item>0</item>
+        <item>1</item>
+    </string-array>
+    
+</resources>
